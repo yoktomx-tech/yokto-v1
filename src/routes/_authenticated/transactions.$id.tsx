@@ -223,7 +223,7 @@ function TxDetail() {
           )}
 
           {/* Actions */}
-          <div className="mt-8 border border-yokto-black bg-yokto-cream/40 p-5 flex flex-wrap gap-3">
+          <div className="mt-8 border border-yo-border bg-yo-bg/40 p-5 flex flex-wrap gap-3">
             {tx.status === "draft" && isBuyer && (
               <>
                 <button disabled={busy} onClick={() => updateStatus("awaiting_funding")} className={btnPrimary}>Publicar y solicitar fondeo</button>
@@ -262,9 +262,9 @@ function TxDetail() {
           {activeIntent && (
             <section className="mt-10">
               <h2 className="font-display text-3xl tracking-wide">Instrucciones de fondeo</h2>
-              <div className="mt-4 border border-yokto-black bg-background p-5 space-y-4">
+              <div className="mt-4 border border-yo-border bg-background p-5 space-y-4">
                 <div className="flex flex-wrap gap-2 items-center">
-                  <span className="text-[11px] uppercase tracking-[0.14em] bg-yokto-yellow border border-yokto-black px-2 py-1">{activeIntent.method.toUpperCase()}</span>
+                  <span className="text-[11px] uppercase tracking-[0.14em] bg-yokto-yellow border border-yo-border px-2 py-1">{activeIntent.method.toUpperCase()}</span>
                   <span className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">Proveedor: {activeIntent.provider}</span>
                   <span className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">Ref: {activeIntent.provider_ref}</span>
                 </div>
@@ -299,7 +299,7 @@ function TxDetail() {
           {payouts.length > 0 && (
             <section className="mt-10">
               <h2 className="font-display text-3xl tracking-wide">Liberación de fondos</h2>
-              <div className="mt-4 border border-yokto-black bg-background divide-y divide-yokto-black/20">
+              <div className="mt-4 border border-yo-border bg-background divide-y divide-yokto-black/20">
                 {payouts.map((p) => (
                   <div key={p.id} className="p-4 grid grid-cols-2 md:grid-cols-5 gap-3 text-sm">
                     <div><p className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">Bruto</p><p>{formatMoney(p.gross_cents, p.currency)}</p></div>
@@ -316,14 +316,14 @@ function TxDetail() {
           {/* Conditions */}
           <section className="mt-10">
             <h2 className="font-display text-3xl tracking-wide">Condiciones de liberación</h2>
-            <div className="mt-4 border border-yokto-black bg-background divide-y divide-yokto-black/20">
+            <div className="mt-4 border border-yo-border bg-background divide-y divide-yokto-black/20">
               {conds.length === 0 && <p className="p-5 text-sm text-muted-foreground">Sin condiciones registradas.</p>}
               {conds.map((c) => (
                 <div key={c.id} className="p-4 flex items-start gap-4">
                   <button
                     disabled={busy || !(isBuyer || isSeller) || tx.status === "released" || tx.status === "cancelled" || tx.status === "refunded"}
                     onClick={() => toggleCondition(c)}
-                    className={`mt-0.5 size-6 border border-yokto-black grid place-items-center ${c.status === "met" ? "bg-yokto-yellow" : "bg-background"} disabled:opacity-50`}
+                    className={`mt-0.5 size-6 border border-yo-border grid place-items-center ${c.status === "met" ? "bg-yokto-yellow" : "bg-background"} disabled:opacity-50`}
                     aria-label="Marcar condición"
                   >
                     {c.status === "met" && <span className="font-mono text-sm">✓</span>}
@@ -340,7 +340,7 @@ function TxDetail() {
           {/* Timeline */}
           <section className="mt-10">
             <h2 className="font-display text-3xl tracking-wide">Bitácora</h2>
-            <div className="mt-4 border border-yokto-black bg-background">
+            <div className="mt-4 border border-yo-border bg-background">
               {events.length === 0 && <p className="p-5 text-sm text-muted-foreground">Sin eventos.</p>}
               <ul className="divide-y divide-yokto-black/20">
                 {events.map((e) => (
@@ -359,7 +359,7 @@ function TxDetail() {
 
       {disputeOpen && (
         <div className="fixed inset-0 z-50 bg-black/50 grid place-items-center p-4" onClick={() => setDisputeOpen(false)}>
-          <div className="w-full max-w-lg border border-yokto-black bg-background p-6" onClick={(e) => e.stopPropagation()}>
+          <div className="w-full max-w-lg border border-yo-border bg-background p-6" onClick={(e) => e.stopPropagation()}>
             <h3 className="font-display text-3xl tracking-wide">Abrir disputa</h3>
             <p className="mt-1 text-sm text-muted-foreground">Detalla el problema con evidencia clara. Un mediador de YOKTO revisará el caso.</p>
             <div className="mt-5 space-y-4">
@@ -391,13 +391,13 @@ function TxDetail() {
   );
 }
 
-const btnPrimary = "px-5 py-2.5 bg-yokto-yellow text-yokto-black text-[12px] uppercase tracking-[0.14em] font-semibold border border-yokto-black hover:bg-yokto-black hover:text-yokto-yellow disabled:opacity-50";
-const btnGhost = "px-5 py-2.5 border border-yokto-black text-[12px] uppercase tracking-[0.14em] font-semibold hover:bg-yokto-black hover:text-yokto-cream disabled:opacity-50";
+const btnPrimary = "px-5 py-2.5 bg-yokto-yellow text-yokto-black text-[12px] uppercase tracking-[0.14em] font-semibold border border-yo-border hover:bg-yo-ac-h hover:text-yokto-yellow disabled:opacity-50";
+const btnGhost = "px-5 py-2.5 border border-yo-border text-[12px] uppercase tracking-[0.14em] font-semibold hover:bg-yo-ac-h hover:text-yokto-cream disabled:opacity-50";
 const btnDanger = "px-5 py-2.5 border border-[#FF3B3B] text-[#FF3B3B] text-[12px] uppercase tracking-[0.14em] font-semibold hover:bg-[#FF3B3B] hover:text-yokto-cream disabled:opacity-50";
 
 function Cell({ label, value, big }: { label: string; value: string; big?: boolean }) {
   return (
-    <div className="border border-yokto-black p-4 bg-background">
+    <div className="border border-yo-border p-4 bg-background">
       <p className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">{label}</p>
       <p className={`mt-1 font-display tracking-wide text-foreground break-all ${big ? "text-3xl" : "text-xl"}`}>{value}</p>
     </div>

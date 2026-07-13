@@ -22,15 +22,15 @@ export const STATUS_LABEL: Record<TxStatus, string> = {
 };
 
 export const STATUS_ACCENT: Record<TxStatus, string> = {
-  draft: "bg-yokto-cream border-yokto-black text-foreground",
-  awaiting_funding: "bg-background border-yokto-black text-foreground",
-  funded: "bg-yokto-yellow border-yokto-black text-yokto-black",
-  in_progress: "bg-yokto-yellow border-yokto-black text-yokto-black",
-  conditions_met: "bg-yokto-yellow border-yokto-black text-yokto-black",
-  released: "bg-yokto-black border-yokto-black text-yokto-cream",
-  disputed: "bg-[#FF3B3B] border-yokto-black text-yokto-cream",
-  cancelled: "bg-background border-yokto-black text-muted-foreground",
-  refunded: "bg-background border-yokto-black text-muted-foreground",
+  draft: "bg-yo-bg border-yo-border text-foreground",
+  awaiting_funding: "bg-background border-yo-border text-foreground",
+  funded: "bg-yokto-yellow border-yo-border text-yokto-black",
+  in_progress: "bg-yokto-yellow border-yo-border text-yokto-black",
+  conditions_met: "bg-yokto-yellow border-yo-border text-yokto-black",
+  released: "bg-yo-ac border-yo-border text-yokto-cream",
+  disputed: "bg-[#FF3B3B] border-yo-border text-yokto-cream",
+  cancelled: "bg-background border-yo-border text-muted-foreground",
+  refunded: "bg-background border-yo-border text-muted-foreground",
 };
 
 export const SECTORS = [

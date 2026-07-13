@@ -52,8 +52,8 @@ export function NotificationsBell({ userId }: { userId: string }) {
         )}
       </button>
       {open && (
-        <div className="absolute right-0 mt-2 w-80 max-h-[70vh] overflow-auto border border-yokto-black bg-background shadow-lg z-50">
-          <div className="flex items-center justify-between p-3 border-b border-yokto-black/20">
+        <div className="absolute right-0 mt-2 w-80 max-h-[70vh] overflow-auto border border-yo-border bg-background shadow-lg z-50">
+          <div className="flex items-center justify-between p-3 border-b border-yo-border/20">
             <span className="text-[11px] uppercase tracking-[0.14em] font-semibold">Notificaciones</span>
             {unread > 0 && (
               <button onClick={markAll} className="text-[11px] uppercase tracking-[0.14em] underline underline-offset-4">Marcar leídas</button>
@@ -64,7 +64,7 @@ export function NotificationsBell({ userId }: { userId: string }) {
             {items.map((n) => (
               <li key={n.id} className={n.read_at ? "opacity-60" : ""}>
                 {n.link ? (
-                  <a href={n.link} onClick={() => setOpen(false)} className="block p-3 hover:bg-yokto-cream/40">
+                  <a href={n.link} onClick={() => setOpen(false)} className="block p-3 hover:bg-yo-bg/40">
                     <p className="text-sm font-semibold">{n.title}</p>
                     {n.body && <p className="mt-1 text-xs text-muted-foreground">{n.body}</p>}
                     <p className="mt-1 text-[11px] text-muted-foreground">{new Date(n.created_at).toLocaleString("es-MX")}</p>

@@ -10,7 +10,7 @@ function Index() {
   return (
     <PageShell>
       {/* HERO */}
-      <section className="border-b border-yokto-black/90">
+      <section className="border-b border-yo-border/90">
         <div className="container-editorial pt-16 pb-24 md:pt-20 md:pb-32">
           <p className="text-[11px] uppercase tracking-[0.32em] text-yokto-black font-semibold">
             <span className="inline-block size-1.5 bg-yokto-yellow mr-2 -translate-y-[2px]" />
@@ -33,13 +33,13 @@ function Index() {
               <div className="flex flex-wrap items-center gap-3">
                 <Link
                   to="/contacto"
-                  className="inline-flex items-center gap-2 px-6 py-3.5 bg-yokto-yellow text-yokto-black text-[13px] uppercase tracking-[0.16em] font-semibold border border-yokto-black transition hover:bg-yokto-black hover:text-yokto-yellow"
+                  className="inline-flex items-center gap-2 px-6 py-3.5 bg-yokto-yellow text-yokto-black text-[13px] uppercase tracking-[0.16em] font-semibold border border-yo-border transition hover:bg-yo-ac-h hover:text-yokto-yellow"
                 >
                   Solicitar acceso <ArrowRight className="size-4" />
                 </Link>
                 <Link
                   to="/como-funciona"
-                  className="inline-flex items-center gap-2 px-6 py-3.5 border border-yokto-black text-[13px] uppercase tracking-[0.16em] font-semibold text-foreground hover:bg-yokto-black hover:text-yokto-cream"
+                  className="inline-flex items-center gap-2 px-6 py-3.5 border border-yo-border text-[13px] uppercase tracking-[0.16em] font-semibold text-foreground hover:bg-yo-ac-h hover:text-yokto-cream"
                 >
                   Cómo funciona
                 </Link>
@@ -50,7 +50,7 @@ function Index() {
       </section>
 
       {/* METRIC STRIP */}
-      <section className="border-b border-yokto-black/90 bg-yokto-black text-yokto-cream">
+      <section className="border-b border-yo-border/90 bg-yo-ac text-yokto-cream">
         <div className="container-editorial py-10 grid grid-cols-2 md:grid-cols-4 divide-x divide-yokto-cream/15">
           {[
             ["Pasarelas", "Stripe · SPEI"],
@@ -94,7 +94,7 @@ function Index() {
       </section>
 
       {/* CÓMO FUNCIONA — 4 PASOS */}
-      <section className="border-y border-yokto-black/90 bg-muted">
+      <section className="border-y border-yo-border/90 bg-muted">
         <div className="container-editorial py-24">
           <div className="max-w-3xl">
             <p className="text-[11px] uppercase tracking-[0.24em] text-yokto-black font-semibold">
@@ -106,7 +106,7 @@ function Index() {
             </h2>
           </div>
 
-          <ol className="mt-14 grid gap-0 md:grid-cols-4 border border-yokto-black bg-background">
+          <ol className="mt-14 grid gap-0 md:grid-cols-4 border border-yo-border bg-background">
             {[
               { n: "01", t: "Acuerdo", d: "Comprador y vendedor definen monto, plazo y condiciones de cumplimiento verificables." },
               { n: "02", t: "Depósito", d: "Depósito vía Stripe o SPEI. Los fondos quedan retenidos en la pasarela certificada." },
@@ -115,7 +115,7 @@ function Index() {
             ].map((s, i) => (
               <li
                 key={s.n}
-                className={`p-8 flex flex-col gap-4 ${i < 3 ? "md:border-r border-yokto-black" : ""} ${i < 2 ? "border-b md:border-b-0" : ""}`}
+                className={`p-8 flex flex-col gap-4 ${i < 3 ? "md:border-r border-yo-border" : ""} ${i < 2 ? "border-b md:border-b-0" : ""}`}
               >
                 <span className="font-display text-4xl text-yokto-black">{s.n}</span>
                 <h3 className="font-display text-3xl text-foreground">{s.t}</h3>
@@ -128,7 +128,7 @@ function Index() {
 
       {/* PILARES */}
       <section>
-        <div className="container-editorial py-24 grid gap-0 md:grid-cols-2 lg:grid-cols-4 border border-yokto-black">
+        <div className="container-editorial py-24 grid gap-0 md:grid-cols-2 lg:grid-cols-4 border border-yo-border">
           {[
             { icon: ShieldCheck, t: "Neutralidad", d: "No representamos a comprador ni vendedor. Solo somos el mecanismo de retención y liberación." },
             { icon: Landmark, t: "Sin custodia", d: "Los fondos viven en pasarelas certificadas (Stripe Connect, SPEI). YOKTO nunca los toca." },
@@ -137,9 +137,9 @@ function Index() {
           ].map(({ icon: Icon, t, d }, i) => (
             <div
               key={t}
-              className={`p-8 ${i < 3 ? "lg:border-r border-yokto-black" : ""} ${i < 2 ? "border-b lg:border-b-0 border-yokto-black" : ""} ${i === 1 ? "md:border-r-0 lg:border-r border-yokto-black" : ""}`}
+              className={`p-8 ${i < 3 ? "lg:border-r border-yo-border" : ""} ${i < 2 ? "border-b lg:border-b-0 border-yo-border" : ""} ${i === 1 ? "md:border-r-0 lg:border-r border-yo-border" : ""}`}
             >
-              <div className="grid place-items-center size-10 border border-yokto-black">
+              <div className="grid place-items-center size-10 border border-yo-border">
                 <Icon className="size-5 text-yokto-black" />
               </div>
               <h3 className="mt-5 font-display text-3xl text-foreground">{t}</h3>
@@ -152,7 +152,7 @@ function Index() {
       {/* CTA final */}
       <section>
         <div className="container-editorial py-20">
-          <div className="bg-yokto-black text-yokto-cream border border-yokto-black p-10 md:p-16 grid md:grid-cols-12 gap-8 items-end">
+          <div className="bg-yo-ac text-yokto-cream border border-yo-border p-10 md:p-16 grid md:grid-cols-12 gap-8 items-end">
             <div className="md:col-span-8">
               <p className="text-[11px] uppercase tracking-[0.28em] text-yokto-yellow font-semibold">
                 Acceso anticipado
@@ -164,13 +164,13 @@ function Index() {
             <div className="md:col-span-4 flex flex-wrap gap-3 md:justify-end">
               <Link
                 to="/contacto"
-                className="inline-flex items-center gap-2 px-6 py-3.5 bg-yokto-yellow text-yokto-black text-[13px] uppercase tracking-[0.16em] font-semibold border border-yokto-yellow hover:bg-yokto-cream hover:border-yokto-cream"
+                className="inline-flex items-center gap-2 px-6 py-3.5 bg-yokto-yellow text-yokto-black text-[13px] uppercase tracking-[0.16em] font-semibold border border-yokto-yellow hover:bg-yo-bg hover:border-yokto-cream"
               >
                 Solicitar acceso <ArrowRight className="size-4" />
               </Link>
               <Link
                 to="/precios"
-                className="inline-flex items-center gap-2 px-6 py-3.5 border border-yokto-cream/30 text-[13px] uppercase tracking-[0.16em] font-semibold hover:bg-yokto-cream/10"
+                className="inline-flex items-center gap-2 px-6 py-3.5 border border-yokto-cream/30 text-[13px] uppercase tracking-[0.16em] font-semibold hover:bg-yo-bg/10"
               >
                 Ver precios
               </Link>

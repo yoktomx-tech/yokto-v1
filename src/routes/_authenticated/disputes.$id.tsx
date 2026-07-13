@@ -135,13 +135,13 @@ function DisputeDetail() {
             <Kv k="Abierta por" v={d.opened_role} />
             <Kv k="Monto disputado" v={formatMoney(d.amount_disputed_cents, tx.currency)} />
           </div>
-          <div className="mt-4 border border-yokto-black p-4 bg-yokto-cream/40">
+          <div className="mt-4 border border-yo-border p-4 bg-yo-bg/40">
             <p className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">Descripción</p>
             <p className="mt-1 text-sm whitespace-pre-line">{d.reason_description}</p>
           </div>
 
           {d.status === "resolved" && (
-            <div className="mt-6 border border-yokto-black bg-yokto-yellow/40 p-5">
+            <div className="mt-6 border border-yo-border bg-yokto-yellow/40 p-5">
               <p className="text-[11px] uppercase tracking-[0.14em] font-semibold">Resolución · {d.resolution}</p>
               <p className="mt-2 text-sm whitespace-pre-line">{d.resolution_notes}</p>
               <div className="mt-3 grid grid-cols-2 gap-3 text-sm">
@@ -156,7 +156,7 @@ function DisputeDetail() {
           {/* Thread */}
           <section className="mt-10">
             <h2 className="font-display text-3xl tracking-wide">Hilo</h2>
-            <div className="mt-4 border border-yokto-black bg-background divide-y divide-yokto-black/20">
+            <div className="mt-4 border border-yo-border bg-background divide-y divide-yokto-black/20">
               {msgs.length === 0 && <p className="p-4 text-sm text-muted-foreground">Sin mensajes todavía.</p>}
               {msgs.map((m) => (
                 <div key={m.id} className="p-4">
@@ -181,7 +181,7 @@ function DisputeDetail() {
             </div>
 
             {canPost && (
-              <div className="mt-4 border border-yokto-black bg-background p-4 space-y-3">
+              <div className="mt-4 border border-yo-border bg-background p-4 space-y-3">
                 <textarea
                   value={body}
                   onChange={(e) => setBody(e.target.value)}
@@ -198,7 +198,7 @@ function DisputeDetail() {
                   className="text-sm"
                 />
                 <div className="flex gap-2">
-                  <button disabled={busy} onClick={handleSend} className="px-5 py-2.5 bg-yokto-yellow text-yokto-black text-[12px] uppercase tracking-[0.14em] font-semibold border border-yokto-black disabled:opacity-50">
+                  <button disabled={busy} onClick={handleSend} className="px-5 py-2.5 bg-yokto-yellow text-yokto-black text-[12px] uppercase tracking-[0.14em] font-semibold border border-yo-border disabled:opacity-50">
                     {busy ? "Enviando…" : "Enviar mensaje"}
                   </button>
                 </div>
@@ -255,10 +255,10 @@ function ResolvePanel({ dispute, onResolved, resolveFn }: {
   return (
     <section className="mt-10">
       <h2 className="font-display text-3xl tracking-wide">Panel de mediación</h2>
-      <div className="mt-4 border border-yokto-black bg-yokto-cream/40 p-5 space-y-4">
+      <div className="mt-4 border border-yo-border bg-yo-bg/40 p-5 space-y-4">
         <div className="flex flex-wrap gap-2">
           {(["buyer_favor", "seller_favor", "split", "no_resolution"] as const).map((r) => (
-            <button key={r} onClick={() => preset(r)} className={`px-3 py-2 text-[11px] uppercase tracking-[0.14em] border border-yokto-black ${resolution === r ? "bg-yokto-black text-yokto-cream" : "bg-background"}`}>
+            <button key={r} onClick={() => preset(r)} className={`px-3 py-2 text-[11px] uppercase tracking-[0.14em] border border-yo-border ${resolution === r ? "bg-yo-ac text-yokto-cream" : "bg-background"}`}>
               {r}
             </button>
           ))}
@@ -287,7 +287,7 @@ function ResolvePanel({ dispute, onResolved, resolveFn }: {
           <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={4} className="input-editorial w-full mt-1" />
         </label>
         {err && <div role="alert" className="border border-[#FF3B3B] bg-[#FF3B3B]/10 text-[#FF3B3B] p-3 text-sm">{err}</div>}
-        <button disabled={busy || notes.length < 10} onClick={submit} className="px-5 py-2.5 bg-yokto-yellow text-yokto-black text-[12px] uppercase tracking-[0.14em] font-semibold border border-yokto-black disabled:opacity-50">
+        <button disabled={busy || notes.length < 10} onClick={submit} className="px-5 py-2.5 bg-yokto-yellow text-yokto-black text-[12px] uppercase tracking-[0.14em] font-semibold border border-yo-border disabled:opacity-50">
           {busy ? "Resolviendo…" : "Resolver disputa"}
         </button>
       </div>
@@ -297,7 +297,7 @@ function ResolvePanel({ dispute, onResolved, resolveFn }: {
 
 function Kv({ k, v }: { k: string; v: string }) {
   return (
-    <div className="border border-yokto-black p-3 bg-background">
+    <div className="border border-yo-border p-3 bg-background">
       <p className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">{k}</p>
       <p className="mt-1 font-mono text-sm">{v}</p>
     </div>

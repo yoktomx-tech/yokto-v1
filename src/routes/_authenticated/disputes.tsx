@@ -62,7 +62,7 @@ function DisputesList() {
           <h1 className="mt-1 font-display text-5xl tracking-wide">Disputas</h1>
           <p className="mt-3 text-muted-foreground max-w-2xl">Canal formal cuando una transacción no puede resolverse entre las partes. Mediación por YOKTO con evidencia documentada.</p>
 
-          <div className="mt-8 border border-yokto-black bg-background">
+          <div className="mt-8 border border-yo-border bg-background">
             {loading && <p className="p-6 text-sm text-muted-foreground">Cargando…</p>}
             {!loading && rows.length === 0 && (
               <p className="p-6 text-sm text-muted-foreground">No tienes disputas abiertas.</p>
@@ -72,7 +72,7 @@ function DisputesList() {
                 const role = r.transactions?.buyer_id === user.id ? "Comprador" : r.transactions?.seller_id === user.id ? "Vendedor" : "Mediador";
                 return (
                   <li key={r.id}>
-                    <Link to="/disputes/$id" params={{ id: r.id }} className="block p-5 hover:bg-yokto-cream/40">
+                    <Link to="/disputes/$id" params={{ id: r.id }} className="block p-5 hover:bg-yo-bg/40">
                       <div className="flex items-center justify-between gap-4">
                         <div className="min-w-0">
                           <p className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">{REASON_LABEL[r.reason_code]} · {role}</p>
@@ -80,7 +80,7 @@ function DisputesList() {
                           <p className="mt-1 text-xs text-muted-foreground">{new Date(r.created_at).toLocaleString("es-MX")}</p>
                         </div>
                         <div className="text-right shrink-0">
-                          <span className={`inline-block px-3 py-1.5 text-[11px] uppercase tracking-[0.14em] border border-yokto-black ${r.status === "resolved" ? "bg-yokto-yellow" : r.status === "open" ? "bg-[#FF3B3B] text-yokto-cream" : "bg-background"}`}>
+                          <span className={`inline-block px-3 py-1.5 text-[11px] uppercase tracking-[0.14em] border border-yo-border ${r.status === "resolved" ? "bg-yokto-yellow" : r.status === "open" ? "bg-[#FF3B3B] text-yokto-cream" : "bg-background"}`}>
                             {STATUS_LABEL[r.status]}
                           </span>
                           <p className="mt-2 font-mono text-sm">{formatMoney(r.amount_disputed_cents, r.transactions?.currency ?? "MXN")}</p>

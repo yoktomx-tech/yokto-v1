@@ -147,7 +147,7 @@ function NewTransaction() {
             </p>
             <Link
               to="/kyc"
-              className="mt-6 inline-flex items-center px-5 py-2.5 bg-yokto-yellow text-yokto-black text-[12px] uppercase tracking-[0.14em] font-semibold border border-yokto-black"
+              className="mt-6 inline-flex items-center px-5 py-2.5 bg-yokto-yellow text-yokto-black text-[12px] uppercase tracking-[0.14em] font-semibold border border-yo-border"
             >
               Ir a KYC
             </Link>
@@ -172,7 +172,7 @@ function NewTransaction() {
 
           <div className="mt-6 flex gap-1">
             {[1, 2, 3, 4].map((n) => (
-              <div key={n} className={`h-1.5 flex-1 border border-yokto-black ${n <= step ? "bg-yokto-yellow" : "bg-background"}`} />
+              <div key={n} className={`h-1.5 flex-1 border border-yo-border ${n <= step ? "bg-yokto-yellow" : "bg-background"}`} />
             ))}
           </div>
 
@@ -180,7 +180,7 @@ function NewTransaction() {
             <div className="mt-6 border border-[#FF3B3B] bg-[#FF3B3B]/10 p-3 text-sm text-[#FF3B3B]">{error}</div>
           )}
 
-          <div className="mt-8 border border-yokto-black bg-background p-6 md:p-8 space-y-5">
+          <div className="mt-8 border border-yo-border bg-background p-6 md:p-8 space-y-5">
             {step === 1 && (
               <>
                 <Field label="Correo del vendedor / contraparte">
@@ -288,7 +288,7 @@ function NewTransaction() {
                 <div className="space-y-3">
                   {form.conditions.map((c, i) => (
                     <div key={i} className="flex gap-2">
-                      <span className="w-8 h-10 grid place-items-center border border-yokto-black bg-yokto-cream font-mono text-sm">{i + 1}</span>
+                      <span className="w-8 h-10 grid place-items-center border border-yo-border bg-yo-bg font-mono text-sm">{i + 1}</span>
                       <input
                         type="text"
                         value={c}
@@ -303,7 +303,7 @@ function NewTransaction() {
                       {form.conditions.length > 1 && (
                         <button
                           onClick={() => up("conditions", form.conditions.filter((_, j) => j !== i))}
-                          className="px-3 border border-yokto-black text-[11px] uppercase tracking-[0.14em] hover:bg-[#FF3B3B] hover:text-yokto-cream"
+                          className="px-3 border border-yo-border text-[11px] uppercase tracking-[0.14em] hover:bg-[#FF3B3B] hover:text-yokto-cream"
                         >
                           Quitar
                         </button>
@@ -313,7 +313,7 @@ function NewTransaction() {
                 </div>
                 <button
                   onClick={() => up("conditions", [...form.conditions, ""])}
-                  className="text-[12px] uppercase tracking-[0.14em] font-semibold border border-yokto-black px-3 py-2 hover:bg-yokto-black hover:text-yokto-cream"
+                  className="text-[12px] uppercase tracking-[0.14em] font-semibold border border-yo-border px-3 py-2 hover:bg-yo-ac-h hover:text-yokto-cream"
                 >
                   + Agregar condición
                 </button>
@@ -347,14 +347,14 @@ function NewTransaction() {
           <div className="mt-6 flex justify-between gap-3">
             <button
               onClick={() => (step === 1 ? navigate({ to: "/transactions" }) : setStep((s) => s - 1))}
-              className="px-5 py-2.5 border border-yokto-black text-[12px] uppercase tracking-[0.14em] font-semibold hover:bg-yokto-black hover:text-yokto-cream"
+              className="px-5 py-2.5 border border-yo-border text-[12px] uppercase tracking-[0.14em] font-semibold hover:bg-yo-ac-h hover:text-yokto-cream"
             >
               {step === 1 ? "Cancelar" : "Atrás"}
             </button>
             {step < 4 ? (
               <button
                 onClick={next}
-                className="px-6 py-2.5 bg-yokto-black text-yokto-cream text-[12px] uppercase tracking-[0.14em] font-semibold border border-yokto-black hover:bg-yokto-yellow hover:text-yokto-black"
+                className="px-6 py-2.5 bg-yo-ac text-yokto-cream text-[12px] uppercase tracking-[0.14em] font-semibold border border-yo-border hover:bg-yokto-yellow hover:text-yokto-black"
               >
                 Continuar
               </button>
@@ -363,14 +363,14 @@ function NewTransaction() {
                 <button
                   onClick={() => submit(false)}
                   disabled={submitting}
-                  className="px-5 py-2.5 border border-yokto-black text-[12px] uppercase tracking-[0.14em] font-semibold hover:bg-yokto-cream disabled:opacity-50"
+                  className="px-5 py-2.5 border border-yo-border text-[12px] uppercase tracking-[0.14em] font-semibold hover:bg-yo-bg disabled:opacity-50"
                 >
                   Guardar borrador
                 </button>
                 <button
                   onClick={() => submit(true)}
                   disabled={submitting}
-                  className="px-6 py-2.5 bg-yokto-yellow text-yokto-black text-[12px] uppercase tracking-[0.14em] font-semibold border border-yokto-black hover:bg-yokto-black hover:text-yokto-yellow disabled:opacity-50"
+                  className="px-6 py-2.5 bg-yokto-yellow text-yokto-black text-[12px] uppercase tracking-[0.14em] font-semibold border border-yo-border hover:bg-yo-ac-h hover:text-yokto-yellow disabled:opacity-50"
                 >
                   {submitting ? "Publicando…" : "Publicar y solicitar fondeo"}
                 </button>
@@ -394,7 +394,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 
 function Summary({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex justify-between gap-4 border-b border-yokto-black/20 pb-2">
+    <div className="flex justify-between gap-4 border-b border-yo-border/20 pb-2">
       <span className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">{label}</span>
       <span className="text-foreground text-right">{value}</span>
     </div>

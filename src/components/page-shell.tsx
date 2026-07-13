@@ -22,7 +22,7 @@ export function PageHero({
   lead?: ReactNode;
 }) {
   return (
-    <section className="border-b border-yokto-black/90">
+    <section className="border-b border-yo-border/90">
       <div className="container-editorial py-20 md:py-28 max-w-5xl">
         {eyebrow && (
           <p className="text-[11px] uppercase tracking-[0.28em] text-yokto-black font-semibold">
