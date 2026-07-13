@@ -655,9 +655,19 @@ function Step3Fiscal({ onSaved, onBack, setError, loading, setLoading }: {
 
   async function submit() {
     if (!tipo) return;
-    if (tipo === "persona_fisica" && !curpVerified) {
-      setError("Debes validar tu CURP antes de continuar");
-      return;
+    if (tipo === "persona_fisica") {
+      if (!fillMode) {
+        setError("Selecciona cómo quieres completar tu perfil fiscal");
+        return;
+      }
+      if (fillMode === "manual" && !curpVerified) {
+        setError("Debes validar tu CURP antes de continuar");
+        return;
+      }
+      if ((fillMode === "csf" || fillMode === "efirma") && !f.rfc) {
+        setError("Sube tu documento para extraer el RFC");
+        return;
+      }
     }
     setError(null); setLoading(true);
     try {
@@ -706,55 +716,146 @@ function Step3Fiscal({ onSaved, onBack, setError, loading, setLoading }: {
 
       {tipo === "persona_fisica" ? (
         <>
-          {/* --- CURP --- */}
-          <div className="rounded-xl border border-yo-border bg-yo-raised/40 p-4 flex flex-col gap-3">
-            <div>
-              <label className="text-xs font-semibold uppercase tracking-widest text-yo-txt-2">CURP (18 caracteres)</label>
-              <p className="mt-1 text-xs text-yo-txt-3">Consulta oficial en RENAPO para autocompletar tus datos.</p>
+          {/* --- Selector de modo (PRIMER paso) --- */}
+          <fieldset className="rounded-xl border border-yo-border p-4">
+            <legend className="text-xs font-semibold uppercase tracking-widest text-yo-txt-2 px-1">¿Cómo quieres completar tu perfil fiscal?</legend>
+            <p className="mt-2 mb-3 text-sm text-yo-txt-2">
+              Elige un método para extraer tu RFC, régimen y domicilio fiscal automáticamente. Si no cuentas con estos documentos, puedes capturarlo manualmente.
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+              <FiscalModeButton icon={<FileCheck2 className="size-4" />} title="Constancia de Situación Fiscal"
+                desc="Sube tu CSF en PDF o imagen. No requiere CURP." active={fillMode === "csf"} onClick={() => setFillMode("csf")} />
+              <FiscalModeButton icon={<KeyRound className="size-4" />} title="e.firma vigente"
+                desc="Extrae RFC y CURP del certificado SAT." active={fillMode === "efirma"} onClick={() => setFillMode("efirma")} />
+              <FiscalModeButton icon={<PencilLine className="size-4" />} title="Manualmente"
+                desc="Valida tu CURP y captura RFC y régimen." active={fillMode === "manual"} onClick={() => setFillMode("manual")} />
             </div>
-            <div className="flex flex-col sm:flex-row gap-2 items-start">
-              <div className="flex-1 w-full">
-                <Field id="curp" label="" value={f.curp ?? ""} onChange={onCurpChange}
-                  required uppercase maxLength={18} error={curpError}
-                  trailing={curpVerified ? <Check className="size-4 text-yo-ok" /> : undefined} />
-              </div>
-              <button type="button" onClick={validateCurpAction}
-                disabled={curpChecking || !f.curp || (f.curp ?? "").length !== 18}
-                className="inline-flex items-center gap-2 min-h-10 px-4 rounded-md bg-yo-ac hover:bg-yo-ac-h text-white text-sm font-semibold disabled:opacity-50">
-                {curpChecking ? <Loader2 className="size-4 animate-spin" /> : <ShieldCheck className="size-4" />}
-                {curpVerified ? "Validada" : "Validar CURP"}
-              </button>
-            </div>
-            {curpVerified && curpBoxOpen && (
-              <div className="relative rounded-lg border border-yo-ok/30 bg-yo-ok/5 p-3 pr-9 text-sm">
-                <button type="button" onClick={() => setCurpBoxOpen(false)}
-                  aria-label="Cerrar" title="Cerrar"
-                  className="absolute top-2 right-2 p-1 rounded-md text-yo-txt-3 hover:text-yo-txt hover:bg-yo-raised">
-                  <X className="size-4" />
-                </button>
-                <div className="flex items-center gap-2 text-yo-ok font-semibold">
-                  <Check className="size-4" /> CURP verificada en RENAPO
-                </div>
-                <dl className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 text-yo-txt">
-                  <div><dt className="text-xs text-yo-txt-3">Nombre</dt><dd>{curpVerified.nombre}</dd></div>
-                  <div><dt className="text-xs text-yo-txt-3">Apellido paterno</dt><dd>{curpVerified.apellidoPaterno}</dd></div>
-                  <div><dt className="text-xs text-yo-txt-3">Apellido materno</dt><dd>{curpVerified.apellidoMaterno || "—"}</dd></div>
-                  <div><dt className="text-xs text-yo-txt-3">Fecha de nacimiento</dt><dd>{curpVerified.fechaNacimiento ?? "—"}</dd></div>
-                  <div><dt className="text-xs text-yo-txt-3">Sexo</dt><dd>{curpVerified.sexo}</dd></div>
-                  <div><dt className="text-xs text-yo-txt-3">Estado de nacimiento</dt><dd>{curpVerified.estadoNacimiento}</dd></div>
-                </dl>
-                <p className="mt-2 text-[11px] text-yo-txt-3">Este recuadro se cerrará automáticamente en 5 segundos.</p>
-              </div>
-            )}
-            {curpVerified && !curpBoxOpen && (
-              <div className="inline-flex items-center gap-2 text-xs text-yo-ok">
-                <Check className="size-3.5" /> CURP validada — {curpVerified.nombre} {curpVerified.apellidoPaterno}
-                <button type="button" onClick={() => setCurpBoxOpen(true)} className="underline text-yo-txt-3 hover:text-yo-txt">Ver detalle</button>
-              </div>
-            )}
-          </div>
+          </fieldset>
 
-          {/* --- Datos personales (bloqueados) --- */}
+          {/* --- CSF --- */}
+          {fillMode === "csf" && (
+            <fieldset className="rounded-xl border border-yo-border p-4">
+              <legend className="text-xs font-semibold uppercase tracking-widest text-yo-txt-2 px-1">Constancia de Situación Fiscal</legend>
+              <div className="mt-3 rounded-lg border border-dashed border-yo-border bg-yo-raised/40 p-4">
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <div className="inline-flex items-center gap-2 min-h-10 px-4 rounded-md bg-yo-ac hover:bg-yo-ac-h text-white text-sm font-semibold">
+                    {csfBusy ? <Loader2 className="size-4 animate-spin" /> : <Upload className="size-4" />}
+                    Subir constancia
+                  </div>
+                  <span className="text-xs text-yo-txt-3">PDF, JPG o PNG · máx 8 MB</span>
+                  <input type="file" accept="application/pdf,image/*" className="hidden"
+                    onChange={(e) => { const fi = e.target.files?.[0]; if (fi) void onCsfFile(fi); }} />
+                </label>
+                {csfErr && <p className="mt-2 text-xs text-yo-err">{csfErr}</p>}
+                {csfInfo && (
+                  <div className="mt-3 text-xs text-yo-txt-2">
+                    <p className="text-yo-ok font-semibold">Constancia leída correctamente.</p>
+                    {csfInfo.regimenes.length > 0 && (
+                      <p className="mt-1">Regímenes SAT: {csfInfo.regimenes.join(" · ")}</p>
+                    )}
+                  </div>
+                )}
+              </div>
+            </fieldset>
+          )}
+
+          {/* --- e.firma --- */}
+          {fillMode === "efirma" && (
+            <fieldset className="rounded-xl border border-yo-border p-4">
+              <legend className="text-xs font-semibold uppercase tracking-widest text-yo-txt-2 px-1">e.firma vigente</legend>
+              <p className="mt-2 mb-3 text-xs text-yo-txt-3">
+                Necesitas tres cosas: el certificado <code className="font-mono">.cer</code>, la llave privada <code className="font-mono">.key</code> y la contraseña de la llave.
+                Los archivos se procesan en el servidor y no se almacenan.
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <EfirmaDropzone label="Certificado (.cer)" accept=".cer,application/x-x509-ca-cert,application/octet-stream"
+                  file={efCer} onFile={setEfCer} icon={<FileCheck2 className="size-4" />} />
+                <EfirmaDropzone label="Llave privada (.key)" accept=".key,application/octet-stream"
+                  file={efKey} onFile={setEfKey} icon={<KeyRound className="size-4" />} />
+              </div>
+              <div className="mt-3">
+                <Field id="ef_pass" label="Contraseña de la llave privada" type="password" value={efPass} onChange={setEfPass}
+                  placeholder="La que definiste al tramitar tu e.firma" />
+              </div>
+              <div className="mt-3 flex items-center gap-3">
+                <button type="button" onClick={runEfirma} disabled={efBusy || !efCer || !efKey || !efPass}
+                  className="inline-flex items-center gap-2 min-h-10 px-4 rounded-md bg-yo-ac hover:bg-yo-ac-h text-white text-sm font-semibold disabled:opacity-50">
+                  {efBusy ? <Loader2 className="size-4 animate-spin" /> : <ShieldCheck className="size-4" />}
+                  Validar e.firma
+                </button>
+                {efErr && <p className="text-xs text-yo-err">{efErr}</p>}
+              </div>
+              {efInfo && (
+                <div className="mt-3 rounded-md border border-yo-ok/30 bg-yo-ok/5 p-3 text-xs">
+                  <p className="font-semibold text-yo-ok">e.firma leída correctamente</p>
+                  <dl className="mt-1 grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 text-yo-txt">
+                    <div><dt className="text-yo-txt-3">RFC</dt><dd>{efInfo.rfc}</dd></div>
+                    <div><dt className="text-yo-txt-3">CURP</dt><dd>{efInfo.curp || "—"}</dd></div>
+                    <div className="sm:col-span-2"><dt className="text-yo-txt-3">Titular</dt><dd>{efInfo.nombre}</dd></div>
+                    <div><dt className="text-yo-txt-3">Serial</dt><dd className="font-mono">{efInfo.serial}</dd></div>
+                    <div><dt className="text-yo-txt-3">Vigencia SAT</dt>
+                      <dd>{efInfo.vigente === true ? "VIGENTE" : efInfo.vigente === false ? "NO VIGENTE" : "No verificado"}</dd></div>
+                    <div><dt className="text-yo-txt-3">Válido desde</dt><dd>{new Date(efInfo.validFrom).toLocaleDateString("es-MX")}</dd></div>
+                    <div><dt className="text-yo-txt-3">Válido hasta</dt><dd>{new Date(efInfo.validTo).toLocaleDateString("es-MX")}</dd></div>
+                  </dl>
+                </div>
+              )}
+            </fieldset>
+          )}
+
+          {/* --- Manual: CURP + RENAPO --- */}
+          {fillMode === "manual" && (
+            <div className="rounded-xl border border-yo-border bg-yo-raised/40 p-4 flex flex-col gap-3">
+              <div>
+                <label className="text-xs font-semibold uppercase tracking-widest text-yo-txt-2">CURP (18 caracteres)</label>
+                <p className="mt-1 text-xs text-yo-txt-3">Consulta oficial en RENAPO para autocompletar tus datos personales.</p>
+              </div>
+              <div className="flex flex-col sm:flex-row gap-2 items-start">
+                <div className="flex-1 w-full">
+                  <Field id="curp" label="" value={f.curp ?? ""} onChange={onCurpChange}
+                    required uppercase maxLength={18} error={curpError}
+                    trailing={curpVerified ? <Check className="size-4 text-yo-ok" /> : undefined} />
+                </div>
+                <button type="button" onClick={validateCurpAction}
+                  disabled={curpChecking || !f.curp || (f.curp ?? "").length !== 18}
+                  className="inline-flex items-center gap-2 min-h-10 px-4 rounded-md bg-yo-ac hover:bg-yo-ac-h text-white text-sm font-semibold disabled:opacity-50">
+                  {curpChecking ? <Loader2 className="size-4 animate-spin" /> : <ShieldCheck className="size-4" />}
+                  {curpVerified ? "Validada" : "Validar CURP"}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Recuadro CURP verificada (aplica a manual y e.firma) */}
+          {curpVerified && curpBoxOpen && (
+            <div className="relative rounded-lg border border-yo-ok/30 bg-yo-ok/5 p-3 pr-9 text-sm">
+              <button type="button" onClick={() => setCurpBoxOpen(false)}
+                aria-label="Cerrar" title="Cerrar"
+                className="absolute top-2 right-2 p-1 rounded-md text-yo-txt-3 hover:text-yo-txt hover:bg-yo-raised">
+                <X className="size-4" />
+              </button>
+              <div className="flex items-center gap-2 text-yo-ok font-semibold">
+                <Check className="size-4" /> CURP verificada en RENAPO
+              </div>
+              <dl className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 text-yo-txt">
+                <div><dt className="text-xs text-yo-txt-3">Nombre</dt><dd>{curpVerified.nombre}</dd></div>
+                <div><dt className="text-xs text-yo-txt-3">Apellido paterno</dt><dd>{curpVerified.apellidoPaterno}</dd></div>
+                <div><dt className="text-xs text-yo-txt-3">Apellido materno</dt><dd>{curpVerified.apellidoMaterno || "—"}</dd></div>
+                <div><dt className="text-xs text-yo-txt-3">Fecha de nacimiento</dt><dd>{curpVerified.fechaNacimiento ?? "—"}</dd></div>
+                <div><dt className="text-xs text-yo-txt-3">Sexo</dt><dd>{curpVerified.sexo}</dd></div>
+                <div><dt className="text-xs text-yo-txt-3">Estado de nacimiento</dt><dd>{curpVerified.estadoNacimiento}</dd></div>
+              </dl>
+              <p className="mt-2 text-[11px] text-yo-txt-3">Este recuadro se cerrará automáticamente en 5 segundos.</p>
+            </div>
+          )}
+          {curpVerified && !curpBoxOpen && (
+            <div className="inline-flex items-center gap-2 text-xs text-yo-ok">
+              <Check className="size-3.5" /> CURP validada — {curpVerified.nombre} {curpVerified.apellidoPaterno}
+              <button type="button" onClick={() => setCurpBoxOpen(true)} className="underline text-yo-txt-3 hover:text-yo-txt">Ver detalle</button>
+            </div>
+          )}
+
+          {/* Datos personales (bloqueados) — sólo con CURP validada (manual o e.firma) */}
           {curpVerified && (
             <fieldset className="rounded-xl border border-yo-border p-4">
               <legend className="text-xs font-semibold uppercase tracking-widest text-yo-txt-2 px-1">Datos personales</legend>
@@ -769,97 +870,24 @@ function Step3Fiscal({ onSaved, onBack, setError, loading, setLoading }: {
             </fieldset>
           )}
 
-          {/* --- Datos fiscales (con selector de modo) --- */}
-          {curpVerified && (
+          {/* RFC + Régimen (siempre que haya un modo elegido) */}
+          {fillMode && (
             <fieldset className="rounded-xl border border-yo-border p-4">
-              <legend className="text-xs font-semibold uppercase tracking-widest text-yo-txt-2 px-1">Datos fiscales</legend>
-
-              <p className="mt-2 mb-3 text-sm text-yo-txt-2">¿Cómo quieres completar tu perfil fiscal?</p>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                <FiscalModeButton icon={<FileCheck2 className="size-4" />} title="Constancia de Situación Fiscal"
-                  desc="Sube tu CSF en PDF o imagen." active={fillMode === "csf"} onClick={() => setFillMode("csf")} />
-                <FiscalModeButton icon={<KeyRound className="size-4" />} title="e.firma vigente"
-                  desc="Sube tu .cer, .key y contraseña." active={fillMode === "efirma"} onClick={() => setFillMode("efirma")} />
-                <FiscalModeButton icon={<PencilLine className="size-4" />} title="Manualmente"
-                  desc="Captura RFC y régimen." active={fillMode === "manual"} onClick={() => setFillMode("manual")} />
+              <legend className="text-xs font-semibold uppercase tracking-widest text-yo-txt-2 px-1">RFC y régimen</legend>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-2">
+                <Field id="rfc" label="RFC (13 caracteres)" value={f.rfc ?? ""} onChange={(v) => set("rfc", v)} required uppercase maxLength={13}
+                  onBlur={onRfcBlur} error={rfcCheck && !rfcCheck.ok ? rfcCheck.msg : null}
+                  hint={rfcCheck?.ok ? rfcCheck.msg : undefined}
+                  disabled={fillMode !== "manual"}
+                  trailing={rfcChecking ? <Loader2 className="size-4 animate-spin text-yo-txt-3" /> : rfcCheck?.ok ? <Check className="size-4 text-yo-ok" /> : undefined}
+                />
+                <Field as="select" id="regimen_fiscal" label="Régimen fiscal (SAT)" value={f.regimen_fiscal ?? ""} onChange={(v) => set("regimen_fiscal", v)} required>
+                  <option value="">Selecciona…</option>
+                  {regimenes.map((r) => <option key={r.code} value={r.code}>{r.label}</option>)}
+                </Field>
               </div>
-
-              {fillMode === "csf" && (
-                <div className="mt-4 rounded-lg border border-dashed border-yo-border bg-yo-raised/40 p-4">
-                  <label className="flex items-center gap-3 cursor-pointer">
-                    <div className="inline-flex items-center gap-2 min-h-10 px-4 rounded-md bg-yo-ac hover:bg-yo-ac-h text-white text-sm font-semibold">
-                      {csfBusy ? <Loader2 className="size-4 animate-spin" /> : <Upload className="size-4" />}
-                      Subir constancia
-                    </div>
-                    <span className="text-xs text-yo-txt-3">PDF, JPG o PNG · máx 8 MB</span>
-                    <input type="file" accept="application/pdf,image/*" className="hidden"
-                      onChange={(e) => { const fi = e.target.files?.[0]; if (fi) void onCsfFile(fi); }} />
-                  </label>
-                  {csfErr && <p className="mt-2 text-xs text-yo-err">{csfErr}</p>}
-                  {csfInfo && (
-                    <div className="mt-3 text-xs text-yo-txt-2">
-                      <p className="text-yo-ok font-semibold">Constancia leída correctamente.</p>
-                      {csfInfo.regimenes.length > 0 && (
-                        <p className="mt-1">Regímenes SAT: {csfInfo.regimenes.join(" · ")}</p>
-                      )}
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {fillMode === "efirma" && (
-                <div className="mt-4 rounded-lg border border-dashed border-yo-border bg-yo-raised/40 p-4 flex flex-col gap-3">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <label className="flex flex-col gap-1 text-sm">
-                      <span className="text-xs font-semibold uppercase tracking-widest text-yo-txt-2">Certificado (.cer)</span>
-                      <input type="file" accept=".cer,application/octet-stream" onChange={(e) => setEfCer(e.target.files?.[0] ?? null)}
-                        className="text-xs" />
-                      {efCer && <span className="text-[11px] text-yo-txt-3">{efCer.name}</span>}
-                    </label>
-                    <label className="flex flex-col gap-1 text-sm">
-                      <span className="text-xs font-semibold uppercase tracking-widest text-yo-txt-2">Llave privada (.key)</span>
-                      <input type="file" accept=".key,application/octet-stream" onChange={(e) => setEfKey(e.target.files?.[0] ?? null)}
-                        className="text-xs" />
-                      {efKey && <span className="text-[11px] text-yo-txt-3">{efKey.name}</span>}
-                    </label>
-                  </div>
-                  <Field id="ef_pass" label="Contraseña de la llave" type="password" value={efPass} onChange={setEfPass} />
-                  <button type="button" onClick={runEfirma} disabled={efBusy || !efCer || !efKey || !efPass}
-                    className="self-start inline-flex items-center gap-2 min-h-10 px-4 rounded-md bg-yo-ac hover:bg-yo-ac-h text-white text-sm font-semibold disabled:opacity-50">
-                    {efBusy ? <Loader2 className="size-4 animate-spin" /> : <ShieldCheck className="size-4" />}
-                    Validar e.firma
-                  </button>
-                  {efErr && <p className="text-xs text-yo-err">{efErr}</p>}
-                  {efInfo && (
-                    <div className="rounded-md border border-yo-ok/30 bg-yo-ok/5 p-3 text-xs">
-                      <p className="font-semibold text-yo-ok">e.firma leída correctamente</p>
-                      <dl className="mt-1 grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 text-yo-txt">
-                        <div><dt className="text-yo-txt-3">RFC</dt><dd>{efInfo.rfc}</dd></div>
-                        <div><dt className="text-yo-txt-3">CURP</dt><dd>{efInfo.curp || "—"}</dd></div>
-                        <div className="sm:col-span-2"><dt className="text-yo-txt-3">Titular</dt><dd>{efInfo.nombre}</dd></div>
-                        <div><dt className="text-yo-txt-3">Serial</dt><dd className="font-mono">{efInfo.serial}</dd></div>
-                        <div><dt className="text-yo-txt-3">Vigencia SAT</dt>
-                          <dd>{efInfo.vigente === true ? "VIGENTE" : efInfo.vigente === false ? "NO VIGENTE" : "No verificado"}</dd></div>
-                        <div><dt className="text-yo-txt-3">Válido desde</dt><dd>{new Date(efInfo.validFrom).toLocaleDateString("es-MX")}</dd></div>
-                        <div><dt className="text-yo-txt-3">Válido hasta</dt><dd>{new Date(efInfo.validTo).toLocaleDateString("es-MX")}</dd></div>
-                      </dl>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {fillMode && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
-                  <Field id="rfc" label="RFC (13 caracteres)" value={f.rfc ?? ""} onChange={(v) => set("rfc", v)} required uppercase maxLength={13}
-                    onBlur={onRfcBlur} error={rfcCheck && !rfcCheck.ok ? rfcCheck.msg : null}
-                    hint={rfcCheck?.ok ? rfcCheck.msg : undefined}
-                    trailing={rfcChecking ? <Loader2 className="size-4 animate-spin text-yo-txt-3" /> : rfcCheck?.ok ? <Check className="size-4 text-yo-ok" /> : undefined}
-                  />
-                  <Field as="select" id="regimen_fiscal" label="Régimen fiscal (SAT)" value={f.regimen_fiscal ?? ""} onChange={(v) => set("regimen_fiscal", v)} required>
-                    <option value="">Selecciona…</option>
-                    {regimenes.map((r) => <option key={r.code} value={r.code}>{r.label}</option>)}
-                  </Field>
-                </div>
+              {fillMode !== "manual" && (
+                <p className="mt-2 text-[11px] text-yo-txt-3">RFC extraído automáticamente del documento.</p>
               )}
             </fieldset>
           )}
@@ -945,6 +973,35 @@ function FiscalModeButton({ icon, title, desc, active, onClick }: {
     </button>
   );
 }
+
+function EfirmaDropzone({ label, accept, file, onFile, icon }: {
+  label: string; accept: string; file: File | null; onFile: (f: File | null) => void; icon: React.ReactNode;
+}) {
+  const inputId = `ef-${label.replace(/\W+/g, "-").toLowerCase()}`;
+  return (
+    <div className="rounded-lg border border-dashed border-yo-border bg-yo-raised/40 p-3">
+      <p className="text-xs font-semibold uppercase tracking-widest text-yo-txt-2 mb-2">{label}</p>
+      <label htmlFor={inputId} className="flex items-center gap-3 cursor-pointer">
+        <span className="inline-flex items-center gap-2 min-h-9 px-3 rounded-md border border-yo-border bg-yo-bg text-yo-txt text-xs font-semibold hover:border-yo-txt-3">
+          {icon} Elegir archivo
+        </span>
+        <span className="text-xs text-yo-txt-3 truncate">
+          {file ? file.name : "Ningún archivo seleccionado"}
+        </span>
+        <input id={inputId} type="file" accept={accept} className="hidden"
+          onChange={(e) => onFile(e.target.files?.[0] ?? null)} />
+      </label>
+      {file && (
+        <button type="button" onClick={() => onFile(null)}
+          className="mt-2 text-[11px] text-yo-txt-3 hover:text-yo-err underline">
+          Quitar archivo
+        </button>
+      )}
+    </div>
+  );
+}
+
+
 
 
 // ─── STEP 4 — Identidad (documentos) ─────────────────────────────────────────
