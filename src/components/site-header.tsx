@@ -4,7 +4,7 @@ import { Menu, X } from "lucide-react";
 
 const nav = [
   { to: "/como-funciona", label: "Cómo funciona" },
-  { to: "/casos-de-uso", label: "Casos de uso" },
+  { to: "/casos-de-uso", label: "Sectores" },
   { to: "/precios", label: "Precios" },
   { to: "/marco-legal", label: "Marco legal" },
 ] as const;
@@ -13,12 +13,16 @@ export function SiteHeader() {
   const [open, setOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-40 border-b border-border/60 bg-background/85 backdrop-blur">
-      <div className="container-editorial flex h-16 items-center justify-between">
-        <Link to="/" className="flex items-center gap-2" onClick={() => setOpen(false)}>
-          <span className="font-display text-2xl tracking-tight text-foreground">
-            YOKTO<span className="text-primary">.</span>
+    <header className="sticky top-0 z-40 border-b border-yokto-black/90 bg-background">
+      <div className="container-editorial flex h-14 items-center justify-between">
+        <Link to="/" className="flex items-center gap-2.5" onClick={() => setOpen(false)}>
+          <span
+            className="grid place-items-center size-7 bg-yokto-black text-yokto-cream font-display text-lg leading-none"
+            aria-hidden
+          >
+            Y
           </span>
+          <span className="font-display text-2xl tracking-wide text-foreground">YOKTO</span>
         </Link>
 
         <nav className="hidden md:flex items-center gap-8">
@@ -26,31 +30,31 @@ export function SiteHeader() {
             <Link
               key={item.to}
               to={item.to}
-              className="text-sm text-foreground/70 transition hover:text-foreground"
-              activeProps={{ className: "text-sm text-foreground font-medium" }}
+              className="text-[13px] uppercase tracking-[0.14em] font-medium text-foreground/70 transition hover:text-foreground"
+              activeProps={{ className: "text-[13px] uppercase tracking-[0.14em] font-medium text-foreground border-b border-yokto-black" }}
             >
               {item.label}
             </Link>
           ))}
         </nav>
 
-        <div className="hidden md:flex items-center gap-3">
+        <div className="hidden md:flex items-center gap-2">
           <Link
             to="/contacto"
-            className="text-sm text-foreground/70 hover:text-foreground"
+            className="text-[13px] uppercase tracking-[0.14em] font-medium text-foreground/70 hover:text-foreground px-3"
           >
             Contacto
           </Link>
           <Link
             to="/contacto"
-            className="inline-flex items-center rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition hover:opacity-90"
+            className="inline-flex items-center px-5 py-2.5 bg-yokto-yellow text-yokto-black text-[13px] uppercase tracking-[0.14em] font-semibold border border-yokto-black transition hover:bg-yokto-black hover:text-yokto-yellow"
           >
             Solicitar acceso
           </Link>
         </div>
 
         <button
-          className="md:hidden inline-flex items-center justify-center rounded-md p-2 text-foreground"
+          className="md:hidden inline-flex items-center justify-center p-2 text-foreground"
           onClick={() => setOpen((v) => !v)}
           aria-label="Menú"
         >
@@ -59,14 +63,14 @@ export function SiteHeader() {
       </div>
 
       {open && (
-        <div className="md:hidden border-t border-border/60 bg-background">
+        <div className="md:hidden border-t border-yokto-black/90 bg-background">
           <div className="container-editorial flex flex-col py-4 gap-1">
             {nav.map((item) => (
               <Link
                 key={item.to}
                 to={item.to}
                 onClick={() => setOpen(false)}
-                className="rounded-md px-3 py-2 text-sm text-foreground/80 hover:bg-muted"
+                className="px-3 py-2.5 text-sm uppercase tracking-[0.12em] text-foreground/80 hover:bg-muted"
               >
                 {item.label}
               </Link>
@@ -74,7 +78,7 @@ export function SiteHeader() {
             <Link
               to="/contacto"
               onClick={() => setOpen(false)}
-              className="mt-2 inline-flex items-center justify-center rounded-full bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground"
+              className="mt-2 inline-flex items-center justify-center px-4 py-3 bg-yokto-yellow text-yokto-black text-sm uppercase tracking-[0.14em] font-semibold border border-yokto-black"
             >
               Solicitar acceso
             </Link>
