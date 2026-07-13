@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Menu, X } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 const nav = [
   { to: "/como-funciona", label: "Cómo funciona" },
@@ -11,6 +12,15 @@ const nav = [
 
 export function SiteHeader() {
   const [open, setOpen] = useState(false);
+  const [authed, setAuthed] = useState(false);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => setAuthed(!!data.session));
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => setAuthed(!!session));
+    return () => sub.subscription.unsubscribe();
+  }, []);
+
+
 
   return (
     <header className="sticky top-0 z-40 border-b border-yokto-black/90 bg-background">
@@ -45,13 +55,33 @@ export function SiteHeader() {
           >
             Contacto
           </Link>
-          <Link
-            to="/contacto"
-            className="inline-flex items-center px-5 py-2.5 bg-yokto-yellow text-yokto-black text-[13px] uppercase tracking-[0.14em] font-semibold border border-yokto-black transition hover:bg-yokto-black hover:text-yokto-yellow"
-          >
-            Solicitar acceso
-          </Link>
+          {authed ? (
+            <Link
+              to="/dashboard"
+              className="inline-flex items-center px-5 py-2.5 bg-yokto-yellow text-yokto-black text-[13px] uppercase tracking-[0.14em] font-semibold border border-yokto-black transition hover:bg-yokto-black hover:text-yokto-yellow"
+            >
+              Ir al panel
+            </Link>
+          ) : (
+            <>
+              <Link
+                to="/auth"
+                className="text-[13px] uppercase tracking-[0.14em] font-medium text-foreground/70 hover:text-foreground px-3"
+              >
+                Entrar
+              </Link>
+              <Link
+                to="/auth"
+                search={{ mode: "signup" }}
+                className="inline-flex items-center px-5 py-2.5 bg-yokto-yellow text-yokto-black text-[13px] uppercase tracking-[0.14em] font-semibold border border-yokto-black transition hover:bg-yokto-black hover:text-yokto-yellow"
+              >
+                Crear cuenta
+              </Link>
+            </>
+          )}
         </div>
+
+
 
         <button
           className="md:hidden inline-flex items-center justify-center p-2 text-foreground"
@@ -76,12 +106,13 @@ export function SiteHeader() {
               </Link>
             ))}
             <Link
-              to="/contacto"
+              to={authed ? "/dashboard" : "/auth"}
               onClick={() => setOpen(false)}
               className="mt-2 inline-flex items-center justify-center px-4 py-3 bg-yokto-yellow text-yokto-black text-sm uppercase tracking-[0.14em] font-semibold border border-yokto-black"
             >
-              Solicitar acceso
+              {authed ? "Ir al panel" : "Entrar / Crear cuenta"}
             </Link>
+
           </div>
         </div>
       )}
