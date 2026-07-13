@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Menu, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import wordmarkDark from "@/assets/yokto-wordmark-dark.png.asset.json";
 
 const nav = [
   { to: "/como-funciona", label: "Cómo funciona" },
@@ -25,14 +26,8 @@ export function SiteHeader() {
   return (
     <header className="sticky top-0 z-40 border-b border-yokto-black/90 bg-background">
       <div className="container-editorial flex h-14 items-center justify-between">
-        <Link to="/" className="flex items-center gap-2.5" onClick={() => setOpen(false)}>
-          <span
-            className="grid place-items-center size-7 bg-yokto-black text-yokto-cream font-display text-lg leading-none"
-            aria-hidden
-          >
-            Y
-          </span>
-          <span className="font-display text-2xl tracking-wide text-foreground">YOKTO</span>
+        <Link to="/" className="flex items-center" onClick={() => setOpen(false)} aria-label="YOKTO">
+          <img src={wordmarkDark.url} alt="YOKTO" className="h-6 w-auto" />
         </Link>
 
         <nav className="hidden md:flex items-center gap-8">
