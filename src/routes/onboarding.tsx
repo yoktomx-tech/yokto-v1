@@ -253,6 +253,14 @@ function Step1Account({ initialEmail, onCredentials, setError, loading, setLoadi
     { label: "Un número", ok: /[0-9]/.test(password) },
     { label: "Un símbolo", ok: /[^A-Za-z0-9]/.test(password) },
   ];
+  const pwdScore = pwdChecks.filter((c) => c.ok).length + (password.length >= 12 ? 1 : 0);
+  const pwdStrength = password.length === 0
+    ? { label: "", pct: 0, tone: "bg-yo-border", text: "text-yo-txt-3" }
+    : pwdScore <= 1 ? { label: "Muy débil", pct: 20, tone: "bg-yo-err", text: "text-yo-err" }
+    : pwdScore === 2 ? { label: "Débil", pct: 40, tone: "bg-orange-500", text: "text-orange-600" }
+    : pwdScore === 3 ? { label: "Aceptable", pct: 60, tone: "bg-yellow-500", text: "text-yellow-700" }
+    : pwdScore === 4 ? { label: "Fuerte", pct: 85, tone: "bg-emerald-500", text: "text-emerald-600" }
+    : { label: "Muy fuerte", pct: 100, tone: "bg-emerald-600", text: "text-emerald-700" };
 
   async function onEmailBlur() {
     setEmailError(null);
