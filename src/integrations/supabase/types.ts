@@ -14,6 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      connected_accounts: {
+        Row: {
+          charges_enabled: boolean
+          created_at: string
+          id: string
+          payouts_enabled: boolean
+          provider: string
+          provider_account_id: string | null
+          requirements: Json
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          charges_enabled?: boolean
+          created_at?: string
+          id?: string
+          payouts_enabled?: boolean
+          provider?: string
+          provider_account_id?: string | null
+          requirements?: Json
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          charges_enabled?: boolean
+          created_at?: string
+          id?: string
+          payouts_enabled?: boolean
+          provider?: string
+          provider_account_id?: string | null
+          requirements?: Json
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       kyc_documents: {
         Row: {
           created_at: string
@@ -58,6 +97,127 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      payment_intents: {
+        Row: {
+          amount_cents: number
+          clabe: string | null
+          created_at: string
+          currency: string
+          expires_at: string | null
+          id: string
+          metadata: Json
+          method: string
+          paid_at: string | null
+          provider: string
+          provider_ref: string | null
+          reference_code: string | null
+          status: string
+          transaction_id: string
+          updated_at: string
+        }
+        Insert: {
+          amount_cents: number
+          clabe?: string | null
+          created_at?: string
+          currency?: string
+          expires_at?: string | null
+          id?: string
+          metadata?: Json
+          method: string
+          paid_at?: string | null
+          provider?: string
+          provider_ref?: string | null
+          reference_code?: string | null
+          status?: string
+          transaction_id: string
+          updated_at?: string
+        }
+        Update: {
+          amount_cents?: number
+          clabe?: string | null
+          created_at?: string
+          currency?: string
+          expires_at?: string | null
+          id?: string
+          metadata?: Json
+          method?: string
+          paid_at?: string | null
+          provider?: string
+          provider_ref?: string | null
+          reference_code?: string | null
+          status?: string
+          transaction_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_intents_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payouts: {
+        Row: {
+          commission_cents: number
+          created_at: string
+          currency: string
+          gross_cents: number
+          id: string
+          metadata: Json
+          net_cents: number
+          paid_at: string | null
+          provider: string
+          provider_ref: string | null
+          seller_id: string | null
+          status: string
+          transaction_id: string
+          updated_at: string
+        }
+        Insert: {
+          commission_cents?: number
+          created_at?: string
+          currency?: string
+          gross_cents: number
+          id?: string
+          metadata?: Json
+          net_cents: number
+          paid_at?: string | null
+          provider?: string
+          provider_ref?: string | null
+          seller_id?: string | null
+          status?: string
+          transaction_id: string
+          updated_at?: string
+        }
+        Update: {
+          commission_cents?: number
+          created_at?: string
+          currency?: string
+          gross_cents?: number
+          id?: string
+          metadata?: Json
+          net_cents?: number
+          paid_at?: string | null
+          provider?: string
+          provider_ref?: string | null
+          seller_id?: string | null
+          status?: string
+          transaction_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payouts_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
