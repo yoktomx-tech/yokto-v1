@@ -53,6 +53,112 @@ export type Database = {
         }
         Relationships: []
       }
+      dispute_messages: {
+        Row: {
+          author_id: string
+          author_role: string
+          body: string
+          created_at: string
+          dispute_id: string
+          evidence_urls: string[]
+          id: string
+        }
+        Insert: {
+          author_id: string
+          author_role: string
+          body: string
+          created_at?: string
+          dispute_id: string
+          evidence_urls?: string[]
+          id?: string
+        }
+        Update: {
+          author_id?: string
+          author_role?: string
+          body?: string
+          created_at?: string
+          dispute_id?: string
+          evidence_urls?: string[]
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dispute_messages_dispute_id_fkey"
+            columns: ["dispute_id"]
+            isOneToOne: false
+            referencedRelation: "disputes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      disputes: {
+        Row: {
+          amount_disputed_cents: number
+          buyer_share_cents: number | null
+          created_at: string
+          id: string
+          loser_pays: string | null
+          mediator_id: string | null
+          opened_by: string
+          opened_role: string
+          reason_code: string
+          reason_description: string
+          resolution: string | null
+          resolution_notes: string | null
+          resolved_at: string | null
+          seller_share_cents: number | null
+          status: string
+          transaction_id: string
+          updated_at: string
+        }
+        Insert: {
+          amount_disputed_cents: number
+          buyer_share_cents?: number | null
+          created_at?: string
+          id?: string
+          loser_pays?: string | null
+          mediator_id?: string | null
+          opened_by: string
+          opened_role: string
+          reason_code: string
+          reason_description: string
+          resolution?: string | null
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          seller_share_cents?: number | null
+          status?: string
+          transaction_id: string
+          updated_at?: string
+        }
+        Update: {
+          amount_disputed_cents?: number
+          buyer_share_cents?: number | null
+          created_at?: string
+          id?: string
+          loser_pays?: string | null
+          mediator_id?: string | null
+          opened_by?: string
+          opened_role?: string
+          reason_code?: string
+          reason_description?: string
+          resolution?: string | null
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          seller_share_cents?: number | null
+          status?: string
+          transaction_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "disputes_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: true
+            referencedRelation: "transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       kyc_documents: {
         Row: {
           created_at: string
@@ -94,6 +200,42 @@ export type Database = {
           status?: Database["public"]["Enums"]["kyc_status"]
           storage_path?: string
           updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      notifications: {
+        Row: {
+          body: string | null
+          created_at: string
+          id: string
+          link: string | null
+          metadata: Json
+          read_at: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          link?: string | null
+          metadata?: Json
+          read_at?: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          link?: string | null
+          metadata?: Json
+          read_at?: string | null
+          title?: string
+          type?: string
           user_id?: string
         }
         Relationships: []
