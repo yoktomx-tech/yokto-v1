@@ -460,3 +460,178 @@ export const getKycStatus = createServerFn({ method: "GET" })
     if (error) throw new Error(error.message);
     return data;
   });
+
+// ---------- 8. CSF (Constancia de Situación Fiscal) — Nubarium ----------
+function parseNubariumDateDMY(s: string | undefined | null): string | null {
+  if (!s) return null;
+  const m = s.match(/^(\d{2})-(\d{2})-(\d{4})$/);
+  if (m) return `${m[3]}-${m[2]}-${m[1]}`;
+  const m2 = s.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  if (m2) return `${m2[3]}-${m2[2]}-${m2[1]}`;
+  return null;
+}
+
+export const validateCsfNubarium = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) => z.object({
+    file_base64: z.string(),
+    mime_type: z.string(),
+  }).parse(i))
+  .handler(async ({ data }) => {
+    const user = process.env.NUBARIUM_USER;
+    const pass = process.env.NUBARIUM_PASSWORD;
+    if (!user || !pass) throw new Error("Credenciales de Nubarium no configuradas");
+    const auth = Buffer.from(`${user}:${pass}`).toString("base64");
+    const tipo = data.mime_type.includes("pdf") ? "pdf" : "imagen";
+
+    let res: Response;
+    try {
+      res = await fetch("https://api.nubarium.com/sat/v1/consultar_cif", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Authorization": `Basic ${auth}` },
+        body: JSON.stringify({ tipo, documento: data.file_base64 }),
+      });
+    } catch {
+      throw new Error("No se pudo contactar al servicio SAT (Nubarium)");
+    }
+
+    let payload: Record<string, unknown> = {};
+    try { payload = (await res.json()) as Record<string, unknown>; } catch { /* ignore */ }
+    const estatus = String(payload.estatus ?? "");
+    if (estatus !== "OK") {
+      const msg = typeof payload.mensaje === "string" ? payload.mensaje : "No se pudo leer la constancia";
+      throw new Error(msg);
+    }
+
+    const ident = (payload.datosIdentificacion as Record<string, string> | undefined) ?? {};
+    const ubic = (payload.datosUbicacion as Record<string, string> | undefined) ?? {};
+    const regimenes = (payload.caracteristicasFiscales as Array<{ regimen: string; fechaAlta: string }> | undefined) ?? [];
+
+    const street = [ubic.tipoVialidad, ubic.nombreVialidad].filter(Boolean).join(" ").trim();
+
+    return {
+      rfc: String(payload.rfc ?? ""),
+      curp: ident.curp ?? "",
+      nombres: ident.nombres ?? "",
+      apellidoPaterno: ident.apellidoPaterno ?? "",
+      apellidoMaterno: ident.apellidoMaterno ?? "",
+      fechaNacimiento: parseNubariumDateDMY(ident.fechaNacimiento),
+      regimenes: regimenes.map((r) => r.regimen),
+      domicilio: {
+        street: street || (ubic.nombreVialidad ?? ""),
+        ext: ubic.numeroExterior ?? "",
+        int: ubic.numeroInterior ?? "",
+        colonia: ubic.colonia ?? "",
+        municipio: ubic.municipioDelegacion ?? "",
+        estado: ubic.entidadFederativa ?? "",
+        cp: ubic.cp ?? "",
+      },
+    };
+  });
+
+// ---------- 9. eFirma (.cer + .key) — parseo + validación de serial ----------
+export const parseEfirma = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) => z.object({
+    cer_base64: z.string(),
+    key_base64: z.string(),
+    password: z.string().min(1),
+  }).parse(i))
+  .handler(async ({ data }) => {
+    const forge = (await import("node-forge")).default;
+
+    // 1. Parse .cer (DER)
+    let cert;
+    try {
+      const cerDer = forge.util.decode64(data.cer_base64);
+      const cerAsn1 = forge.asn1.fromDer(cerDer);
+      cert = forge.pki.certificateFromAsn1(cerAsn1);
+    } catch {
+      throw new Error("El archivo .cer no es un certificado válido");
+    }
+
+    // 2. Decrypt .key (encrypted PKCS#8 DER)
+    try {
+      const keyDer = forge.util.decode64(data.key_base64);
+      const keyAsn1 = forge.asn1.fromDer(keyDer);
+      const privateKey = forge.pki.decryptPrivateKeyInfo(keyAsn1, data.password);
+      if (!privateKey) throw new Error("Contraseña incorrecta o llave inválida");
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Contraseña incorrecta";
+      throw new Error(msg.includes("Contraseña") ? msg : "Contraseña incorrecta o llave inválida");
+    }
+
+    // 3. Extract subject attributes
+    const getAttr = (shortName: string | null, type: string | null): string => {
+      for (const a of cert.subject.attributes) {
+        if (shortName && a.shortName === shortName) return String(a.value ?? "");
+        if (type && a.type === type) return String(a.value ?? "");
+      }
+      return "";
+    };
+
+    const cn = getAttr("CN", "2.5.4.3");
+    // OID 2.5.4.5 = serialNumber (SAT: " / RFC / CURP")
+    const serialAttr = getAttr(null, "2.5.4.5");
+    // OID 2.5.4.45 = uniqueIdentifier (fallback)
+    const uniqueId = getAttr(null, "2.5.4.45");
+    const raw = `${serialAttr} ${uniqueId}`.trim();
+
+    const rfcMatch = raw.match(/\b([A-ZÑ&]{3,4}\d{6}[A-Z0-9]{3})\b/i);
+    const curpMatch = raw.match(/\b([A-Z]{4}\d{6}[HM][A-Z]{5}[A-Z0-9]\d)\b/i);
+
+    // Serial number (hex → decimal string as SAT uses)
+    const serialHex = cert.serialNumber; // hex string
+    // SAT serials are 20-digit ASCII; convert hex → BigInt → string
+    let serialSat = "";
+    try { serialSat = BigInt("0x" + serialHex).toString(); } catch { serialSat = serialHex; }
+    // pad to 20 if it looks like SAT
+    if (/^\d+$/.test(serialSat) && serialSat.length < 20) serialSat = serialSat.padStart(20, "0");
+
+    return {
+      rfc: (rfcMatch?.[1] ?? "").toUpperCase(),
+      curp: (curpMatch?.[1] ?? "").toUpperCase(),
+      nombre: cn,
+      serial: serialSat,
+      serialHex,
+      validFrom: cert.validity.notBefore.toISOString(),
+      validTo: cert.validity.notAfter.toISOString(),
+    };
+  });
+
+export const validateFielSerialNubarium = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) => z.object({
+    rfc: z.string().min(12).max(13),
+    serial: z.string().min(1),
+  }).parse(i))
+  .handler(async ({ data }) => {
+    const user = process.env.NUBARIUM_USER;
+    const pass = process.env.NUBARIUM_PASSWORD;
+    if (!user || !pass) throw new Error("Credenciales de Nubarium no configuradas");
+    const auth = Buffer.from(`${user}:${pass}`).toString("base64");
+    let res: Response;
+    try {
+      res = await fetch("https://api.nubarium.com/sat/v1/validar-serial", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Authorization": `Basic ${auth}` },
+        body: JSON.stringify({ rfc: data.rfc.toUpperCase(), serial: data.serial }),
+      });
+    } catch {
+      throw new Error("No se pudo contactar al servicio SAT (Nubarium)");
+    }
+    let payload: Record<string, unknown> = {};
+    try { payload = (await res.json()) as Record<string, unknown>; } catch { /* ignore */ }
+    const estatus = String(payload.estatus ?? "");
+    if (estatus !== "OK") {
+      const msg = typeof payload.mensaje === "string" ? payload.mensaje : "El certificado no es válido en SAT";
+      throw new Error(msg);
+    }
+    return {
+      valid: true,
+      tipoCertificado: (payload.tipoCertificado as string) ?? "",
+      estatusCertificado: (payload.estatusCertificado as string) ?? "",
+      vigente: payload.estatusCertificado === "VIGENTE",
+      raw: payload,
+    };
+  });
