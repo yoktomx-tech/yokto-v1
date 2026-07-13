@@ -38,12 +38,6 @@ function Index() {
                 >
                   Crear cuenta <ArrowRight className="size-4" />
                 </Link>
-                <Link
-                  to="/marco-legal"
-                  className="inline-flex items-center gap-2 px-6 py-3.5 border border-yo-border text-[13px] uppercase tracking-[0.16em] font-semibold text-foreground hover:bg-yo-ac-h hover:text-white"
-                >
-                  Marco legal
-                </Link>
               </div>
             </div>
           </div>
