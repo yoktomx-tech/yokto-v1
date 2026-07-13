@@ -9,7 +9,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useServerFn } from "@tanstack/react-start";
 import {
-  checkEmailExists, validateRfcServer, saveOnboardingStep,
+  checkEmailExists, validateRfcServer, validateCurpNubarium, saveOnboardingStep,
   uploadKycDocument, listOwnKycDocuments, deleteOwnKycDocument,
   registerClabe, startPennyTest, confirmPennyTest, submitKyc,
 } from "@/lib/onboarding.functions";
@@ -454,8 +454,14 @@ function Step3Fiscal({ onSaved, onBack, setError, loading, setLoading }: {
   const [rfcCheck, setRfcCheck] = useState<{ msg: string; ok: boolean } | null>(null);
   const [rfcChecking, setRfcChecking] = useState(false);
   const [curpError, setCurpError] = useState<string | null>(null);
+  const [curpChecking, setCurpChecking] = useState(false);
+  const [curpVerified, setCurpVerified] = useState<null | {
+    nombre: string; apellidoPaterno: string; apellidoMaterno: string;
+    sexo: string; fechaNacimiento: string | null; estadoNacimiento: string; estatusCurp: string;
+  }>(null);
   const save = useServerFn(saveOnboardingStep);
   const validateRfcFn = useServerFn(validateRfcServer);
+  const validateCurpFn = useServerFn(validateCurpNubarium);
   const set = (k: string, v: string) => setF((p) => ({ ...p, [k]: v }));
 
   useEffect(() => {
@@ -496,17 +502,48 @@ function Step3Fiscal({ onSaved, onBack, setError, loading, setLoading }: {
       setRfcCheck({ ok: r.valid, msg: r.valid ? "RFC con formato válido" : (r.error ?? "RFC inválido") });
     } finally { setRfcChecking(false); }
   }
-  function onCurpBlur() {
-    if (!f.curp) return setCurpError(null);
-    const norm = normalizeCurp(f.curp); set("curp", norm);
-    const c = validateCurp(norm);
-    setCurpError(c.valid ? null : (c.error ?? "CURP inválida"));
+  function onCurpChange(v: string) {
+    const norm = normalizeCurp(v);
+    set("curp", norm);
+    if (curpVerified) setCurpVerified(null);
+    setCurpError(null);
+  }
+  async function validateCurpAction() {
+    setCurpError(null);
+    const norm = normalizeCurp(f.curp ?? "");
+    set("curp", norm);
+    const local = validateCurp(norm);
+    if (!local.valid) { setCurpError(local.error ?? "CURP inválida"); return; }
+    setCurpChecking(true);
+    try {
+      const r = await validateCurpFn({ data: { curp: norm } });
+      setCurpVerified({
+        nombre: r.nombre, apellidoPaterno: r.apellidoPaterno, apellidoMaterno: r.apellidoMaterno,
+        sexo: r.sexo, fechaNacimiento: r.fechaNacimiento, estadoNacimiento: r.estadoNacimiento,
+        estatusCurp: r.estatusCurp,
+      });
+      setF((p) => ({
+        ...p,
+        first_name: r.nombre || p.first_name,
+        last_name: r.apellidoPaterno || p.last_name,
+        second_last_name: r.apellidoMaterno || p.second_last_name,
+        birth_date: r.fechaNacimiento || p.birth_date,
+      }));
+    } catch (e) {
+      setCurpError(e instanceof Error ? e.message : "No se pudo validar la CURP");
+    } finally {
+      setCurpChecking(false);
+    }
   }
 
   const regimenes = tipo === "persona_fisica" ? REGIMEN_FISICA : REGIMEN_MORAL;
 
   async function submit() {
     if (!tipo) return;
+    if (tipo === "persona_fisica" && !curpVerified) {
+      setError("Debes validar tu CURP antes de continuar");
+      return;
+    }
     setError(null); setLoading(true);
     try {
       if (tipo === "persona_fisica") {
@@ -554,21 +591,58 @@ function Step3Fiscal({ onSaved, onBack, setError, loading, setLoading }: {
 
       {tipo === "persona_fisica" ? (
         <>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <Field id="first_name" label="Nombre(s)" value={f.first_name ?? ""} onChange={(v) => set("first_name", v)} required />
-            <Field id="last_name" label="Apellido paterno" value={f.last_name ?? ""} onChange={(v) => set("last_name", v)} required />
-            <Field id="second_last_name" label="Apellido materno" value={f.second_last_name ?? ""} onChange={(v) => set("second_last_name", v)} />
+          <div className="rounded-xl border border-yo-border bg-yo-raised/40 p-4 flex flex-col gap-3">
+            <div>
+              <label className="text-xs font-semibold uppercase tracking-widest text-yo-txt-2">CURP (18 caracteres)</label>
+              <p className="mt-1 text-xs text-yo-txt-3">Consulta oficial en RENAPO para autocompletar tus datos.</p>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-2 items-start">
+              <div className="flex-1 w-full">
+                <Field id="curp" label="" value={f.curp ?? ""} onChange={onCurpChange}
+                  required uppercase maxLength={18} error={curpError}
+                  trailing={curpVerified ? <Check className="size-4 text-yo-ok" /> : undefined} />
+              </div>
+              <button type="button" onClick={validateCurpAction}
+                disabled={curpChecking || !f.curp || (f.curp ?? "").length !== 18}
+                className="inline-flex items-center gap-2 min-h-10 px-4 rounded-md bg-yo-ac hover:bg-yo-ac-h text-white text-sm font-semibold disabled:opacity-50">
+                {curpChecking ? <Loader2 className="size-4 animate-spin" /> : <ShieldCheck className="size-4" />}
+                {curpVerified ? "Validada" : "Validar CURP"}
+              </button>
+            </div>
+            {curpVerified && (
+              <div className="rounded-lg border border-yo-ok/30 bg-yo-ok/5 p-3 text-sm">
+                <div className="flex items-center gap-2 text-yo-ok font-semibold">
+                  <Check className="size-4" /> CURP verificada en RENAPO
+                </div>
+                <dl className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 text-yo-txt">
+                  <div><dt className="text-xs text-yo-txt-3">Nombre</dt><dd>{curpVerified.nombre}</dd></div>
+                  <div><dt className="text-xs text-yo-txt-3">Apellido paterno</dt><dd>{curpVerified.apellidoPaterno}</dd></div>
+                  <div><dt className="text-xs text-yo-txt-3">Apellido materno</dt><dd>{curpVerified.apellidoMaterno || "—"}</dd></div>
+                  <div><dt className="text-xs text-yo-txt-3">Fecha de nacimiento</dt><dd>{curpVerified.fechaNacimiento ?? "—"}</dd></div>
+                  <div><dt className="text-xs text-yo-txt-3">Sexo</dt><dd>{curpVerified.sexo}</dd></div>
+                  <div><dt className="text-xs text-yo-txt-3">Estado de nacimiento</dt><dd>{curpVerified.estadoNacimiento}</dd></div>
+                </dl>
+              </div>
+            )}
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <Field id="birth_date" label="Fecha de nacimiento" type="date" value={f.birth_date ?? ""} onChange={(v) => set("birth_date", v)} />
-            <Field id="rfc" label="RFC (13 caracteres)" value={f.rfc ?? ""} onChange={(v) => set("rfc", v)} required uppercase maxLength={13}
-              onBlur={onRfcBlur} error={rfcCheck && !rfcCheck.ok ? rfcCheck.msg : null}
-              hint={rfcCheck?.ok ? rfcCheck.msg : undefined}
-              trailing={rfcChecking ? <Loader2 className="size-4 animate-spin text-yo-txt-3" /> : rfcCheck?.ok ? <Check className="size-4 text-yo-ok" /> : undefined}
-            />
-            <Field id="curp" label="CURP (18 caracteres)" value={f.curp ?? ""} onChange={(v) => set("curp", v)} required uppercase maxLength={18}
-              onBlur={onCurpBlur} error={curpError} />
-          </div>
+
+          {curpVerified && (
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <Field id="first_name" label="Nombre(s)" value={f.first_name ?? ""} onChange={(v) => set("first_name", v)} required />
+                <Field id="last_name" label="Apellido paterno" value={f.last_name ?? ""} onChange={(v) => set("last_name", v)} required />
+                <Field id="second_last_name" label="Apellido materno" value={f.second_last_name ?? ""} onChange={(v) => set("second_last_name", v)} />
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <Field id="birth_date" label="Fecha de nacimiento" type="date" value={f.birth_date ?? ""} onChange={(v) => set("birth_date", v)} />
+                <Field id="rfc" label="RFC (13 caracteres)" value={f.rfc ?? ""} onChange={(v) => set("rfc", v)} required uppercase maxLength={13}
+                  onBlur={onRfcBlur} error={rfcCheck && !rfcCheck.ok ? rfcCheck.msg : null}
+                  hint={rfcCheck?.ok ? rfcCheck.msg : undefined}
+                  trailing={rfcChecking ? <Loader2 className="size-4 animate-spin text-yo-txt-3" /> : rfcCheck?.ok ? <Check className="size-4 text-yo-ok" /> : undefined}
+                />
+              </div>
+            </>
+          )}
         </>
       ) : (
         <>

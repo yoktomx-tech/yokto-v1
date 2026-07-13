@@ -29,8 +29,93 @@ export const validateRfcServer = createServerFn({ method: "POST" })
   }).parse(i))
   .handler(async ({ data }) => {
     const check = validateRfc(data.rfc, data.expected);
-    // TODO cuando haya proveedor SAT (Factor GFC / APIHub): setear activo real
     return { ...check, activo: null as boolean | null };
+  });
+
+// ---------- 2b. Validar CURP contra Nubarium (RENAPO) ----------
+function parseNubariumDate(s: string | undefined | null): string | null {
+  if (!s) return null;
+  const m = s.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  if (!m) return null;
+  return `${m[3]}-${m[2]}-${m[1]}`;
+}
+
+export const validateCurpNubarium = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) => z.object({ curp: z.string().min(18).max(18) }).parse(i))
+  .handler(async ({ data, context }) => {
+    const local = validateCurp(data.curp);
+    if (!local.valid) throw new Error(local.error ?? "CURP inválida");
+
+    const user = process.env.NUBARIUM_USER;
+    const pass = process.env.NUBARIUM_PASSWORD;
+    if (!user || !pass) throw new Error("Credenciales de Nubarium no configuradas");
+
+    const curp = data.curp.toUpperCase();
+    const auth = Buffer.from(`${user}:${pass}`).toString("base64");
+
+    let res: Response;
+    try {
+      res = await fetch("https://curp.nubarium.com/renapo/v3/valida_curp", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Basic ${auth}`,
+        },
+        body: JSON.stringify({ curp }),
+      });
+    } catch {
+      throw new Error("No se pudo contactar al servicio de validación (Nubarium)");
+    }
+
+    let payload: Record<string, unknown> = {};
+    try { payload = (await res.json()) as Record<string, unknown>; } catch { /* ignore */ }
+
+    const estatus = String(payload.estatus ?? "");
+    const codigoMensaje = String(payload.codigoMensaje ?? "");
+
+    if (estatus !== "OK") {
+      if (codigoMensaje === "-1") throw new Error("Servicio de validación saturado, intenta en unos minutos");
+      const msg = typeof payload.mensaje === "string" ? payload.mensaje : "CURP no válida en RENAPO";
+      throw new Error(msg);
+    }
+
+    const fechaISO = parseNubariumDate(payload.fechaNacimiento as string | undefined);
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    await supabaseAdmin.from("curp_verifications").insert({
+      user_id: context.userId,
+      curp,
+      nombre: (payload.nombre as string) ?? null,
+      apellido_paterno: (payload.apellidoPaterno as string) ?? null,
+      apellido_materno: (payload.apellidoMaterno as string) ?? null,
+      sexo: (payload.sexo as string) ?? null,
+      fecha_nacimiento: fechaISO,
+      pais_nacimiento: (payload.paisNacimiento as string) ?? null,
+      estado_nacimiento: (payload.estadoNacimiento as string) ?? null,
+      doc_probatorio: typeof payload.docProbatorio === "number" ? (payload.docProbatorio as number) : null,
+      datos_doc_probatorio: (payload.datosDocProbatorio as never) ?? null,
+      estatus_curp: (payload.estatusCurp as string) ?? null,
+      codigo_validacion: (payload.codigoValidacion as string) ?? null,
+      codigo_mensaje: codigoMensaje,
+      estatus,
+      raw_response: payload as never,
+      provider: "nubarium",
+    });
+
+    return {
+      valid: true,
+      curp,
+      nombre: (payload.nombre as string) ?? "",
+      apellidoPaterno: (payload.apellidoPaterno as string) ?? "",
+      apellidoMaterno: (payload.apellidoMaterno as string) ?? "",
+      sexo: (payload.sexo as string) ?? "",
+      fechaNacimiento: fechaISO,
+      fechaNacimientoRaw: (payload.fechaNacimiento as string) ?? "",
+      paisNacimiento: (payload.paisNacimiento as string) ?? "",
+      estadoNacimiento: (payload.estadoNacimiento as string) ?? "",
+      estatusCurp: (payload.estatusCurp as string) ?? "",
+    };
   });
 
 // ---------- 3. Autosave paso a paso ----------

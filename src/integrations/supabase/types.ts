@@ -167,6 +167,75 @@ export type Database = {
         }
         Relationships: []
       }
+      curp_verifications: {
+        Row: {
+          apellido_materno: string | null
+          apellido_paterno: string | null
+          codigo_mensaje: string | null
+          codigo_validacion: string | null
+          created_at: string
+          curp: string
+          datos_doc_probatorio: Json | null
+          doc_probatorio: number | null
+          estado_nacimiento: string | null
+          estatus: string | null
+          estatus_curp: string | null
+          fecha_nacimiento: string | null
+          id: string
+          nombre: string | null
+          pais_nacimiento: string | null
+          provider: string
+          raw_response: Json | null
+          sexo: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          apellido_materno?: string | null
+          apellido_paterno?: string | null
+          codigo_mensaje?: string | null
+          codigo_validacion?: string | null
+          created_at?: string
+          curp: string
+          datos_doc_probatorio?: Json | null
+          doc_probatorio?: number | null
+          estado_nacimiento?: string | null
+          estatus?: string | null
+          estatus_curp?: string | null
+          fecha_nacimiento?: string | null
+          id?: string
+          nombre?: string | null
+          pais_nacimiento?: string | null
+          provider?: string
+          raw_response?: Json | null
+          sexo?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          apellido_materno?: string | null
+          apellido_paterno?: string | null
+          codigo_mensaje?: string | null
+          codigo_validacion?: string | null
+          created_at?: string
+          curp?: string
+          datos_doc_probatorio?: Json | null
+          doc_probatorio?: number | null
+          estado_nacimiento?: string | null
+          estatus?: string | null
+          estatus_curp?: string | null
+          fecha_nacimiento?: string | null
+          id?: string
+          nombre?: string | null
+          pais_nacimiento?: string | null
+          provider?: string
+          raw_response?: Json | null
+          sexo?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       dispute_messages: {
         Row: {
           author_id: string
