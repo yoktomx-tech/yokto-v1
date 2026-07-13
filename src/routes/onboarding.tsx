@@ -231,11 +231,19 @@ function Step1Account({ onSignedUp, setError, loading, setLoading }: {
   const [confirm, setConfirm] = useState("");
   const [terms, setTerms] = useState(false);
   const [showPwd, setShowPwd] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const [emailError, setEmailError] = useState<string | null>(null);
   const [pwdError, setPwdError] = useState<string | null>(null);
   const [confirmError, setConfirmError] = useState<string | null>(null);
   const [checkingEmail, setCheckingEmail] = useState(false);
   const checkEmail = useServerFn(checkEmailExists);
+
+  const pwdChecks = [
+    { label: "Mínimo 8 caracteres", ok: password.length >= 8 },
+    { label: "Una mayúscula", ok: /[A-Z]/.test(password) },
+    { label: "Un número", ok: /[0-9]/.test(password) },
+    { label: "Un símbolo", ok: /[^A-Za-z0-9]/.test(password) },
+  ];
 
   async function onEmailBlur() {
     setEmailError(null);
@@ -249,13 +257,24 @@ function Step1Account({ onSignedUp, setError, loading, setLoading }: {
     } finally { setCheckingEmail(false); }
   }
 
+  function translateAuthError(msg: string): string {
+    const m = msg.toLowerCase();
+    if (m.includes("weak_password") || m.includes("known to be weak") || m.includes("pwned")) return "Contraseña insegura. Está en listas de filtraciones conocidas, elige una diferente.";
+    if (m.includes("already registered") || m.includes("user already")) return "Este correo ya tiene una cuenta. Inicia sesión.";
+    if (m.includes("invalid email")) return "Correo inválido.";
+    if (m.includes("password should be")) return "La contraseña no cumple los requisitos mínimos.";
+    if (m.includes("rate limit")) return "Demasiados intentos. Espera unos minutos y vuelve a intentar.";
+    if (m.includes("network")) return "Error de red. Verifica tu conexión e intenta de nuevo.";
+    return "No se pudo crear la cuenta. Intenta de nuevo.";
+  }
+
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setError(null); setPwdError(null); setConfirmError(null);
     const pv = passwordSchema.safeParse(password);
     if (!pv.success) { setPwdError(pv.error.issues[0]?.message ?? "Contraseña inválida"); return; }
     if (password !== confirm) { setConfirmError("Las contraseñas no coinciden"); return; }
-    if (!terms) { setError("Debes aceptar los términos"); return; }
+    if (!terms) { setError("Debes aceptar los términos y el aviso de privacidad."); return; }
     if (emailError) return;
 
     setLoading(true);
@@ -267,9 +286,22 @@ function Step1Account({ onSignedUp, setError, loading, setLoading }: {
       });
       if (error) throw error;
       if (!data.user) throw new Error("No se pudo crear el usuario");
+      // Asegurar sesión (para que las server functions autenticadas funcionen).
+      if (!data.session) {
+        const { error: signErr } = await supabase.auth.signInWithPassword({
+          email: email.toLowerCase(),
+          password,
+        });
+        if (signErr) {
+          setError("Cuenta creada. Confirma tu correo e inicia sesión para continuar.");
+          setLoading(false);
+          return;
+        }
+      }
       onSignedUp(data.user.id, data.user.email ?? email);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Error al crear cuenta");
+      const raw = err instanceof Error ? err.message : "Error al crear cuenta";
+      setError(translateAuthError(raw));
     } finally { setLoading(false); }
   }
 
@@ -286,22 +318,41 @@ function Step1Account({ onSignedUp, setError, loading, setLoading }: {
         trailing={checkingEmail ? <Loader2 className="size-4 animate-spin text-yo-txt-3" /> : undefined}
       />
 
-      <Field id="password" label="Contraseña" value={password} onChange={setPassword}
-        type={showPwd ? "text" : "password"} placeholder="Mínimo 8 caracteres" required
-        autoComplete="new-password" hint="8+ caracteres, una mayúscula, un número y un símbolo"
-        error={pwdError} icon={<Lock className="size-4" />}
-        trailing={
-          <button type="button" onClick={() => setShowPwd((v) => !v)} tabIndex={-1}
-            className="grid place-items-center size-8 rounded-md text-yo-txt-3 hover:text-yo-txt hover:bg-yo-raised"
-            aria-label={showPwd ? "Ocultar" : "Mostrar"}>
-            {showPwd ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
-          </button>
-        }
-      />
+      <div className="flex flex-col gap-2">
+        <Field id="password" label="Contraseña" value={password} onChange={setPassword}
+          type={showPwd ? "text" : "password"} placeholder="Mínimo 8 caracteres" required
+          autoComplete="new-password"
+          error={pwdError} icon={<Lock className="size-4" />}
+          trailing={
+            <button type="button" onClick={() => setShowPwd((v) => !v)} tabIndex={-1}
+              className="grid place-items-center size-8 rounded-md text-yo-txt-3 hover:text-yo-txt hover:bg-yo-raised"
+              aria-label={showPwd ? "Ocultar contraseña" : "Mostrar contraseña"}>
+              {showPwd ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+            </button>
+          }
+        />
+        <ul className="grid grid-cols-1 sm:grid-cols-2 gap-1 mt-0.5" aria-label="Requisitos de contraseña">
+          {pwdChecks.map((c) => (
+            <li key={c.label} className={"flex items-center gap-1.5 text-[11px] " + (c.ok ? "text-emerald-600" : "text-yo-txt-3")}>
+              <span className={"grid place-items-center size-4 rounded-full border " + (c.ok ? "bg-emerald-500 border-emerald-500 text-white" : "border-yo-border")}>
+                {c.ok ? <Check className="size-3" strokeWidth={3} /> : null}
+              </span>
+              {c.label}
+            </li>
+          ))}
+        </ul>
+      </div>
 
       <Field id="confirm" label="Confirma contraseña" value={confirm} onChange={setConfirm}
-        type={showPwd ? "text" : "password"} required autoComplete="new-password"
+        type={showConfirm ? "text" : "password"} placeholder="Confirmar contraseña" required autoComplete="new-password"
         error={confirmError} icon={<Lock className="size-4" />}
+        trailing={
+          <button type="button" onClick={() => setShowConfirm((v) => !v)} tabIndex={-1}
+            className="grid place-items-center size-8 rounded-md text-yo-txt-3 hover:text-yo-txt hover:bg-yo-raised"
+            aria-label={showConfirm ? "Ocultar contraseña" : "Mostrar contraseña"}>
+            {showConfirm ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+          </button>
+        }
       />
 
       <label className="flex items-start gap-2.5 text-sm text-yo-txt-2 cursor-pointer">
@@ -317,6 +368,7 @@ function Step1Account({ onSignedUp, setError, loading, setLoading }: {
     </form>
   );
 }
+
 
 // ─── STEP 2 — Tipo de persona ────────────────────────────────────────────────
 function Step2Type({ onSaved, onBack, setError, loading, setLoading }: {
