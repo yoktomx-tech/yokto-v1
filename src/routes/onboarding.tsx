@@ -4,7 +4,7 @@ import { z } from "zod";
 import {
   Mail, Lock, Eye, EyeOff, ArrowRight, ArrowLeft, Loader2, Check,
   User as UserIcon, Building2, Upload, Trash2, FileText, ShieldCheck,
-  Landmark, AlertCircle,
+  Landmark, AlertCircle, X, FileCheck2, KeyRound, PencilLine,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useServerFn } from "@tanstack/react-start";
@@ -12,6 +12,7 @@ import {
   checkEmailExists, validateRfcServer, validateCurpNubarium, saveOnboardingStep,
   uploadKycDocument, listOwnKycDocuments, deleteOwnKycDocument,
   registerClabe, startPennyTest, confirmPennyTest, submitKyc,
+  validateCsfNubarium, parseEfirma, validateFielSerialNubarium,
 } from "@/lib/onboarding.functions";
 import { validateClabe, normalizeClabe, getBanco } from "@/lib/validations/clabe";
 import { validateRfc, normalizeRfc } from "@/lib/validations/rfc";
