@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate, useRouter, Link } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { z } from "zod";
 import { Mail, Lock, Eye, EyeOff, User, Loader2, ShieldCheck, ArrowRight, Sparkles } from "lucide-react";
