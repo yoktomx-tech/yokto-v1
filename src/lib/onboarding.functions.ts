@@ -79,11 +79,12 @@ const step3PmSchema = z.object({
   }),
 }).merge(domicilioSchema);
 
-const saveStepSchema = z.discriminatedUnion("step", [
+const saveStepSchema = z.union([
   step2Schema,
   step3PfSchema,
   step3PmSchema,
 ]);
+
 
 export const saveOnboardingStep = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
