@@ -154,7 +154,7 @@ const step3PmSchema = z.object({
   trade_name: z.string().optional().nullable(),
   rfc: z.string(),
   regimen_fiscal: z.string().min(3),
-  uso_cfdi_default: z.string().min(2),
+  uso_cfdi_default: z.string().optional().nullable(),
   incorporation_date: z.string().optional().nullable(),
   legal_rep: z.object({
     full_name: z.string().min(3),
