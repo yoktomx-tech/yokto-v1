@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 const nav = [
   { to: "/dashboard", label: "Panel" },
   { to: "/transactions", label: "Transacciones" },
+  { to: "/payments", label: "Pagos" },
   { to: "/kyc", label: "KYC" },
 ] as const;
 
