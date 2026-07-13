@@ -527,13 +527,51 @@ function Step3Fiscal({ onSaved, onBack, setError, loading, setLoading }: {
   const [efKey, setEfKey] = useState<File | null>(null);
   const [efPass, setEfPass] = useState("");
 
+  // Postal code (Copomex) — se muestra sólo tras consulta exitosa
+  const [cpBusy, setCpBusy] = useState(false);
+  const [cpErr, setCpErr] = useState<string | null>(null);
+  const [cpOptions, setCpOptions] = useState<string[] | null>(null);
+  const [cpLocked, setCpLocked] = useState(false); // municipio/estado bloqueados tras consulta
+
   const save = useServerFn(saveOnboardingStep);
   const validateRfcFn = useServerFn(validateRfcServer);
   const validateCurpFn = useServerFn(validateCurpNubarium);
   const validateCsfFn = useServerFn(validateCsfNubarium);
   const parseEfirmaFn = useServerFn(parseEfirma);
   const validateSerialFn = useServerFn(validateFielSerialNubarium);
+  const lookupCpFn = useServerFn(lookupPostalCode);
   const set = (k: string, v: string) => setF((p) => ({ ...p, [k]: v }));
+
+  async function lookupCP(cp: string, source: "manual" | "efirma" | "csf" = "manual") {
+    setCpErr(null); setCpBusy(true);
+    try {
+      const r = await lookupCpFn({ data: { cp, source } });
+      setCpOptions(r.colonias);
+      setCpLocked(true);
+      setF((p) => ({
+        ...p,
+        fiscal_postal_code: r.cp,
+        fiscal_municipio: r.municipio,
+        fiscal_estado: r.estado,
+        fiscal_colonia: r.colonias.includes(p.fiscal_colonia ?? "") ? (p.fiscal_colonia ?? "") : "",
+      }));
+    } catch (e) {
+      setCpOptions(null);
+      setCpLocked(false);
+      setCpErr(e instanceof Error ? e.message : "No se pudo consultar el CP");
+    } finally { setCpBusy(false); }
+  }
+
+  function onCpChange(v: string) {
+    const clean = v.replace(/\D/g, "").slice(0, 5);
+    set("fiscal_postal_code", clean);
+    if (clean.length < 5) {
+      setCpOptions(null); setCpLocked(false); setCpErr(null);
+      setF((p) => ({ ...p, fiscal_municipio: "", fiscal_estado: "", fiscal_colonia: "" }));
+    } else if (clean.length === 5) {
+      void lookupCP(clean, "manual");
+    }
+  }
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
