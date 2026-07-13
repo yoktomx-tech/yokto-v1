@@ -230,11 +230,12 @@ const passwordSchema = z.string().min(8, "Mínimo 8 caracteres")
   .regex(/[0-9]/, "Requiere al menos un número")
   .regex(/[^A-Za-z0-9]/, "Requiere al menos un símbolo");
 
-function Step1Account({ onSignedUp, setError, loading, setLoading }: {
-  onSignedUp: (userId: string, email: string) => void;
+function Step1Account({ initialEmail, onCredentials, setError, loading, setLoading }: {
+  initialEmail: string;
+  onCredentials: (email: string, password: string) => void;
   setError: (s: string | null) => void; loading: boolean; setLoading: (b: boolean) => void;
 }) {
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(initialEmail);
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [terms, setTerms] = useState(false);
@@ -265,53 +266,29 @@ function Step1Account({ onSignedUp, setError, loading, setLoading }: {
     } finally { setCheckingEmail(false); }
   }
 
-  function translateAuthError(msg: string): string {
-    const m = msg.toLowerCase();
-    if (m.includes("weak_password") || m.includes("known to be weak") || m.includes("pwned")) return "Contraseña insegura. Está en listas de filtraciones conocidas, elige una diferente.";
-    if (m.includes("already registered") || m.includes("user already")) return "Este correo ya tiene una cuenta. Inicia sesión.";
-    if (m.includes("invalid email")) return "Correo inválido.";
-    if (m.includes("password should be")) return "La contraseña no cumple los requisitos mínimos.";
-    if (m.includes("rate limit")) return "Demasiados intentos. Espera unos minutos y vuelve a intentar.";
-    if (m.includes("network")) return "Error de red. Verifica tu conexión e intenta de nuevo.";
-    return "No se pudo crear la cuenta. Intenta de nuevo.";
-  }
-
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setError(null); setPwdError(null); setConfirmError(null);
+    const ev = z.string().email().safeParse(email);
+    if (!ev.success) { setEmailError("Correo inválido"); return; }
     const pv = passwordSchema.safeParse(password);
     if (!pv.success) { setPwdError(pv.error.issues[0]?.message ?? "Contraseña inválida"); return; }
     if (password !== confirm) { setConfirmError("Las contraseñas no coinciden"); return; }
     if (!terms) { setError("Debes aceptar los términos y el aviso de privacidad."); return; }
     if (emailError) return;
 
+    // Verificación final del email (por si no hubo blur)
     setLoading(true);
     try {
-      const { data, error } = await supabase.auth.signUp({
-        email: email.toLowerCase(),
-        password,
-        options: { emailRedirectTo: `${window.location.origin}/onboarding` },
-      });
-      if (error) throw error;
-      if (!data.user) throw new Error("No se pudo crear el usuario");
-      // Asegurar sesión (para que las server functions autenticadas funcionen).
-      if (!data.session) {
-        const { error: signErr } = await supabase.auth.signInWithPassword({
-          email: email.toLowerCase(),
-          password,
-        });
-        if (signErr) {
-          setError("Cuenta creada. Confirma tu correo e inicia sesión para continuar.");
-          setLoading(false);
-          return;
-        }
-      }
-      onSignedUp(data.user.id, data.user.email ?? email);
-    } catch (err) {
-      const raw = err instanceof Error ? err.message : "Error al crear cuenta";
-      setError(translateAuthError(raw));
+      const r = await checkEmail({ data: { email: email.toLowerCase() } });
+      if (r.exists) { setEmailError("Este correo ya tiene una cuenta. Inicia sesión."); return; }
+      // Sin signUp aún: se difiere hasta Paso 3 para evitar cuentas huérfanas.
+      onCredentials(email.toLowerCase(), password);
+    } catch {
+      setError("No se pudo validar el correo. Intenta de nuevo.");
     } finally { setLoading(false); }
   }
+
 
   return (
     <form onSubmit={submit} className="flex flex-col gap-4" noValidate>
