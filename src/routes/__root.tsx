@@ -86,7 +86,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           "YOKTO es la plataforma neutral de pago contra cumplimiento para México. Retenemos fondos y los liberamos solo cuando se verifican las condiciones acordadas entre las partes.",
       },
       { name: "author", content: "YOKTO" },
-      { name: "theme-color", content: "#F5F0E8" },
+      { name: "theme-color", content: "#09090B" },
       { property: "og:title", content: "YOKTO — Pago Seguro contra Cumplimiento" },
       {
         property: "og:description",
@@ -109,7 +109,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "" },
       {
         rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap",
+        href: "https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap",
       },
     ],
   }),

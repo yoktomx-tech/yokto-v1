@@ -5,30 +5,61 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  /* Radios muy reducidos: bordes duros */
-  --radius-sm: 0px;
-  --radius-md: 2px;
-  --radius-lg: 4px;
-  --radius-xl: 6px;
-  --radius-2xl: 8px;
-  --radius-3xl: 12px;
-  --radius-4xl: 16px;
+  /* Radios — v2 generosos */
+  --radius-sm: 0.375rem;   /* 6px */
+  --radius-md: 0.5rem;     /* 8px inputs, botones */
+  --radius-lg: 0.75rem;    /* 12px cards */
+  --radius-xl: 1rem;       /* 16px cards grandes, modales */
+  --radius-2xl: 1.25rem;   /* 20px */
+  --radius-3xl: 1.5rem;
 
-  --font-display: "Bebas Neue", "Impact", ui-sans-serif, sans-serif;
-  --font-sans: "DM Sans", "Geist", ui-sans-serif, system-ui, sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+  /* Tipografía — Inter para todo, Geist Mono para datos */
+  --font-sans: "Inter", "Inter Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Inter", "Inter Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", "Geist Mono", ui-monospace, monospace;
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);
 
-  /* Tokens de marca YOKTO */
-  --color-yokto-black: var(--yokto-black);
-  --color-yokto-ink: var(--yokto-ink);
-  --color-yokto-cream: var(--yokto-cream);
-  --color-yokto-cream-2: var(--yokto-cream-2);
-  --color-yokto-yellow: var(--yokto-yellow);
-  --color-yokto-alert: var(--yokto-alert);
-  --color-yokto-line: var(--yokto-line);
+  /* === Tokens YOKTO v2 (dark premium) === */
+  --color-yokto-base:     var(--yokto-base);
+  --color-yokto-elevated: var(--yokto-elevated);
+  --color-yokto-card:     var(--yokto-card);
+  --color-yokto-hover:    var(--yokto-hover);
+  --color-yokto-muted:    var(--yokto-muted);
+
+  --color-yokto-accent:      var(--yokto-accent);
+  --color-yokto-accent-h:    var(--yokto-accent-h);
+  --color-yokto-cyan:        var(--yokto-cyan);
+
+  --color-yokto-success:  var(--yokto-success);
+  --color-yokto-warning:  var(--yokto-warning);
+  --color-yokto-error:    var(--yokto-error);
+  --color-yokto-info:     var(--yokto-info);
+
+  --color-yokto-text-1: var(--yokto-text-1);
+  --color-yokto-text-2: var(--yokto-text-2);
+  --color-yokto-text-3: var(--yokto-text-3);
+
+  /* Sectores */
+  --color-sector-auto:   #F59E0B;
+  --color-sector-constr: #FB923C;
+  --color-sector-comext: #34D399;
+  --color-sector-inmob:  #60A5FA;
+  --color-sector-vehic:  #A78BFA;
+  --color-sector-serv:   #F472B6;
+
+  /* === Tokens legados (mapeados a v2 para compatibilidad) === */
+  /* yokto-black era el "tinta" del tema claro; ahora es el fondo base. */
+  --color-yokto-black:  var(--yokto-base);
+  --color-yokto-ink:    var(--yokto-elevated);
+  /* yokto-cream era la superficie clara; ahora se usa como texto claro. */
+  --color-yokto-cream:  var(--yokto-text-1);
+  --color-yokto-cream-2:var(--yokto-elevated);
+  /* yokto-yellow era el amarillo; ahora es el indigo eléctrico. */
+  --color-yokto-yellow: var(--yokto-accent);
+  --color-yokto-alert:  var(--yokto-error);
+  --color-yokto-line:   rgba(255, 255, 255, 0.10);
 
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
@@ -48,59 +79,62 @@
   --color-input: var(--input);
   --color-ring: var(--ring);
   --color-ring-offset-background: var(--background);
+
+  --shadow-card: 0 1px 3px rgba(0,0,0,0.5), 0 1px 2px rgba(0,0,0,0.4);
+  --shadow-card-hover: 0 4px 12px rgba(0,0,0,0.5), 0 2px 4px rgba(0,0,0,0.3);
+  --shadow-glow-accent: 0 0 20px rgba(99,102,241,0.25);
+  --shadow-glow-success: 0 0 20px rgba(16,185,129,0.20);
 }
 
 :root {
-  --radius: 2px;
+  color-scheme: dark;
+  --radius: 0.5rem;
 
-  /* Colores YOKTO — minimalismo industrial */
-  --yokto-black: oklch(0.15 0 0);        /* #0A0A0A */
-  --yokto-ink: oklch(0.22 0 0);          /* #1A1A1A */
-  --yokto-cream: oklch(0.965 0.005 90);  /* #F5F5F0 */
-  --yokto-cream-2: oklch(0.935 0.006 90);
-  --yokto-yellow: oklch(0.9 0.19 105);   /* #E8E000 amarillo eléctrico */
-  --yokto-alert: oklch(0.66 0.24 25);    /* #FF3B3B */
-  --yokto-line: oklch(0.85 0.004 90);
+  /* Paleta v2 */
+  --yokto-base:     #09090B;
+  --yokto-elevated: #111113;
+  --yokto-card:     #18181B;
+  --yokto-hover:    #27272A;
+  --yokto-muted:    #3F3F46;
 
-  --background: var(--yokto-cream);
-  --foreground: var(--yokto-ink);
-  --card: oklch(1 0 0);
-  --card-foreground: var(--yokto-ink);
-  --popover: oklch(1 0 0);
-  --popover-foreground: var(--yokto-ink);
-  --primary: var(--yokto-black);
-  --primary-foreground: var(--yokto-cream);
-  --secondary: var(--yokto-yellow);
-  --secondary-foreground: var(--yokto-black);
-  --muted: var(--yokto-cream-2);
-  --muted-foreground: oklch(0.42 0 0);
-  --accent: var(--yokto-yellow);
-  --accent-foreground: var(--yokto-black);
-  --destructive: var(--yokto-alert);
-  --destructive-foreground: oklch(1 0 0);
-  --border: var(--yokto-line);
-  --input: var(--yokto-line);
-  --ring: var(--yokto-black);
+  --yokto-accent:   #6366F1;
+  --yokto-accent-h: #4F46E5;
+  --yokto-cyan:     #22D3EE;
+
+  --yokto-success:  #10B981;
+  --yokto-warning:  #F59E0B;
+  --yokto-error:    #F43F5E;
+  --yokto-info:     #38BDF8;
+
+  --yokto-text-1: #FAFAFA;
+  --yokto-text-2: #A1A1AA;
+  --yokto-text-3: #71717A;
+
+  --background: var(--yokto-base);
+  --foreground: var(--yokto-text-1);
+  --card: var(--yokto-card);
+  --card-foreground: var(--yokto-text-1);
+  --popover: var(--yokto-elevated);
+  --popover-foreground: var(--yokto-text-1);
+  --primary: var(--yokto-accent);
+  --primary-foreground: #FFFFFF;
+  --secondary: var(--yokto-hover);
+  --secondary-foreground: var(--yokto-text-1);
+  --muted: var(--yokto-hover);
+  --muted-foreground: var(--yokto-text-2);
+  --accent: var(--yokto-accent);
+  --accent-foreground: #FFFFFF;
+  --destructive: var(--yokto-error);
+  --destructive-foreground: #FFFFFF;
+  --border: rgba(255, 255, 255, 0.08);
+  --input: rgba(255, 255, 255, 0.08);
+  --ring: var(--yokto-accent);
 }
 
 .dark {
-  --background: var(--yokto-black);
-  --foreground: var(--yokto-cream);
-  --card: oklch(0.19 0 0);
-  --card-foreground: var(--yokto-cream);
-  --popover: oklch(0.19 0 0);
-  --popover-foreground: var(--yokto-cream);
-  --primary: var(--yokto-yellow);
-  --primary-foreground: var(--yokto-black);
-  --secondary: oklch(0.28 0 0);
-  --secondary-foreground: var(--yokto-cream);
-  --muted: oklch(0.24 0 0);
-  --muted-foreground: oklch(0.7 0 0);
-  --accent: var(--yokto-yellow);
-  --accent-foreground: var(--yokto-black);
-  --border: oklch(1 0 0 / 14%);
-  --input: oklch(1 0 0 / 14%);
-  --ring: var(--yokto-yellow);
+  /* Ya arrancamos en dark; mantener por compatibilidad con shadcn */
+  --background: var(--yokto-base);
+  --foreground: var(--yokto-text-1);
 }
 
 @layer base {
@@ -111,25 +145,40 @@
   html {
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    color-scheme: dark;
   }
 
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   }
 
   h1, h2, h3, h4 {
-    font-family: var(--font-display);
-    font-weight: 400;
-    letter-spacing: 0.005em;
-    line-height: 0.95;
-    text-transform: uppercase;
+    font-family: var(--font-sans);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
   }
 
   .font-display {
-    font-family: var(--font-display);
-    text-transform: uppercase;
-    letter-spacing: 0.01em;
+    font-family: var(--font-sans);
+    font-weight: 800;
+    letter-spacing: -0.025em;
+  }
+
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.10);
+    border-radius: 4px;
+  }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.20); }
+
+  ::selection {
+    background: rgba(99, 102, 241, 0.35);
+    color: #FAFAFA;
   }
 }
 
@@ -149,21 +198,44 @@
 }
 
 @utility hairline {
-  border: 1px solid var(--color-yokto-black);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+}
+
+@utility surface-card {
+  background: var(--color-yokto-card);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 0.75rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.5), 0 1px 2px rgba(0,0,0,0.4);
+}
+
+@utility surface-glass {
+  background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 0.75rem;
+  backdrop-filter: blur(8px);
+}
+
+@utility gradient-accent {
+  background: linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%);
 }
 
 @utility input-editorial {
   width: 100%;
-  border: 1px solid var(--color-yokto-black);
-  background: var(--color-background);
-  padding: 0.625rem 0.75rem;
+  height: 2.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--color-yokto-card);
+  padding: 0 0.75rem;
   font-size: 0.875rem;
-  color: var(--color-foreground);
-  border-radius: 2px;
+  color: var(--color-yokto-text-1);
+  border-radius: 0.5rem;
   outline: none;
+  transition: all 150ms ease;
+}
+@utility input-editorial {
+  &::placeholder { color: var(--color-yokto-text-3); }
+  &:hover { border-color: rgba(255, 255, 255, 0.15); }
   &:focus {
-    box-shadow: inset 0 0 0 2px var(--color-yokto-yellow);
+    border-color: var(--color-yokto-accent);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.20);
   }
 }
-
-
