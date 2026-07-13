@@ -161,10 +161,9 @@
   color: var(--color-foreground);
   border-radius: 2px;
   outline: none;
-}
-@utility input-editorial {
   &:focus {
     box-shadow: inset 0 0 0 2px var(--color-yokto-yellow);
   }
 }
+
 
