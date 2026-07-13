@@ -248,7 +248,7 @@ function KycWizard() {
     if (upErr) { setError(upErr.message); return; }
     const { data, error: insErr } = await supabase.from("kyc_documents").insert({
       user_id: user.id,
-      document_type: docType as DocRow["document_type"],
+      document_type: docType as "acta_constitutiva" | "constancia_fiscal" | "ine" | "other" | "passport" | "poder_notarial" | "proof_of_address",
       storage_path: path,
       file_name: file.name,
       mime_type: file.type,
