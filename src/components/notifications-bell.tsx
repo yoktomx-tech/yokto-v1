@@ -42,25 +42,25 @@ export function NotificationsBell({ userId }: { userId: string }) {
       <button
         onClick={() => setOpen((o) => !o)}
         aria-label="Notificaciones"
-        className="relative inline-flex items-center justify-center size-9 rounded-md border border-white/[0.10] hover:border-white/[0.20] bg-yokto-card hover:bg-yokto-hover text-yokto-text-1"
+        className="relative inline-flex items-center justify-center size-8 rounded-md border border-yo-border hover:border-yo-border-s bg-yo-surface hover:bg-yo-raised text-yo-txt"
       >
         <Bell className="size-4" aria-hidden />
         {unread > 0 && (
-          <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-[#FF3B3B] text-white text-[10px] font-bold grid place-items-center">
+          <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-yo-err text-white text-[10px] font-bold grid place-items-center">
             {unread > 9 ? "9+" : unread}
           </span>
         )}
       </button>
       {open && (
-        <div className="absolute right-0 mt-2 w-80 max-h-[70vh] overflow-auto border border-yo-border bg-background shadow-lg z-50">
-          <div className="flex items-center justify-between p-3 border-b border-yo-border/20">
-            <span className="text-[11px] uppercase tracking-[0.14em] font-semibold">Notificaciones</span>
+        <div className="absolute right-0 mt-2 w-80 max-h-[70vh] overflow-auto border border-yo-border bg-yo-surface rounded-lg shadow-lg z-50">
+          <div className="flex items-center justify-between p-3 border-b border-yo-border">
+            <span className="text-[11px] uppercase tracking-[0.14em] font-semibold text-yo-txt">Notificaciones</span>
             {unread > 0 && (
-              <button onClick={markAll} className="text-[11px] uppercase tracking-[0.14em] underline underline-offset-4">Marcar leídas</button>
+              <button onClick={markAll} className="text-[11px] text-yo-ac hover:underline">Marcar leídas</button>
             )}
           </div>
-          {items.length === 0 && <p className="p-4 text-sm text-muted-foreground">Sin notificaciones.</p>}
-          <ul className="divide-y divide-yokto-black/20">
+          {items.length === 0 && <p className="p-4 text-sm text-yo-txt-3">Sin notificaciones.</p>}
+          <ul className="divide-y divide-yo-border">
             {items.map((n) => (
               <li key={n.id} className={n.read_at ? "opacity-60" : ""}>
                 {n.link ? (
