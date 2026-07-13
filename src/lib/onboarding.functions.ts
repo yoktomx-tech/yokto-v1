@@ -227,7 +227,7 @@ export const saveOnboardingStep = createServerFn({ method: "POST" })
         trade_name: data.trade_name ?? null,
         rfc: data.rfc.toUpperCase(),
         regimen_fiscal: data.regimen_fiscal,
-        uso_cfdi_default: data.uso_cfdi_default,
+        uso_cfdi_default: data.uso_cfdi_default ?? null,
         incorporation_date: data.incorporation_date ?? null,
         legal_rep: {
           full_name: data.legal_rep.full_name,
