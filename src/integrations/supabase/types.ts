@@ -50,6 +50,84 @@ export type Database = {
         }
         Relationships: []
       }
+      audit_log: {
+        Row: {
+          action: string
+          created_at: string
+          entity_id: string
+          entity_type: string
+          id: string
+          new_data: Json | null
+          previous_data: Json | null
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          entity_id: string
+          entity_type: string
+          id?: string
+          new_data?: Json | null
+          previous_data?: Json | null
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          new_data?: Json | null
+          previous_data?: Json | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      clabe_verifications: {
+        Row: {
+          banco: string | null
+          clabe: string
+          created_at: string
+          id: string
+          nivel: Database["public"]["Enums"]["clabe_nivel"]
+          penny_test_amount_cents: number | null
+          penny_test_code: string | null
+          penny_test_confirmed_at: string | null
+          penny_test_ref: string | null
+          status: Database["public"]["Enums"]["clabe_status"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          banco?: string | null
+          clabe: string
+          created_at?: string
+          id?: string
+          nivel?: Database["public"]["Enums"]["clabe_nivel"]
+          penny_test_amount_cents?: number | null
+          penny_test_code?: string | null
+          penny_test_confirmed_at?: string | null
+          penny_test_ref?: string | null
+          status?: Database["public"]["Enums"]["clabe_status"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          banco?: string | null
+          clabe?: string
+          created_at?: string
+          id?: string
+          nivel?: Database["public"]["Enums"]["clabe_nivel"]
+          penny_test_amount_cents?: number | null
+          penny_test_code?: string | null
+          penny_test_confirmed_at?: string | null
+          penny_test_ref?: string | null
+          status?: Database["public"]["Enums"]["clabe_status"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       connected_accounts: {
         Row: {
           charges_enabled: boolean
@@ -401,75 +479,123 @@ export type Database = {
         Row: {
           account_type: Database["public"]["Enums"]["account_type"] | null
           avatar_url: string | null
+          birth_date: string | null
           created_at: string
+          curp: string | null
           email: string | null
           first_name: string | null
           fiscal_address: string | null
+          fiscal_colonia: string | null
+          fiscal_estado: string | null
+          fiscal_ext_number: string | null
+          fiscal_int_number: string | null
+          fiscal_municipio: string | null
           fiscal_postal_code: string | null
+          fiscal_street: string | null
           id: string
+          incorporation_date: string | null
           industry_sector: Database["public"]["Enums"]["industry_sector"] | null
+          kyc_approved_at: string | null
           kyc_completed_at: string | null
+          kyc_nivel: Database["public"]["Enums"]["kyc_nivel"]
+          kyc_rejection_reason: string | null
           kyc_status: Database["public"]["Enums"]["kyc_status"]
           kyc_submitted_at: string | null
           last_name: string | null
           legal_name: string | null
+          legal_rep: Json | null
           onboarding_completed: boolean
           onboarding_step: number
           phone: string | null
           regimen_fiscal: string | null
           rfc: string | null
+          second_last_name: string | null
+          trade_name: string | null
           updated_at: string
           uso_cfdi: string | null
+          uso_cfdi_default: string | null
         }
         Insert: {
           account_type?: Database["public"]["Enums"]["account_type"] | null
           avatar_url?: string | null
+          birth_date?: string | null
           created_at?: string
+          curp?: string | null
           email?: string | null
           first_name?: string | null
           fiscal_address?: string | null
+          fiscal_colonia?: string | null
+          fiscal_estado?: string | null
+          fiscal_ext_number?: string | null
+          fiscal_int_number?: string | null
+          fiscal_municipio?: string | null
           fiscal_postal_code?: string | null
+          fiscal_street?: string | null
           id: string
+          incorporation_date?: string | null
           industry_sector?:
             | Database["public"]["Enums"]["industry_sector"]
             | null
+          kyc_approved_at?: string | null
           kyc_completed_at?: string | null
+          kyc_nivel?: Database["public"]["Enums"]["kyc_nivel"]
+          kyc_rejection_reason?: string | null
           kyc_status?: Database["public"]["Enums"]["kyc_status"]
           kyc_submitted_at?: string | null
           last_name?: string | null
           legal_name?: string | null
+          legal_rep?: Json | null
           onboarding_completed?: boolean
           onboarding_step?: number
           phone?: string | null
           regimen_fiscal?: string | null
           rfc?: string | null
+          second_last_name?: string | null
+          trade_name?: string | null
           updated_at?: string
           uso_cfdi?: string | null
+          uso_cfdi_default?: string | null
         }
         Update: {
           account_type?: Database["public"]["Enums"]["account_type"] | null
           avatar_url?: string | null
+          birth_date?: string | null
           created_at?: string
+          curp?: string | null
           email?: string | null
           first_name?: string | null
           fiscal_address?: string | null
+          fiscal_colonia?: string | null
+          fiscal_estado?: string | null
+          fiscal_ext_number?: string | null
+          fiscal_int_number?: string | null
+          fiscal_municipio?: string | null
           fiscal_postal_code?: string | null
+          fiscal_street?: string | null
           id?: string
+          incorporation_date?: string | null
           industry_sector?:
             | Database["public"]["Enums"]["industry_sector"]
             | null
+          kyc_approved_at?: string | null
           kyc_completed_at?: string | null
+          kyc_nivel?: Database["public"]["Enums"]["kyc_nivel"]
+          kyc_rejection_reason?: string | null
           kyc_status?: Database["public"]["Enums"]["kyc_status"]
           kyc_submitted_at?: string | null
           last_name?: string | null
           legal_name?: string | null
+          legal_rep?: Json | null
           onboarding_completed?: boolean
           onboarding_step?: number
           phone?: string | null
           regimen_fiscal?: string | null
           rfc?: string | null
+          second_last_name?: string | null
+          trade_name?: string | null
           updated_at?: string
           uso_cfdi?: string | null
+          uso_cfdi_default?: string | null
         }
         Relationships: []
       }
@@ -770,6 +896,8 @@ export type Database = {
     Enums: {
       account_type: "persona_fisica" | "persona_moral"
       app_role: "buyer" | "seller" | "admin" | "verifier" | "mediator"
+      clabe_nivel: "algoritmica" | "penny_test" | "documental"
+      clabe_status: "pending" | "verifying" | "verified" | "failed"
       commission_payer: "buyer" | "seller" | "split"
       condition_status: "pending" | "met" | "rejected"
       industry_sector:
@@ -789,6 +917,11 @@ export type Database = {
         | "constancia_fiscal"
         | "poder_notarial"
         | "other"
+        | "ine_frente"
+        | "ine_reverso"
+        | "selfie_con_id"
+        | "cedula_fiscal"
+      kyc_nivel: "basico" | "intermedio" | "avanzado"
       kyc_status: "pending" | "in_review" | "approved" | "rejected"
       payment_method: "spei" | "card"
       transaction_status:
@@ -930,6 +1063,8 @@ export const Constants = {
     Enums: {
       account_type: ["persona_fisica", "persona_moral"],
       app_role: ["buyer", "seller", "admin", "verifier", "mediator"],
+      clabe_nivel: ["algoritmica", "penny_test", "documental"],
+      clabe_status: ["pending", "verifying", "verified", "failed"],
       commission_payer: ["buyer", "seller", "split"],
       condition_status: ["pending", "met", "rejected"],
       industry_sector: [
@@ -950,7 +1085,12 @@ export const Constants = {
         "constancia_fiscal",
         "poder_notarial",
         "other",
+        "ine_frente",
+        "ine_reverso",
+        "selfie_con_id",
+        "cedula_fiscal",
       ],
+      kyc_nivel: ["basico", "intermedio", "avanzado"],
       kyc_status: ["pending", "in_review", "approved", "rejected"],
       payment_method: ["spei", "card"],
       transaction_status: [

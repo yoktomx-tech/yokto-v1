@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
@@ -23,12 +24,18 @@ import { Route as AuthenticatedApiClientsRouteImport } from './routes/_authentic
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedTransactionsNewRouteImport } from './routes/_authenticated/transactions.new'
 import { Route as AuthenticatedTransactionsIdRouteImport } from './routes/_authenticated/transactions.$id'
+import { Route as AuthenticatedOnboardingPendienteRouteImport } from './routes/_authenticated/onboarding.pendiente'
 import { Route as AuthenticatedDisputesIdRouteImport } from './routes/_authenticated/disputes.$id'
 import { Route as ApiPublicV1TransactionsRouteImport } from './routes/api/public/v1.transactions'
 
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
   path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OnboardingRoute = OnboardingRouteImport.update({
+  id: '/onboarding',
+  path: '/onboarding',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRoute = AuthRouteImport.update({
@@ -98,6 +105,12 @@ const AuthenticatedTransactionsIdRoute =
     path: '/$id',
     getParentRoute: () => AuthenticatedTransactionsRoute,
   } as any)
+const AuthenticatedOnboardingPendienteRoute =
+  AuthenticatedOnboardingPendienteRouteImport.update({
+    id: '/onboarding/pendiente',
+    path: '/onboarding/pendiente',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedDisputesIdRoute = AuthenticatedDisputesIdRouteImport.update({
   id: '/$id',
   path: '/$id',
@@ -112,6 +125,7 @@ const ApiPublicV1TransactionsRoute = ApiPublicV1TransactionsRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/onboarding': typeof OnboardingRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/api-clients': typeof AuthenticatedApiClientsRoute
@@ -122,6 +136,7 @@ export interface FileRoutesByFullPath {
   '/reports': typeof AuthenticatedReportsRoute
   '/transactions': typeof AuthenticatedTransactionsRouteWithChildren
   '/disputes/$id': typeof AuthenticatedDisputesIdRoute
+  '/onboarding/pendiente': typeof AuthenticatedOnboardingPendienteRoute
   '/transactions/$id': typeof AuthenticatedTransactionsIdRoute
   '/transactions/new': typeof AuthenticatedTransactionsNewRoute
   '/api/public/v1/transactions': typeof ApiPublicV1TransactionsRoute
@@ -129,6 +144,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/onboarding': typeof OnboardingRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/api-clients': typeof AuthenticatedApiClientsRoute
@@ -139,6 +155,7 @@ export interface FileRoutesByTo {
   '/reports': typeof AuthenticatedReportsRoute
   '/transactions': typeof AuthenticatedTransactionsRouteWithChildren
   '/disputes/$id': typeof AuthenticatedDisputesIdRoute
+  '/onboarding/pendiente': typeof AuthenticatedOnboardingPendienteRoute
   '/transactions/$id': typeof AuthenticatedTransactionsIdRoute
   '/transactions/new': typeof AuthenticatedTransactionsNewRoute
   '/api/public/v1/transactions': typeof ApiPublicV1TransactionsRoute
@@ -148,6 +165,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/onboarding': typeof OnboardingRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/api-clients': typeof AuthenticatedApiClientsRoute
@@ -158,6 +176,7 @@ export interface FileRoutesById {
   '/_authenticated/reports': typeof AuthenticatedReportsRoute
   '/_authenticated/transactions': typeof AuthenticatedTransactionsRouteWithChildren
   '/_authenticated/disputes/$id': typeof AuthenticatedDisputesIdRoute
+  '/_authenticated/onboarding/pendiente': typeof AuthenticatedOnboardingPendienteRoute
   '/_authenticated/transactions/$id': typeof AuthenticatedTransactionsIdRoute
   '/_authenticated/transactions/new': typeof AuthenticatedTransactionsNewRoute
   '/api/public/v1/transactions': typeof ApiPublicV1TransactionsRoute
@@ -167,6 +186,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/onboarding'
     | '/sitemap.xml'
     | '/admin'
     | '/api-clients'
@@ -177,6 +197,7 @@ export interface FileRouteTypes {
     | '/reports'
     | '/transactions'
     | '/disputes/$id'
+    | '/onboarding/pendiente'
     | '/transactions/$id'
     | '/transactions/new'
     | '/api/public/v1/transactions'
@@ -184,6 +205,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
+    | '/onboarding'
     | '/sitemap.xml'
     | '/admin'
     | '/api-clients'
@@ -194,6 +216,7 @@ export interface FileRouteTypes {
     | '/reports'
     | '/transactions'
     | '/disputes/$id'
+    | '/onboarding/pendiente'
     | '/transactions/$id'
     | '/transactions/new'
     | '/api/public/v1/transactions'
@@ -202,6 +225,7 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/onboarding'
     | '/sitemap.xml'
     | '/_authenticated/admin'
     | '/_authenticated/api-clients'
@@ -212,6 +236,7 @@ export interface FileRouteTypes {
     | '/_authenticated/reports'
     | '/_authenticated/transactions'
     | '/_authenticated/disputes/$id'
+    | '/_authenticated/onboarding/pendiente'
     | '/_authenticated/transactions/$id'
     | '/_authenticated/transactions/new'
     | '/api/public/v1/transactions'
@@ -221,6 +246,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  OnboardingRoute: typeof OnboardingRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   ApiPublicV1TransactionsRoute: typeof ApiPublicV1TransactionsRoute
 }
@@ -232,6 +258,13 @@ declare module '@tanstack/react-router' {
       path: '/sitemap.xml'
       fullPath: '/sitemap.xml'
       preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/onboarding': {
+      id: '/onboarding'
+      path: '/onboarding'
+      fullPath: '/onboarding'
+      preLoaderRoute: typeof OnboardingRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth': {
@@ -325,6 +358,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedTransactionsIdRouteImport
       parentRoute: typeof AuthenticatedTransactionsRoute
     }
+    '/_authenticated/onboarding/pendiente': {
+      id: '/_authenticated/onboarding/pendiente'
+      path: '/onboarding/pendiente'
+      fullPath: '/onboarding/pendiente'
+      preLoaderRoute: typeof AuthenticatedOnboardingPendienteRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/disputes/$id': {
       id: '/_authenticated/disputes/$id'
       path: '/$id'
@@ -380,6 +420,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedPaymentsRoute: typeof AuthenticatedPaymentsRoute
   AuthenticatedReportsRoute: typeof AuthenticatedReportsRoute
   AuthenticatedTransactionsRoute: typeof AuthenticatedTransactionsRouteWithChildren
+  AuthenticatedOnboardingPendienteRoute: typeof AuthenticatedOnboardingPendienteRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -391,6 +432,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedPaymentsRoute: AuthenticatedPaymentsRoute,
   AuthenticatedReportsRoute: AuthenticatedReportsRoute,
   AuthenticatedTransactionsRoute: AuthenticatedTransactionsRouteWithChildren,
+  AuthenticatedOnboardingPendienteRoute: AuthenticatedOnboardingPendienteRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
@@ -400,6 +442,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  OnboardingRoute: OnboardingRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   ApiPublicV1TransactionsRoute: ApiPublicV1TransactionsRoute,
 }

@@ -267,13 +267,16 @@ function AuthPage() {
 
             <p className="mt-6 text-sm text-yokto-text-2 text-center">
               {mode === "login" ? "¿No tienes una cuenta? " : "¿Ya tienes cuenta? "}
-              <button
-                type="button"
-                onClick={() => { setError(null); setInfo(null); setMode(mode === "login" ? "signup" : "login"); }}
-                className="font-semibold text-yokto-accent hover:text-yokto-accent-h underline-offset-4 hover:underline"
-              >
-                {mode === "login" ? "Crear cuenta" : "Iniciar sesión"}
-              </button>
+              {mode === "login" ? (
+                <a href="/onboarding" className="font-semibold text-yokto-accent hover:text-yokto-accent-h underline-offset-4 hover:underline">
+                  Crear cuenta
+                </a>
+              ) : (
+                <button type="button" onClick={() => { setError(null); setInfo(null); setMode("login"); }}
+                  className="font-semibold text-yokto-accent hover:text-yokto-accent-h underline-offset-4 hover:underline">
+                  Iniciar sesión
+                </button>
+              )}
             </p>
           </div>
 
