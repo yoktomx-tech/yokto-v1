@@ -109,10 +109,7 @@ function AuthPage() {
         />
 
         <div className="relative flex items-center gap-2.5">
-          <span className="grid place-items-center size-8 rounded-md gradient-accent text-white font-bold text-base leading-none shadow-glow-accent">
-            Y
-          </span>
-          <span className="font-extrabold text-lg tracking-[0.14em]">YOKTO</span>
+          <YoktoLogo variant="dark" className="h-7 w-auto" />
         </div>
 
         <div className="relative max-w-lg">
@@ -155,10 +152,7 @@ function AuthPage() {
         <div className="w-full max-w-sm">
           {/* Mobile brand */}
           <div className="lg:hidden mb-8 flex items-center gap-2.5">
-            <span className="grid place-items-center size-9 rounded-md gradient-accent text-white font-bold text-base leading-none shadow-glow-accent">
-              Y
-            </span>
-            <span className="font-extrabold text-lg tracking-[0.14em] text-yokto-text-1">YOKTO</span>
+            <YoktoLogo variant="dark" className="h-7 w-auto" />
           </div>
 
           <div className="rounded-2xl bg-yokto-card border border-white/[0.06] shadow-lg p-7 sm:p-8">

@@ -2,6 +2,7 @@ import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { LogOut } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { NotificationsBell } from "@/components/notifications-bell";
+import { YoktoLogo } from "@/components/logo";
 
 const nav = [
   { to: "/dashboard", label: "Panel" },
@@ -29,10 +30,7 @@ export function AppHeader({ email, section, userId }: { email?: string | null; s
       <div className="container-editorial flex h-14 items-center justify-between gap-4">
         <div className="flex items-center gap-6 min-w-0">
           <Link to="/dashboard" className="flex items-center gap-2.5 shrink-0" aria-label="YOKTO — Panel">
-            <span className="grid place-items-center size-7 rounded-md bg-yo-ac text-white font-bold text-sm leading-none">
-              Y
-            </span>
-            <span className="font-bold text-[13px] tracking-tight text-yo-txt">YOKTO</span>
+            <YoktoLogo variant="dark" className="h-5 w-auto" />
             <span className="text-[10px] font-semibold bg-yo-ac-bg text-yo-ac-txt px-1.5 py-0.5 rounded">Beta</span>
             {section && (
               <span className="ml-3 hidden sm:inline text-xs font-medium text-yo-txt-3 border-l border-yo-border pl-3">

@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Menu, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { YoktoLogo } from "@/components/logo";
 
 const nav = [] as const;
 
@@ -32,13 +33,7 @@ export function SiteHeader() {
     >
       <div className="container-editorial flex h-16 items-center justify-between">
         <Link to="/" className="flex items-center gap-2.5 group" onClick={() => setOpen(false)} aria-label="YOKTO — Inicio">
-          <span
-            className="grid place-items-center size-8 rounded-md gradient-accent text-white font-bold text-base leading-none shadow-glow-accent transition group-hover:scale-105"
-            aria-hidden
-          >
-            Y
-          </span>
-          <span className="font-extrabold text-lg tracking-[0.14em] text-yokto-text-1">YOKTO</span>
+          <YoktoLogo variant="dark" className="h-6 w-auto transition group-hover:opacity-80" />
         </Link>
 
         <nav className="hidden md:flex items-center gap-1" />
