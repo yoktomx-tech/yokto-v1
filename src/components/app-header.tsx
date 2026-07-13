@@ -21,21 +21,22 @@ export function AppHeader({ email, section, userId }: { email?: string | null; s
   }
 
   return (
-    <header className="sticky top-0 z-40 border-b border-white/[0.06] bg-yokto-elevated/80 backdrop-blur-md">
-      <div className="container-editorial flex h-16 items-center justify-between gap-4">
+    <header className="sticky top-0 z-40 border-b border-yo-border bg-yo-surface">
+      <div className="container-editorial flex h-14 items-center justify-between gap-4">
         <div className="flex items-center gap-6 min-w-0">
           <Link to="/dashboard" className="flex items-center gap-2.5 shrink-0" aria-label="YOKTO — Panel">
-            <span className="grid place-items-center size-8 rounded-md gradient-accent text-white font-bold text-base leading-none shadow-glow-accent">
+            <span className="grid place-items-center size-7 rounded-md bg-yo-ac text-white font-bold text-sm leading-none">
               Y
             </span>
-            <span className="font-extrabold text-base tracking-[0.14em] text-yokto-text-1">YOKTO</span>
+            <span className="font-bold text-[13px] tracking-tight text-yo-txt">YOKTO</span>
+            <span className="text-[10px] font-semibold bg-yo-ac-bg text-yo-ac-txt px-1.5 py-0.5 rounded">Beta</span>
             {section && (
-              <span className="ml-3 hidden sm:inline text-xs font-medium text-yokto-text-3 border-l border-white/[0.08] pl-3">
+              <span className="ml-3 hidden sm:inline text-xs font-medium text-yo-txt-3 border-l border-yo-border pl-3">
                 {section}
               </span>
             )}
           </Link>
-          <nav className="hidden md:flex items-center gap-1">
+          <nav className="hidden md:flex items-center gap-0.5">
             {nav.map((item) => {
               const active = pathname === item.to || pathname.startsWith(item.to + "/");
               return (
@@ -44,8 +45,8 @@ export function AppHeader({ email, section, userId }: { email?: string | null; s
                   to={item.to}
                   className={
                     active
-                      ? "px-3 py-2 rounded-md text-sm font-semibold text-white bg-yokto-accent/15 border border-yokto-accent/25"
-                      : "px-3 py-2 rounded-md text-sm font-medium text-yokto-text-2 hover:text-yokto-text-1 hover:bg-yokto-hover"
+                      ? "px-3 py-1.5 rounded-md text-[12.5px] font-semibold text-yo-ac-txt bg-yo-ac-bg"
+                      : "px-3 py-1.5 rounded-md text-[12.5px] font-medium text-yo-txt-2 hover:text-yo-txt hover:bg-yo-raised"
                   }
                 >
                   {item.label}
@@ -54,16 +55,16 @@ export function AppHeader({ email, section, userId }: { email?: string | null; s
             })}
           </nav>
         </div>
-        <div className="flex items-center gap-3 shrink-0">
+        <div className="flex items-center gap-2 shrink-0">
           {userId && <NotificationsBell userId={userId} />}
           {email && (
-            <span className="hidden sm:inline text-xs text-yokto-text-3 truncate max-w-[180px]">{email}</span>
+            <span className="hidden sm:inline text-xs text-yo-txt-3 truncate max-w-[180px]">{email}</span>
           )}
           <button
             onClick={signOut}
-            className="inline-flex items-center gap-1.5 rounded-md border border-white/[0.10] hover:border-white/[0.20] bg-yokto-card hover:bg-yokto-hover text-sm font-medium text-yokto-text-1 px-3 py-2 transition"
+            className="inline-flex items-center gap-1.5 rounded-md border border-yo-border hover:border-yo-border-s bg-yo-surface hover:bg-yo-raised text-[12.5px] font-medium text-yo-txt px-3 py-1.5 transition"
           >
-            <LogOut className="size-4" aria-hidden />
+            <LogOut className="size-3.5" aria-hidden />
             <span className="hidden sm:inline">Salir</span>
           </button>
         </div>

@@ -5,15 +5,15 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  /* Radios — v2 generosos */
-  --radius-sm: 0.375rem;   /* 6px */
-  --radius-md: 0.5rem;     /* 8px inputs, botones */
-  --radius-lg: 0.75rem;    /* 12px cards */
-  --radius-xl: 1rem;       /* 16px cards grandes, modales */
-  --radius-2xl: 1.25rem;   /* 20px */
-  --radius-3xl: 1.5rem;
+  /* Radios — v3 clara */
+  --radius-sm: 0.3125rem;  /* 5px */
+  --radius-md: 0.5rem;     /* 8px inputs/botones */
+  --radius-lg: 0.625rem;   /* 10px cards estándar */
+  --radius-xl: 0.75rem;    /* 12px cards grandes */
+  --radius-2xl: 1rem;      /* 16px modales */
+  --radius-3xl: 1.25rem;
 
-  /* Tipografía — Inter para todo, Geist Mono para datos */
+  /* Tipografía — Inter + JetBrains Mono */
   --font-sans: "Inter", "Inter Variable", ui-sans-serif, system-ui, sans-serif;
   --font-display: "Inter", "Inter Variable", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", "Geist Mono", ui-monospace, monospace;
@@ -21,45 +21,65 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
 
-  /* === Tokens YOKTO v2 (dark premium) === */
-  --color-yokto-base:     var(--yokto-base);
-  --color-yokto-elevated: var(--yokto-elevated);
-  --color-yokto-card:     var(--yokto-card);
-  --color-yokto-hover:    var(--yokto-hover);
-  --color-yokto-muted:    var(--yokto-muted);
+  /* === Tokens YOKTO v3 (light — spec `yo-*`) === */
+  --color-yo-bg:       var(--yo-bg);
+  --color-yo-surface:  var(--yo-surface);
+  --color-yo-raised:   var(--yo-raised);
+  --color-yo-border:   var(--yo-border);
+  --color-yo-border-s: var(--yo-border-s);
 
-  --color-yokto-accent:      var(--yokto-accent);
-  --color-yokto-accent-h:    var(--yokto-accent-h);
-  --color-yokto-cyan:        var(--yokto-cyan);
+  --color-yo-txt:      var(--yo-txt);
+  --color-yo-txt-2:    var(--yo-txt-2);
+  --color-yo-txt-3:    var(--yo-txt-3);
+  --color-yo-txt-4:    var(--yo-txt-4);
 
-  --color-yokto-success:  var(--yokto-success);
-  --color-yokto-warning:  var(--yokto-warning);
-  --color-yokto-error:    var(--yokto-error);
-  --color-yokto-info:     var(--yokto-info);
+  --color-yo-ac:       var(--yo-ac);
+  --color-yo-ac-h:     var(--yo-ac-h);
+  --color-yo-ac-bg:    var(--yo-ac-bg);
+  --color-yo-ac-txt:   var(--yo-ac-txt);
 
-  --color-yokto-text-1: var(--yokto-text-1);
-  --color-yokto-text-2: var(--yokto-text-2);
-  --color-yokto-text-3: var(--yokto-text-3);
+  --color-yo-ok:       var(--yo-ok);
+  --color-yo-ok-bg:    var(--yo-ok-bg);
+  --color-yo-err:      var(--yo-err);
+  --color-yo-err-bg:   var(--yo-err-bg);
+  --color-yo-warn:     var(--yo-warn);
+  --color-yo-warn-bg:  var(--yo-warn-bg);
+  --color-yo-info:     var(--yo-info);
+  --color-yo-info-bg:  var(--yo-info-bg);
 
-  /* Sectores */
-  --color-sector-auto:   #F59E0B;
-  --color-sector-constr: #FB923C;
-  --color-sector-comext: #34D399;
-  --color-sector-inmob:  #60A5FA;
-  --color-sector-vehic:  #A78BFA;
-  --color-sector-serv:   #F472B6;
+  /* Sectores (sin amarillo) */
+  --color-sector-auto:   #4F46E5;
+  --color-sector-constr: #F97316;
+  --color-sector-comext: #0EA5E9;
+  --color-sector-inmob:  #8B5CF6;
+  --color-sector-vehic:  #10B981;
+  --color-sector-serv:   #F43F5E;
 
-  /* === Tokens legados (mapeados a v2 para compatibilidad) === */
-  /* yokto-black era el "tinta" del tema claro; ahora es el fondo base. */
-  --color-yokto-black:  var(--yokto-base);
-  --color-yokto-ink:    var(--yokto-elevated);
-  /* yokto-cream era la superficie clara; ahora se usa como texto claro. */
-  --color-yokto-cream:  var(--yokto-text-1);
-  --color-yokto-cream-2:var(--yokto-elevated);
-  /* yokto-yellow era el amarillo; ahora es el indigo eléctrico. */
-  --color-yokto-yellow: var(--yokto-accent);
-  --color-yokto-alert:  var(--yokto-error);
-  --color-yokto-line:   rgba(255, 255, 255, 0.10);
+  /* === Alias v2 mantenidos (remapeados a light) === */
+  --color-yokto-base:     var(--yo-bg);
+  --color-yokto-elevated: var(--yo-surface);
+  --color-yokto-card:     var(--yo-surface);
+  --color-yokto-hover:    var(--yo-raised);
+  --color-yokto-muted:    var(--yo-txt-3);
+  --color-yokto-accent:   var(--yo-ac);
+  --color-yokto-accent-h: var(--yo-ac-h);
+  --color-yokto-cyan:     #0284C7;
+  --color-yokto-success:  var(--yo-ok);
+  --color-yokto-warning:  var(--yo-warn);
+  --color-yokto-error:    var(--yo-err);
+  --color-yokto-info:     var(--yo-info);
+  --color-yokto-text-1:   var(--yo-txt);
+  --color-yokto-text-2:   var(--yo-txt-2);
+  --color-yokto-text-3:   var(--yo-txt-3);
+
+  /* === Alias legado v1 (mapeados a v3 light) === */
+  --color-yokto-black:  var(--yo-txt);       /* texto/borde oscuro */
+  --color-yokto-ink:    var(--yo-txt);
+  --color-yokto-cream:  var(--yo-bg);        /* superficie clara */
+  --color-yokto-cream-2:var(--yo-raised);
+  --color-yokto-yellow: var(--yo-ac);        /* acento — ahora indigo */
+  --color-yokto-alert:  var(--yo-err);
+  --color-yokto-line:   var(--yo-border);
 
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
@@ -80,105 +100,111 @@
   --color-ring: var(--ring);
   --color-ring-offset-background: var(--background);
 
-  --shadow-card: 0 1px 3px rgba(0,0,0,0.5), 0 1px 2px rgba(0,0,0,0.4);
-  --shadow-card-hover: 0 4px 12px rgba(0,0,0,0.5), 0 2px 4px rgba(0,0,0,0.3);
-  --shadow-glow-accent: 0 0 20px rgba(99,102,241,0.25);
-  --shadow-glow-success: 0 0 20px rgba(16,185,129,0.20);
+  --shadow-card:       0 2px 8px rgb(0 0 0/.05), 0 1px 2px rgb(0 0 0/.04);
+  --shadow-card-hover: 0 8px 24px rgb(0 0 0/.07), 0 2px 6px rgb(0 0 0/.04);
+  --shadow-glow-accent: 0 0 0 3px rgb(79 70 229 / .15);
+  --shadow-glow-success: 0 0 0 3px rgb(5 150 105 / .15);
 }
 
 :root {
-  color-scheme: dark;
+  color-scheme: light;
   --radius: 0.5rem;
 
-  /* Paleta v2 */
-  --yokto-base:     #09090B;
-  --yokto-elevated: #111113;
-  --yokto-card:     #18181B;
-  --yokto-hover:    #27272A;
-  --yokto-muted:    #3F3F46;
+  /* Paleta v3 light */
+  --yo-bg:       #F8F8FB;
+  --yo-surface:  #FFFFFF;
+  --yo-raised:   #F4F4F7;
+  --yo-border:   #EBEBF0;
+  --yo-border-s: #D8D8E0;
 
-  --yokto-accent:   #6366F1;
-  --yokto-accent-h: #4F46E5;
-  --yokto-cyan:     #22D3EE;
+  --yo-txt:      #18181B;
+  --yo-txt-2:    #52525B;
+  --yo-txt-3:    #A1A1AA;
+  --yo-txt-4:    #C4C4C8;
 
-  --yokto-success:  #10B981;
-  --yokto-warning:  #F59E0B;
-  --yokto-error:    #F43F5E;
-  --yokto-info:     #38BDF8;
+  --yo-ac:       #4F46E5;
+  --yo-ac-h:     #4338CA;
+  --yo-ac-bg:    #EEF2FF;
+  --yo-ac-txt:   #3730A3;
 
-  --yokto-text-1: #FAFAFA;
-  --yokto-text-2: #A1A1AA;
-  --yokto-text-3: #71717A;
+  --yo-ok:       #059669;  --yo-ok-bg:   #ECFDF5;
+  --yo-err:      #DC2626;  --yo-err-bg:  #FEF2F2;
+  --yo-warn:     #D97706;  --yo-warn-bg: #FFFBEB;
+  --yo-info:     #0284C7;  --yo-info-bg: #F0F9FF;
 
-  --background: var(--yokto-base);
-  --foreground: var(--yokto-text-1);
-  --card: var(--yokto-card);
-  --card-foreground: var(--yokto-text-1);
-  --popover: var(--yokto-elevated);
-  --popover-foreground: var(--yokto-text-1);
-  --primary: var(--yokto-accent);
+  --background: var(--yo-bg);
+  --foreground: var(--yo-txt);
+  --card: var(--yo-surface);
+  --card-foreground: var(--yo-txt);
+  --popover: var(--yo-surface);
+  --popover-foreground: var(--yo-txt);
+  --primary: var(--yo-ac);
   --primary-foreground: #FFFFFF;
-  --secondary: var(--yokto-hover);
-  --secondary-foreground: var(--yokto-text-1);
-  --muted: var(--yokto-hover);
-  --muted-foreground: var(--yokto-text-2);
-  --accent: var(--yokto-accent);
-  --accent-foreground: #FFFFFF;
-  --destructive: var(--yokto-error);
+  --secondary: var(--yo-raised);
+  --secondary-foreground: var(--yo-txt);
+  --muted: var(--yo-raised);
+  --muted-foreground: var(--yo-txt-2);
+  --accent: var(--yo-ac-bg);
+  --accent-foreground: var(--yo-ac-txt);
+  --destructive: var(--yo-err);
   --destructive-foreground: #FFFFFF;
-  --border: rgba(255, 255, 255, 0.08);
-  --input: rgba(255, 255, 255, 0.08);
-  --ring: var(--yokto-accent);
+  --border: var(--yo-border);
+  --input: var(--yo-border);
+  --ring: var(--yo-ac);
 }
 
 .dark {
-  /* Ya arrancamos en dark; mantener por compatibilidad con shadcn */
-  --background: var(--yokto-base);
-  --foreground: var(--yokto-text-1);
+  --background: var(--yo-bg);
+  --foreground: var(--yo-txt);
 }
 
 @layer base {
-  * {
-    border-color: var(--color-border);
-  }
+  * { border-color: var(--color-border); }
 
   html {
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    color-scheme: dark;
+    color-scheme: light;
   }
 
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    font-size: 14px;
+    line-height: 1.6;
   }
 
   h1, h2, h3, h4 {
     font-family: var(--font-sans);
     font-weight: 700;
     letter-spacing: -0.02em;
-    line-height: 1.1;
+    line-height: 1.15;
+    color: var(--yo-txt);
   }
 
   .font-display {
     font-family: var(--font-sans);
-    font-weight: 800;
+    font-weight: 700;
     letter-spacing: -0.025em;
+  }
+
+  .mono, .amount, .rfc, .clabe, .cfdi, .tx-id {
+    font-family: var(--font-mono);
   }
 
   ::-webkit-scrollbar { width: 8px; height: 8px; }
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.10);
+    background: var(--yo-border-s);
     border-radius: 4px;
   }
-  ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.20); }
+  ::-webkit-scrollbar-thumb:hover { background: var(--yo-txt-3); }
 
   ::selection {
-    background: rgba(99, 102, 241, 0.35);
-    color: #FAFAFA;
+    background: var(--yo-ac-bg);
+    color: var(--yo-ac-txt);
   }
 }
 
@@ -198,42 +224,42 @@
 }
 
 @utility hairline {
-  border: 1px solid rgba(255, 255, 255, 0.10);
+  border: 1px solid var(--yo-border);
 }
 
 @utility surface-card {
-  background: var(--color-yokto-card);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 0.75rem;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.5), 0 1px 2px rgba(0,0,0,0.4);
+  background: var(--yo-surface);
+  border: 1px solid var(--yo-border);
+  border-radius: 0.625rem;
+  box-shadow: 0 1px 2px rgb(0 0 0/.04);
 }
 
 @utility surface-glass {
-  background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--yo-surface);
+  border: 1px solid var(--yo-border);
   border-radius: 0.75rem;
-  backdrop-filter: blur(8px);
+  box-shadow: 0 2px 8px rgb(0 0 0/.05);
 }
 
 @utility gradient-accent {
-  background: linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%);
+  background: linear-gradient(135deg, #4F46E5 0%, #818CF8 100%);
 }
 
 @utility input-editorial {
   width: 100%;
   height: 2.5rem;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: var(--color-yokto-card);
+  border: 1px solid var(--yo-border);
+  background: var(--yo-surface);
   padding: 0 0.75rem;
   font-size: 0.875rem;
-  color: var(--color-yokto-text-1);
+  color: var(--yo-txt);
   border-radius: 0.5rem;
   outline: none;
   transition: all 150ms ease;
-  &::placeholder { color: var(--color-yokto-text-3); }
-  &:hover { border-color: rgba(255, 255, 255, 0.15); }
+  &::placeholder { color: var(--yo-txt-4); }
+  &:hover { border-color: var(--yo-border-s); }
   &:focus {
-    border-color: var(--color-yokto-accent);
-    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.20);
+    border-color: var(--yo-ac);
+    box-shadow: 0 0 0 3px rgb(79 70 229 / .15);
   }
 }

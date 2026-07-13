@@ -59,11 +59,11 @@ function PaymentsPage() {
 
           {error && <div role="alert" className="mt-6 border border-[#FF3B3B] bg-[#FF3B3B]/10 text-[#FF3B3B] p-3 text-sm">{error}</div>}
 
-          <div className="mt-8 border border-yokto-black bg-background p-5">
+          <div className="mt-8 border border-yo-border bg-background p-5">
             {!acct && (
               <>
                 <p className="text-sm">Aún no tienes cuenta conectada.</p>
-                <button disabled={busy} onClick={handleCreate} className="mt-4 px-5 py-2.5 bg-yokto-yellow text-yokto-black text-[12px] uppercase tracking-[0.14em] font-semibold border border-yokto-black disabled:opacity-50">
+                <button disabled={busy} onClick={handleCreate} className="mt-4 px-5 py-2.5 bg-yo-ac text-white text-[12px] uppercase tracking-[0.14em] font-semibold border border-yo-border disabled:opacity-50">
                   Crear cuenta conectada (mock)
                 </button>
               </>
@@ -80,11 +80,11 @@ function PaymentsPage() {
                 {acct.status !== "verified" && (
                   <div className="flex flex-wrap gap-2">
                     {acct.requirements?.onboarding_url && (
-                      <a href={acct.requirements.onboarding_url} target="_blank" rel="noreferrer" className="px-5 py-2.5 border border-yokto-black text-[12px] uppercase tracking-[0.14em] font-semibold hover:bg-yokto-black hover:text-yokto-cream">
+                      <a href={acct.requirements.onboarding_url} target="_blank" rel="noreferrer" className="px-5 py-2.5 border border-yo-border text-[12px] uppercase tracking-[0.14em] font-semibold hover:bg-yo-ac-h hover:text-white">
                         Abrir onboarding (mock)
                       </a>
                     )}
-                    <button disabled={busy} onClick={handleVerify} className="px-5 py-2.5 bg-yokto-yellow text-yokto-black text-[12px] uppercase tracking-[0.14em] font-semibold border border-yokto-black disabled:opacity-50">
+                    <button disabled={busy} onClick={handleVerify} className="px-5 py-2.5 bg-yo-ac text-white text-[12px] uppercase tracking-[0.14em] font-semibold border border-yo-border disabled:opacity-50">
                       Simular verificación aprobada
                     </button>
                   </div>
@@ -105,7 +105,7 @@ function PaymentsPage() {
 
 function Kv({ k, v }: { k: string; v: string }) {
   return (
-    <div className="border border-yokto-black p-3">
+    <div className="border border-yo-border p-3">
       <p className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">{k}</p>
       <p className="mt-1 font-mono text-sm break-all">{v}</p>
     </div>

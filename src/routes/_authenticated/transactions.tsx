@@ -67,14 +67,14 @@ function TransactionsList() {
               {kycOk ? (
                 <Link
                   to="/transactions/new"
-                  className="inline-flex items-center px-5 py-2.5 bg-yokto-yellow text-yokto-black text-[12px] uppercase tracking-[0.14em] font-semibold border border-yokto-black hover:bg-yokto-black hover:text-yokto-yellow"
+                  className="inline-flex items-center px-5 py-2.5 bg-yo-ac text-white text-[12px] uppercase tracking-[0.14em] font-semibold border border-yo-border hover:bg-yo-ac-h"
                 >
                   Nueva transacción
                 </Link>
               ) : (
                 <Link
                   to="/kyc"
-                  className="inline-flex items-center px-5 py-2.5 border border-yokto-black text-[12px] uppercase tracking-[0.14em] font-semibold hover:bg-yokto-black hover:text-yokto-cream"
+                  className="inline-flex items-center px-5 py-2.5 border border-yo-border text-[12px] uppercase tracking-[0.14em] font-semibold hover:bg-yo-ac-h hover:text-white"
                 >
                   Completar KYC para operar
                 </Link>
@@ -87,8 +87,8 @@ function TransactionsList() {
               <button
                 key={f}
                 onClick={() => setFilter(f)}
-                className={`px-3 py-2 border border-yokto-black ${
-                  filter === f ? "bg-yokto-black text-yokto-cream" : "bg-background hover:bg-yokto-cream"
+                className={`px-3 py-2 border border-yo-border ${
+                  filter === f ? "bg-yo-ac text-white" : "bg-background hover:bg-yo-bg"
                 }`}
               >
                 {f === "all" ? "Todas" : f === "as_buyer" ? "Como comprador" : "Como vendedor"}
@@ -96,7 +96,7 @@ function TransactionsList() {
             ))}
           </div>
 
-          <div className="mt-6 border border-yokto-black bg-background">
+          <div className="mt-6 border border-yo-border bg-background">
             {loading ? (
               <div className="p-8 text-sm text-muted-foreground">Cargando…</div>
             ) : filtered.length === 0 ? (
@@ -108,7 +108,7 @@ function TransactionsList() {
               </div>
             ) : (
               <table className="w-full text-sm">
-                <thead className="bg-yokto-cream border-b border-yokto-black text-left text-[11px] uppercase tracking-[0.14em]">
+                <thead className="bg-yo-bg border-b border-yo-border text-left text-[11px] uppercase tracking-[0.14em]">
                   <tr>
                     <th className="px-4 py-3">Título</th>
                     <th className="px-4 py-3">Contraparte</th>
@@ -120,7 +120,7 @@ function TransactionsList() {
                 </thead>
                 <tbody>
                   {filtered.map((r) => (
-                    <tr key={r.id} className="border-b border-yokto-black/20 hover:bg-yokto-cream/40">
+                    <tr key={r.id} className="border-b border-yo-border/20 hover:bg-yo-bg/40">
                       <td className="px-4 py-3 font-medium text-foreground">{r.title}</td>
                       <td className="px-4 py-3 text-muted-foreground">
                         {r.buyer_id === user.id

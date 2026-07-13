@@ -274,12 +274,12 @@ function KycWizard() {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <header className="border-b border-yokto-black bg-background">
+      <header className="border-b border-yo-border bg-background">
         <div className="container-editorial flex h-14 items-center justify-between">
           <Link to="/dashboard" className="flex items-center gap-2.5">
-            <span className="grid place-items-center size-7 bg-yokto-black text-yokto-cream font-display text-lg leading-none">Y</span>
+            <span className="grid place-items-center size-7 bg-yo-ac text-white font-display text-lg leading-none">Y</span>
             <span className="font-display text-2xl tracking-wide text-foreground">YOKTO</span>
-            <span className="ml-3 text-[11px] uppercase tracking-[0.2em] text-muted-foreground border-l border-yokto-black/30 pl-3">KYC</span>
+            <span className="ml-3 text-[11px] uppercase tracking-[0.2em] text-muted-foreground border-l border-yo-border/30 pl-3">KYC</span>
           </Link>
           <Link to="/dashboard" className="text-[12px] uppercase tracking-[0.14em] font-semibold text-muted-foreground hover:text-foreground">
             Salir del wizard
@@ -298,7 +298,7 @@ function KycWizard() {
           <Stepper current={step} status={kycStatus} />
 
           {readOnly && (
-            <div className="mt-6 border border-yokto-black bg-yokto-cream/60 p-4 text-sm">
+            <div className="mt-6 border border-yo-border bg-yo-bg/60 p-4 text-sm">
               {kycStatus === "in_review"
                 ? "Tu verificación está en revisión. Te avisaremos cuando concluya."
                 : "Tu cuenta está aprobada. No hace falta modificar tus datos."}
@@ -326,11 +326,11 @@ function KycWizard() {
           )}
 
           {!readOnly && (
-            <div className="mt-8 flex items-center justify-between border-t border-yokto-black/20 pt-6">
+            <div className="mt-8 flex items-center justify-between border-t border-yo-border/20 pt-6">
               <button
                 onClick={() => setStep((s) => (s > 0 ? ((s - 1) as 0 | 1 | 2 | 3) : s))}
                 disabled={step === 0 || saving}
-                className="px-4 py-2.5 text-[12px] uppercase tracking-[0.14em] font-semibold border border-yokto-black hover:bg-muted disabled:opacity-40"
+                className="px-4 py-2.5 text-[12px] uppercase tracking-[0.14em] font-semibold border border-yo-border hover:bg-muted disabled:opacity-40"
               >
                 Atrás
               </button>
@@ -339,7 +339,7 @@ function KycWizard() {
                 <button
                   onClick={handleNext}
                   disabled={saving}
-                  className="inline-flex items-center gap-2 px-6 py-2.5 bg-yokto-yellow text-yokto-black text-[12px] uppercase tracking-[0.14em] font-semibold border border-yokto-black hover:bg-yokto-black hover:text-yokto-yellow disabled:opacity-60"
+                  className="inline-flex items-center gap-2 px-6 py-2.5 bg-yo-ac text-white text-[12px] uppercase tracking-[0.14em] font-semibold border border-yo-border hover:bg-yo-ac-h disabled:opacity-60"
                 >
                   {saving && <Loader2 className="animate-spin size-4" />}
                   Continuar
@@ -348,7 +348,7 @@ function KycWizard() {
                 <button
                   onClick={handleSubmit}
                   disabled={saving || !allDocsUploaded}
-                  className="inline-flex items-center gap-2 px-6 py-2.5 bg-yokto-black text-yokto-cream text-[12px] uppercase tracking-[0.14em] font-semibold border border-yokto-black hover:bg-yokto-yellow hover:text-yokto-black disabled:opacity-60"
+                  className="inline-flex items-center gap-2 px-6 py-2.5 bg-yo-ac text-white text-[12px] uppercase tracking-[0.14em] font-semibold border border-yo-border hover:bg-yo-ac-h disabled:opacity-60"
                 >
                   {saving && <Loader2 className="animate-spin size-4" />}
                   Enviar a revisión
@@ -372,7 +372,7 @@ function Stepper({ current, status }: { current: number; status: KycStatus }) {
         const active = i === current;
         return (
           <div key={label} className="flex-1 flex items-center gap-2">
-            <div className={`flex items-center gap-2 flex-1 border p-2.5 ${active ? "border-yokto-black bg-yokto-yellow" : done ? "border-yokto-black/60 bg-yokto-black text-yokto-cream" : "border-yokto-black/30 bg-transparent"}`}>
+            <div className={`flex items-center gap-2 flex-1 border p-2.5 ${active ? "border-yo-border bg-yokto-yellow" : done ? "border-yo-border/60 bg-yo-ac text-white" : "border-yo-border/30 bg-transparent"}`}>
               {done ? <CheckCircle2 className="size-4" /> : <Circle className="size-4" />}
               <span className="text-[11px] uppercase tracking-[0.14em] font-semibold truncate">{i + 1}. {label}</span>
             </div>
@@ -479,9 +479,9 @@ function DocSlot({
   }
 
   return (
-    <div className="border border-yokto-black p-4 flex items-center justify-between gap-4">
+    <div className="border border-yo-border p-4 flex items-center justify-between gap-4">
       <div className="flex items-center gap-3 min-w-0">
-        <div className={`size-9 grid place-items-center border border-yokto-black ${doc ? "bg-yokto-yellow" : "bg-transparent"}`}>
+        <div className={`size-9 grid place-items-center border border-yo-border ${doc ? "bg-yokto-yellow" : "bg-transparent"}`}>
           {doc ? <CheckCircle2 className="size-4" /> : <FileText className="size-4" />}
         </div>
         <div className="min-w-0">
@@ -497,7 +497,7 @@ function DocSlot({
         {doc ? (
           <button
             onClick={() => onRemove(doc)}
-            className="inline-flex items-center gap-1.5 px-3 py-2 border border-yokto-black text-[11px] uppercase tracking-[0.14em] font-semibold hover:bg-yokto-alert hover:text-yokto-cream hover:border-yokto-alert"
+            className="inline-flex items-center gap-1.5 px-3 py-2 border border-yo-border text-[11px] uppercase tracking-[0.14em] font-semibold hover:bg-yokto-alert hover:text-white hover:border-yokto-alert"
           >
             <X className="size-3.5" /> Quitar
           </button>
@@ -506,7 +506,7 @@ function DocSlot({
             <input id={inputId} type="file" className="sr-only" accept="application/pdf,image/png,image/jpeg" onChange={pick} disabled={busy} />
             <label
               htmlFor={inputId}
-              className="inline-flex items-center gap-1.5 px-3 py-2 bg-yokto-black text-yokto-cream text-[11px] uppercase tracking-[0.14em] font-semibold cursor-pointer hover:bg-yokto-yellow hover:text-yokto-black"
+              className="inline-flex items-center gap-1.5 px-3 py-2 bg-yo-ac text-white text-[11px] uppercase tracking-[0.14em] font-semibold cursor-pointer hover:bg-yo-ac-h"
             >
               {busy ? <Loader2 className="animate-spin size-3.5" /> : <Upload className="size-3.5" />}
               {busy ? "Subiendo…" : "Subir"}
@@ -523,7 +523,7 @@ function StepReview({ form, docs }: { form: FiscalForm; docs: DocRow[] }) {
   return (
     <div className="grid gap-6">
       <SectionTitle n={4} title="Revisión y envío" />
-      <div className="border border-yokto-black p-5">
+      <div className="border border-yo-border p-5">
         <p className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">Identidad</p>
         <dl className="mt-3 grid grid-cols-2 gap-y-2 text-sm">
           <Field label="Nombre" value={`${form.first_name} ${form.last_name}`} />
@@ -532,7 +532,7 @@ function StepReview({ form, docs }: { form: FiscalForm; docs: DocRow[] }) {
           <Field label="Sector" value={SECTORES.find((s) => s.v === form.industry_sector)?.l ?? "—"} />
         </dl>
       </div>
-      <div className="border border-yokto-black p-5">
+      <div className="border border-yo-border p-5">
         <p className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">Datos fiscales</p>
         <dl className="mt-3 grid grid-cols-2 gap-y-2 text-sm">
           {isPM && <Field label="Razón social" value={form.legal_name} />}
@@ -543,7 +543,7 @@ function StepReview({ form, docs }: { form: FiscalForm; docs: DocRow[] }) {
           <Field label="Dirección" value={form.fiscal_address} full />
         </dl>
       </div>
-      <div className="border border-yokto-black p-5">
+      <div className="border border-yo-border p-5">
         <p className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">Documentos subidos ({docs.length})</p>
         <ul className="mt-3 space-y-1.5 text-sm">
           {docs.map((d) => (
@@ -566,7 +566,7 @@ function StepReview({ form, docs }: { form: FiscalForm; docs: DocRow[] }) {
 function SectionTitle({ n, title }: { n: number; title: string }) {
   return (
     <div className="flex items-center gap-3">
-      <span className="grid place-items-center size-7 bg-yokto-black text-yokto-cream font-display text-base leading-none">{n}</span>
+      <span className="grid place-items-center size-7 bg-yo-ac text-white font-display text-base leading-none">{n}</span>
       <h2 className="font-display text-2xl tracking-wide text-foreground">{title}</h2>
     </div>
   );
@@ -591,7 +591,7 @@ function Input({
         value={value}
         placeholder={placeholder}
         onChange={(e) => onChange(e.target.value)}
-        className="border border-yokto-black bg-background px-3 py-2.5 text-sm text-foreground outline-none focus:ring-2 focus:ring-yokto-yellow disabled:bg-muted"
+        className="border border-yo-border bg-background px-3 py-2.5 text-sm text-foreground outline-none focus:ring-2 focus:ring-yokto-yellow disabled:bg-muted"
       />
     </label>
   );
@@ -611,7 +611,7 @@ function Select({
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="border border-yokto-black bg-background px-3 py-2.5 text-sm text-foreground outline-none focus:ring-2 focus:ring-yokto-yellow disabled:bg-muted"
+        className="border border-yo-border bg-background px-3 py-2.5 text-sm text-foreground outline-none focus:ring-2 focus:ring-yokto-yellow disabled:bg-muted"
       >
         <option value="">— Selecciona —</option>
         {options.map((o) => (

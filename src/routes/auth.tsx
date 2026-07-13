@@ -100,10 +100,10 @@ function AuthPage() {
         />
         <div
           aria-hidden
-          className="absolute inset-0 opacity-[0.04] pointer-events-none"
+          className="absolute inset-0 opacity-[0.5] pointer-events-none"
           style={{
             backgroundImage:
-              "linear-gradient(to right, #fff 1px, transparent 1px), linear-gradient(to bottom, #fff 1px, transparent 1px)",
+              "linear-gradient(to right, #EBEBF0 1px, transparent 1px), linear-gradient(to bottom, #EBEBF0 1px, transparent 1px)",
             backgroundSize: "56px 56px",
           }}
         />
@@ -120,9 +120,9 @@ function AuthPage() {
             <Sparkles className="size-3" />
             Escrow digital · México
           </span>
-          <h1 className="mt-6 text-5xl font-black leading-[1.05] tracking-tighter text-white">
+          <h1 className="mt-6 text-5xl font-bold leading-[1.05] tracking-tight text-yo-txt">
             Tu dinero,<br />
-            <span className="bg-clip-text text-transparent bg-gradient-to-r from-yokto-accent to-[#8B5CF6]">
+            <span className="text-yo-ac">
               hasta que
             </span>
             <br />se cumpla.
