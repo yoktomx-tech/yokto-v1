@@ -3,11 +3,13 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
-async function assertAdmin(context: { supabase: { rpc: (fn: string, args: Record<string, unknown>) => PromiseLike<{ data: unknown; error: { message: string } | null }> }; userId: string }) {
-  const { data, error } = await context.supabase.rpc("has_role", { _user_id: context.userId, _role: "admin" });
+async function assertAdmin(context: { supabase: unknown; userId: string }) {
+  const sb = context.supabase as { rpc: (fn: "has_role", args: { _user_id: string; _role: "admin" }) => PromiseLike<{ data: boolean | null; error: { message: string } | null }> };
+  const { data, error } = await sb.rpc("has_role", { _user_id: context.userId, _role: "admin" });
   if (error) throw new Error(error.message);
   if (!data) throw new Error("Solo administradores");
 }
+
 
 
 export const adminOverview = createServerFn({ method: "GET" })
