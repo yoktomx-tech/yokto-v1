@@ -5,25 +5,30 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
-  --radius-2xl: calc(var(--radius) + 8px);
-  --radius-3xl: calc(var(--radius) + 12px);
-  --radius-4xl: calc(var(--radius) + 16px);
+  /* Radios muy reducidos: bordes duros */
+  --radius-sm: 0px;
+  --radius-md: 2px;
+  --radius-lg: 4px;
+  --radius-xl: 6px;
+  --radius-2xl: 8px;
+  --radius-3xl: 12px;
+  --radius-4xl: 16px;
 
-  --font-display: "Fraunces", ui-serif, Georgia, serif;
-  --font-sans: "Inter Tight", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Bebas Neue", "Impact", ui-sans-serif, sans-serif;
+  --font-sans: "DM Sans", "Geist", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --color-cream: var(--cream);
-  --color-cream-deep: var(--cream-deep);
-  --color-ink: var(--ink);
-  --color-forest: var(--forest);
-  --color-coral: var(--coral);
-  --color-coral-soft: var(--coral-soft);
+
+  /* Tokens de marca YOKTO */
+  --color-yokto-black: var(--yokto-black);
+  --color-yokto-ink: var(--yokto-ink);
+  --color-yokto-cream: var(--yokto-cream);
+  --color-yokto-cream-2: var(--yokto-cream-2);
+  --color-yokto-yellow: var(--yokto-yellow);
+  --color-yokto-alert: var(--yokto-alert);
+  --color-yokto-line: var(--yokto-line);
 
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
@@ -43,65 +48,59 @@
   --color-input: var(--input);
   --color-ring: var(--ring);
   --color-ring-offset-background: var(--background);
-
-  --shadow-editorial: 0 1px 0 0 color-mix(in oklab, var(--ink) 8%, transparent),
-    0 24px 60px -30px color-mix(in oklab, var(--ink) 30%, transparent);
-  --shadow-soft: 0 10px 30px -18px color-mix(in oklab, var(--ink) 25%, transparent);
-
-  --gradient-warm: linear-gradient(180deg, var(--cream) 0%, var(--cream-deep) 100%);
-  --gradient-coral: linear-gradient(135deg, var(--coral) 0%, oklch(0.72 0.16 30) 100%);
 }
 
 :root {
-  --radius: 0.5rem;
+  --radius: 2px;
 
-  /* Editorial cálido: crema, tinta, coral, verde bosque */
-  --cream: oklch(0.958 0.017 82);
-  --cream-deep: oklch(0.925 0.024 82);
-  --ink: oklch(0.18 0.012 60);
-  --forest: oklch(0.36 0.028 175);
-  --coral: oklch(0.68 0.185 32);
-  --coral-soft: oklch(0.88 0.055 40);
+  /* Colores YOKTO — minimalismo industrial */
+  --yokto-black: oklch(0.15 0 0);        /* #0A0A0A */
+  --yokto-ink: oklch(0.22 0 0);          /* #1A1A1A */
+  --yokto-cream: oklch(0.965 0.005 90);  /* #F5F5F0 */
+  --yokto-cream-2: oklch(0.935 0.006 90);
+  --yokto-yellow: oklch(0.9 0.19 105);   /* #E8E000 amarillo eléctrico */
+  --yokto-alert: oklch(0.66 0.24 25);    /* #FF3B3B */
+  --yokto-line: oklch(0.85 0.004 90);
 
-  --background: var(--cream);
-  --foreground: var(--ink);
-  --card: oklch(0.985 0.008 82);
-  --card-foreground: var(--ink);
-  --popover: oklch(0.985 0.008 82);
-  --popover-foreground: var(--ink);
-  --primary: var(--coral);
-  --primary-foreground: oklch(0.985 0.008 82);
-  --secondary: var(--forest);
-  --secondary-foreground: oklch(0.985 0.008 82);
-  --muted: var(--cream-deep);
-  --muted-foreground: oklch(0.42 0.015 60);
-  --accent: var(--coral-soft);
-  --accent-foreground: var(--ink);
-  --destructive: oklch(0.55 0.22 27);
-  --destructive-foreground: oklch(0.985 0 0);
-  --border: oklch(0.86 0.02 75);
-  --input: oklch(0.86 0.02 75);
-  --ring: var(--coral);
+  --background: var(--yokto-cream);
+  --foreground: var(--yokto-ink);
+  --card: oklch(1 0 0);
+  --card-foreground: var(--yokto-ink);
+  --popover: oklch(1 0 0);
+  --popover-foreground: var(--yokto-ink);
+  --primary: var(--yokto-black);
+  --primary-foreground: var(--yokto-cream);
+  --secondary: var(--yokto-yellow);
+  --secondary-foreground: var(--yokto-black);
+  --muted: var(--yokto-cream-2);
+  --muted-foreground: oklch(0.42 0 0);
+  --accent: var(--yokto-yellow);
+  --accent-foreground: var(--yokto-black);
+  --destructive: var(--yokto-alert);
+  --destructive-foreground: oklch(1 0 0);
+  --border: var(--yokto-line);
+  --input: var(--yokto-line);
+  --ring: var(--yokto-black);
 }
 
 .dark {
-  --background: oklch(0.16 0.01 60);
-  --foreground: oklch(0.95 0.015 82);
-  --card: oklch(0.2 0.012 60);
-  --card-foreground: oklch(0.95 0.015 82);
-  --popover: oklch(0.2 0.012 60);
-  --popover-foreground: oklch(0.95 0.015 82);
-  --primary: var(--coral);
-  --primary-foreground: oklch(0.16 0.01 60);
-  --secondary: oklch(0.28 0.025 175);
-  --secondary-foreground: oklch(0.95 0.015 82);
-  --muted: oklch(0.24 0.012 60);
-  --muted-foreground: oklch(0.7 0.015 60);
-  --accent: oklch(0.32 0.05 30);
-  --accent-foreground: oklch(0.95 0.015 82);
-  --border: oklch(1 0 0 / 12%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: var(--coral);
+  --background: var(--yokto-black);
+  --foreground: var(--yokto-cream);
+  --card: oklch(0.19 0 0);
+  --card-foreground: var(--yokto-cream);
+  --popover: oklch(0.19 0 0);
+  --popover-foreground: var(--yokto-cream);
+  --primary: var(--yokto-yellow);
+  --primary-foreground: var(--yokto-black);
+  --secondary: oklch(0.28 0 0);
+  --secondary-foreground: var(--yokto-cream);
+  --muted: oklch(0.24 0 0);
+  --muted-foreground: oklch(0.7 0 0);
+  --accent: var(--yokto-yellow);
+  --accent-foreground: var(--yokto-black);
+  --border: oklch(1 0 0 / 14%);
+  --input: oklch(1 0 0 / 14%);
+  --ring: var(--yokto-yellow);
 }
 
 @layer base {
@@ -111,7 +110,6 @@
 
   html {
     font-family: var(--font-sans);
-    font-feature-settings: "ss01", "cv11";
     -webkit-font-smoothing: antialiased;
   }
 
@@ -123,21 +121,33 @@
   h1, h2, h3, h4 {
     font-family: var(--font-display);
     font-weight: 400;
-    letter-spacing: -0.02em;
+    letter-spacing: 0.005em;
+    line-height: 0.95;
+    text-transform: uppercase;
+  }
+
+  .font-display {
+    font-family: var(--font-display);
+    text-transform: uppercase;
+    letter-spacing: 0.01em;
   }
 }
 
 @utility container-editorial {
   width: 100%;
-  max-width: 76rem;
+  max-width: 78rem;
   margin-inline: auto;
   padding-inline: 1.5rem;
 }
 
 @utility rule-top {
-  border-top: 1px solid color-mix(in oklab, var(--ink) 15%, transparent);
+  border-top: 1px solid var(--color-border);
 }
 
 @utility text-balance {
   text-wrap: balance;
+}
+
+@utility hairline {
+  border: 1px solid var(--color-yokto-black);
 }

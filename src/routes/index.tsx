@@ -10,83 +10,79 @@ function Index() {
   return (
     <PageShell>
       {/* HERO */}
-      <section className="relative overflow-hidden">
-        <div
-          aria-hidden
-          className="absolute inset-x-0 -top-40 h-[520px] pointer-events-none opacity-70"
-          style={{
-            background:
-              "radial-gradient(60% 60% at 70% 20%, oklch(0.88 0.055 40 / 0.6), transparent 70%)",
-          }}
-        />
-        <div className="container-editorial relative pt-20 pb-24 md:pt-28 md:pb-32">
-          <div className="max-w-4xl">
-            <p className="text-xs uppercase tracking-[0.28em] text-primary font-medium">
-              Escrow moderno · México
-            </p>
-            <h1 className="mt-5 font-display text-6xl md:text-8xl leading-[0.95] text-foreground text-balance">
-              Paga cuando se cumpla.
-              <span className="block italic text-secondary">No antes.</span>
-            </h1>
-            <p className="mt-8 max-w-2xl text-lg md:text-xl text-muted-foreground leading-relaxed">
+      <section className="border-b border-yokto-black/90">
+        <div className="container-editorial pt-16 pb-24 md:pt-20 md:pb-32">
+          <p className="text-[11px] uppercase tracking-[0.32em] text-yokto-black font-semibold">
+            <span className="inline-block size-1.5 bg-yokto-yellow mr-2 -translate-y-[2px]" />
+            Pago contra cumplimiento · México
+          </p>
+
+          <h1 className="mt-6 font-display text-[64px] md:text-[136px] leading-[0.88] text-foreground text-balance">
+            Paga cuando<br />se cumpla.<br />
+            <span className="text-foreground/40">No antes.</span>
+          </h1>
+
+          <div className="mt-12 grid md:grid-cols-12 gap-10">
+            <p className="md:col-span-7 text-lg md:text-xl text-foreground/75 leading-relaxed max-w-2xl">
               YOKTO es el tercero neutral que retiene los fondos de una operación
               B2B o B2C y los libera únicamente cuando se verifican las condiciones
-              de cumplimiento pactadas entre las partes.
+              de cumplimiento pactadas entre las partes. Vía pasarelas certificadas.
+              Sin custodia directa.
             </p>
-
-            <div className="mt-10 flex flex-wrap items-center gap-4">
-              <Link
-                to="/contacto"
-                className="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3.5 text-sm font-medium text-primary-foreground transition hover:opacity-90"
-                style={{ boxShadow: "var(--shadow-editorial)" }}
-              >
-                Solicitar acceso
-                <ArrowRight className="size-4" />
-              </Link>
-              <Link
-                to="/como-funciona"
-                className="inline-flex items-center gap-2 rounded-full border border-border bg-background/60 px-6 py-3.5 text-sm font-medium text-foreground hover:bg-muted"
-              >
-                Ver cómo funciona
-              </Link>
+            <div className="md:col-span-5 flex md:justify-end items-end">
+              <div className="flex flex-wrap items-center gap-3">
+                <Link
+                  to="/contacto"
+                  className="inline-flex items-center gap-2 px-6 py-3.5 bg-yokto-yellow text-yokto-black text-[13px] uppercase tracking-[0.16em] font-semibold border border-yokto-black transition hover:bg-yokto-black hover:text-yokto-yellow"
+                >
+                  Solicitar acceso <ArrowRight className="size-4" />
+                </Link>
+                <Link
+                  to="/como-funciona"
+                  className="inline-flex items-center gap-2 px-6 py-3.5 border border-yokto-black text-[13px] uppercase tracking-[0.16em] font-semibold text-foreground hover:bg-yokto-black hover:text-yokto-cream"
+                >
+                  Cómo funciona
+                </Link>
+              </div>
             </div>
-
-            <dl className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-x-8 gap-y-6 border-t border-border/60 pt-10">
-              {[
-                ["Pasarelas", "Stripe · SPEI"],
-                ["Rol", "Tercero neutral"],
-                ["Fondos", "No custodiados"],
-                ["Mercado", "B2B y B2C MX"],
-              ].map(([k, v]) => (
-                <div key={k}>
-                  <dt className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
-                    {k}
-                  </dt>
-                  <dd className="mt-2 font-display text-xl text-foreground">{v}</dd>
-                </div>
-              ))}
-            </dl>
           </div>
         </div>
       </section>
 
+      {/* METRIC STRIP */}
+      <section className="border-b border-yokto-black/90 bg-yokto-black text-yokto-cream">
+        <div className="container-editorial py-10 grid grid-cols-2 md:grid-cols-4 divide-x divide-yokto-cream/15">
+          {[
+            ["Pasarelas", "Stripe · SPEI"],
+            ["Rol YOKTO", "Tercero neutral"],
+            ["Fondos", "No custodiados"],
+            ["Mercado", "B2B y B2C · MX"],
+          ].map(([k, v], i) => (
+            <div key={k} className={i === 0 ? "pr-6" : "px-6"}>
+              <p className="text-[10px] uppercase tracking-[0.24em] text-yokto-yellow font-semibold">{k}</p>
+              <p className="mt-3 font-display text-2xl md:text-3xl tracking-wide">{v}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
       {/* PROBLEMA / VALOR */}
-      <section className="rule-top">
+      <section>
         <div className="container-editorial py-24 grid md:grid-cols-12 gap-12">
           <div className="md:col-span-5">
-            <p className="text-xs uppercase tracking-[0.24em] text-muted-foreground">
+            <p className="text-[11px] uppercase tracking-[0.24em] text-muted-foreground font-semibold">
               El problema
             </p>
-            <h2 className="mt-4 font-display text-4xl md:text-5xl leading-tight text-foreground text-balance">
+            <h2 className="mt-4 font-display text-5xl md:text-6xl leading-[0.95] text-foreground text-balance">
               En México, pagar por adelantado es un acto de fe.
             </h2>
           </div>
-          <div className="md:col-span-7 md:pt-14 space-y-6 text-lg text-foreground/85 leading-relaxed">
+          <div className="md:col-span-7 md:pt-16 space-y-6 text-lg text-foreground/85 leading-relaxed">
             <p>
               El comprador se expone a que no le entreguen. El vendedor se expone
-              a que no le paguen. La solución habitual —transferencia SPEI directa,
-              anticipo total, contrato sin garantía— traslada todo el riesgo a una
-              de las dos partes.
+              a que no le paguen. La solución habitual —SPEI directo, anticipo
+              total, contrato sin garantía— traslada todo el riesgo a una de las
+              dos partes.
             </p>
             <p className="text-foreground">
               YOKTO reordena el juego: los fondos entran, quedan retenidos en una
@@ -98,47 +94,31 @@ function Index() {
       </section>
 
       {/* CÓMO FUNCIONA — 4 PASOS */}
-      <section className="rule-top bg-muted/50">
+      <section className="border-y border-yokto-black/90 bg-muted">
         <div className="container-editorial py-24">
           <div className="max-w-3xl">
-            <p className="text-xs uppercase tracking-[0.24em] text-primary font-medium">
+            <p className="text-[11px] uppercase tracking-[0.24em] text-yokto-black font-semibold">
+              <span className="inline-block size-1.5 bg-yokto-yellow mr-2 -translate-y-[2px]" />
               Cuatro pasos
             </p>
-            <h2 className="mt-4 font-display text-4xl md:text-5xl text-foreground text-balance">
-              Un flujo claro, auditable y neutral.
+            <h2 className="mt-4 font-display text-5xl md:text-6xl text-foreground text-balance">
+              Un flujo claro, auditable, neutral.
             </h2>
           </div>
 
-          <ol className="mt-14 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+          <ol className="mt-14 grid gap-0 md:grid-cols-4 border border-yokto-black bg-background">
             {[
-              {
-                n: "01",
-                t: "Acuerdo",
-                d: "Comprador y vendedor definen monto, plazo y condiciones de cumplimiento verificables.",
-              },
-              {
-                n: "02",
-                t: "Depósito",
-                d: "El comprador deposita vía Stripe o SPEI. Los fondos quedan retenidos en la pasarela.",
-              },
-              {
-                n: "03",
-                t: "Verificación",
-                d: "El vendedor sube evidencia. Ambas partes marcan los milestones cumplidos.",
-              },
-              {
-                n: "04",
-                t: "Liberación",
-                d: "YOKTO libera los fondos al vendedor. Si hay disputa, se activa un proceso formal.",
-              },
-            ].map((s) => (
+              { n: "01", t: "Acuerdo", d: "Comprador y vendedor definen monto, plazo y condiciones de cumplimiento verificables." },
+              { n: "02", t: "Depósito", d: "Depósito vía Stripe o SPEI. Los fondos quedan retenidos en la pasarela certificada." },
+              { n: "03", t: "Verificación", d: "El vendedor sube evidencia. Ambas partes aprueban los milestones cumplidos." },
+              { n: "04", t: "Liberación", d: "YOKTO instruye la liberación. Si hay disputa, se activa un proceso formal." },
+            ].map((s, i) => (
               <li
                 key={s.n}
-                className="rounded-2xl border border-border bg-card p-6 flex flex-col gap-4"
-                style={{ boxShadow: "var(--shadow-soft)" }}
+                className={`p-8 flex flex-col gap-4 ${i < 3 ? "md:border-r border-yokto-black" : ""} ${i < 2 ? "border-b md:border-b-0" : ""}`}
               >
-                <span className="font-display text-2xl text-primary">{s.n}</span>
-                <h3 className="font-display text-2xl text-foreground">{s.t}</h3>
+                <span className="font-display text-4xl text-yokto-black">{s.n}</span>
+                <h3 className="font-display text-3xl text-foreground">{s.t}</h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">{s.d}</p>
               </li>
             ))}
@@ -147,75 +127,53 @@ function Index() {
       </section>
 
       {/* PILARES */}
-      <section className="rule-top">
-        <div className="container-editorial py-24 grid gap-10 md:grid-cols-2 lg:grid-cols-4">
+      <section>
+        <div className="container-editorial py-24 grid gap-0 md:grid-cols-2 lg:grid-cols-4 border border-yokto-black">
           {[
-            {
-              icon: ShieldCheck,
-              t: "Neutralidad garantizada",
-              d: "No representamos a comprador ni vendedor. Solo somos el mecanismo de retención y liberación.",
-            },
-            {
-              icon: Landmark,
-              t: "Sin custodia de fondos",
-              d: "Los fondos viven en pasarelas certificadas (Stripe Connect, SPEI). YOKTO nunca los toca.",
-            },
-            {
-              icon: Handshake,
-              t: "B2B y B2C",
-              d: "Servicios profesionales, marketplaces, obra, remodelaciones, contratos de freelance.",
-            },
-            {
-              icon: Scale,
-              t: "Fuera de IFPE/CNBV",
-              d: "Al no custodiar, YOKTO opera como facilitador tecnológico entre partes y pasarelas.",
-            },
-          ].map(({ icon: Icon, t, d }) => (
-            <div key={t} className="border-t border-border/70 pt-6">
-              <Icon className="size-6 text-primary" />
-              <h3 className="mt-4 font-display text-2xl text-foreground">{t}</h3>
-              <p className="mt-2 text-sm text-muted-foreground leading-relaxed">{d}</p>
+            { icon: ShieldCheck, t: "Neutralidad", d: "No representamos a comprador ni vendedor. Solo somos el mecanismo de retención y liberación." },
+            { icon: Landmark, t: "Sin custodia", d: "Los fondos viven en pasarelas certificadas (Stripe Connect, SPEI). YOKTO nunca los toca." },
+            { icon: Handshake, t: "B2B y B2C", d: "Servicios profesionales, marketplaces, obra, remodelaciones, contratos de freelance." },
+            { icon: Scale, t: "Fuera IFPE/CNBV", d: "Al no custodiar, YOKTO opera como facilitador tecnológico entre partes y pasarelas." },
+          ].map(({ icon: Icon, t, d }, i) => (
+            <div
+              key={t}
+              className={`p-8 ${i < 3 ? "lg:border-r border-yokto-black" : ""} ${i < 2 ? "border-b lg:border-b-0 border-yokto-black" : ""} ${i === 1 ? "md:border-r-0 lg:border-r border-yokto-black" : ""}`}
+            >
+              <div className="grid place-items-center size-10 border border-yokto-black">
+                <Icon className="size-5 text-yokto-black" />
+              </div>
+              <h3 className="mt-5 font-display text-3xl text-foreground">{t}</h3>
+              <p className="mt-3 text-sm text-muted-foreground leading-relaxed">{d}</p>
             </div>
           ))}
         </div>
       </section>
 
       {/* CTA final */}
-      <section className="rule-top">
-        <div className="container-editorial py-24">
-          <div
-            className="rounded-3xl px-8 md:px-14 py-16 md:py-20 relative overflow-hidden"
-            style={{
-              backgroundColor: "var(--forest)",
-              color: "oklch(0.96 0.02 82)",
-            }}
-          >
-            <div
-              aria-hidden
-              className="absolute -right-24 -top-24 size-80 rounded-full opacity-25"
-              style={{ background: "var(--gradient-coral)" }}
-            />
-            <div className="relative max-w-2xl">
-              <p className="text-xs uppercase tracking-[0.28em] opacity-70">
+      <section>
+        <div className="container-editorial py-20">
+          <div className="bg-yokto-black text-yokto-cream border border-yokto-black p-10 md:p-16 grid md:grid-cols-12 gap-8 items-end">
+            <div className="md:col-span-8">
+              <p className="text-[11px] uppercase tracking-[0.28em] text-yokto-yellow font-semibold">
                 Acceso anticipado
               </p>
-              <h2 className="mt-4 font-display text-4xl md:text-5xl leading-tight text-balance">
-                Empieza a operar con la seguridad de que los fondos solo se mueven cuando se cumple lo pactado.
+              <h2 className="mt-4 font-display text-5xl md:text-6xl leading-[0.95] text-balance">
+                Los fondos solo se mueven cuando se cumple lo pactado.
               </h2>
-              <div className="mt-8 flex flex-wrap gap-3">
-                <Link
-                  to="/contacto"
-                  className="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3.5 text-sm font-medium text-primary-foreground hover:opacity-90"
-                >
-                  Solicitar acceso <ArrowRight className="size-4" />
-                </Link>
-                <Link
-                  to="/precios"
-                  className="inline-flex items-center gap-2 rounded-full border border-white/25 px-6 py-3.5 text-sm font-medium hover:bg-white/10"
-                >
-                  Ver precios
-                </Link>
-              </div>
+            </div>
+            <div className="md:col-span-4 flex flex-wrap gap-3 md:justify-end">
+              <Link
+                to="/contacto"
+                className="inline-flex items-center gap-2 px-6 py-3.5 bg-yokto-yellow text-yokto-black text-[13px] uppercase tracking-[0.16em] font-semibold border border-yokto-yellow hover:bg-yokto-cream hover:border-yokto-cream"
+              >
+                Solicitar acceso <ArrowRight className="size-4" />
+              </Link>
+              <Link
+                to="/precios"
+                className="inline-flex items-center gap-2 px-6 py-3.5 border border-yokto-cream/30 text-[13px] uppercase tracking-[0.16em] font-semibold hover:bg-yokto-cream/10"
+              >
+                Ver precios
+              </Link>
             </div>
           </div>
         </div>

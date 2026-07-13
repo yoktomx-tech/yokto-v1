@@ -2,43 +2,46 @@ import { Link } from "@tanstack/react-router";
 
 export function SiteFooter() {
   return (
-    <footer className="mt-24 border-t border-border/60 bg-muted/40">
-      <div className="container-editorial py-14 grid gap-10 md:grid-cols-4">
-        <div className="md:col-span-2">
-          <span className="font-display text-3xl tracking-tight text-foreground">
-            YOKTO<span className="text-primary">.</span>
-          </span>
-          <p className="mt-4 max-w-sm text-sm text-muted-foreground leading-relaxed">
+    <footer className="mt-24 border-t border-yokto-black/90 bg-yokto-black text-yokto-cream">
+      <div className="container-editorial py-16 grid gap-12 md:grid-cols-12">
+        <div className="md:col-span-5">
+          <div className="flex items-center gap-3">
+            <span className="grid place-items-center size-9 bg-yokto-yellow text-yokto-black font-display text-2xl leading-none">
+              Y
+            </span>
+            <span className="font-display text-3xl tracking-wide">YOKTO</span>
+          </div>
+          <p className="mt-6 max-w-md text-sm text-yokto-cream/70 leading-relaxed">
             Pago Seguro contra Cumplimiento. Retenemos fondos vía pasarelas certificadas
             y los liberamos únicamente cuando se verifican las condiciones acordadas
             entre las partes.
           </p>
         </div>
 
-        <div>
-          <p className="text-xs uppercase tracking-[0.18em] text-foreground/60">Producto</p>
-          <ul className="mt-4 space-y-2 text-sm text-foreground/80">
-            <li><Link to="/como-funciona" className="hover:text-foreground">Cómo funciona</Link></li>
-            <li><Link to="/casos-de-uso" className="hover:text-foreground">Casos de uso</Link></li>
-            <li><Link to="/precios" className="hover:text-foreground">Precios</Link></li>
+        <div className="md:col-span-3">
+          <p className="text-[11px] uppercase tracking-[0.22em] text-yokto-yellow font-semibold">Producto</p>
+          <ul className="mt-5 space-y-2.5 text-sm text-yokto-cream/85">
+            <li><Link to="/como-funciona" className="hover:text-yokto-yellow">Cómo funciona</Link></li>
+            <li><Link to="/casos-de-uso" className="hover:text-yokto-yellow">Sectores</Link></li>
+            <li><Link to="/precios" className="hover:text-yokto-yellow">Precios</Link></li>
           </ul>
         </div>
 
-        <div>
-          <p className="text-xs uppercase tracking-[0.18em] text-foreground/60">Compañía</p>
-          <ul className="mt-4 space-y-2 text-sm text-foreground/80">
-            <li><Link to="/marco-legal" className="hover:text-foreground">Marco legal</Link></li>
-            <li><Link to="/contacto" className="hover:text-foreground">Contacto</Link></li>
+        <div className="md:col-span-4">
+          <p className="text-[11px] uppercase tracking-[0.22em] text-yokto-yellow font-semibold">Compañía</p>
+          <ul className="mt-5 space-y-2.5 text-sm text-yokto-cream/85">
+            <li><Link to="/marco-legal" className="hover:text-yokto-yellow">Marco legal</Link></li>
+            <li><Link to="/contacto" className="hover:text-yokto-yellow">Contacto</Link></li>
           </ul>
         </div>
       </div>
 
-      <div className="border-t border-border/60">
-        <div className="container-editorial py-6 flex flex-col md:flex-row md:items-center md:justify-between gap-3 text-xs text-muted-foreground">
-          <p>© {new Date().getFullYear()} YOKTO. Hecho en México.</p>
-          <p className="max-w-2xl md:text-right">
-            YOKTO no es entidad financiera ni custodio de fondos. Opera como facilitador tecnológico
-            fuera del marco IFPE/CNBV, apoyado en pasarelas de pago certificadas.
+      <div className="border-t border-yokto-cream/15">
+        <div className="container-editorial py-5 flex flex-col md:flex-row md:items-center md:justify-between gap-3 text-[11px] uppercase tracking-[0.18em] text-yokto-cream/50">
+          <p>© {new Date().getFullYear()} YOKTO · Hecho en México</p>
+          <p className="max-w-2xl md:text-right normal-case tracking-normal text-xs text-yokto-cream/50">
+            YOKTO no es entidad financiera ni custodio de fondos. Opera como facilitador
+            tecnológico fuera del marco IFPE/CNBV, apoyado en pasarelas de pago certificadas.
           </p>
         </div>
       </div>
