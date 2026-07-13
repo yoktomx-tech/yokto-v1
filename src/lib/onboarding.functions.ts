@@ -94,12 +94,12 @@ export const validateCurpNubarium = createServerFn({ method: "POST" })
       pais_nacimiento: (payload.paisNacimiento as string) ?? null,
       estado_nacimiento: (payload.estadoNacimiento as string) ?? null,
       doc_probatorio: typeof payload.docProbatorio === "number" ? (payload.docProbatorio as number) : null,
-      datos_doc_probatorio: (payload.datosDocProbatorio as object) ?? null,
+      datos_doc_probatorio: (payload.datosDocProbatorio as never) ?? null,
       estatus_curp: (payload.estatusCurp as string) ?? null,
       codigo_validacion: (payload.codigoValidacion as string) ?? null,
       codigo_mensaje: codigoMensaje,
       estatus,
-      raw_response: payload,
+      raw_response: payload as never,
       provider: "nubarium",
     });
 
