@@ -67,14 +67,14 @@ function TransactionsList() {
               {kycOk ? (
                 <Link
                   to="/transactions/new"
-                  className="inline-flex items-center px-5 py-2.5 bg-yokto-yellow text-yokto-black text-[12px] uppercase tracking-[0.14em] font-semibold border border-yo-border hover:bg-yo-ac-h hover:text-yokto-yellow"
+                  className="inline-flex items-center px-5 py-2.5 bg-yo-ac text-white text-[12px] uppercase tracking-[0.14em] font-semibold border border-yo-border hover:bg-yo-ac-h"
                 >
                   Nueva transacción
                 </Link>
               ) : (
                 <Link
                   to="/kyc"
-                  className="inline-flex items-center px-5 py-2.5 border border-yo-border text-[12px] uppercase tracking-[0.14em] font-semibold hover:bg-yo-ac-h hover:text-yokto-cream"
+                  className="inline-flex items-center px-5 py-2.5 border border-yo-border text-[12px] uppercase tracking-[0.14em] font-semibold hover:bg-yo-ac-h hover:text-white"
                 >
                   Completar KYC para operar
                 </Link>
@@ -88,7 +88,7 @@ function TransactionsList() {
                 key={f}
                 onClick={() => setFilter(f)}
                 className={`px-3 py-2 border border-yo-border ${
-                  filter === f ? "bg-yo-ac text-yokto-cream" : "bg-background hover:bg-yo-bg"
+                  filter === f ? "bg-yo-ac text-white" : "bg-background hover:bg-yo-bg"
                 }`}
               >
                 {f === "all" ? "Todas" : f === "as_buyer" ? "Como comprador" : "Como vendedor"}

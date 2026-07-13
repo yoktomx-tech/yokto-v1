@@ -391,9 +391,9 @@ function TxDetail() {
   );
 }
 
-const btnPrimary = "px-5 py-2.5 bg-yokto-yellow text-yokto-black text-[12px] uppercase tracking-[0.14em] font-semibold border border-yo-border hover:bg-yo-ac-h hover:text-yokto-yellow disabled:opacity-50";
-const btnGhost = "px-5 py-2.5 border border-yo-border text-[12px] uppercase tracking-[0.14em] font-semibold hover:bg-yo-ac-h hover:text-yokto-cream disabled:opacity-50";
-const btnDanger = "px-5 py-2.5 border border-[#FF3B3B] text-[#FF3B3B] text-[12px] uppercase tracking-[0.14em] font-semibold hover:bg-[#FF3B3B] hover:text-yokto-cream disabled:opacity-50";
+const btnPrimary = "px-5 py-2.5 bg-yo-ac text-white text-[12px] uppercase tracking-[0.14em] font-semibold border border-yo-border hover:bg-yo-ac-h disabled:opacity-50";
+const btnGhost = "px-5 py-2.5 border border-yo-border text-[12px] uppercase tracking-[0.14em] font-semibold hover:bg-yo-ac-h hover:text-white disabled:opacity-50";
+const btnDanger = "px-5 py-2.5 border border-[#FF3B3B] text-[#FF3B3B] text-[12px] uppercase tracking-[0.14em] font-semibold hover:bg-[#FF3B3B] hover:text-white disabled:opacity-50";
 
 function Cell({ label, value, big }: { label: string; value: string; big?: boolean }) {
   return (

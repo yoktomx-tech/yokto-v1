@@ -277,7 +277,7 @@ function KycWizard() {
       <header className="border-b border-yo-border bg-background">
         <div className="container-editorial flex h-14 items-center justify-between">
           <Link to="/dashboard" className="flex items-center gap-2.5">
-            <span className="grid place-items-center size-7 bg-yo-ac text-yokto-cream font-display text-lg leading-none">Y</span>
+            <span className="grid place-items-center size-7 bg-yo-ac text-white font-display text-lg leading-none">Y</span>
             <span className="font-display text-2xl tracking-wide text-foreground">YOKTO</span>
             <span className="ml-3 text-[11px] uppercase tracking-[0.2em] text-muted-foreground border-l border-yo-border/30 pl-3">KYC</span>
           </Link>
@@ -339,7 +339,7 @@ function KycWizard() {
                 <button
                   onClick={handleNext}
                   disabled={saving}
-                  className="inline-flex items-center gap-2 px-6 py-2.5 bg-yokto-yellow text-yokto-black text-[12px] uppercase tracking-[0.14em] font-semibold border border-yo-border hover:bg-yo-ac-h hover:text-yokto-yellow disabled:opacity-60"
+                  className="inline-flex items-center gap-2 px-6 py-2.5 bg-yo-ac text-white text-[12px] uppercase tracking-[0.14em] font-semibold border border-yo-border hover:bg-yo-ac-h disabled:opacity-60"
                 >
                   {saving && <Loader2 className="animate-spin size-4" />}
                   Continuar
@@ -348,7 +348,7 @@ function KycWizard() {
                 <button
                   onClick={handleSubmit}
                   disabled={saving || !allDocsUploaded}
-                  className="inline-flex items-center gap-2 px-6 py-2.5 bg-yo-ac text-yokto-cream text-[12px] uppercase tracking-[0.14em] font-semibold border border-yo-border hover:bg-yokto-yellow hover:text-yokto-black disabled:opacity-60"
+                  className="inline-flex items-center gap-2 px-6 py-2.5 bg-yo-ac text-white text-[12px] uppercase tracking-[0.14em] font-semibold border border-yo-border hover:bg-yo-ac-h disabled:opacity-60"
                 >
                   {saving && <Loader2 className="animate-spin size-4" />}
                   Enviar a revisión
@@ -372,7 +372,7 @@ function Stepper({ current, status }: { current: number; status: KycStatus }) {
         const active = i === current;
         return (
           <div key={label} className="flex-1 flex items-center gap-2">
-            <div className={`flex items-center gap-2 flex-1 border p-2.5 ${active ? "border-yo-border bg-yokto-yellow" : done ? "border-yo-border/60 bg-yo-ac text-yokto-cream" : "border-yo-border/30 bg-transparent"}`}>
+            <div className={`flex items-center gap-2 flex-1 border p-2.5 ${active ? "border-yo-border bg-yokto-yellow" : done ? "border-yo-border/60 bg-yo-ac text-white" : "border-yo-border/30 bg-transparent"}`}>
               {done ? <CheckCircle2 className="size-4" /> : <Circle className="size-4" />}
               <span className="text-[11px] uppercase tracking-[0.14em] font-semibold truncate">{i + 1}. {label}</span>
             </div>
@@ -497,7 +497,7 @@ function DocSlot({
         {doc ? (
           <button
             onClick={() => onRemove(doc)}
-            className="inline-flex items-center gap-1.5 px-3 py-2 border border-yo-border text-[11px] uppercase tracking-[0.14em] font-semibold hover:bg-yokto-alert hover:text-yokto-cream hover:border-yokto-alert"
+            className="inline-flex items-center gap-1.5 px-3 py-2 border border-yo-border text-[11px] uppercase tracking-[0.14em] font-semibold hover:bg-yokto-alert hover:text-white hover:border-yokto-alert"
           >
             <X className="size-3.5" /> Quitar
           </button>
@@ -506,7 +506,7 @@ function DocSlot({
             <input id={inputId} type="file" className="sr-only" accept="application/pdf,image/png,image/jpeg" onChange={pick} disabled={busy} />
             <label
               htmlFor={inputId}
-              className="inline-flex items-center gap-1.5 px-3 py-2 bg-yo-ac text-yokto-cream text-[11px] uppercase tracking-[0.14em] font-semibold cursor-pointer hover:bg-yokto-yellow hover:text-yokto-black"
+              className="inline-flex items-center gap-1.5 px-3 py-2 bg-yo-ac text-white text-[11px] uppercase tracking-[0.14em] font-semibold cursor-pointer hover:bg-yo-ac-h"
             >
               {busy ? <Loader2 className="animate-spin size-3.5" /> : <Upload className="size-3.5" />}
               {busy ? "Subiendo…" : "Subir"}
@@ -566,7 +566,7 @@ function StepReview({ form, docs }: { form: FiscalForm; docs: DocRow[] }) {
 function SectionTitle({ n, title }: { n: number; title: string }) {
   return (
     <div className="flex items-center gap-3">
-      <span className="grid place-items-center size-7 bg-yo-ac text-yokto-cream font-display text-base leading-none">{n}</span>
+      <span className="grid place-items-center size-7 bg-yo-ac text-white font-display text-base leading-none">{n}</span>
       <h2 className="font-display text-2xl tracking-wide text-foreground">{title}</h2>
     </div>
   );

@@ -198,7 +198,7 @@ function DisputeDetail() {
                   className="text-sm"
                 />
                 <div className="flex gap-2">
-                  <button disabled={busy} onClick={handleSend} className="px-5 py-2.5 bg-yokto-yellow text-yokto-black text-[12px] uppercase tracking-[0.14em] font-semibold border border-yo-border disabled:opacity-50">
+                  <button disabled={busy} onClick={handleSend} className="px-5 py-2.5 bg-yo-ac text-white text-[12px] uppercase tracking-[0.14em] font-semibold border border-yo-border disabled:opacity-50">
                     {busy ? "Enviando…" : "Enviar mensaje"}
                   </button>
                 </div>
@@ -258,7 +258,7 @@ function ResolvePanel({ dispute, onResolved, resolveFn }: {
       <div className="mt-4 border border-yo-border bg-yo-bg/40 p-5 space-y-4">
         <div className="flex flex-wrap gap-2">
           {(["buyer_favor", "seller_favor", "split", "no_resolution"] as const).map((r) => (
-            <button key={r} onClick={() => preset(r)} className={`px-3 py-2 text-[11px] uppercase tracking-[0.14em] border border-yo-border ${resolution === r ? "bg-yo-ac text-yokto-cream" : "bg-background"}`}>
+            <button key={r} onClick={() => preset(r)} className={`px-3 py-2 text-[11px] uppercase tracking-[0.14em] border border-yo-border ${resolution === r ? "bg-yo-ac text-white" : "bg-background"}`}>
               {r}
             </button>
           ))}
@@ -287,7 +287,7 @@ function ResolvePanel({ dispute, onResolved, resolveFn }: {
           <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={4} className="input-editorial w-full mt-1" />
         </label>
         {err && <div role="alert" className="border border-[#FF3B3B] bg-[#FF3B3B]/10 text-[#FF3B3B] p-3 text-sm">{err}</div>}
-        <button disabled={busy || notes.length < 10} onClick={submit} className="px-5 py-2.5 bg-yokto-yellow text-yokto-black text-[12px] uppercase tracking-[0.14em] font-semibold border border-yo-border disabled:opacity-50">
+        <button disabled={busy || notes.length < 10} onClick={submit} className="px-5 py-2.5 bg-yo-ac text-white text-[12px] uppercase tracking-[0.14em] font-semibold border border-yo-border disabled:opacity-50">
           {busy ? "Resolviendo…" : "Resolver disputa"}
         </button>
       </div>

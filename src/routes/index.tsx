@@ -33,13 +33,13 @@ function Index() {
               <div className="flex flex-wrap items-center gap-3">
                 <Link
                   to="/contacto"
-                  className="inline-flex items-center gap-2 px-6 py-3.5 bg-yokto-yellow text-yokto-black text-[13px] uppercase tracking-[0.16em] font-semibold border border-yo-border transition hover:bg-yo-ac-h hover:text-yokto-yellow"
+                  className="inline-flex items-center gap-2 px-6 py-3.5 bg-yo-ac text-white text-[13px] uppercase tracking-[0.16em] font-semibold border border-yo-border transition hover:bg-yo-ac-h"
                 >
                   Solicitar acceso <ArrowRight className="size-4" />
                 </Link>
                 <Link
                   to="/como-funciona"
-                  className="inline-flex items-center gap-2 px-6 py-3.5 border border-yo-border text-[13px] uppercase tracking-[0.16em] font-semibold text-foreground hover:bg-yo-ac-h hover:text-yokto-cream"
+                  className="inline-flex items-center gap-2 px-6 py-3.5 border border-yo-border text-[13px] uppercase tracking-[0.16em] font-semibold text-foreground hover:bg-yo-ac-h hover:text-white"
                 >
                   Cómo funciona
                 </Link>
@@ -50,7 +50,7 @@ function Index() {
       </section>
 
       {/* METRIC STRIP */}
-      <section className="border-b border-yo-border/90 bg-yo-ac text-yokto-cream">
+      <section className="border-b border-yo-border/90 bg-yo-ac text-white">
         <div className="container-editorial py-10 grid grid-cols-2 md:grid-cols-4 divide-x divide-yokto-cream/15">
           {[
             ["Pasarelas", "Stripe · SPEI"],
@@ -152,7 +152,7 @@ function Index() {
       {/* CTA final */}
       <section>
         <div className="container-editorial py-20">
-          <div className="bg-yo-ac text-yokto-cream border border-yo-border p-10 md:p-16 grid md:grid-cols-12 gap-8 items-end">
+          <div className="bg-yo-ac text-white border border-yo-border p-10 md:p-16 grid md:grid-cols-12 gap-8 items-end">
             <div className="md:col-span-8">
               <p className="text-[11px] uppercase tracking-[0.28em] text-yokto-yellow font-semibold">
                 Acceso anticipado
@@ -164,7 +164,7 @@ function Index() {
             <div className="md:col-span-4 flex flex-wrap gap-3 md:justify-end">
               <Link
                 to="/contacto"
-                className="inline-flex items-center gap-2 px-6 py-3.5 bg-yokto-yellow text-yokto-black text-[13px] uppercase tracking-[0.16em] font-semibold border border-yokto-yellow hover:bg-yo-bg hover:border-yokto-cream"
+                className="inline-flex items-center gap-2 px-6 py-3.5 bg-yo-ac text-white text-[13px] uppercase tracking-[0.16em] font-semibold border border-yokto-yellow hover:bg-yo-bg hover:border-yokto-cream"
               >
                 Solicitar acceso <ArrowRight className="size-4" />
               </Link>

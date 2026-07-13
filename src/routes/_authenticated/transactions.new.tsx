@@ -147,7 +147,7 @@ function NewTransaction() {
             </p>
             <Link
               to="/kyc"
-              className="mt-6 inline-flex items-center px-5 py-2.5 bg-yokto-yellow text-yokto-black text-[12px] uppercase tracking-[0.14em] font-semibold border border-yo-border"
+              className="mt-6 inline-flex items-center px-5 py-2.5 bg-yo-ac text-white text-[12px] uppercase tracking-[0.14em] font-semibold border border-yo-border"
             >
               Ir a KYC
             </Link>
@@ -303,7 +303,7 @@ function NewTransaction() {
                       {form.conditions.length > 1 && (
                         <button
                           onClick={() => up("conditions", form.conditions.filter((_, j) => j !== i))}
-                          className="px-3 border border-yo-border text-[11px] uppercase tracking-[0.14em] hover:bg-[#FF3B3B] hover:text-yokto-cream"
+                          className="px-3 border border-yo-border text-[11px] uppercase tracking-[0.14em] hover:bg-[#FF3B3B] hover:text-white"
                         >
                           Quitar
                         </button>
@@ -313,7 +313,7 @@ function NewTransaction() {
                 </div>
                 <button
                   onClick={() => up("conditions", [...form.conditions, ""])}
-                  className="text-[12px] uppercase tracking-[0.14em] font-semibold border border-yo-border px-3 py-2 hover:bg-yo-ac-h hover:text-yokto-cream"
+                  className="text-[12px] uppercase tracking-[0.14em] font-semibold border border-yo-border px-3 py-2 hover:bg-yo-ac-h hover:text-white"
                 >
                   + Agregar condición
                 </button>
@@ -347,14 +347,14 @@ function NewTransaction() {
           <div className="mt-6 flex justify-between gap-3">
             <button
               onClick={() => (step === 1 ? navigate({ to: "/transactions" }) : setStep((s) => s - 1))}
-              className="px-5 py-2.5 border border-yo-border text-[12px] uppercase tracking-[0.14em] font-semibold hover:bg-yo-ac-h hover:text-yokto-cream"
+              className="px-5 py-2.5 border border-yo-border text-[12px] uppercase tracking-[0.14em] font-semibold hover:bg-yo-ac-h hover:text-white"
             >
               {step === 1 ? "Cancelar" : "Atrás"}
             </button>
             {step < 4 ? (
               <button
                 onClick={next}
-                className="px-6 py-2.5 bg-yo-ac text-yokto-cream text-[12px] uppercase tracking-[0.14em] font-semibold border border-yo-border hover:bg-yokto-yellow hover:text-yokto-black"
+                className="px-6 py-2.5 bg-yo-ac text-white text-[12px] uppercase tracking-[0.14em] font-semibold border border-yo-border hover:bg-yo-ac-h"
               >
                 Continuar
               </button>
@@ -370,7 +370,7 @@ function NewTransaction() {
                 <button
                   onClick={() => submit(true)}
                   disabled={submitting}
-                  className="px-6 py-2.5 bg-yokto-yellow text-yokto-black text-[12px] uppercase tracking-[0.14em] font-semibold border border-yo-border hover:bg-yo-ac-h hover:text-yokto-yellow disabled:opacity-50"
+                  className="px-6 py-2.5 bg-yo-ac text-white text-[12px] uppercase tracking-[0.14em] font-semibold border border-yo-border hover:bg-yo-ac-h disabled:opacity-50"
                 >
                   {submitting ? "Publicando…" : "Publicar y solicitar fondeo"}
                 </button>
