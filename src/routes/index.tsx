@@ -32,16 +32,17 @@ function Index() {
             <div className="md:col-span-5 flex md:justify-end items-end">
               <div className="flex flex-wrap items-center gap-3">
                 <Link
-                  to="/contacto"
+                  to="/auth"
+                  search={{ mode: "signup" }}
                   className="inline-flex items-center gap-2 px-6 py-3.5 bg-yo-ac text-white text-[13px] uppercase tracking-[0.16em] font-semibold border border-yo-border transition hover:bg-yo-ac-h"
                 >
-                  Solicitar acceso <ArrowRight className="size-4" />
+                  Crear cuenta <ArrowRight className="size-4" />
                 </Link>
                 <Link
-                  to="/como-funciona"
+                  to="/marco-legal"
                   className="inline-flex items-center gap-2 px-6 py-3.5 border border-yo-border text-[13px] uppercase tracking-[0.16em] font-semibold text-foreground hover:bg-yo-ac-h hover:text-white"
                 >
-                  Cómo funciona
+                  Marco legal
                 </Link>
               </div>
             </div>
@@ -163,16 +164,17 @@ function Index() {
             </div>
             <div className="md:col-span-4 flex flex-wrap gap-3 md:justify-end">
               <Link
-                to="/contacto"
+                to="/auth"
+                search={{ mode: "signup" }}
                 className="inline-flex items-center gap-2 px-6 py-3.5 bg-yo-ac text-white text-[13px] uppercase tracking-[0.16em] font-semibold border border-yokto-yellow hover:bg-yo-bg hover:border-yokto-cream"
               >
-                Solicitar acceso <ArrowRight className="size-4" />
+                Crear cuenta <ArrowRight className="size-4" />
               </Link>
               <Link
-                to="/precios"
+                to="/marco-legal"
                 className="inline-flex items-center gap-2 px-6 py-3.5 border border-yokto-cream/30 text-[13px] uppercase tracking-[0.16em] font-semibold hover:bg-yo-bg/10"
               >
-                Ver precios
+                Marco legal
               </Link>
             </div>
           </div>

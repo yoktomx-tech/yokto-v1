@@ -144,10 +144,10 @@ function Dashboard() {
                       </Link>
                     )}
                     <Link
-                      to="/como-funciona"
+                      to="/marco-legal"
                       className="inline-flex items-center gap-2 rounded-md border border-yo-border hover:border-yo-border-s bg-yo-surface hover:bg-yo-raised text-yo-txt text-sm font-medium px-5 py-2.5 transition"
                     >
-                      Cómo funciona
+                      Marco legal
                       <ArrowUpRight className="size-4" />
                     </Link>
                   </div>
