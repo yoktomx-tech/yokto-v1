@@ -72,9 +72,11 @@ export type Database = {
           industry_sector: Database["public"]["Enums"]["industry_sector"] | null
           kyc_completed_at: string | null
           kyc_status: Database["public"]["Enums"]["kyc_status"]
+          kyc_submitted_at: string | null
           last_name: string | null
           legal_name: string | null
           onboarding_completed: boolean
+          onboarding_step: number
           phone: string | null
           regimen_fiscal: string | null
           rfc: string | null
@@ -95,9 +97,11 @@ export type Database = {
             | null
           kyc_completed_at?: string | null
           kyc_status?: Database["public"]["Enums"]["kyc_status"]
+          kyc_submitted_at?: string | null
           last_name?: string | null
           legal_name?: string | null
           onboarding_completed?: boolean
+          onboarding_step?: number
           phone?: string | null
           regimen_fiscal?: string | null
           rfc?: string | null
@@ -118,9 +122,11 @@ export type Database = {
             | null
           kyc_completed_at?: string | null
           kyc_status?: Database["public"]["Enums"]["kyc_status"]
+          kyc_submitted_at?: string | null
           last_name?: string | null
           legal_name?: string | null
           onboarding_completed?: boolean
+          onboarding_step?: number
           phone?: string | null
           regimen_fiscal?: string | null
           rfc?: string | null
