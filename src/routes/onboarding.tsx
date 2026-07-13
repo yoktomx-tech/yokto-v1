@@ -18,6 +18,7 @@ import { validateClabe, normalizeClabe, getBanco } from "@/lib/validations/clabe
 import { validateRfc, normalizeRfc } from "@/lib/validations/rfc";
 import { validateCurp, normalizeCurp } from "@/lib/validations/curp";
 import { REGIMEN_FISICA, REGIMEN_MORAL, ESTADOS_MX } from "@/lib/validations/sat-catalogs";
+import { YoktoLogo } from "@/components/logo";
 
 export const Route = createFileRoute("/onboarding")({
   head: () => ({
@@ -85,8 +86,7 @@ function OnboardingWizard() {
       <header className="border-b border-yo-border bg-yo-surface">
         <div className="mx-auto max-w-5xl px-5 py-4 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2.5">
-            <span className="grid place-items-center size-8 rounded-md gradient-accent text-white font-bold text-base leading-none">Y</span>
-            <span className="font-extrabold text-lg tracking-[0.14em]">YOKTO</span>
+            <YoktoLogo variant="dark" className="h-6 w-auto" />
           </Link>
           <Link to="/auth" className="text-sm text-yo-txt-2 hover:text-yo-txt">
             ¿Ya tienes cuenta? <span className="text-yo-ac font-medium">Iniciar sesión</span>
