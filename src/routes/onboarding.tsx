@@ -454,8 +454,14 @@ function Step3Fiscal({ onSaved, onBack, setError, loading, setLoading }: {
   const [rfcCheck, setRfcCheck] = useState<{ msg: string; ok: boolean } | null>(null);
   const [rfcChecking, setRfcChecking] = useState(false);
   const [curpError, setCurpError] = useState<string | null>(null);
+  const [curpChecking, setCurpChecking] = useState(false);
+  const [curpVerified, setCurpVerified] = useState<null | {
+    nombre: string; apellidoPaterno: string; apellidoMaterno: string;
+    sexo: string; fechaNacimiento: string | null; estadoNacimiento: string; estatusCurp: string;
+  }>(null);
   const save = useServerFn(saveOnboardingStep);
   const validateRfcFn = useServerFn(validateRfcServer);
+  const validateCurpFn = useServerFn(validateCurpNubarium);
   const set = (k: string, v: string) => setF((p) => ({ ...p, [k]: v }));
 
   useEffect(() => {
