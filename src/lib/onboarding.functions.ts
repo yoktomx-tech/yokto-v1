@@ -632,6 +632,6 @@ export const validateFielSerialNubarium = createServerFn({ method: "POST" })
       tipoCertificado: (payload.tipoCertificado as string) ?? "",
       estatusCertificado: (payload.estatusCertificado as string) ?? "",
       vigente: payload.estatusCertificado === "VIGENTE",
-      raw: payload,
+      raw: JSON.stringify(payload),
     };
   });
