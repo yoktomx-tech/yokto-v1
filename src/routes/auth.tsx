@@ -78,18 +78,8 @@ function AuthPage() {
     }
   }
 
-  async function handleGoogle() {
-    setError(null); setLoading(true);
-    try {
-      const result = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: window.location.origin,
-      });
-      if (result.error) throw result.error;
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Error con Google");
-      setLoading(false);
-    }
-  }
+
+
 
   return (
     <div className="min-h-dvh grid lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] bg-yokto-base text-yokto-text-1">
