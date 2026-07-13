@@ -12,7 +12,7 @@ import {
   checkEmailExists, validateRfcServer, validateCurpNubarium, saveOnboardingStep,
   uploadKycDocument, listOwnKycDocuments, deleteOwnKycDocument,
   registerClabe, startPennyTest, confirmPennyTest, submitKyc,
-  validateCsfNubarium, parseEfirma, validateFielSerialNubarium,
+  validateCsfNubarium, parseEfirma, validateFielSerialNubarium, lookupPostalCode,
 } from "@/lib/onboarding.functions";
 import { validateClabe, normalizeClabe, getBanco } from "@/lib/validations/clabe";
 import { validateRfc, normalizeRfc } from "@/lib/validations/rfc";
@@ -253,6 +253,14 @@ function Step1Account({ initialEmail, onCredentials, setError, loading, setLoadi
     { label: "Un número", ok: /[0-9]/.test(password) },
     { label: "Un símbolo", ok: /[^A-Za-z0-9]/.test(password) },
   ];
+  const pwdScore = pwdChecks.filter((c) => c.ok).length + (password.length >= 12 ? 1 : 0);
+  const pwdStrength = password.length === 0
+    ? { label: "", pct: 0, tone: "bg-yo-border", text: "text-yo-txt-3" }
+    : pwdScore <= 1 ? { label: "Muy débil", pct: 20, tone: "bg-yo-err", text: "text-yo-err" }
+    : pwdScore === 2 ? { label: "Débil", pct: 40, tone: "bg-orange-500", text: "text-orange-600" }
+    : pwdScore === 3 ? { label: "Aceptable", pct: 60, tone: "bg-yellow-500", text: "text-yellow-700" }
+    : pwdScore === 4 ? { label: "Fuerte", pct: 85, tone: "bg-emerald-500", text: "text-emerald-600" }
+    : { label: "Muy fuerte", pct: 100, tone: "bg-emerald-600", text: "text-emerald-700" };
 
   async function onEmailBlur() {
     setEmailError(null);
@@ -316,6 +324,14 @@ function Step1Account({ initialEmail, onCredentials, setError, loading, setLoadi
             </button>
           }
         />
+        {password.length > 0 && (
+          <div className="mt-1 flex items-center gap-2" aria-label="Fortaleza de contraseña">
+            <div className="flex-1 h-1.5 rounded-full bg-yo-border overflow-hidden">
+              <div className={"h-full transition-all duration-300 " + pwdStrength.tone} style={{ width: `${pwdStrength.pct}%` }} />
+            </div>
+            <span className={"text-[11px] font-semibold min-w-[70px] text-right " + pwdStrength.text}>{pwdStrength.label}</span>
+          </div>
+        )}
         <ul className="grid grid-cols-1 sm:grid-cols-2 gap-1 mt-0.5" aria-label="Requisitos de contraseña">
           {pwdChecks.map((c) => (
             <li key={c.label} className={"flex items-center gap-1.5 text-[11px] " + (c.ok ? "text-emerald-600" : "text-yo-txt-3")}>
@@ -511,13 +527,51 @@ function Step3Fiscal({ onSaved, onBack, setError, loading, setLoading }: {
   const [efKey, setEfKey] = useState<File | null>(null);
   const [efPass, setEfPass] = useState("");
 
+  // Postal code (Copomex) — se muestra sólo tras consulta exitosa
+  const [cpBusy, setCpBusy] = useState(false);
+  const [cpErr, setCpErr] = useState<string | null>(null);
+  const [cpOptions, setCpOptions] = useState<string[] | null>(null);
+  const [cpLocked, setCpLocked] = useState(false); // municipio/estado bloqueados tras consulta
+
   const save = useServerFn(saveOnboardingStep);
   const validateRfcFn = useServerFn(validateRfcServer);
   const validateCurpFn = useServerFn(validateCurpNubarium);
   const validateCsfFn = useServerFn(validateCsfNubarium);
   const parseEfirmaFn = useServerFn(parseEfirma);
   const validateSerialFn = useServerFn(validateFielSerialNubarium);
+  const lookupCpFn = useServerFn(lookupPostalCode);
   const set = (k: string, v: string) => setF((p) => ({ ...p, [k]: v }));
+
+  async function lookupCP(cp: string, source: "manual" | "efirma" | "csf" = "manual") {
+    setCpErr(null); setCpBusy(true);
+    try {
+      const r = await lookupCpFn({ data: { cp, source } });
+      setCpOptions(r.colonias);
+      setCpLocked(true);
+      setF((p) => ({
+        ...p,
+        fiscal_postal_code: r.cp,
+        fiscal_municipio: r.municipio,
+        fiscal_estado: r.estado,
+        fiscal_colonia: r.colonias.includes(p.fiscal_colonia ?? "") ? (p.fiscal_colonia ?? "") : "",
+      }));
+    } catch (e) {
+      setCpOptions(null);
+      setCpLocked(false);
+      setCpErr(e instanceof Error ? e.message : "No se pudo consultar el CP");
+    } finally { setCpBusy(false); }
+  }
+
+  function onCpChange(v: string) {
+    const clean = v.replace(/\D/g, "").slice(0, 5);
+    set("fiscal_postal_code", clean);
+    if (clean.length < 5) {
+      setCpOptions(null); setCpLocked(false); setCpErr(null);
+      setF((p) => ({ ...p, fiscal_municipio: "", fiscal_estado: "", fiscal_colonia: "" }));
+    } else if (clean.length === 5) {
+      void lookupCP(clean, "manual");
+    }
+  }
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -541,6 +595,7 @@ function Step3Fiscal({ onSaved, onBack, setError, loading, setLoading }: {
           rep_curp: (p.legal_rep as { curp?: string } | null)?.curp ?? "",
           rep_role: (p.legal_rep as { role?: string } | null)?.role ?? "",
         });
+        if ((p.fiscal_postal_code ?? "").length === 5) setCpLocked(true);
       });
     });
   }, []);
@@ -949,23 +1004,65 @@ function Step3Fiscal({ onSaved, onBack, setError, loading, setLoading }: {
         </fieldset>
       )}
 
-      <fieldset className="rounded-xl border border-yo-border p-4">
-        <legend className="text-xs font-semibold uppercase tracking-widest text-yo-txt-2 px-1">Domicilio fiscal</legend>
-        <div className="grid grid-cols-1 sm:grid-cols-6 gap-3 mt-2">
-          <div className="sm:col-span-4"><Field id="fiscal_street" label="Calle" value={f.fiscal_street ?? ""} onChange={(v) => set("fiscal_street", v)} required /></div>
-          <Field id="fiscal_ext_number" label="Núm. ext." value={f.fiscal_ext_number ?? ""} onChange={(v) => set("fiscal_ext_number", v)} required />
-          <Field id="fiscal_int_number" label="Núm. int." value={f.fiscal_int_number ?? ""} onChange={(v) => set("fiscal_int_number", v)} />
-          <div className="sm:col-span-3"><Field id="fiscal_colonia" label="Colonia" value={f.fiscal_colonia ?? ""} onChange={(v) => set("fiscal_colonia", v)} required /></div>
-          <div className="sm:col-span-2"><Field id="fiscal_municipio" label="Municipio / Alcaldía" value={f.fiscal_municipio ?? ""} onChange={(v) => set("fiscal_municipio", v)} required /></div>
-          <Field id="fiscal_postal_code" label="C.P." value={f.fiscal_postal_code ?? ""} onChange={(v) => set("fiscal_postal_code", v)} required maxLength={5} inputMode="numeric" />
-          <div className="sm:col-span-3">
-            <Field as="select" id="fiscal_estado" label="Estado" value={f.fiscal_estado ?? ""} onChange={(v) => set("fiscal_estado", v)} required>
-              <option value="">Selecciona…</option>
-              {ESTADOS_MX.map((e) => <option key={e} value={e}>{e}</option>)}
-            </Field>
-          </div>
-        </div>
-      </fieldset>
+      {(() => {
+        const showAddress =
+          tipo === "persona_moral" ||
+          fillMode === "csf" ||
+          ((fillMode === "manual" || fillMode === "efirma"));
+        if (!showAddress) return null;
+        const cpFromCsf = fillMode === "csf" && !!f.fiscal_postal_code;
+        const showRest = cpLocked || cpFromCsf;
+        return (
+          <fieldset className="rounded-xl border border-yo-border p-4">
+            <legend className="text-xs font-semibold uppercase tracking-widest text-yo-txt-2 px-1">Domicilio fiscal</legend>
+            <p className="mt-2 mb-3 text-xs text-yo-txt-3">
+              {fillMode === "csf"
+                ? "Datos extraídos de tu Constancia de Situación Fiscal."
+                : "Ingresa tu código postal — consultaremos automáticamente municipio, estado y colonias disponibles."}
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-6 gap-3">
+              <div className="sm:col-span-2">
+                <Field
+                  id="fiscal_postal_code" label="Código postal" value={f.fiscal_postal_code ?? ""}
+                  onChange={fillMode === "csf" ? (v) => set("fiscal_postal_code", v) : onCpChange}
+                  required maxLength={5} inputMode="numeric" disabled={fillMode === "csf"}
+                  error={cpErr}
+                  trailing={cpBusy ? <Loader2 className="size-4 animate-spin text-yo-txt-3" /> : cpLocked ? <Check className="size-4 text-yo-ok" /> : undefined}
+                  hint={!cpLocked && !cpErr && (f.fiscal_postal_code ?? "").length < 5 ? "5 dígitos" : undefined}
+                />
+              </div>
+              {showRest && (
+                <>
+                  <div className="sm:col-span-2">
+                    <Field id="fiscal_municipio" label="Municipio / Alcaldía" value={f.fiscal_municipio ?? ""} onChange={(v) => set("fiscal_municipio", v)} required disabled={fillMode !== "csf" ? cpLocked : true} />
+                  </div>
+                  <div className="sm:col-span-2">
+                    <Field as="select" id="fiscal_estado" label="Estado" value={f.fiscal_estado ?? ""} onChange={(v) => set("fiscal_estado", v)} required disabled={fillMode !== "csf" ? cpLocked : true}>
+                      <option value="">Selecciona…</option>
+                      {ESTADOS_MX.map((e) => <option key={e} value={e}>{e}</option>)}
+                    </Field>
+                  </div>
+                  <div className="sm:col-span-3">
+                    {cpOptions && cpOptions.length > 0 ? (
+                      <Field as="select" id="fiscal_colonia" label="Colonia" value={f.fiscal_colonia ?? ""} onChange={(v) => set("fiscal_colonia", v)} required>
+                        <option value="">Selecciona una colonia…</option>
+                        {cpOptions.map((c) => <option key={c} value={c}>{c}</option>)}
+                      </Field>
+                    ) : (
+                      <Field id="fiscal_colonia" label="Colonia" value={f.fiscal_colonia ?? ""} onChange={(v) => set("fiscal_colonia", v)} required />
+                    )}
+                  </div>
+                  <div className="sm:col-span-4">
+                    <Field id="fiscal_street" label="Calle" value={f.fiscal_street ?? ""} onChange={(v) => set("fiscal_street", v)} required />
+                  </div>
+                  <Field id="fiscal_ext_number" label="Núm. ext." value={f.fiscal_ext_number ?? ""} onChange={(v) => set("fiscal_ext_number", v)} required />
+                  <Field id="fiscal_int_number" label="Núm. int." value={f.fiscal_int_number ?? ""} onChange={(v) => set("fiscal_int_number", v)} />
+                </>
+              )}
+            </div>
+          </fieldset>
+        );
+      })()}
 
       <div className="flex items-center justify-between pt-2">
         <button type="button" onClick={onBack} className="inline-flex items-center gap-1.5 text-sm text-yo-txt-2 hover:text-yo-txt">

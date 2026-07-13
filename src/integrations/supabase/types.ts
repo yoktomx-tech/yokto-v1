@@ -544,6 +544,54 @@ export type Database = {
           },
         ]
       }
+      postal_code_lookups: {
+        Row: {
+          ciudad: string | null
+          colonias: Json | null
+          cp: string
+          created_at: string
+          error: string | null
+          estado: string | null
+          id: string
+          municipio: string | null
+          pais: string | null
+          raw_response: Json | null
+          source: string
+          success: boolean
+          user_id: string | null
+        }
+        Insert: {
+          ciudad?: string | null
+          colonias?: Json | null
+          cp: string
+          created_at?: string
+          error?: string | null
+          estado?: string | null
+          id?: string
+          municipio?: string | null
+          pais?: string | null
+          raw_response?: Json | null
+          source?: string
+          success?: boolean
+          user_id?: string | null
+        }
+        Update: {
+          ciudad?: string | null
+          colonias?: Json | null
+          cp?: string
+          created_at?: string
+          error?: string | null
+          estado?: string | null
+          id?: string
+          municipio?: string | null
+          pais?: string | null
+          raw_response?: Json | null
+          source?: string
+          success?: boolean
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           account_type: Database["public"]["Enums"]["account_type"] | null
