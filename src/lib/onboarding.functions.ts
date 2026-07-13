@@ -118,6 +118,79 @@ export const validateCurpNubarium = createServerFn({ method: "POST" })
     };
   });
 
+// ---------- 2c. Consulta de código postal (Copomex) ----------
+type CopomexSimplified = {
+  error?: boolean;
+  code_error?: number;
+  error_message?: string | null;
+  response?: {
+    cp: string;
+    asentamiento: string[];
+    tipo_asentamiento: string;
+    municipio: string;
+    estado: string;
+    ciudad?: string;
+    pais: string;
+  };
+};
+
+export const lookupPostalCode = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) =>
+    z.object({
+      cp: z.string().regex(/^\d{5}$/, "CP debe tener 5 dígitos"),
+      source: z.enum(["manual", "efirma", "csf"]).optional(),
+    }).parse(i)
+  )
+  .handler(async ({ data, context }) => {
+    const token = process.env.COPOMEX_TOKEN;
+    if (!token) throw new Error("COPOMEX_TOKEN no configurado");
+    const url = `https://api.copomex.com/query/info_cp/${data.cp}?type=simplified&token=${encodeURIComponent(token)}`;
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    let payload: CopomexSimplified | CopomexSimplified[] | null = null;
+    let httpErr: string | null = null;
+    try {
+      const res = await fetch(url, { method: "GET" });
+      payload = (await res.json()) as CopomexSimplified | CopomexSimplified[];
+    } catch (e) {
+      httpErr = e instanceof Error ? e.message : "network";
+    }
+
+    const first: CopomexSimplified | null = Array.isArray(payload) ? payload[0] ?? null : payload;
+    const resp = first?.response;
+    const success = !!resp && !first?.error;
+
+    await supabaseAdmin.from("postal_code_lookups").insert({
+      user_id: context.userId,
+      cp: data.cp,
+      source: data.source ?? "manual",
+      success,
+      colonias: resp?.asentamiento ?? null,
+      municipio: resp?.municipio ?? null,
+      estado: resp?.estado ?? null,
+      ciudad: resp?.ciudad ?? resp?.estado ?? null,
+      pais: resp?.pais ?? null,
+      error: success ? null : (first?.error_message ?? httpErr ?? "CP no encontrado"),
+      raw_response: (payload ?? {}) as never,
+    });
+
+    if (!success || !resp) {
+      throw new Error(first?.error_message ?? "Código postal no encontrado");
+    }
+
+    return {
+      cp: resp.cp,
+      colonias: resp.asentamiento,
+      tipo_asentamiento: resp.tipo_asentamiento,
+      municipio: resp.municipio,
+      estado: resp.estado,
+      ciudad: resp.ciudad ?? resp.estado,
+      pais: resp.pais,
+    };
+  });
+
 // ---------- 3. Autosave paso a paso ----------
 const domicilioSchema = z.object({
   fiscal_street: z.string().min(2),
