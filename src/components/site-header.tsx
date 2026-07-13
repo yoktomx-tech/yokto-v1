@@ -41,18 +41,8 @@ export function SiteHeader() {
           <span className="font-extrabold text-lg tracking-[0.14em] text-yokto-text-1">YOKTO</span>
         </Link>
 
-        <nav className="hidden md:flex items-center gap-1">
-          {nav.map((item) => (
-            <Link
-              key={item.to}
-              to={item.to}
-              className="px-3 py-2 rounded-md text-sm font-medium text-yokto-text-2 transition hover:text-yokto-text-1 hover:bg-yokto-hover"
-              activeProps={{ className: "px-3 py-2 rounded-md text-sm font-semibold text-yokto-text-1 bg-yokto-hover" }}
-            >
-              {item.label}
-            </Link>
-          ))}
-        </nav>
+        <nav className="hidden md:flex items-center gap-1" />
+
 
         <div className="hidden md:flex items-center gap-2">
 
