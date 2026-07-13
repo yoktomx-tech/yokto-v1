@@ -103,7 +103,7 @@ export const analyzeEvidence = createServerFn({ method: "POST" })
         ai_verdict: verdict,
         ai_score: score,
         ai_summary: result.summary?.slice(0, 500) ?? null,
-        ai_raw: result as unknown as Record<string, unknown>,
+        ai_raw: JSON.parse(JSON.stringify(result)),
         analyzed_at: new Date().toISOString(),
       })
       .eq("id", ev.id);
