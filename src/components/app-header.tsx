@@ -1,15 +1,17 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { LogOut } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { NotificationsBell } from "@/components/notifications-bell";
 
 const nav = [
   { to: "/dashboard", label: "Panel" },
   { to: "/transactions", label: "Transacciones" },
+  { to: "/disputes", label: "Disputas" },
   { to: "/payments", label: "Pagos" },
   { to: "/kyc", label: "KYC" },
 ] as const;
 
-export function AppHeader({ email, section }: { email?: string | null; section?: string }) {
+export function AppHeader({ email, section, userId }: { email?: string | null; section?: string; userId?: string }) {
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (r) => r.location.pathname });
 
@@ -53,6 +55,7 @@ export function AppHeader({ email, section }: { email?: string | null; section?:
           </nav>
         </div>
         <div className="flex items-center gap-3 shrink-0">
+          {userId && <NotificationsBell userId={userId} />}
           {email && (
             <span className="hidden sm:inline text-xs text-yokto-text-3 truncate max-w-[180px]">{email}</span>
           )}
