@@ -232,8 +232,11 @@ function TxDetail() {
                     Liberar fondos al vendedor
                   </button>
                 )}
-                <button disabled={busy} onClick={() => updateStatus("disputed")} className={btnDanger}>Abrir disputa</button>
+                <button disabled={busy} onClick={() => setDisputeOpen(true)} className={btnDanger}>Abrir disputa</button>
               </>
+            )}
+            {tx.status === "disputed" && (
+              <Link to="/disputes" className={btnGhost}>Ir a la disputa</Link>
             )}
           </div>
 
