@@ -48,10 +48,11 @@ function OnboardingWizard() {
   const navigate = useNavigate();
   const [step, setStep] = useState<StepId>(1);
   const [session, setSession] = useState<{ userId: string; email: string } | null>(null);
+  const [pending, setPending] = useState<{ email: string; password: string } | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Restaurar sesión + paso
+  // Restaurar sesión + paso (usuario que ya creó cuenta y vuelve)
   useEffect(() => {
     let mounted = true;
     supabase.auth.getSession().then(({ data }) => {
@@ -107,13 +108,18 @@ function OnboardingWizard() {
         <section className="mt-6 rounded-2xl bg-yo-surface border border-yo-border shadow-sm p-6 sm:p-8">
           {step === 1 && (
             <Step1Account
-              onSignedUp={(userId, email) => { setSession({ userId, email }); goNext(2); }}
+              initialEmail={pending?.email ?? ""}
+              onCredentials={(email, password) => { setPending({ email, password }); goNext(2); }}
               setError={setError} loading={loading} setLoading={setLoading}
             />
           )}
-          {step === 2 && session && (
+          {step === 2 && (session || pending) && (
             <Step2Type
-              onSaved={() => goNext(3)} onBack={goPrev}
+              pending={pending}
+              hasSession={!!session}
+              onSessionCreated={(userId, email) => setSession({ userId, email })}
+              onSaved={() => { setPending(null); goNext(3); }}
+              onBack={goPrev}
               setError={setError} loading={loading} setLoading={setLoading}
             />
           )}
@@ -135,7 +141,7 @@ function OnboardingWizard() {
               setError={setError} loading={loading} setLoading={setLoading}
             />
           )}
-          {step > 1 && !session && (
+          {step > 2 && !session && (
             <div className="text-sm text-yo-txt-2">
               Debes iniciar sesión para continuar.
               <button type="button" onClick={() => setStep(1)} className="ml-2 text-yo-ac font-medium">Volver al paso 1</button>
@@ -146,6 +152,7 @@ function OnboardingWizard() {
     </div>
   );
 }
+
 
 // ─── Stepper ────────────────────────────────────────────────────────────────
 function Stepper({ active }: { active: StepId }) {
