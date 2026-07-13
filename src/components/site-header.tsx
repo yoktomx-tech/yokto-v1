@@ -4,9 +4,6 @@ import { Menu, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 const nav = [
-  { to: "/como-funciona", label: "Cómo funciona" },
-  { to: "/casos-de-uso", label: "Sectores" },
-  { to: "/precios", label: "Precios" },
   { to: "/marco-legal", label: "Marco legal" },
 ] as const;
 
@@ -60,12 +57,7 @@ export function SiteHeader() {
         </nav>
 
         <div className="hidden md:flex items-center gap-2">
-          <Link
-            to="/contacto"
-            className="px-3 py-2 rounded-md text-sm font-medium text-yokto-text-2 hover:text-yokto-text-1 hover:bg-yokto-hover transition"
-          >
-            Contacto
-          </Link>
+
           {authed ? (
             <Link
               to="/dashboard"
