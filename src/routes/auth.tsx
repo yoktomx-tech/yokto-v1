@@ -278,10 +278,7 @@ function AuthPage() {
           </div>
 
           <p className="mt-6 text-xs text-yokto-text-3 text-center leading-relaxed">
-            Al continuar aceptas nuestros{" "}
-            <Link to="/marco-legal" className="text-yokto-text-2 underline underline-offset-4 hover:text-yokto-text-1">
-              términos y aviso de privacidad
-            </Link>.
+            Al continuar aceptas nuestros términos y aviso de privacidad.
           </p>
         </div>
       </main>
