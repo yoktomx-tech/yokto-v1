@@ -14,10 +14,13 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedTransactionsRouteImport } from './routes/_authenticated/transactions'
+import { Route as AuthenticatedReportsRouteImport } from './routes/_authenticated/reports'
 import { Route as AuthenticatedPaymentsRouteImport } from './routes/_authenticated/payments'
 import { Route as AuthenticatedKycRouteImport } from './routes/_authenticated/kyc'
 import { Route as AuthenticatedDisputesRouteImport } from './routes/_authenticated/disputes'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedApiClientsRouteImport } from './routes/_authenticated/api-clients'
+import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedTransactionsNewRouteImport } from './routes/_authenticated/transactions.new'
 import { Route as AuthenticatedTransactionsIdRouteImport } from './routes/_authenticated/transactions.$id'
 import { Route as AuthenticatedDisputesIdRouteImport } from './routes/_authenticated/disputes.$id'
@@ -48,6 +51,11 @@ const AuthenticatedTransactionsRoute =
     path: '/transactions',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedReportsRoute = AuthenticatedReportsRouteImport.update({
+  id: '/reports',
+  path: '/reports',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedPaymentsRoute = AuthenticatedPaymentsRouteImport.update({
   id: '/payments',
   path: '/payments',
@@ -66,6 +74,16 @@ const AuthenticatedDisputesRoute = AuthenticatedDisputesRouteImport.update({
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedApiClientsRoute = AuthenticatedApiClientsRouteImport.update({
+  id: '/api-clients',
+  path: '/api-clients',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedTransactionsNewRoute =
@@ -95,10 +113,13 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/admin': typeof AuthenticatedAdminRoute
+  '/api-clients': typeof AuthenticatedApiClientsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/disputes': typeof AuthenticatedDisputesRouteWithChildren
   '/kyc': typeof AuthenticatedKycRoute
   '/payments': typeof AuthenticatedPaymentsRoute
+  '/reports': typeof AuthenticatedReportsRoute
   '/transactions': typeof AuthenticatedTransactionsRouteWithChildren
   '/disputes/$id': typeof AuthenticatedDisputesIdRoute
   '/transactions/$id': typeof AuthenticatedTransactionsIdRoute
@@ -109,10 +130,13 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/admin': typeof AuthenticatedAdminRoute
+  '/api-clients': typeof AuthenticatedApiClientsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/disputes': typeof AuthenticatedDisputesRouteWithChildren
   '/kyc': typeof AuthenticatedKycRoute
   '/payments': typeof AuthenticatedPaymentsRoute
+  '/reports': typeof AuthenticatedReportsRoute
   '/transactions': typeof AuthenticatedTransactionsRouteWithChildren
   '/disputes/$id': typeof AuthenticatedDisputesIdRoute
   '/transactions/$id': typeof AuthenticatedTransactionsIdRoute
@@ -125,10 +149,13 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/_authenticated/admin': typeof AuthenticatedAdminRoute
+  '/_authenticated/api-clients': typeof AuthenticatedApiClientsRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/disputes': typeof AuthenticatedDisputesRouteWithChildren
   '/_authenticated/kyc': typeof AuthenticatedKycRoute
   '/_authenticated/payments': typeof AuthenticatedPaymentsRoute
+  '/_authenticated/reports': typeof AuthenticatedReportsRoute
   '/_authenticated/transactions': typeof AuthenticatedTransactionsRouteWithChildren
   '/_authenticated/disputes/$id': typeof AuthenticatedDisputesIdRoute
   '/_authenticated/transactions/$id': typeof AuthenticatedTransactionsIdRoute
@@ -141,10 +168,13 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/sitemap.xml'
+    | '/admin'
+    | '/api-clients'
     | '/dashboard'
     | '/disputes'
     | '/kyc'
     | '/payments'
+    | '/reports'
     | '/transactions'
     | '/disputes/$id'
     | '/transactions/$id'
@@ -155,10 +185,13 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/sitemap.xml'
+    | '/admin'
+    | '/api-clients'
     | '/dashboard'
     | '/disputes'
     | '/kyc'
     | '/payments'
+    | '/reports'
     | '/transactions'
     | '/disputes/$id'
     | '/transactions/$id'
@@ -170,10 +203,13 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/auth'
     | '/sitemap.xml'
+    | '/_authenticated/admin'
+    | '/_authenticated/api-clients'
     | '/_authenticated/dashboard'
     | '/_authenticated/disputes'
     | '/_authenticated/kyc'
     | '/_authenticated/payments'
+    | '/_authenticated/reports'
     | '/_authenticated/transactions'
     | '/_authenticated/disputes/$id'
     | '/_authenticated/transactions/$id'
@@ -226,6 +262,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedTransactionsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/reports': {
+      id: '/_authenticated/reports'
+      path: '/reports'
+      fullPath: '/reports'
+      preLoaderRoute: typeof AuthenticatedReportsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/payments': {
       id: '/_authenticated/payments'
       path: '/payments'
@@ -252,6 +295,20 @@ declare module '@tanstack/react-router' {
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/api-clients': {
+      id: '/_authenticated/api-clients'
+      path: '/api-clients'
+      fullPath: '/api-clients'
+      preLoaderRoute: typeof AuthenticatedApiClientsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/admin': {
+      id: '/_authenticated/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AuthenticatedAdminRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/transactions/new': {
@@ -315,18 +372,24 @@ const AuthenticatedTransactionsRouteWithChildren =
   )
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
+  AuthenticatedApiClientsRoute: typeof AuthenticatedApiClientsRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedDisputesRoute: typeof AuthenticatedDisputesRouteWithChildren
   AuthenticatedKycRoute: typeof AuthenticatedKycRoute
   AuthenticatedPaymentsRoute: typeof AuthenticatedPaymentsRoute
+  AuthenticatedReportsRoute: typeof AuthenticatedReportsRoute
   AuthenticatedTransactionsRoute: typeof AuthenticatedTransactionsRouteWithChildren
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAdminRoute: AuthenticatedAdminRoute,
+  AuthenticatedApiClientsRoute: AuthenticatedApiClientsRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedDisputesRoute: AuthenticatedDisputesRouteWithChildren,
   AuthenticatedKycRoute: AuthenticatedKycRoute,
   AuthenticatedPaymentsRoute: AuthenticatedPaymentsRoute,
+  AuthenticatedReportsRoute: AuthenticatedReportsRoute,
   AuthenticatedTransactionsRoute: AuthenticatedTransactionsRouteWithChildren,
 }
 
