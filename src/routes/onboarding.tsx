@@ -595,6 +595,7 @@ function Step3Fiscal({ onSaved, onBack, setError, loading, setLoading }: {
           rep_curp: (p.legal_rep as { curp?: string } | null)?.curp ?? "",
           rep_role: (p.legal_rep as { role?: string } | null)?.role ?? "",
         });
+        if ((p.fiscal_postal_code ?? "").length === 5) setCpLocked(true);
       });
     });
   }, []);
