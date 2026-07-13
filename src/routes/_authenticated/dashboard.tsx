@@ -143,13 +143,6 @@ function Dashboard() {
                         <ArrowRight className="size-4" />
                       </Link>
                     )}
-                    <Link
-                      to="/marco-legal"
-                      className="inline-flex items-center gap-2 rounded-md border border-yo-border hover:border-yo-border-s bg-yo-surface hover:bg-yo-raised text-yo-txt text-sm font-medium px-5 py-2.5 transition"
-                    >
-                      Marco legal
-                      <ArrowUpRight className="size-4" />
-                    </Link>
                   </div>
                 </div>
               </div>

@@ -3,9 +3,7 @@ import { useEffect, useState } from "react";
 import { Menu, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
-const nav = [
-  { to: "/marco-legal", label: "Marco legal" },
-] as const;
+const nav = [] as const;
 
 export function SiteHeader() {
   const [open, setOpen] = useState(false);
@@ -43,18 +41,8 @@ export function SiteHeader() {
           <span className="font-extrabold text-lg tracking-[0.14em] text-yokto-text-1">YOKTO</span>
         </Link>
 
-        <nav className="hidden md:flex items-center gap-1">
-          {nav.map((item) => (
-            <Link
-              key={item.to}
-              to={item.to}
-              className="px-3 py-2 rounded-md text-sm font-medium text-yokto-text-2 transition hover:text-yokto-text-1 hover:bg-yokto-hover"
-              activeProps={{ className: "px-3 py-2 rounded-md text-sm font-semibold text-yokto-text-1 bg-yokto-hover" }}
-            >
-              {item.label}
-            </Link>
-          ))}
-        </nav>
+        <nav className="hidden md:flex items-center gap-1" />
+
 
         <div className="hidden md:flex items-center gap-2">
 
@@ -97,16 +85,6 @@ export function SiteHeader() {
       {open && (
         <div className="md:hidden border-t border-white/[0.06] bg-yokto-elevated">
           <div className="container-editorial flex flex-col py-4 gap-1">
-            {nav.map((item) => (
-              <Link
-                key={item.to}
-                to={item.to}
-                onClick={() => setOpen(false)}
-                className="px-3 py-2.5 rounded-md text-sm font-medium text-yokto-text-2 hover:text-yokto-text-1 hover:bg-yokto-hover"
-              >
-                {item.label}
-              </Link>
-            ))}
             <Link
               to={authed ? "/dashboard" : "/auth"}
               onClick={() => setOpen(false)}
