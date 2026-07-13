@@ -1,10 +1,9 @@
 import { createFileRoute, useNavigate, useRouter, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { z } from "zod";
-import { Mail, Lock, Eye, EyeOff, User, Loader2, ShieldCheck, ArrowRight } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff, User, Loader2, ShieldCheck, ArrowRight, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
-import wordmarkWhite from "@/assets/yokto-wordmark-white.png.asset.json";
 
 const searchSchema = z.object({
   redirect: z.string().optional(),
@@ -92,51 +91,52 @@ function AuthPage() {
   }
 
   return (
-    <div className="min-h-dvh grid lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)] bg-background">
-      {/* Left panel — brand */}
-      <aside className="relative hidden lg:flex flex-col justify-between bg-yokto-black text-yokto-cream px-12 py-12 overflow-hidden">
+    <div className="min-h-dvh grid lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] bg-yokto-base text-yokto-text-1">
+      {/* Left — hero */}
+      <aside className="relative hidden lg:flex flex-col justify-between p-12 bg-yokto-elevated border-r border-white/[0.06] overflow-hidden">
         <div
           aria-hidden
-          className="absolute inset-0 opacity-[0.05] pointer-events-none"
+          className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(99,102,241,0.20)_0%,transparent_60%)] pointer-events-none"
+        />
+        <div
+          aria-hidden
+          className="absolute inset-0 opacity-[0.04] pointer-events-none"
           style={{
             backgroundImage:
               "linear-gradient(to right, #fff 1px, transparent 1px), linear-gradient(to bottom, #fff 1px, transparent 1px)",
             backgroundSize: "56px 56px",
           }}
         />
-        <div
-          aria-hidden
-          className="absolute -top-40 -right-40 size-[28rem] rounded-full bg-yokto-yellow/10 blur-3xl pointer-events-none"
-        />
 
-        <div className="relative flex items-center gap-3">
-          <span className="grid place-items-center size-9 border border-yokto-cream/40 font-display text-xl leading-none">
+        <div className="relative flex items-center gap-2.5">
+          <span className="grid place-items-center size-8 rounded-md gradient-accent text-white font-bold text-base leading-none shadow-glow-accent">
             Y
           </span>
-          <span className="text-[11px] uppercase tracking-[0.28em] text-yokto-cream/60">
-            Escrow · México
-          </span>
+          <span className="font-extrabold text-lg tracking-[0.14em]">YOKTO</span>
         </div>
 
         <div className="relative max-w-lg">
-          <img src={wordmarkWhite.url} alt="YOKTO" className="h-16 w-auto" />
-          <h2 className="mt-8 font-display text-5xl leading-[0.95] tracking-wide text-yokto-cream">
-            Pago seguro contra cumplimiento.
-          </h2>
-          <p className="mt-5 text-base text-yokto-cream/70 leading-relaxed max-w-md">
+          <span className="inline-flex items-center gap-1.5 text-xs font-medium text-yokto-accent bg-yokto-accent/10 border border-yokto-accent/25 rounded-full px-2.5 py-1">
+            <Sparkles className="size-3" />
+            Escrow digital · México
+          </span>
+          <h1 className="mt-6 text-5xl font-black leading-[1.05] tracking-tighter text-white">
+            Tu dinero,<br />
+            <span className="bg-clip-text text-transparent bg-gradient-to-r from-yokto-accent to-[#8B5CF6]">
+              hasta que
+            </span>
+            <br />se cumpla.
+          </h1>
+          <p className="mt-6 text-base text-yokto-text-2 leading-relaxed max-w-md">
             Retención de fondos en pasarelas certificadas y liberación únicamente cuando se verifican
             las condiciones acordadas entre las partes.
           </p>
 
-          <ul className="mt-8 flex flex-col gap-3 text-sm text-yokto-cream/80">
-            {[
-              "Stripe Connect + SPEI certificados",
-              "Verificación KYC integrada",
-              "Trazabilidad fiscal CFDI 4.0",
-            ].map((f) => (
+          <ul className="mt-8 flex flex-col gap-3 text-sm text-yokto-text-2">
+            {["Stripe Connect + SPEI certificados", "Verificación KYC integrada", "Trazabilidad fiscal CFDI 4.0"].map((f) => (
               <li key={f} className="flex items-center gap-3">
-                <span className="grid place-items-center size-5 border border-yokto-yellow/60 text-yokto-yellow">
-                  <ShieldCheck className="size-3" />
+                <span className="grid place-items-center size-6 rounded-md bg-yokto-accent/10 border border-yokto-accent/25 text-yokto-accent">
+                  <ShieldCheck className="size-3.5" />
                 </span>
                 {f}
               </li>
@@ -144,162 +144,142 @@ function AuthPage() {
           </ul>
         </div>
 
-        <div className="relative flex items-center justify-between text-[11px] uppercase tracking-[0.22em] text-yokto-cream/45">
+        <div className="relative flex items-center justify-between text-xs text-yokto-text-3">
           <span>© {new Date().getFullYear()} YOKTO</span>
-          <span>v1.0 · MX</span>
+          <span className="uppercase tracking-widest">v2.0 · MX</span>
         </div>
       </aside>
 
-      {/* Right panel — form */}
-      <main className="flex flex-col justify-center px-5 sm:px-10 lg:px-16 py-10 sm:py-16">
-        <div className="w-full max-w-md mx-auto">
+      {/* Right — form */}
+      <main className="flex flex-col justify-center items-center px-5 sm:px-10 py-12 sm:py-16">
+        <div className="w-full max-w-sm">
           {/* Mobile brand */}
-          <div className="lg:hidden mb-8 flex items-center gap-3">
-            <span className="grid place-items-center size-10 bg-yokto-black text-yokto-cream font-display text-2xl leading-none">
+          <div className="lg:hidden mb-8 flex items-center gap-2.5">
+            <span className="grid place-items-center size-9 rounded-md gradient-accent text-white font-bold text-base leading-none shadow-glow-accent">
               Y
             </span>
-            <span className="font-display text-3xl tracking-wide text-foreground">YOKTO</span>
+            <span className="font-extrabold text-lg tracking-[0.14em] text-yokto-text-1">YOKTO</span>
           </div>
 
-          <p className="text-[11px] uppercase tracking-[0.24em] text-muted-foreground font-semibold">
-            {mode === "login" ? "Acceso" : "Registro"}
-          </p>
-          <h1 className="mt-2 font-display text-4xl sm:text-5xl tracking-wide text-foreground">
-            {mode === "login" ? "Bienvenido" : "Crea tu cuenta"}
-          </h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            {mode === "login"
-              ? "Ingresa tus credenciales para continuar"
-              : "Regístrate para iniciar tu verificación KYC"}
-          </p>
+          <div className="rounded-2xl bg-yokto-card border border-white/[0.06] shadow-lg p-7 sm:p-8">
+            <p className="text-xs uppercase tracking-widest text-yokto-text-3 font-semibold">
+              {mode === "login" ? "Acceso" : "Registro"}
+            </p>
+            <h2 className="mt-2 text-3xl font-bold tracking-tight text-yokto-text-1">
+              {mode === "login" ? "Bienvenido de vuelta" : "Crea tu cuenta"}
+            </h2>
+            <p className="mt-1.5 text-sm text-yokto-text-2">
+              {mode === "login"
+                ? "Ingresa tus credenciales para continuar"
+                : "Regístrate para iniciar tu verificación KYC"}
+            </p>
 
-          <form onSubmit={handleEmail} className="mt-8 flex flex-col gap-4" noValidate>
-            {mode === "signup" && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <IconField
-                  id="first-name"
-                  icon={<User className="size-4" aria-hidden />}
-                  label="Nombre" value={firstName} onChange={setFirstName}
-                  required autoComplete="given-name" placeholder="Nombre"
-                />
-                <IconField
-                  id="last-name"
-                  icon={<User className="size-4" aria-hidden />}
-                  label="Apellido" value={lastName} onChange={setLastName}
-                  required autoComplete="family-name" placeholder="Apellido"
-                />
-              </div>
-            )}
-
-            <IconField
-              id="email"
-              icon={<Mail className="size-4" aria-hidden />}
-              label="Correo electrónico" type="email" value={email} onChange={setEmail}
-              required autoComplete="email" placeholder="tucorreo@ejemplo.com"
-              inputMode="email"
-            />
-
-            <IconField
-              id="password"
-              icon={<Lock className="size-4" aria-hidden />}
-              label="Contraseña"
-              type={showPwd ? "text" : "password"}
-              value={password} onChange={setPassword}
-              required minLength={8}
-              autoComplete={mode === "login" ? "current-password" : "new-password"}
-              placeholder="••••••••"
-              hint={mode === "signup" ? "Mínimo 8 caracteres" : undefined}
-              trailing={
-                <button
-                  type="button"
-                  onClick={() => setShowPwd((v) => !v)}
-                  className="grid place-items-center size-8 -mr-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yokto-black focus-visible:ring-offset-2 focus-visible:ring-offset-background transition"
-                  aria-label={showPwd ? "Ocultar contraseña" : "Mostrar contraseña"}
-                  aria-pressed={showPwd}
-                  tabIndex={-1}
-                >
-                  {showPwd ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
-                </button>
-              }
-            />
-
-            {mode === "login" && (
-              <div className="flex justify-end -mt-1">
-                <Link
-                  to="/auth"
-                  className="text-xs font-medium text-foreground/70 hover:text-foreground underline-offset-4 hover:underline"
-                >
-                  ¿Olvidaste tu contraseña?
-                </Link>
-              </div>
-            )}
-
-            {error && (
-              <div
-                role="alert"
-                className="rounded-md border border-yokto-alert/70 bg-yokto-alert/10 px-3 py-2.5 text-sm text-yokto-alert"
-              >
-                {error}
-              </div>
-            )}
-            {info && (
-              <div
-                role="status"
-                className="rounded-md border border-yokto-black/80 bg-yokto-cream-2 px-3 py-2.5 text-sm text-yokto-black"
-              >
-                {info}
-              </div>
-            )}
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="group mt-2 inline-flex items-center justify-center gap-2 min-h-12 px-5 rounded-md bg-yokto-black text-yokto-cream text-sm uppercase tracking-[0.14em] font-semibold shadow-sm transition hover:bg-yokto-yellow hover:text-yokto-black hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yokto-black focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:opacity-60 disabled:cursor-not-allowed"
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="size-4 animate-spin" aria-hidden />
-                  Procesando…
-                </>
-              ) : (
-                <>
-                  {mode === "login" ? "Iniciar sesión" : "Crear cuenta"}
-                  <ArrowRight className="size-4 transition group-hover:translate-x-0.5" aria-hidden />
-                </>
+            <form onSubmit={handleEmail} className="mt-7 flex flex-col gap-4" noValidate>
+              {mode === "signup" && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <IconField
+                    id="first-name" icon={<User className="size-4" aria-hidden />}
+                    label="Nombre" value={firstName} onChange={setFirstName}
+                    required autoComplete="given-name" placeholder="Nombre"
+                  />
+                  <IconField
+                    id="last-name" icon={<User className="size-4" aria-hidden />}
+                    label="Apellido" value={lastName} onChange={setLastName}
+                    required autoComplete="family-name" placeholder="Apellido"
+                  />
+                </div>
               )}
-            </button>
-          </form>
 
-          <div className="my-6 flex items-center gap-3" aria-hidden>
-            <div className="h-px flex-1 bg-yokto-black/15" />
-            <span className="text-[11px] uppercase tracking-[0.22em] text-muted-foreground">o</span>
-            <div className="h-px flex-1 bg-yokto-black/15" />
+              <IconField
+                id="email" icon={<Mail className="size-4" aria-hidden />}
+                label="Correo electrónico" type="email" value={email} onChange={setEmail}
+                required autoComplete="email" placeholder="tucorreo@ejemplo.com" inputMode="email"
+              />
+
+              <IconField
+                id="password" icon={<Lock className="size-4" aria-hidden />}
+                label="Contraseña"
+                type={showPwd ? "text" : "password"}
+                value={password} onChange={setPassword}
+                required minLength={8}
+                autoComplete={mode === "login" ? "current-password" : "new-password"}
+                placeholder="••••••••"
+                hint={mode === "signup" ? "Mínimo 8 caracteres" : undefined}
+                trailing={
+                  <button
+                    type="button"
+                    onClick={() => setShowPwd((v) => !v)}
+                    className="grid place-items-center size-8 rounded-md text-yokto-text-3 hover:text-yokto-text-1 hover:bg-yokto-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yokto-accent transition"
+                    aria-label={showPwd ? "Ocultar contraseña" : "Mostrar contraseña"}
+                    aria-pressed={showPwd}
+                    tabIndex={-1}
+                  >
+                    {showPwd ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                  </button>
+                }
+              />
+
+              {error && (
+                <div role="alert" className="rounded-md border border-yokto-error/25 bg-yokto-error/10 px-3 py-2.5 text-sm text-yokto-error">
+                  {error}
+                </div>
+              )}
+              {info && (
+                <div role="status" className="rounded-md border border-yokto-accent/25 bg-yokto-accent/10 px-3 py-2.5 text-sm text-yokto-accent">
+                  {info}
+                </div>
+              )}
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="group mt-1 inline-flex items-center justify-center gap-2 min-h-11 px-5 rounded-md bg-yokto-accent hover:bg-yokto-accent-h text-white text-sm font-semibold shadow-sm hover:shadow-glow-accent transition disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yokto-accent focus-visible:ring-offset-2 focus-visible:ring-offset-yokto-card"
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="size-4 animate-spin" aria-hidden />
+                    Procesando…
+                  </>
+                ) : (
+                  <>
+                    {mode === "login" ? "Iniciar sesión" : "Crear cuenta"}
+                    <ArrowRight className="size-4 transition group-hover:translate-x-0.5" aria-hidden />
+                  </>
+                )}
+              </button>
+            </form>
+
+            <div className="my-5 flex items-center gap-3" aria-hidden>
+              <div className="h-px flex-1 bg-white/[0.08]" />
+              <span className="text-[11px] uppercase tracking-widest text-yokto-text-3">o</span>
+              <div className="h-px flex-1 bg-white/[0.08]" />
+            </div>
+
+            <button
+              onClick={handleGoogle}
+              disabled={loading}
+              type="button"
+              className="w-full inline-flex items-center justify-center gap-3 min-h-11 px-5 rounded-md border border-white/[0.10] hover:border-white/[0.20] bg-yokto-hover/50 hover:bg-yokto-hover text-sm font-medium text-yokto-text-1 transition disabled:opacity-50"
+            >
+              <GoogleIcon className="size-4" />
+              Continuar con Google
+            </button>
+
+            <p className="mt-6 text-sm text-yokto-text-2 text-center">
+              {mode === "login" ? "¿No tienes una cuenta? " : "¿Ya tienes cuenta? "}
+              <button
+                type="button"
+                onClick={() => { setError(null); setInfo(null); setMode(mode === "login" ? "signup" : "login"); }}
+                className="font-semibold text-yokto-accent hover:text-yokto-accent-h underline-offset-4 hover:underline"
+              >
+                {mode === "login" ? "Crear cuenta" : "Iniciar sesión"}
+              </button>
+            </p>
           </div>
 
-          <button
-            onClick={handleGoogle}
-            disabled={loading}
-            type="button"
-            className="w-full inline-flex items-center justify-center gap-3 min-h-12 px-5 rounded-md border border-yokto-black/80 bg-background text-sm font-semibold text-foreground transition hover:bg-muted hover:border-yokto-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yokto-black focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:opacity-60 disabled:cursor-not-allowed"
-          >
-            <GoogleIcon className="size-5" />
-            Continuar con Google
-          </button>
-
-          <p className="mt-8 text-sm text-muted-foreground text-center">
-            {mode === "login" ? "¿No tienes una cuenta? " : "¿Ya tienes cuenta? "}
-            <button
-              type="button"
-              onClick={() => { setError(null); setInfo(null); setMode(mode === "login" ? "signup" : "login"); }}
-              className="font-semibold text-foreground underline underline-offset-4 hover:text-yokto-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yokto-black focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-sm"
-            >
-              {mode === "login" ? "Crear cuenta" : "Iniciar sesión"}
-            </button>
-          </p>
-
-          <p className="mt-6 text-[11px] text-muted-foreground text-center leading-relaxed">
+          <p className="mt-6 text-xs text-yokto-text-3 text-center leading-relaxed">
             Al continuar aceptas nuestros{" "}
-            <Link to="/marco-legal" className="underline underline-offset-4 hover:text-foreground">
+            <Link to="/marco-legal" className="text-yokto-text-2 underline underline-offset-4 hover:text-yokto-text-1">
               términos y aviso de privacidad
             </Link>.
           </p>
@@ -330,11 +310,11 @@ function IconField({
   const hintId = hint ? `${id}-hint` : undefined;
   return (
     <div className="flex flex-col gap-1.5">
-      <label htmlFor={id} className="text-xs font-semibold text-foreground">
+      <label htmlFor={id} className="text-xs font-medium text-yokto-text-2">
         {label}
       </label>
-      <div className="group flex items-center gap-2.5 rounded-md border border-yokto-black/80 bg-background px-3.5 h-12 transition focus-within:border-yokto-black focus-within:ring-2 focus-within:ring-yokto-yellow focus-within:ring-offset-0 hover:border-yokto-black">
-        <span className="text-muted-foreground shrink-0 group-focus-within:text-foreground transition">
+      <div className="group flex items-center gap-2.5 rounded-md border border-white/[0.08] bg-yokto-base h-11 px-3 transition focus-within:border-yokto-accent focus-within:ring-2 focus-within:ring-yokto-accent/20 hover:border-white/[0.15]">
+        <span className="text-yokto-text-3 shrink-0 group-focus-within:text-yokto-accent transition">
           {icon}
         </span>
         <input
@@ -348,14 +328,12 @@ function IconField({
           placeholder={placeholder}
           inputMode={inputMode}
           aria-describedby={hintId}
-          className="flex-1 min-w-0 bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground/60"
+          className="flex-1 min-w-0 bg-transparent text-sm text-yokto-text-1 outline-none placeholder:text-yokto-text-3"
         />
         {trailing}
       </div>
       {hint && (
-        <p id={hintId} className="text-[11px] text-muted-foreground">
-          {hint}
-        </p>
+        <p id={hintId} className="text-[11px] text-yokto-text-3">{hint}</p>
       )}
     </div>
   );
