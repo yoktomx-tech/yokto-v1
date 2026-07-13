@@ -1,9 +1,10 @@
 import darkAsset from "@/assets/yokto-wordmark-dark.png.asset.json";
 import whiteAsset from "@/assets/yokto-wordmark-white.png.asset.json";
+import iconAsset from "@/assets/yokto-icon.png.asset.json";
 import { cn } from "@/lib/utils";
 
 type Props = {
-  variant?: "dark" | "white" | "auto";
+  variant?: "dark" | "white" | "auto" | "icon";
   className?: string;
   alt?: string;
 };
@@ -11,8 +12,19 @@ type Props = {
 /**
  * YOKTO wordmark. Use variant="dark" on light backgrounds and
  * variant="white" on dark backgrounds. "auto" swaps via the `dark` class.
+ * Use variant="icon" for compact/collapsed contexts (favicon-style mark).
  */
 export function YoktoLogo({ variant = "dark", className, alt = "YOKTO" }: Props) {
+  if (variant === "icon") {
+    return (
+      <img
+        src={iconAsset.url}
+        alt={alt}
+        className={cn("select-none", className)}
+        draggable={false}
+      />
+    );
+  }
   if (variant === "auto") {
     return (
       <>
@@ -42,3 +54,4 @@ export function YoktoLogo({ variant = "dark", className, alt = "YOKTO" }: Props)
     />
   );
 }
+
