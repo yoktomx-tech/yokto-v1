@@ -9,7 +9,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useServerFn } from "@tanstack/react-start";
 import {
-  checkEmailExists, validateRfcServer, saveOnboardingStep,
+  checkEmailExists, validateRfcServer, validateCurpNubarium, saveOnboardingStep,
   uploadKycDocument, listOwnKycDocuments, deleteOwnKycDocument,
   registerClabe, startPennyTest, confirmPennyTest, submitKyc,
 } from "@/lib/onboarding.functions";
