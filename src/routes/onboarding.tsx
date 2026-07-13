@@ -1003,23 +1003,65 @@ function Step3Fiscal({ onSaved, onBack, setError, loading, setLoading }: {
         </fieldset>
       )}
 
-      <fieldset className="rounded-xl border border-yo-border p-4">
-        <legend className="text-xs font-semibold uppercase tracking-widest text-yo-txt-2 px-1">Domicilio fiscal</legend>
-        <div className="grid grid-cols-1 sm:grid-cols-6 gap-3 mt-2">
-          <div className="sm:col-span-4"><Field id="fiscal_street" label="Calle" value={f.fiscal_street ?? ""} onChange={(v) => set("fiscal_street", v)} required /></div>
-          <Field id="fiscal_ext_number" label="Núm. ext." value={f.fiscal_ext_number ?? ""} onChange={(v) => set("fiscal_ext_number", v)} required />
-          <Field id="fiscal_int_number" label="Núm. int." value={f.fiscal_int_number ?? ""} onChange={(v) => set("fiscal_int_number", v)} />
-          <div className="sm:col-span-3"><Field id="fiscal_colonia" label="Colonia" value={f.fiscal_colonia ?? ""} onChange={(v) => set("fiscal_colonia", v)} required /></div>
-          <div className="sm:col-span-2"><Field id="fiscal_municipio" label="Municipio / Alcaldía" value={f.fiscal_municipio ?? ""} onChange={(v) => set("fiscal_municipio", v)} required /></div>
-          <Field id="fiscal_postal_code" label="C.P." value={f.fiscal_postal_code ?? ""} onChange={(v) => set("fiscal_postal_code", v)} required maxLength={5} inputMode="numeric" />
-          <div className="sm:col-span-3">
-            <Field as="select" id="fiscal_estado" label="Estado" value={f.fiscal_estado ?? ""} onChange={(v) => set("fiscal_estado", v)} required>
-              <option value="">Selecciona…</option>
-              {ESTADOS_MX.map((e) => <option key={e} value={e}>{e}</option>)}
-            </Field>
-          </div>
-        </div>
-      </fieldset>
+      {(() => {
+        const showAddress =
+          tipo === "persona_moral" ||
+          fillMode === "csf" ||
+          ((fillMode === "manual" || fillMode === "efirma"));
+        if (!showAddress) return null;
+        const cpFromCsf = fillMode === "csf" && !!f.fiscal_postal_code;
+        const showRest = cpLocked || cpFromCsf;
+        return (
+          <fieldset className="rounded-xl border border-yo-border p-4">
+            <legend className="text-xs font-semibold uppercase tracking-widest text-yo-txt-2 px-1">Domicilio fiscal</legend>
+            <p className="mt-2 mb-3 text-xs text-yo-txt-3">
+              {fillMode === "csf"
+                ? "Datos extraídos de tu Constancia de Situación Fiscal."
+                : "Ingresa tu código postal — consultaremos automáticamente municipio, estado y colonias disponibles."}
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-6 gap-3">
+              <div className="sm:col-span-2">
+                <Field
+                  id="fiscal_postal_code" label="Código postal" value={f.fiscal_postal_code ?? ""}
+                  onChange={fillMode === "csf" ? (v) => set("fiscal_postal_code", v) : onCpChange}
+                  required maxLength={5} inputMode="numeric" disabled={fillMode === "csf"}
+                  error={cpErr}
+                  trailing={cpBusy ? <Loader2 className="size-4 animate-spin text-yo-txt-3" /> : cpLocked ? <Check className="size-4 text-yo-ok" /> : undefined}
+                  hint={!cpLocked && !cpErr && (f.fiscal_postal_code ?? "").length < 5 ? "5 dígitos" : undefined}
+                />
+              </div>
+              {showRest && (
+                <>
+                  <div className="sm:col-span-2">
+                    <Field id="fiscal_municipio" label="Municipio / Alcaldía" value={f.fiscal_municipio ?? ""} onChange={(v) => set("fiscal_municipio", v)} required disabled={fillMode !== "csf" ? cpLocked : true} />
+                  </div>
+                  <div className="sm:col-span-2">
+                    <Field as="select" id="fiscal_estado" label="Estado" value={f.fiscal_estado ?? ""} onChange={(v) => set("fiscal_estado", v)} required disabled={fillMode !== "csf" ? cpLocked : true}>
+                      <option value="">Selecciona…</option>
+                      {ESTADOS_MX.map((e) => <option key={e} value={e}>{e}</option>)}
+                    </Field>
+                  </div>
+                  <div className="sm:col-span-3">
+                    {cpOptions && cpOptions.length > 0 ? (
+                      <Field as="select" id="fiscal_colonia" label="Colonia" value={f.fiscal_colonia ?? ""} onChange={(v) => set("fiscal_colonia", v)} required>
+                        <option value="">Selecciona una colonia…</option>
+                        {cpOptions.map((c) => <option key={c} value={c}>{c}</option>)}
+                      </Field>
+                    ) : (
+                      <Field id="fiscal_colonia" label="Colonia" value={f.fiscal_colonia ?? ""} onChange={(v) => set("fiscal_colonia", v)} required />
+                    )}
+                  </div>
+                  <div className="sm:col-span-4">
+                    <Field id="fiscal_street" label="Calle" value={f.fiscal_street ?? ""} onChange={(v) => set("fiscal_street", v)} required />
+                  </div>
+                  <Field id="fiscal_ext_number" label="Núm. ext." value={f.fiscal_ext_number ?? ""} onChange={(v) => set("fiscal_ext_number", v)} required />
+                  <Field id="fiscal_int_number" label="Núm. int." value={f.fiscal_int_number ?? ""} onChange={(v) => set("fiscal_int_number", v)} />
+                </>
+              )}
+            </div>
+          </fieldset>
+        );
+      })()}
 
       <div className="flex items-center justify-between pt-2">
         <button type="button" onClick={onBack} className="inline-flex items-center gap-1.5 text-sm text-yo-txt-2 hover:text-yo-txt">
