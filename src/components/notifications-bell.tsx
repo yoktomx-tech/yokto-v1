@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link } from "@tanstack/react-router";
+// no Link import — notifications carry arbitrary internal paths, use <a>
 import { useServerFn } from "@tanstack/react-start";
 import { Bell } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -64,11 +64,11 @@ export function NotificationsBell({ userId }: { userId: string }) {
             {items.map((n) => (
               <li key={n.id} className={n.read_at ? "opacity-60" : ""}>
                 {n.link ? (
-                  <Link to={n.link} onClick={() => setOpen(false)} className="block p-3 hover:bg-yokto-cream/40">
+                  <a href={n.link} onClick={() => setOpen(false)} className="block p-3 hover:bg-yokto-cream/40">
                     <p className="text-sm font-semibold">{n.title}</p>
                     {n.body && <p className="mt-1 text-xs text-muted-foreground">{n.body}</p>}
                     <p className="mt-1 text-[11px] text-muted-foreground">{new Date(n.created_at).toLocaleString("es-MX")}</p>
-                  </Link>
+                  </a>
                 ) : (
                   <div className="p-3">
                     <p className="text-sm font-semibold">{n.title}</p>
