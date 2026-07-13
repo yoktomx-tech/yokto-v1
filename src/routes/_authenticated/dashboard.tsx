@@ -113,12 +113,12 @@ function Dashboard() {
                 </p>
                 <div className="mt-5 flex gap-3">
                   {profile?.kyc_status === "approved" ? (
-                    <button
-                      disabled
-                      className="inline-flex items-center px-5 py-2.5 bg-yokto-yellow text-yokto-black text-[12px] uppercase tracking-[0.14em] font-semibold border border-yokto-black opacity-60 cursor-not-allowed"
+                    <Link
+                      to="/transactions/new"
+                      className="inline-flex items-center px-5 py-2.5 bg-yokto-yellow text-yokto-black text-[12px] uppercase tracking-[0.14em] font-semibold border border-yokto-black hover:bg-yokto-black hover:text-yokto-yellow"
                     >
-                      Crear transacción · próximamente
-                    </button>
+                      Crear transacción
+                    </Link>
                   ) : (
                     <Link
                       to="/kyc"
