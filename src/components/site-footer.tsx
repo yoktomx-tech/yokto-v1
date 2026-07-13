@@ -18,12 +18,6 @@ export function SiteFooter() {
           </p>
         </div>
 
-        <div className="md:col-span-4">
-          <p className="text-xs uppercase tracking-widest text-yokto-text-3 font-semibold">Compañía</p>
-          <ul className="mt-5 space-y-2.5 text-sm">
-            <li><Link to="/marco-legal" className="hover:text-yokto-accent transition">Marco legal</Link></li>
-          </ul>
-        </div>
       </div>
 
       <div className="border-t border-white/[0.06]">
