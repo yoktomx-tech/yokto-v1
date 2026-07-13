@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, useRouter, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { z } from "zod";
 import { Mail, Lock, Eye, EyeOff, User, Loader2, ShieldCheck, ArrowRight, Sparkles } from "lucide-react";
@@ -203,6 +203,17 @@ function AuthPage() {
                   </button>
                 }
               />
+
+              {mode === "login" && (
+                <div className="-mt-1 text-right">
+                  <Link
+                    to="/forgot-password"
+                    className="text-xs font-medium text-yokto-accent hover:text-yokto-accent-h underline-offset-4 hover:underline"
+                  >
+                    ¿Olvidaste tu contraseña?
+                  </Link>
+                </div>
+              )}
 
               {error && (
                 <div role="alert" className="rounded-md border border-yokto-error/25 bg-yokto-error/10 px-3 py-2.5 text-sm text-yokto-error">
