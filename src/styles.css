@@ -230,8 +230,6 @@
   border-radius: 0.5rem;
   outline: none;
   transition: all 150ms ease;
-}
-@utility input-editorial {
   &::placeholder { color: var(--color-yokto-text-3); }
   &:hover { border-color: rgba(255, 255, 255, 0.15); }
   &:focus {
