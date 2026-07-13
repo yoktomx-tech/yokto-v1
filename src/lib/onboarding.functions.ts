@@ -324,12 +324,12 @@ export const submitKyc = createServerFn({ method: "POST" })
       .from("kyc_documents")
       .select("document_type")
       .eq("user_id", userId);
-    const types = new Set((docs ?? []).map((d) => d.document_type));
+    const types = new Set<string>((docs ?? []).map((d) => d.document_type as string));
 
-    const requiredPf = ["ine_frente", "ine_reverso"];
-    const requiredPm = ["acta_constitutiva", "poder_notarial", "cedula_fiscal"];
+    const requiredPf: string[] = ["ine_frente", "ine_reverso"];
+    const requiredPm: string[] = ["acta_constitutiva", "poder_notarial", "cedula_fiscal"];
     const required = profile.account_type === "persona_fisica" ? requiredPf : requiredPm;
-    const missing = required.filter((t) => !types.has(t as (typeof requiredPf | typeof requiredPm)[number]));
+    const missing = required.filter((t) => !types.has(t));
     if (missing.length > 0) throw new Error(`Faltan documentos: ${missing.join(", ")}`);
 
     const { data: clabes } = await supabase
