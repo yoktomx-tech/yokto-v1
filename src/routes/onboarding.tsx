@@ -48,10 +48,11 @@ function OnboardingWizard() {
   const navigate = useNavigate();
   const [step, setStep] = useState<StepId>(1);
   const [session, setSession] = useState<{ userId: string; email: string } | null>(null);
+  const [pending, setPending] = useState<{ email: string; password: string } | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Restaurar sesión + paso
+  // Restaurar sesión + paso (usuario que ya creó cuenta y vuelve)
   useEffect(() => {
     let mounted = true;
     supabase.auth.getSession().then(({ data }) => {
@@ -107,13 +108,18 @@ function OnboardingWizard() {
         <section className="mt-6 rounded-2xl bg-yo-surface border border-yo-border shadow-sm p-6 sm:p-8">
           {step === 1 && (
             <Step1Account
-              onSignedUp={(userId, email) => { setSession({ userId, email }); goNext(2); }}
+              initialEmail={pending?.email ?? ""}
+              onCredentials={(email, password) => { setPending({ email, password }); goNext(2); }}
               setError={setError} loading={loading} setLoading={setLoading}
             />
           )}
-          {step === 2 && session && (
+          {step === 2 && (session || pending) && (
             <Step2Type
-              onSaved={() => goNext(3)} onBack={goPrev}
+              pending={pending}
+              hasSession={!!session}
+              onSessionCreated={(userId, email) => setSession({ userId, email })}
+              onSaved={() => { setPending(null); goNext(3); }}
+              onBack={goPrev}
               setError={setError} loading={loading} setLoading={setLoading}
             />
           )}
@@ -135,7 +141,7 @@ function OnboardingWizard() {
               setError={setError} loading={loading} setLoading={setLoading}
             />
           )}
-          {step > 1 && !session && (
+          {step > 2 && !session && (
             <div className="text-sm text-yo-txt-2">
               Debes iniciar sesión para continuar.
               <button type="button" onClick={() => setStep(1)} className="ml-2 text-yo-ac font-medium">Volver al paso 1</button>
@@ -146,6 +152,7 @@ function OnboardingWizard() {
     </div>
   );
 }
+
 
 // ─── Stepper ────────────────────────────────────────────────────────────────
 function Stepper({ active }: { active: StepId }) {
@@ -223,11 +230,12 @@ const passwordSchema = z.string().min(8, "Mínimo 8 caracteres")
   .regex(/[0-9]/, "Requiere al menos un número")
   .regex(/[^A-Za-z0-9]/, "Requiere al menos un símbolo");
 
-function Step1Account({ onSignedUp, setError, loading, setLoading }: {
-  onSignedUp: (userId: string, email: string) => void;
+function Step1Account({ initialEmail, onCredentials, setError, loading, setLoading }: {
+  initialEmail: string;
+  onCredentials: (email: string, password: string) => void;
   setError: (s: string | null) => void; loading: boolean; setLoading: (b: boolean) => void;
 }) {
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(initialEmail);
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [terms, setTerms] = useState(false);
@@ -258,53 +266,29 @@ function Step1Account({ onSignedUp, setError, loading, setLoading }: {
     } finally { setCheckingEmail(false); }
   }
 
-  function translateAuthError(msg: string): string {
-    const m = msg.toLowerCase();
-    if (m.includes("weak_password") || m.includes("known to be weak") || m.includes("pwned")) return "Contraseña insegura. Está en listas de filtraciones conocidas, elige una diferente.";
-    if (m.includes("already registered") || m.includes("user already")) return "Este correo ya tiene una cuenta. Inicia sesión.";
-    if (m.includes("invalid email")) return "Correo inválido.";
-    if (m.includes("password should be")) return "La contraseña no cumple los requisitos mínimos.";
-    if (m.includes("rate limit")) return "Demasiados intentos. Espera unos minutos y vuelve a intentar.";
-    if (m.includes("network")) return "Error de red. Verifica tu conexión e intenta de nuevo.";
-    return "No se pudo crear la cuenta. Intenta de nuevo.";
-  }
-
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setError(null); setPwdError(null); setConfirmError(null);
+    const ev = z.string().email().safeParse(email);
+    if (!ev.success) { setEmailError("Correo inválido"); return; }
     const pv = passwordSchema.safeParse(password);
     if (!pv.success) { setPwdError(pv.error.issues[0]?.message ?? "Contraseña inválida"); return; }
     if (password !== confirm) { setConfirmError("Las contraseñas no coinciden"); return; }
     if (!terms) { setError("Debes aceptar los términos y el aviso de privacidad."); return; }
     if (emailError) return;
 
+    // Verificación final del email (por si no hubo blur)
     setLoading(true);
     try {
-      const { data, error } = await supabase.auth.signUp({
-        email: email.toLowerCase(),
-        password,
-        options: { emailRedirectTo: `${window.location.origin}/onboarding` },
-      });
-      if (error) throw error;
-      if (!data.user) throw new Error("No se pudo crear el usuario");
-      // Asegurar sesión (para que las server functions autenticadas funcionen).
-      if (!data.session) {
-        const { error: signErr } = await supabase.auth.signInWithPassword({
-          email: email.toLowerCase(),
-          password,
-        });
-        if (signErr) {
-          setError("Cuenta creada. Confirma tu correo e inicia sesión para continuar.");
-          setLoading(false);
-          return;
-        }
-      }
-      onSignedUp(data.user.id, data.user.email ?? email);
-    } catch (err) {
-      const raw = err instanceof Error ? err.message : "Error al crear cuenta";
-      setError(translateAuthError(raw));
+      const r = await checkEmail({ data: { email: email.toLowerCase() } });
+      if (r.exists) { setEmailError("Este correo ya tiene una cuenta. Inicia sesión."); return; }
+      // Sin signUp aún: se difiere hasta Paso 3 para evitar cuentas huérfanas.
+      onCredentials(email.toLowerCase(), password);
+    } catch {
+      setError("No se pudo validar el correo. Intenta de nuevo.");
     } finally { setLoading(false); }
   }
+
 
   return (
     <form onSubmit={submit} className="flex flex-col gap-4" noValidate>
@@ -372,24 +356,61 @@ function Step1Account({ onSignedUp, setError, loading, setLoading }: {
 
 
 // ─── STEP 2 — Tipo de persona ────────────────────────────────────────────────
-function Step2Type({ onSaved, onBack, setError, loading, setLoading }: {
+function Step2Type({ pending, hasSession, onSessionCreated, onSaved, onBack, setError, loading, setLoading }: {
+  pending: { email: string; password: string } | null;
+  hasSession: boolean;
+  onSessionCreated: (userId: string, email: string) => void;
   onSaved: () => void; onBack: () => void;
   setError: (s: string | null) => void; loading: boolean; setLoading: (b: boolean) => void;
 }) {
   const [tipo, setTipo] = useState<AccountType | null>(null);
   const save = useServerFn(saveOnboardingStep);
 
+  function translateAuthError(msg: string): string {
+    const m = msg.toLowerCase();
+    if (m.includes("weak_password") || m.includes("known to be weak") || m.includes("pwned")) return "Contraseña insegura. Está en listas de filtraciones conocidas, elige una diferente.";
+    if (m.includes("already registered") || m.includes("user already")) return "Este correo ya tiene una cuenta. Inicia sesión.";
+    if (m.includes("invalid email")) return "Correo inválido.";
+    if (m.includes("password should be")) return "La contraseña no cumple los requisitos mínimos.";
+    if (m.includes("rate limit")) return "Demasiados intentos. Espera unos minutos y vuelve a intentar.";
+    if (m.includes("network")) return "Error de red. Verifica tu conexión e intenta de nuevo.";
+    return "No se pudo crear la cuenta. Intenta de nuevo.";
+  }
+
   async function submit() {
     if (!tipo) { setError("Selecciona un tipo de persona"); return; }
     setLoading(true); setError(null);
     try {
+      // Si aún no hay sesión, es el momento de crear la cuenta (flujo híbrido).
+      if (!hasSession) {
+        if (!pending) { setError("Sesión no disponible. Vuelve al paso 1."); return; }
+        const { data, error } = await supabase.auth.signUp({
+          email: pending.email,
+          password: pending.password,
+          options: { emailRedirectTo: `${window.location.origin}/onboarding` },
+        });
+        if (error) throw error;
+        if (!data.user) throw new Error("No se pudo crear el usuario");
+        if (!data.session) {
+          const { error: signErr } = await supabase.auth.signInWithPassword({
+            email: pending.email, password: pending.password,
+          });
+          if (signErr) {
+            setError("Cuenta creada. Confirma tu correo e inicia sesión para continuar.");
+            return;
+          }
+        }
+        onSessionCreated(data.user.id, data.user.email ?? pending.email);
+      }
       await save({ data: { step: 2, account_type: tipo } });
       try { localStorage.setItem(LS_KEY, JSON.stringify({ account_type: tipo })); } catch {}
       onSaved();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Error");
+      const raw = e instanceof Error ? e.message : "Error";
+      setError(translateAuthError(raw));
     } finally { setLoading(false); }
   }
+
 
   return (
     <div className="flex flex-col gap-6">
