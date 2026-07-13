@@ -112,12 +112,21 @@ function Dashboard() {
                     : "Sube tus documentos fiscales y de identidad para habilitar operaciones. Este módulo estará disponible en el próximo sprint."}
                 </p>
                 <div className="mt-5 flex gap-3">
-                  <button
-                    disabled
-                    className="inline-flex items-center px-5 py-2.5 bg-yokto-yellow text-yokto-black text-[12px] uppercase tracking-[0.14em] font-semibold border border-yokto-black opacity-60 cursor-not-allowed"
-                  >
-                    Iniciar KYC · próximamente
-                  </button>
+                  {profile?.kyc_status === "approved" ? (
+                    <button
+                      disabled
+                      className="inline-flex items-center px-5 py-2.5 bg-yokto-yellow text-yokto-black text-[12px] uppercase tracking-[0.14em] font-semibold border border-yokto-black opacity-60 cursor-not-allowed"
+                    >
+                      Crear transacción · próximamente
+                    </button>
+                  ) : (
+                    <Link
+                      to="/kyc"
+                      className="inline-flex items-center px-5 py-2.5 bg-yokto-yellow text-yokto-black text-[12px] uppercase tracking-[0.14em] font-semibold border border-yokto-black hover:bg-yokto-black hover:text-yokto-yellow"
+                    >
+                      {profile?.kyc_status === "in_review" ? "Ver estado KYC" : "Iniciar KYC"}
+                    </Link>
+                  )}
                   <Link
                     to="/como-funciona"
                     className="inline-flex items-center px-5 py-2.5 border border-yokto-black text-[12px] uppercase tracking-[0.14em] font-semibold hover:bg-yokto-black hover:text-yokto-cream"
@@ -125,6 +134,7 @@ function Dashboard() {
                     Cómo funciona
                   </Link>
                 </div>
+
               </div>
             </div>
           )}
