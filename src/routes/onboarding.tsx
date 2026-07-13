@@ -540,6 +540,10 @@ function Step3Fiscal({ onSaved, onBack, setError, loading, setLoading }: {
 
   async function submit() {
     if (!tipo) return;
+    if (tipo === "persona_fisica" && !curpVerified) {
+      setError("Debes validar tu CURP antes de continuar");
+      return;
+    }
     setError(null); setLoading(true);
     try {
       if (tipo === "persona_fisica") {
