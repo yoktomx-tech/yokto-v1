@@ -17,7 +17,7 @@ import {
 import { validateClabe, normalizeClabe, getBanco } from "@/lib/validations/clabe";
 import { validateRfc, normalizeRfc } from "@/lib/validations/rfc";
 import { validateCurp, normalizeCurp } from "@/lib/validations/curp";
-import { REGIMEN_FISICA, REGIMEN_MORAL, USO_CFDI, ESTADOS_MX } from "@/lib/validations/sat-catalogs";
+import { REGIMEN_FISICA, REGIMEN_MORAL, ESTADOS_MX } from "@/lib/validations/sat-catalogs";
 
 export const Route = createFileRoute("/onboarding")({
   head: () => ({
