@@ -4,7 +4,7 @@ import { z } from "zod";
 import {
   Mail, Lock, Eye, EyeOff, ArrowRight, ArrowLeft, Loader2, Check,
   User as UserIcon, Building2, Upload, Trash2, FileText, ShieldCheck,
-  Landmark, AlertCircle,
+  Landmark, AlertCircle, X, FileCheck2, KeyRound, PencilLine,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useServerFn } from "@tanstack/react-start";
@@ -12,11 +12,12 @@ import {
   checkEmailExists, validateRfcServer, validateCurpNubarium, saveOnboardingStep,
   uploadKycDocument, listOwnKycDocuments, deleteOwnKycDocument,
   registerClabe, startPennyTest, confirmPennyTest, submitKyc,
+  validateCsfNubarium, parseEfirma, validateFielSerialNubarium,
 } from "@/lib/onboarding.functions";
 import { validateClabe, normalizeClabe, getBanco } from "@/lib/validations/clabe";
 import { validateRfc, normalizeRfc } from "@/lib/validations/rfc";
 import { validateCurp, normalizeCurp } from "@/lib/validations/curp";
-import { REGIMEN_FISICA, REGIMEN_MORAL, USO_CFDI, ESTADOS_MX } from "@/lib/validations/sat-catalogs";
+import { REGIMEN_FISICA, REGIMEN_MORAL, ESTADOS_MX } from "@/lib/validations/sat-catalogs";
 
 export const Route = createFileRoute("/onboarding")({
   head: () => ({
@@ -445,6 +446,19 @@ function TypeCard({ selected, onClick, icon, title, desc }: {
 }
 
 // ─── STEP 3 — Datos fiscales ─────────────────────────────────────────────────
+type FillMode = "csf" | "efirma" | "manual" | null;
+
+async function fileToBase64(file: File): Promise<string> {
+  const buf = await file.arrayBuffer();
+  const bytes = new Uint8Array(buf);
+  let bin = "";
+  const CHUNK = 0x8000;
+  for (let i = 0; i < bytes.length; i += CHUNK) {
+    bin += String.fromCharCode.apply(null, Array.from(bytes.subarray(i, i + CHUNK)));
+  }
+  return btoa(bin);
+}
+
 function Step3Fiscal({ onSaved, onBack, setError, loading, setLoading }: {
   onSaved: () => void; onBack: () => void;
   setError: (s: string | null) => void; loading: boolean; setLoading: (b: boolean) => void;
@@ -459,9 +473,29 @@ function Step3Fiscal({ onSaved, onBack, setError, loading, setLoading }: {
     nombre: string; apellidoPaterno: string; apellidoMaterno: string;
     sexo: string; fechaNacimiento: string | null; estadoNacimiento: string; estatusCurp: string;
   }>(null);
+  const [curpBoxOpen, setCurpBoxOpen] = useState(true);
+
+  // Fiscal-fill flow
+  const [fillMode, setFillMode] = useState<FillMode>(null);
+  const [csfBusy, setCsfBusy] = useState(false);
+  const [csfErr, setCsfErr] = useState<string | null>(null);
+  const [csfInfo, setCsfInfo] = useState<{ regimenes: string[] } | null>(null);
+  const [efBusy, setEfBusy] = useState(false);
+  const [efErr, setEfErr] = useState<string | null>(null);
+  const [efInfo, setEfInfo] = useState<null | {
+    rfc: string; curp: string; nombre: string; serial: string;
+    validFrom: string; validTo: string; vigente: boolean | null;
+  }>(null);
+  const [efCer, setEfCer] = useState<File | null>(null);
+  const [efKey, setEfKey] = useState<File | null>(null);
+  const [efPass, setEfPass] = useState("");
+
   const save = useServerFn(saveOnboardingStep);
   const validateRfcFn = useServerFn(validateRfcServer);
   const validateCurpFn = useServerFn(validateCurpNubarium);
+  const validateCsfFn = useServerFn(validateCsfNubarium);
+  const parseEfirmaFn = useServerFn(parseEfirma);
+  const validateSerialFn = useServerFn(validateFielSerialNubarium);
   const set = (k: string, v: string) => setF((p) => ({ ...p, [k]: v }));
 
   useEffect(() => {
@@ -476,7 +510,7 @@ function Step3Fiscal({ onSaved, onBack, setError, loading, setLoading }: {
           rfc: p.rfc ?? "", curp: p.curp ?? "",
           legal_name: p.legal_name ?? "", trade_name: p.trade_name ?? "",
           incorporation_date: p.incorporation_date ?? "",
-          regimen_fiscal: p.regimen_fiscal ?? "", uso_cfdi_default: p.uso_cfdi_default ?? "",
+          regimen_fiscal: p.regimen_fiscal ?? "",
           fiscal_street: p.fiscal_street ?? "", fiscal_ext_number: p.fiscal_ext_number ?? "",
           fiscal_int_number: p.fiscal_int_number ?? "", fiscal_colonia: p.fiscal_colonia ?? "",
           fiscal_municipio: p.fiscal_municipio ?? "", fiscal_estado: p.fiscal_estado ?? "",
@@ -489,6 +523,13 @@ function Step3Fiscal({ onSaved, onBack, setError, loading, setLoading }: {
       });
     });
   }, []);
+
+  // Auto-cerrar el recuadro de CURP tras 5s
+  useEffect(() => {
+    if (!curpVerified || !curpBoxOpen) return;
+    const t = setTimeout(() => setCurpBoxOpen(false), 5000);
+    return () => clearTimeout(t);
+  }, [curpVerified, curpBoxOpen]);
 
   async function onRfcBlur() {
     if (!f.rfc) return setRfcCheck(null);
@@ -505,7 +546,7 @@ function Step3Fiscal({ onSaved, onBack, setError, loading, setLoading }: {
   function onCurpChange(v: string) {
     const norm = normalizeCurp(v);
     set("curp", norm);
-    if (curpVerified) setCurpVerified(null);
+    if (curpVerified) { setCurpVerified(null); setCurpBoxOpen(true); }
     setCurpError(null);
   }
   async function validateCurpAction() {
@@ -522,6 +563,7 @@ function Step3Fiscal({ onSaved, onBack, setError, loading, setLoading }: {
         sexo: r.sexo, fechaNacimiento: r.fechaNacimiento, estadoNacimiento: r.estadoNacimiento,
         estatusCurp: r.estatusCurp,
       });
+      setCurpBoxOpen(true);
       setF((p) => ({
         ...p,
         first_name: r.nombre || p.first_name,
@@ -536,7 +578,80 @@ function Step3Fiscal({ onSaved, onBack, setError, loading, setLoading }: {
     }
   }
 
+  async function onCsfFile(file: File) {
+    setCsfErr(null); setCsfBusy(true); setCsfInfo(null);
+    try {
+      const b64 = await fileToBase64(file);
+      const r = await validateCsfFn({ data: { file_base64: b64, mime_type: file.type || "application/pdf" } });
+      // Elegir régimen: match contra catálogo por keyword; si no, dejar vacío para que el usuario elija.
+      const catalog = REGIMEN_FISICA;
+      const matched = catalog.find((c) =>
+        r.regimenes.some((rg) => rg.toLowerCase().includes(c.label.toLowerCase().split("·")[1]?.trim().slice(0, 15).toLowerCase() ?? ""))
+      );
+      setF((p) => ({
+        ...p,
+        rfc: r.rfc || p.rfc,
+        regimen_fiscal: matched?.code ?? p.regimen_fiscal,
+        fiscal_street: r.domicilio.street || p.fiscal_street,
+        fiscal_ext_number: r.domicilio.ext || p.fiscal_ext_number,
+        fiscal_int_number: r.domicilio.int || p.fiscal_int_number,
+        fiscal_colonia: r.domicilio.colonia || p.fiscal_colonia,
+        fiscal_municipio: r.domicilio.municipio || p.fiscal_municipio,
+        fiscal_estado: r.domicilio.estado || p.fiscal_estado,
+        fiscal_postal_code: r.domicilio.cp || p.fiscal_postal_code,
+      }));
+      setCsfInfo({ regimenes: r.regimenes });
+      setRfcCheck({ ok: true, msg: "RFC extraído de tu constancia" });
+    } catch (e) {
+      setCsfErr(e instanceof Error ? e.message : "No se pudo procesar la constancia");
+    } finally { setCsfBusy(false); }
+  }
+
+  async function runEfirma() {
+    if (!efCer || !efKey || !efPass) { setEfErr("Sube tu .cer, .key e ingresa la contraseña"); return; }
+    setEfErr(null); setEfBusy(true); setEfInfo(null);
+    try {
+      const [cerB64, keyB64] = await Promise.all([fileToBase64(efCer), fileToBase64(efKey)]);
+      const parsed = await parseEfirmaFn({ data: { cer_base64: cerB64, key_base64: keyB64, password: efPass } });
+      let vigente: boolean | null = null;
+      try {
+        const s = await validateSerialFn({ data: { rfc: parsed.rfc, serial: parsed.serial } });
+        vigente = s.vigente;
+      } catch { /* mostramos igual la info */ }
+      // Validar CURP contra RENAPO si tenemos
+      if (parsed.curp) {
+        try {
+          const cu = await validateCurpFn({ data: { curp: parsed.curp } });
+          setCurpVerified({
+            nombre: cu.nombre, apellidoPaterno: cu.apellidoPaterno, apellidoMaterno: cu.apellidoMaterno,
+            sexo: cu.sexo, fechaNacimiento: cu.fechaNacimiento, estadoNacimiento: cu.estadoNacimiento,
+            estatusCurp: cu.estatusCurp,
+          });
+          setCurpBoxOpen(true);
+          setF((p) => ({
+            ...p,
+            curp: parsed.curp,
+            rfc: parsed.rfc || p.rfc,
+            first_name: cu.nombre || p.first_name,
+            last_name: cu.apellidoPaterno || p.last_name,
+            second_last_name: cu.apellidoMaterno || p.second_last_name,
+            birth_date: cu.fechaNacimiento || p.birth_date,
+          }));
+        } catch {
+          setF((p) => ({ ...p, curp: parsed.curp, rfc: parsed.rfc || p.rfc }));
+        }
+      } else {
+        setF((p) => ({ ...p, rfc: parsed.rfc || p.rfc }));
+      }
+      setEfInfo({ ...parsed, vigente });
+      setRfcCheck({ ok: true, msg: "RFC extraído de tu e.firma" });
+    } catch (e) {
+      setEfErr(e instanceof Error ? e.message : "No se pudo procesar la e.firma");
+    } finally { setEfBusy(false); }
+  }
+
   const regimenes = tipo === "persona_fisica" ? REGIMEN_FISICA : REGIMEN_MORAL;
+  const nombreCompleto = [f.first_name, f.last_name, f.second_last_name].filter(Boolean).join(" ").trim();
 
   async function submit() {
     if (!tipo) return;
@@ -553,7 +668,7 @@ function Step3Fiscal({ onSaved, onBack, setError, loading, setLoading }: {
           second_last_name: f.second_last_name || null,
           birth_date: f.birth_date || null,
           rfc: f.rfc, curp: f.curp,
-          regimen_fiscal: f.regimen_fiscal, uso_cfdi_default: f.uso_cfdi_default,
+          regimen_fiscal: f.regimen_fiscal,
           fiscal_street: f.fiscal_street, fiscal_ext_number: f.fiscal_ext_number,
           fiscal_int_number: f.fiscal_int_number || null, fiscal_colonia: f.fiscal_colonia,
           fiscal_municipio: f.fiscal_municipio, fiscal_estado: f.fiscal_estado,
@@ -563,7 +678,7 @@ function Step3Fiscal({ onSaved, onBack, setError, loading, setLoading }: {
         await save({ data: {
           step: 3, account_type: "persona_moral",
           legal_name: f.legal_name, trade_name: f.trade_name || null,
-          rfc: f.rfc, regimen_fiscal: f.regimen_fiscal, uso_cfdi_default: f.uso_cfdi_default,
+          rfc: f.rfc, regimen_fiscal: f.regimen_fiscal,
           incorporation_date: f.incorporation_date || null,
           legal_rep: { full_name: f.rep_full_name, rfc: f.rep_rfc, curp: f.rep_curp, role: f.rep_role },
           fiscal_street: f.fiscal_street, fiscal_ext_number: f.fiscal_ext_number,
@@ -591,6 +706,7 @@ function Step3Fiscal({ onSaved, onBack, setError, loading, setLoading }: {
 
       {tipo === "persona_fisica" ? (
         <>
+          {/* --- CURP --- */}
           <div className="rounded-xl border border-yo-border bg-yo-raised/40 p-4 flex flex-col gap-3">
             <div>
               <label className="text-xs font-semibold uppercase tracking-widest text-yo-txt-2">CURP (18 caracteres)</label>
@@ -609,8 +725,13 @@ function Step3Fiscal({ onSaved, onBack, setError, loading, setLoading }: {
                 {curpVerified ? "Validada" : "Validar CURP"}
               </button>
             </div>
-            {curpVerified && (
-              <div className="rounded-lg border border-yo-ok/30 bg-yo-ok/5 p-3 text-sm">
+            {curpVerified && curpBoxOpen && (
+              <div className="relative rounded-lg border border-yo-ok/30 bg-yo-ok/5 p-3 pr-9 text-sm">
+                <button type="button" onClick={() => setCurpBoxOpen(false)}
+                  aria-label="Cerrar" title="Cerrar"
+                  className="absolute top-2 right-2 p-1 rounded-md text-yo-txt-3 hover:text-yo-txt hover:bg-yo-raised">
+                  <X className="size-4" />
+                </button>
                 <div className="flex items-center gap-2 text-yo-ok font-semibold">
                   <Check className="size-4" /> CURP verificada en RENAPO
                 </div>
@@ -622,26 +743,125 @@ function Step3Fiscal({ onSaved, onBack, setError, loading, setLoading }: {
                   <div><dt className="text-xs text-yo-txt-3">Sexo</dt><dd>{curpVerified.sexo}</dd></div>
                   <div><dt className="text-xs text-yo-txt-3">Estado de nacimiento</dt><dd>{curpVerified.estadoNacimiento}</dd></div>
                 </dl>
+                <p className="mt-2 text-[11px] text-yo-txt-3">Este recuadro se cerrará automáticamente en 5 segundos.</p>
+              </div>
+            )}
+            {curpVerified && !curpBoxOpen && (
+              <div className="inline-flex items-center gap-2 text-xs text-yo-ok">
+                <Check className="size-3.5" /> CURP validada — {curpVerified.nombre} {curpVerified.apellidoPaterno}
+                <button type="button" onClick={() => setCurpBoxOpen(true)} className="underline text-yo-txt-3 hover:text-yo-txt">Ver detalle</button>
               </div>
             )}
           </div>
 
+          {/* --- Datos personales (bloqueados) --- */}
           {curpVerified && (
-            <>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <Field id="first_name" label="Nombre(s)" value={f.first_name ?? ""} onChange={(v) => set("first_name", v)} required />
-                <Field id="last_name" label="Apellido paterno" value={f.last_name ?? ""} onChange={(v) => set("last_name", v)} required />
-                <Field id="second_last_name" label="Apellido materno" value={f.second_last_name ?? ""} onChange={(v) => set("second_last_name", v)} />
+            <fieldset className="rounded-xl border border-yo-border p-4">
+              <legend className="text-xs font-semibold uppercase tracking-widest text-yo-txt-2 px-1">Datos personales</legend>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-2">
+                <div className="sm:col-span-2">
+                  <Field id="full_name" label="Nombre completo" value={nombreCompleto} onChange={() => {}} disabled />
+                </div>
+                <Field id="birth_date" label="Fecha de nacimiento" type="date" value={f.birth_date ?? ""} onChange={() => {}} disabled />
+                <Field id="sexo_display" label="Sexo" value={curpVerified.sexo} onChange={() => {}} disabled />
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <Field id="birth_date" label="Fecha de nacimiento" type="date" value={f.birth_date ?? ""} onChange={(v) => set("birth_date", v)} />
-                <Field id="rfc" label="RFC (13 caracteres)" value={f.rfc ?? ""} onChange={(v) => set("rfc", v)} required uppercase maxLength={13}
-                  onBlur={onRfcBlur} error={rfcCheck && !rfcCheck.ok ? rfcCheck.msg : null}
-                  hint={rfcCheck?.ok ? rfcCheck.msg : undefined}
-                  trailing={rfcChecking ? <Loader2 className="size-4 animate-spin text-yo-txt-3" /> : rfcCheck?.ok ? <Check className="size-4 text-yo-ok" /> : undefined}
-                />
+              <p className="mt-2 text-[11px] text-yo-txt-3">Estos datos provienen de RENAPO y no son editables.</p>
+            </fieldset>
+          )}
+
+          {/* --- Datos fiscales (con selector de modo) --- */}
+          {curpVerified && (
+            <fieldset className="rounded-xl border border-yo-border p-4">
+              <legend className="text-xs font-semibold uppercase tracking-widest text-yo-txt-2 px-1">Datos fiscales</legend>
+
+              <p className="mt-2 mb-3 text-sm text-yo-txt-2">¿Cómo quieres completar tu perfil fiscal?</p>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                <FiscalModeButton icon={<FileCheck2 className="size-4" />} title="Constancia de Situación Fiscal"
+                  desc="Sube tu CSF en PDF o imagen." active={fillMode === "csf"} onClick={() => setFillMode("csf")} />
+                <FiscalModeButton icon={<KeyRound className="size-4" />} title="e.firma vigente"
+                  desc="Sube tu .cer, .key y contraseña." active={fillMode === "efirma"} onClick={() => setFillMode("efirma")} />
+                <FiscalModeButton icon={<PencilLine className="size-4" />} title="Manualmente"
+                  desc="Captura RFC y régimen." active={fillMode === "manual"} onClick={() => setFillMode("manual")} />
               </div>
-            </>
+
+              {fillMode === "csf" && (
+                <div className="mt-4 rounded-lg border border-dashed border-yo-border bg-yo-raised/40 p-4">
+                  <label className="flex items-center gap-3 cursor-pointer">
+                    <div className="inline-flex items-center gap-2 min-h-10 px-4 rounded-md bg-yo-ac hover:bg-yo-ac-h text-white text-sm font-semibold">
+                      {csfBusy ? <Loader2 className="size-4 animate-spin" /> : <Upload className="size-4" />}
+                      Subir constancia
+                    </div>
+                    <span className="text-xs text-yo-txt-3">PDF, JPG o PNG · máx 8 MB</span>
+                    <input type="file" accept="application/pdf,image/*" className="hidden"
+                      onChange={(e) => { const fi = e.target.files?.[0]; if (fi) void onCsfFile(fi); }} />
+                  </label>
+                  {csfErr && <p className="mt-2 text-xs text-yo-err">{csfErr}</p>}
+                  {csfInfo && (
+                    <div className="mt-3 text-xs text-yo-txt-2">
+                      <p className="text-yo-ok font-semibold">Constancia leída correctamente.</p>
+                      {csfInfo.regimenes.length > 0 && (
+                        <p className="mt-1">Regímenes SAT: {csfInfo.regimenes.join(" · ")}</p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {fillMode === "efirma" && (
+                <div className="mt-4 rounded-lg border border-dashed border-yo-border bg-yo-raised/40 p-4 flex flex-col gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <label className="flex flex-col gap-1 text-sm">
+                      <span className="text-xs font-semibold uppercase tracking-widest text-yo-txt-2">Certificado (.cer)</span>
+                      <input type="file" accept=".cer,application/octet-stream" onChange={(e) => setEfCer(e.target.files?.[0] ?? null)}
+                        className="text-xs" />
+                      {efCer && <span className="text-[11px] text-yo-txt-3">{efCer.name}</span>}
+                    </label>
+                    <label className="flex flex-col gap-1 text-sm">
+                      <span className="text-xs font-semibold uppercase tracking-widest text-yo-txt-2">Llave privada (.key)</span>
+                      <input type="file" accept=".key,application/octet-stream" onChange={(e) => setEfKey(e.target.files?.[0] ?? null)}
+                        className="text-xs" />
+                      {efKey && <span className="text-[11px] text-yo-txt-3">{efKey.name}</span>}
+                    </label>
+                  </div>
+                  <Field id="ef_pass" label="Contraseña de la llave" type="password" value={efPass} onChange={setEfPass} />
+                  <button type="button" onClick={runEfirma} disabled={efBusy || !efCer || !efKey || !efPass}
+                    className="self-start inline-flex items-center gap-2 min-h-10 px-4 rounded-md bg-yo-ac hover:bg-yo-ac-h text-white text-sm font-semibold disabled:opacity-50">
+                    {efBusy ? <Loader2 className="size-4 animate-spin" /> : <ShieldCheck className="size-4" />}
+                    Validar e.firma
+                  </button>
+                  {efErr && <p className="text-xs text-yo-err">{efErr}</p>}
+                  {efInfo && (
+                    <div className="rounded-md border border-yo-ok/30 bg-yo-ok/5 p-3 text-xs">
+                      <p className="font-semibold text-yo-ok">e.firma leída correctamente</p>
+                      <dl className="mt-1 grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 text-yo-txt">
+                        <div><dt className="text-yo-txt-3">RFC</dt><dd>{efInfo.rfc}</dd></div>
+                        <div><dt className="text-yo-txt-3">CURP</dt><dd>{efInfo.curp || "—"}</dd></div>
+                        <div className="sm:col-span-2"><dt className="text-yo-txt-3">Titular</dt><dd>{efInfo.nombre}</dd></div>
+                        <div><dt className="text-yo-txt-3">Serial</dt><dd className="font-mono">{efInfo.serial}</dd></div>
+                        <div><dt className="text-yo-txt-3">Vigencia SAT</dt>
+                          <dd>{efInfo.vigente === true ? "VIGENTE" : efInfo.vigente === false ? "NO VIGENTE" : "No verificado"}</dd></div>
+                        <div><dt className="text-yo-txt-3">Válido desde</dt><dd>{new Date(efInfo.validFrom).toLocaleDateString("es-MX")}</dd></div>
+                        <div><dt className="text-yo-txt-3">Válido hasta</dt><dd>{new Date(efInfo.validTo).toLocaleDateString("es-MX")}</dd></div>
+                      </dl>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {fillMode && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
+                  <Field id="rfc" label="RFC (13 caracteres)" value={f.rfc ?? ""} onChange={(v) => set("rfc", v)} required uppercase maxLength={13}
+                    onBlur={onRfcBlur} error={rfcCheck && !rfcCheck.ok ? rfcCheck.msg : null}
+                    hint={rfcCheck?.ok ? rfcCheck.msg : undefined}
+                    trailing={rfcChecking ? <Loader2 className="size-4 animate-spin text-yo-txt-3" /> : rfcCheck?.ok ? <Check className="size-4 text-yo-ok" /> : undefined}
+                  />
+                  <Field as="select" id="regimen_fiscal" label="Régimen fiscal (SAT)" value={f.regimen_fiscal ?? ""} onChange={(v) => set("regimen_fiscal", v)} required>
+                    <option value="">Selecciona…</option>
+                    {regimenes.map((r) => <option key={r.code} value={r.code}>{r.label}</option>)}
+                  </Field>
+                </div>
+              )}
+            </fieldset>
           )}
         </>
       ) : (
@@ -659,19 +879,14 @@ function Step3Fiscal({ onSaved, onBack, setError, loading, setLoading }: {
             <Field id="incorporation_date" label="Fecha de constitución" type="date"
               value={f.incorporation_date ?? ""} onChange={(v) => set("incorporation_date", v)} />
           </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <Field as="select" id="regimen_fiscal" label="Régimen fiscal (SAT)" value={f.regimen_fiscal ?? ""} onChange={(v) => set("regimen_fiscal", v)} required>
+              <option value="">Selecciona…</option>
+              {regimenes.map((r) => <option key={r.code} value={r.code}>{r.label}</option>)}
+            </Field>
+          </div>
         </>
       )}
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <Field as="select" id="regimen_fiscal" label="Régimen fiscal (SAT)" value={f.regimen_fiscal ?? ""} onChange={(v) => set("regimen_fiscal", v)} required>
-          <option value="">Selecciona…</option>
-          {regimenes.map((r) => <option key={r.code} value={r.code}>{r.label}</option>)}
-        </Field>
-        <Field as="select" id="uso_cfdi_default" label="Uso de CFDI por defecto" value={f.uso_cfdi_default ?? ""} onChange={(v) => set("uso_cfdi_default", v)} required>
-          <option value="">Selecciona…</option>
-          {USO_CFDI.map((u) => <option key={u.code} value={u.code}>{u.label}</option>)}
-        </Field>
-      </div>
 
       {tipo === "persona_moral" && (
         <fieldset className="rounded-xl border border-yo-border bg-yo-raised/50 p-4">
@@ -715,6 +930,22 @@ function Step3Fiscal({ onSaved, onBack, setError, loading, setLoading }: {
     </div>
   );
 }
+
+function FiscalModeButton({ icon, title, desc, active, onClick }: {
+  icon: React.ReactNode; title: string; desc: string; active: boolean; onClick: () => void;
+}) {
+  return (
+    <button type="button" onClick={onClick}
+      className={`text-left rounded-lg border p-3 transition ${active ? "border-yo-ac bg-yo-ac/5 ring-1 ring-yo-ac" : "border-yo-border hover:border-yo-txt-3"}`}>
+      <div className="flex items-center gap-2">
+        <span className={active ? "text-yo-ac" : "text-yo-txt-2"}>{icon}</span>
+        <span className="text-sm font-semibold text-yo-txt">{title}</span>
+      </div>
+      <p className="mt-1 text-xs text-yo-txt-3">{desc}</p>
+    </button>
+  );
+}
+
 
 // ─── STEP 4 — Identidad (documentos) ─────────────────────────────────────────
 type DocRow = { id: string; document_type: string; file_name: string | null; status: string; created_at: string };
