@@ -144,7 +144,7 @@ const step3PfSchema = z.object({
   rfc: z.string(),
   curp: z.string(),
   regimen_fiscal: z.string().min(3),
-  uso_cfdi_default: z.string().min(2),
+  uso_cfdi_default: z.string().optional().nullable(),
 }).merge(domicilioSchema);
 
 const step3PmSchema = z.object({
