@@ -9,6 +9,7 @@ import {
   simulateFundingReceived,
   releaseFunds,
 } from "@/lib/payments.functions";
+import { openDispute } from "@/lib/disputes.functions";
 
 type Tx = {
   id: string;
@@ -73,10 +74,14 @@ function TxDetail() {
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [disputeOpen, setDisputeOpen] = useState(false);
+  const [disputeReason, setDisputeReason] = useState<"not_delivered" | "not_as_described" | "quality" | "delay" | "fraud" | "other">("not_delivered");
+  const [disputeDesc, setDisputeDesc] = useState("");
 
   const createIntentFn = useServerFn(createFundingIntent);
   const simulateFundingFn = useServerFn(simulateFundingReceived);
   const releaseFundsFn = useServerFn(releaseFunds);
+  const openDisputeFn = useServerFn(openDispute);
 
   async function load() {
     const [{ data: t }, { data: c }, { data: e }, { data: pi }, { data: po }] = await Promise.all([
