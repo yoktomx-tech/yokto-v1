@@ -168,7 +168,7 @@ function TxDetail() {
   if (loading) {
     return (
       <div className="min-h-screen flex flex-col bg-background">
-        <AppHeader email={user.email} section="Transacción" />
+        <AppHeader email={user.email} userId={user.id} section="Transacción" />
         <div className="container-editorial py-16 text-sm text-muted-foreground">Cargando…</div>
       </div>
     );
@@ -176,7 +176,7 @@ function TxDetail() {
   if (!tx) {
     return (
       <div className="min-h-screen flex flex-col bg-background">
-        <AppHeader email={user.email} section="Transacción" />
+        <AppHeader email={user.email} userId={user.id} section="Transacción" />
         <div className="container-editorial py-16">
           <h1 className="font-display text-4xl">Transacción no encontrada</h1>
           <Link to="/transactions" className="mt-4 inline-block underline underline-offset-4">Volver</Link>
@@ -193,7 +193,7 @@ function TxDetail() {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <AppHeader email={user.email} section="Transacción" />
+      <AppHeader email={user.email} userId={user.id} section="Transacción" />
       <main className="flex-1">
         <div className="container-editorial py-10 max-w-5xl">
           <div className="flex items-center justify-between gap-4 mb-6">

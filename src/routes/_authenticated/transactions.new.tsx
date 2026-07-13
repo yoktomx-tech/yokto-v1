@@ -137,7 +137,7 @@ function NewTransaction() {
   if (kycOk === false) {
     return (
       <div className="min-h-screen flex flex-col bg-background">
-        <AppHeader email={user.email} section="Nueva transacción" />
+        <AppHeader email={user.email} userId={user.id} section="Nueva transacción" />
         <main className="flex-1">
           <div className="container-editorial py-16 max-w-2xl">
             <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Requisito</p>
@@ -159,7 +159,7 @@ function NewTransaction() {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <AppHeader email={user.email} section="Nueva transacción" />
+      <AppHeader email={user.email} userId={user.id} section="Nueva transacción" />
       <main className="flex-1">
         <div className="container-editorial py-10 max-w-3xl">
           <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Módulo C · Paso {step} de 4</p>

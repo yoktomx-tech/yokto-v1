@@ -55,7 +55,7 @@ function DisputesList() {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <AppHeader email={user.email} section="Disputas" />
+      <AppHeader email={user.email} userId={user.id} section="Disputas" />
       <main className="flex-1">
         <div className="container-editorial py-10">
           <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Módulo G</p>

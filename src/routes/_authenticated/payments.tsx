@@ -48,7 +48,7 @@ function PaymentsPage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <AppHeader email={user.email} section="Cuenta de pagos" />
+      <AppHeader email={user.email} userId={user.id} section="Cuenta de pagos" />
       <main className="flex-1">
         <div className="container-editorial py-10 max-w-3xl">
           <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Módulo E · Payouts</p>

@@ -53,7 +53,7 @@ function Dashboard() {
 
   return (
     <div className="min-h-dvh flex flex-col bg-yokto-base">
-      <AppHeader email={user.email} section="Panel" />
+      <AppHeader email={user.email} userId={user.id} section="Panel" />
 
       <main className="flex-1">
         <div className="container-editorial py-10 lg:py-14">

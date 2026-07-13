@@ -106,13 +106,13 @@ function DisputeDetail() {
 
   if (loading) return (
     <div className="min-h-screen flex flex-col bg-background">
-      <AppHeader email={user.email} section="Disputa" />
+      <AppHeader email={user.email} userId={user.id} section="Disputa" />
       <div className="container-editorial py-16 text-sm text-muted-foreground">Cargando…</div>
     </div>
   );
   if (!d) return (
     <div className="min-h-screen flex flex-col bg-background">
-      <AppHeader email={user.email} section="Disputa" />
+      <AppHeader email={user.email} userId={user.id} section="Disputa" />
       <div className="container-editorial py-16"><h1 className="font-display text-4xl">Disputa no encontrada</h1></div>
     </div>
   );
@@ -122,7 +122,7 @@ function DisputeDetail() {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <AppHeader email={user.email} section="Disputa" />
+      <AppHeader email={user.email} userId={user.id} section="Disputa" />
       <main className="flex-1">
         <div className="container-editorial py-10 max-w-4xl">
           <Link to="/disputes" className="text-[11px] uppercase tracking-[0.14em] font-semibold underline underline-offset-4">← Disputas</Link>
