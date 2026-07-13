@@ -14,16 +14,176 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      kyc_documents: {
+        Row: {
+          created_at: string
+          document_type: Database["public"]["Enums"]["kyc_document_type"]
+          file_name: string | null
+          id: string
+          mime_type: string | null
+          rejection_reason: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: Database["public"]["Enums"]["kyc_status"]
+          storage_path: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          document_type: Database["public"]["Enums"]["kyc_document_type"]
+          file_name?: string | null
+          id?: string
+          mime_type?: string | null
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["kyc_status"]
+          storage_path: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          document_type?: Database["public"]["Enums"]["kyc_document_type"]
+          file_name?: string | null
+          id?: string
+          mime_type?: string | null
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["kyc_status"]
+          storage_path?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          account_type: Database["public"]["Enums"]["account_type"] | null
+          avatar_url: string | null
+          created_at: string
+          email: string | null
+          first_name: string | null
+          fiscal_address: string | null
+          fiscal_postal_code: string | null
+          id: string
+          industry_sector: Database["public"]["Enums"]["industry_sector"] | null
+          kyc_completed_at: string | null
+          kyc_status: Database["public"]["Enums"]["kyc_status"]
+          last_name: string | null
+          legal_name: string | null
+          onboarding_completed: boolean
+          phone: string | null
+          regimen_fiscal: string | null
+          rfc: string | null
+          updated_at: string
+          uso_cfdi: string | null
+        }
+        Insert: {
+          account_type?: Database["public"]["Enums"]["account_type"] | null
+          avatar_url?: string | null
+          created_at?: string
+          email?: string | null
+          first_name?: string | null
+          fiscal_address?: string | null
+          fiscal_postal_code?: string | null
+          id: string
+          industry_sector?:
+            | Database["public"]["Enums"]["industry_sector"]
+            | null
+          kyc_completed_at?: string | null
+          kyc_status?: Database["public"]["Enums"]["kyc_status"]
+          last_name?: string | null
+          legal_name?: string | null
+          onboarding_completed?: boolean
+          phone?: string | null
+          regimen_fiscal?: string | null
+          rfc?: string | null
+          updated_at?: string
+          uso_cfdi?: string | null
+        }
+        Update: {
+          account_type?: Database["public"]["Enums"]["account_type"] | null
+          avatar_url?: string | null
+          created_at?: string
+          email?: string | null
+          first_name?: string | null
+          fiscal_address?: string | null
+          fiscal_postal_code?: string | null
+          id?: string
+          industry_sector?:
+            | Database["public"]["Enums"]["industry_sector"]
+            | null
+          kyc_completed_at?: string | null
+          kyc_status?: Database["public"]["Enums"]["kyc_status"]
+          last_name?: string | null
+          legal_name?: string | null
+          onboarding_completed?: boolean
+          phone?: string | null
+          regimen_fiscal?: string | null
+          rfc?: string | null
+          updated_at?: string
+          uso_cfdi?: string | null
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      account_type: "persona_fisica" | "persona_moral"
+      app_role: "buyer" | "seller" | "admin" | "verifier" | "mediator"
+      industry_sector:
+        | "autotransporte"
+        | "construccion"
+        | "inmobiliario"
+        | "vehiculos"
+        | "servicios_profesionales"
+        | "comercio"
+        | "manufactura"
+        | "otro"
+      kyc_document_type:
+        | "ine"
+        | "passport"
+        | "proof_of_address"
+        | "acta_constitutiva"
+        | "constancia_fiscal"
+        | "poder_notarial"
+        | "other"
+      kyc_status: "pending" | "in_review" | "approved" | "rejected"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +310,29 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      account_type: ["persona_fisica", "persona_moral"],
+      app_role: ["buyer", "seller", "admin", "verifier", "mediator"],
+      industry_sector: [
+        "autotransporte",
+        "construccion",
+        "inmobiliario",
+        "vehiculos",
+        "servicios_profesionales",
+        "comercio",
+        "manufactura",
+        "otro",
+      ],
+      kyc_document_type: [
+        "ine",
+        "passport",
+        "proof_of_address",
+        "acta_constitutiva",
+        "constancia_fiscal",
+        "poder_notarial",
+        "other",
+      ],
+      kyc_status: ["pending", "in_review", "approved", "rejected"],
+    },
   },
 } as const
