@@ -18,8 +18,11 @@ import { Route as CasosDeUsoRouteImport } from './routes/casos-de-uso'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedTransactionsRouteImport } from './routes/_authenticated/transactions'
 import { Route as AuthenticatedKycRouteImport } from './routes/_authenticated/kyc'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedTransactionsNewRouteImport } from './routes/_authenticated/transactions.new'
+import { Route as AuthenticatedTransactionsIdRouteImport } from './routes/_authenticated/transactions.$id'
 
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
@@ -65,6 +68,12 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedTransactionsRoute =
+  AuthenticatedTransactionsRouteImport.update({
+    id: '/transactions',
+    path: '/transactions',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedKycRoute = AuthenticatedKycRouteImport.update({
   id: '/kyc',
   path: '/kyc',
@@ -75,6 +84,18 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedTransactionsNewRoute =
+  AuthenticatedTransactionsNewRouteImport.update({
+    id: '/new',
+    path: '/new',
+    getParentRoute: () => AuthenticatedTransactionsRoute,
+  } as any)
+const AuthenticatedTransactionsIdRoute =
+  AuthenticatedTransactionsIdRouteImport.update({
+    id: '/$id',
+    path: '/$id',
+    getParentRoute: () => AuthenticatedTransactionsRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -87,6 +108,9 @@ export interface FileRoutesByFullPath {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/kyc': typeof AuthenticatedKycRoute
+  '/transactions': typeof AuthenticatedTransactionsRouteWithChildren
+  '/transactions/$id': typeof AuthenticatedTransactionsIdRoute
+  '/transactions/new': typeof AuthenticatedTransactionsNewRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -99,6 +123,9 @@ export interface FileRoutesByTo {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/kyc': typeof AuthenticatedKycRoute
+  '/transactions': typeof AuthenticatedTransactionsRouteWithChildren
+  '/transactions/$id': typeof AuthenticatedTransactionsIdRoute
+  '/transactions/new': typeof AuthenticatedTransactionsNewRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -113,6 +140,9 @@ export interface FileRoutesById {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/kyc': typeof AuthenticatedKycRoute
+  '/_authenticated/transactions': typeof AuthenticatedTransactionsRouteWithChildren
+  '/_authenticated/transactions/$id': typeof AuthenticatedTransactionsIdRoute
+  '/_authenticated/transactions/new': typeof AuthenticatedTransactionsNewRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -127,6 +157,9 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/dashboard'
     | '/kyc'
+    | '/transactions'
+    | '/transactions/$id'
+    | '/transactions/new'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -139,6 +172,9 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/dashboard'
     | '/kyc'
+    | '/transactions'
+    | '/transactions/$id'
+    | '/transactions/new'
   id:
     | '__root__'
     | '/'
@@ -152,6 +188,9 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/_authenticated/dashboard'
     | '/_authenticated/kyc'
+    | '/_authenticated/transactions'
+    | '/_authenticated/transactions/$id'
+    | '/_authenticated/transactions/new'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -231,6 +270,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/transactions': {
+      id: '/_authenticated/transactions'
+      path: '/transactions'
+      fullPath: '/transactions'
+      preLoaderRoute: typeof AuthenticatedTransactionsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/kyc': {
       id: '/_authenticated/kyc'
       path: '/kyc'
@@ -245,17 +291,49 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/transactions/new': {
+      id: '/_authenticated/transactions/new'
+      path: '/new'
+      fullPath: '/transactions/new'
+      preLoaderRoute: typeof AuthenticatedTransactionsNewRouteImport
+      parentRoute: typeof AuthenticatedTransactionsRoute
+    }
+    '/_authenticated/transactions/$id': {
+      id: '/_authenticated/transactions/$id'
+      path: '/$id'
+      fullPath: '/transactions/$id'
+      preLoaderRoute: typeof AuthenticatedTransactionsIdRouteImport
+      parentRoute: typeof AuthenticatedTransactionsRoute
+    }
   }
 }
+
+interface AuthenticatedTransactionsRouteChildren {
+  AuthenticatedTransactionsIdRoute: typeof AuthenticatedTransactionsIdRoute
+  AuthenticatedTransactionsNewRoute: typeof AuthenticatedTransactionsNewRoute
+}
+
+const AuthenticatedTransactionsRouteChildren: AuthenticatedTransactionsRouteChildren =
+  {
+    AuthenticatedTransactionsIdRoute: AuthenticatedTransactionsIdRoute,
+    AuthenticatedTransactionsNewRoute: AuthenticatedTransactionsNewRoute,
+  }
+
+const AuthenticatedTransactionsRouteWithChildren =
+  AuthenticatedTransactionsRoute._addFileChildren(
+    AuthenticatedTransactionsRouteChildren,
+  )
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedKycRoute: typeof AuthenticatedKycRoute
+  AuthenticatedTransactionsRoute: typeof AuthenticatedTransactionsRouteWithChildren
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedKycRoute: AuthenticatedKycRoute,
+  AuthenticatedTransactionsRoute: AuthenticatedTransactionsRouteWithChildren,
 }
 
 const AuthenticatedRouteRouteWithChildren =

@@ -22,10 +22,11 @@ type Tx = {
   delivery_deadline: string | null;
   funded_at: string | null;
   released_at: string | null;
+  cancelled_at: string | null;
   created_at: string;
 };
 type Cond = { id: string; description: string; status: "pending" | "met" | "rejected"; met_at: string | null; position: number };
-type Evt = { id: string; event_type: string; metadata: Record<string, unknown>; created_at: string; actor_id: string | null };
+type Evt = { id: string; event_type: string; metadata: unknown; created_at: string; actor_id: string | null };
 
 export const Route = createFileRoute("/_authenticated/transactions/$id")({
   head: () => ({ meta: [{ title: "Transacción — YOKTO" }, { name: "robots", content: "noindex" }] }),
