@@ -974,6 +974,35 @@ function FiscalModeButton({ icon, title, desc, active, onClick }: {
   );
 }
 
+function EfirmaDropzone({ label, accept, file, onFile, icon }: {
+  label: string; accept: string; file: File | null; onFile: (f: File | null) => void; icon: React.ReactNode;
+}) {
+  const inputId = `ef-${label.replace(/\W+/g, "-").toLowerCase()}`;
+  return (
+    <div className="rounded-lg border border-dashed border-yo-border bg-yo-raised/40 p-3">
+      <p className="text-xs font-semibold uppercase tracking-widest text-yo-txt-2 mb-2">{label}</p>
+      <label htmlFor={inputId} className="flex items-center gap-3 cursor-pointer">
+        <span className="inline-flex items-center gap-2 min-h-9 px-3 rounded-md border border-yo-border bg-yo-bg text-yo-txt text-xs font-semibold hover:border-yo-txt-3">
+          {icon} Elegir archivo
+        </span>
+        <span className="text-xs text-yo-txt-3 truncate">
+          {file ? file.name : "Ningún archivo seleccionado"}
+        </span>
+        <input id={inputId} type="file" accept={accept} className="hidden"
+          onChange={(e) => onFile(e.target.files?.[0] ?? null)} />
+      </label>
+      {file && (
+        <button type="button" onClick={() => onFile(null)}
+          className="mt-2 text-[11px] text-yo-txt-3 hover:text-yo-err underline">
+          Quitar archivo
+        </button>
+      )}
+    </div>
+  );
+}
+
+
+
 
 // ─── STEP 4 — Identidad (documentos) ─────────────────────────────────────────
 type DocRow = { id: string; document_type: string; file_name: string | null; status: string; created_at: string };
