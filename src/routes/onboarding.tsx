@@ -12,7 +12,7 @@ import {
   checkEmailExists, validateRfcServer, validateCurpNubarium, saveOnboardingStep,
   uploadKycDocument, listOwnKycDocuments, deleteOwnKycDocument,
   registerClabe, startPennyTest, confirmPennyTest, submitKyc,
-  validateCsfNubarium, parseEfirma, validateFielSerialNubarium,
+  validateCsfNubarium, parseEfirma, validateFielSerialNubarium, lookupPostalCode,
 } from "@/lib/onboarding.functions";
 import { validateClabe, normalizeClabe, getBanco } from "@/lib/validations/clabe";
 import { validateRfc, normalizeRfc } from "@/lib/validations/rfc";
