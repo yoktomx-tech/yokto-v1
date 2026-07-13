@@ -135,6 +135,157 @@ export type Database = {
         }
         Relationships: []
       }
+      transaction_conditions: {
+        Row: {
+          created_at: string
+          description: string
+          evidence_url: string | null
+          id: string
+          met_at: string | null
+          position: number
+          status: Database["public"]["Enums"]["condition_status"]
+          transaction_id: string
+          updated_at: string
+          verified_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          evidence_url?: string | null
+          id?: string
+          met_at?: string | null
+          position?: number
+          status?: Database["public"]["Enums"]["condition_status"]
+          transaction_id: string
+          updated_at?: string
+          verified_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          evidence_url?: string | null
+          id?: string
+          met_at?: string | null
+          position?: number
+          status?: Database["public"]["Enums"]["condition_status"]
+          transaction_id?: string
+          updated_at?: string
+          verified_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transaction_conditions_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      transaction_events: {
+        Row: {
+          actor_id: string | null
+          created_at: string
+          event_type: string
+          id: string
+          metadata: Json
+          transaction_id: string
+        }
+        Insert: {
+          actor_id?: string | null
+          created_at?: string
+          event_type: string
+          id?: string
+          metadata?: Json
+          transaction_id: string
+        }
+        Update: {
+          actor_id?: string | null
+          created_at?: string
+          event_type?: string
+          id?: string
+          metadata?: Json
+          transaction_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transaction_events_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      transactions: {
+        Row: {
+          amount_cents: number
+          buyer_id: string
+          cancelled_at: string | null
+          commission_bps: number
+          commission_payer: Database["public"]["Enums"]["commission_payer"]
+          counterparty_email: string | null
+          created_at: string
+          currency: string
+          delivery_deadline: string | null
+          description: string | null
+          funded_at: string | null
+          funding_deadline: string | null
+          id: string
+          payment_method: Database["public"]["Enums"]["payment_method"]
+          released_at: string | null
+          sector: string | null
+          seller_id: string | null
+          status: Database["public"]["Enums"]["transaction_status"]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          amount_cents: number
+          buyer_id: string
+          cancelled_at?: string | null
+          commission_bps?: number
+          commission_payer?: Database["public"]["Enums"]["commission_payer"]
+          counterparty_email?: string | null
+          created_at?: string
+          currency?: string
+          delivery_deadline?: string | null
+          description?: string | null
+          funded_at?: string | null
+          funding_deadline?: string | null
+          id?: string
+          payment_method?: Database["public"]["Enums"]["payment_method"]
+          released_at?: string | null
+          sector?: string | null
+          seller_id?: string | null
+          status?: Database["public"]["Enums"]["transaction_status"]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          amount_cents?: number
+          buyer_id?: string
+          cancelled_at?: string | null
+          commission_bps?: number
+          commission_payer?: Database["public"]["Enums"]["commission_payer"]
+          counterparty_email?: string | null
+          created_at?: string
+          currency?: string
+          delivery_deadline?: string | null
+          description?: string | null
+          funded_at?: string | null
+          funding_deadline?: string | null
+          id?: string
+          payment_method?: Database["public"]["Enums"]["payment_method"]
+          released_at?: string | null
+          sector?: string | null
+          seller_id?: string | null
+          status?: Database["public"]["Enums"]["transaction_status"]
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -172,6 +323,8 @@ export type Database = {
     Enums: {
       account_type: "persona_fisica" | "persona_moral"
       app_role: "buyer" | "seller" | "admin" | "verifier" | "mediator"
+      commission_payer: "buyer" | "seller" | "split"
+      condition_status: "pending" | "met" | "rejected"
       industry_sector:
         | "autotransporte"
         | "construccion"
@@ -190,6 +343,17 @@ export type Database = {
         | "poder_notarial"
         | "other"
       kyc_status: "pending" | "in_review" | "approved" | "rejected"
+      payment_method: "spei" | "card"
+      transaction_status:
+        | "draft"
+        | "awaiting_funding"
+        | "funded"
+        | "in_progress"
+        | "conditions_met"
+        | "released"
+        | "disputed"
+        | "cancelled"
+        | "refunded"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -319,6 +483,8 @@ export const Constants = {
     Enums: {
       account_type: ["persona_fisica", "persona_moral"],
       app_role: ["buyer", "seller", "admin", "verifier", "mediator"],
+      commission_payer: ["buyer", "seller", "split"],
+      condition_status: ["pending", "met", "rejected"],
       industry_sector: [
         "autotransporte",
         "construccion",
@@ -339,6 +505,18 @@ export const Constants = {
         "other",
       ],
       kyc_status: ["pending", "in_review", "approved", "rejected"],
+      payment_method: ["spei", "card"],
+      transaction_status: [
+        "draft",
+        "awaiting_funding",
+        "funded",
+        "in_progress",
+        "conditions_met",
+        "released",
+        "disputed",
+        "cancelled",
+        "refunded",
+      ],
     },
   },
 } as const
