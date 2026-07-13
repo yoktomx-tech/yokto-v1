@@ -3,9 +3,7 @@ import { useEffect, useState } from "react";
 import { Menu, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
-const nav = [
-  { to: "/marco-legal", label: "Marco legal" },
-] as const;
+const nav = [] as const;
 
 export function SiteHeader() {
   const [open, setOpen] = useState(false);
