@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as AuthRouteImport } from './routes/auth'
@@ -32,6 +33,11 @@ import { Route as ApiPublicV1TransactionsRouteImport } from './routes/api/public
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
   path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const OnboardingRoute = OnboardingRouteImport.update({
@@ -133,6 +139,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/onboarding': typeof OnboardingRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/api-clients': typeof AuthenticatedApiClientsRoute
@@ -153,6 +160,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/onboarding': typeof OnboardingRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/api-clients': typeof AuthenticatedApiClientsRoute
@@ -175,6 +183,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/onboarding': typeof OnboardingRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/api-clients': typeof AuthenticatedApiClientsRoute
@@ -197,6 +206,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/forgot-password'
     | '/onboarding'
+    | '/reset-password'
     | '/sitemap.xml'
     | '/admin'
     | '/api-clients'
@@ -217,6 +227,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/forgot-password'
     | '/onboarding'
+    | '/reset-password'
     | '/sitemap.xml'
     | '/admin'
     | '/api-clients'
@@ -238,6 +249,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/forgot-password'
     | '/onboarding'
+    | '/reset-password'
     | '/sitemap.xml'
     | '/_authenticated/admin'
     | '/_authenticated/api-clients'
@@ -260,6 +272,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   OnboardingRoute: typeof OnboardingRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   ApiPublicV1TransactionsRoute: typeof ApiPublicV1TransactionsRoute
 }
@@ -271,6 +284,13 @@ declare module '@tanstack/react-router' {
       path: '/sitemap.xml'
       fullPath: '/sitemap.xml'
       preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/onboarding': {
@@ -464,6 +484,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
   OnboardingRoute: OnboardingRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   ApiPublicV1TransactionsRoute: ApiPublicV1TransactionsRoute,
 }
