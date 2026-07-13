@@ -9,7 +9,11 @@ const nav = [
   { to: "/disputes", label: "Disputas" },
   { to: "/payments", label: "Pagos" },
   { to: "/kyc", label: "KYC" },
+  { to: "/reports", label: "Reportes" },
+  { to: "/api-clients", label: "API" },
+  { to: "/admin", label: "Admin" },
 ] as const;
+
 
 export function AppHeader({ email, section, userId }: { email?: string | null; section?: string; userId?: string }) {
   const navigate = useNavigate();

@@ -10,6 +10,8 @@ import {
   releaseFunds,
 } from "@/lib/payments.functions";
 import { openDispute } from "@/lib/disputes.functions";
+import { VerificationPanel } from "@/components/verification-panel";
+
 
 type Tx = {
   id: string;
@@ -387,9 +389,13 @@ function TxDetail() {
           </div>
         </div>
       )}
+      <div className="container-editorial pb-10 max-w-5xl">
+        <VerificationPanel transactionId={id} canUpload={isBuyer || isSeller} />
+      </div>
     </div>
   );
 }
+
 
 const btnPrimary = "px-5 py-2.5 bg-yo-ac text-white text-[12px] uppercase tracking-[0.14em] font-semibold border border-yo-border hover:bg-yo-ac-h disabled:opacity-50";
 const btnGhost = "px-5 py-2.5 border border-yo-border text-[12px] uppercase tracking-[0.14em] font-semibold hover:bg-yo-ac-h hover:text-white disabled:opacity-50";
