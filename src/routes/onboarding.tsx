@@ -324,6 +324,14 @@ function Step1Account({ initialEmail, onCredentials, setError, loading, setLoadi
             </button>
           }
         />
+        {password.length > 0 && (
+          <div className="mt-1 flex items-center gap-2" aria-label="Fortaleza de contraseña">
+            <div className="flex-1 h-1.5 rounded-full bg-yo-border overflow-hidden">
+              <div className={"h-full transition-all duration-300 " + pwdStrength.tone} style={{ width: `${pwdStrength.pct}%` }} />
+            </div>
+            <span className={"text-[11px] font-semibold min-w-[70px] text-right " + pwdStrength.text}>{pwdStrength.label}</span>
+          </div>
+        )}
         <ul className="grid grid-cols-1 sm:grid-cols-2 gap-1 mt-0.5" aria-label="Requisitos de contraseña">
           {pwdChecks.map((c) => (
             <li key={c.label} className={"flex items-center gap-1.5 text-[11px] " + (c.ok ? "text-emerald-600" : "text-yo-txt-3")}>
