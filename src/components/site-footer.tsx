@@ -18,20 +18,10 @@ export function SiteFooter() {
           </p>
         </div>
 
-        <div className="md:col-span-3">
-          <p className="text-xs uppercase tracking-widest text-yokto-text-3 font-semibold">Producto</p>
-          <ul className="mt-5 space-y-2.5 text-sm">
-            <li><Link to="/como-funciona" className="hover:text-yokto-accent transition">Cómo funciona</Link></li>
-            <li><Link to="/casos-de-uso" className="hover:text-yokto-accent transition">Sectores</Link></li>
-            <li><Link to="/precios" className="hover:text-yokto-accent transition">Precios</Link></li>
-          </ul>
-        </div>
-
         <div className="md:col-span-4">
           <p className="text-xs uppercase tracking-widest text-yokto-text-3 font-semibold">Compañía</p>
           <ul className="mt-5 space-y-2.5 text-sm">
             <li><Link to="/marco-legal" className="hover:text-yokto-accent transition">Marco legal</Link></li>
-            <li><Link to="/contacto" className="hover:text-yokto-accent transition">Contacto</Link></li>
           </ul>
         </div>
       </div>

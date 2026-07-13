@@ -10,11 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
-import { Route as PreciosRouteImport } from './routes/precios'
 import { Route as MarcoLegalRouteImport } from './routes/marco-legal'
-import { Route as ContactoRouteImport } from './routes/contacto'
-import { Route as ComoFuncionaRouteImport } from './routes/como-funciona'
-import { Route as CasosDeUsoRouteImport } from './routes/casos-de-uso'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
@@ -32,29 +28,9 @@ const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
-const PreciosRoute = PreciosRouteImport.update({
-  id: '/precios',
-  path: '/precios',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const MarcoLegalRoute = MarcoLegalRouteImport.update({
   id: '/marco-legal',
   path: '/marco-legal',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ContactoRoute = ContactoRouteImport.update({
-  id: '/contacto',
-  path: '/contacto',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ComoFuncionaRoute = ComoFuncionaRouteImport.update({
-  id: '/como-funciona',
-  path: '/como-funciona',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const CasosDeUsoRoute = CasosDeUsoRouteImport.update({
-  id: '/casos-de-uso',
-  path: '/casos-de-uso',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRoute = AuthRouteImport.update({
@@ -118,11 +94,7 @@ const AuthenticatedDisputesIdRoute = AuthenticatedDisputesIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
-  '/casos-de-uso': typeof CasosDeUsoRoute
-  '/como-funciona': typeof ComoFuncionaRoute
-  '/contacto': typeof ContactoRoute
   '/marco-legal': typeof MarcoLegalRoute
-  '/precios': typeof PreciosRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/disputes': typeof AuthenticatedDisputesRouteWithChildren
@@ -136,11 +108,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
-  '/casos-de-uso': typeof CasosDeUsoRoute
-  '/como-funciona': typeof ComoFuncionaRoute
-  '/contacto': typeof ContactoRoute
   '/marco-legal': typeof MarcoLegalRoute
-  '/precios': typeof PreciosRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/disputes': typeof AuthenticatedDisputesRouteWithChildren
@@ -156,11 +124,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
-  '/casos-de-uso': typeof CasosDeUsoRoute
-  '/como-funciona': typeof ComoFuncionaRoute
-  '/contacto': typeof ContactoRoute
   '/marco-legal': typeof MarcoLegalRoute
-  '/precios': typeof PreciosRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/disputes': typeof AuthenticatedDisputesRouteWithChildren
@@ -176,11 +140,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
-    | '/casos-de-uso'
-    | '/como-funciona'
-    | '/contacto'
     | '/marco-legal'
-    | '/precios'
     | '/sitemap.xml'
     | '/dashboard'
     | '/disputes'
@@ -194,11 +154,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
-    | '/casos-de-uso'
-    | '/como-funciona'
-    | '/contacto'
     | '/marco-legal'
-    | '/precios'
     | '/sitemap.xml'
     | '/dashboard'
     | '/disputes'
@@ -213,11 +169,7 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/auth'
-    | '/casos-de-uso'
-    | '/como-funciona'
-    | '/contacto'
     | '/marco-legal'
-    | '/precios'
     | '/sitemap.xml'
     | '/_authenticated/dashboard'
     | '/_authenticated/disputes'
@@ -233,11 +185,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
-  CasosDeUsoRoute: typeof CasosDeUsoRoute
-  ComoFuncionaRoute: typeof ComoFuncionaRoute
-  ContactoRoute: typeof ContactoRoute
   MarcoLegalRoute: typeof MarcoLegalRoute
-  PreciosRoute: typeof PreciosRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
 }
 
@@ -250,39 +198,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/precios': {
-      id: '/precios'
-      path: '/precios'
-      fullPath: '/precios'
-      preLoaderRoute: typeof PreciosRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/marco-legal': {
       id: '/marco-legal'
       path: '/marco-legal'
       fullPath: '/marco-legal'
       preLoaderRoute: typeof MarcoLegalRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/contacto': {
-      id: '/contacto'
-      path: '/contacto'
-      fullPath: '/contacto'
-      preLoaderRoute: typeof ContactoRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/como-funciona': {
-      id: '/como-funciona'
-      path: '/como-funciona'
-      fullPath: '/como-funciona'
-      preLoaderRoute: typeof ComoFuncionaRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/casos-de-uso': {
-      id: '/casos-de-uso'
-      path: '/casos-de-uso'
-      fullPath: '/casos-de-uso'
-      preLoaderRoute: typeof CasosDeUsoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth': {
@@ -417,11 +337,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
-  CasosDeUsoRoute: CasosDeUsoRoute,
-  ComoFuncionaRoute: ComoFuncionaRoute,
-  ContactoRoute: ContactoRoute,
   MarcoLegalRoute: MarcoLegalRoute,
-  PreciosRoute: PreciosRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
 }
 export const routeTree = rootRouteImport
