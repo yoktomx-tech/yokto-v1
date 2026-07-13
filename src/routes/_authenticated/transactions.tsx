@@ -52,7 +52,7 @@ function TransactionsList() {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <AppHeader email={user.email} section="Transacciones" />
+      <AppHeader email={user.email} userId={user.id} section="Transacciones" />
       <main className="flex-1">
         <div className="container-editorial py-10">
           <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">

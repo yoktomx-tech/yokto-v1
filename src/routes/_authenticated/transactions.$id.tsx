@@ -9,6 +9,7 @@ import {
   simulateFundingReceived,
   releaseFunds,
 } from "@/lib/payments.functions";
+import { openDispute } from "@/lib/disputes.functions";
 
 type Tx = {
   id: string;
@@ -73,10 +74,14 @@ function TxDetail() {
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [disputeOpen, setDisputeOpen] = useState(false);
+  const [disputeReason, setDisputeReason] = useState<"not_delivered" | "not_as_described" | "quality" | "delay" | "fraud" | "other">("not_delivered");
+  const [disputeDesc, setDisputeDesc] = useState("");
 
   const createIntentFn = useServerFn(createFundingIntent);
   const simulateFundingFn = useServerFn(simulateFundingReceived);
   const releaseFundsFn = useServerFn(releaseFunds);
+  const openDisputeFn = useServerFn(openDispute);
 
   async function load() {
     const [{ data: t }, { data: c }, { data: e }, { data: pi }, { data: po }] = await Promise.all([
@@ -147,10 +152,23 @@ function TxDetail() {
     setBusy(false);
   }
 
+  async function submitDispute() {
+    setBusy(true); setError(null);
+    try {
+      const res = await openDisputeFn({ data: {
+        transactionId: id,
+        reasonCode: disputeReason,
+        reasonDescription: disputeDesc.trim(),
+      }}) as { id: string };
+      setDisputeOpen(false);
+      navigate({ to: "/disputes/$id", params: { id: res.id } });
+    } catch (e) { setError((e as Error).message); setBusy(false); }
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen flex flex-col bg-background">
-        <AppHeader email={user.email} section="Transacción" />
+        <AppHeader email={user.email} userId={user.id} section="Transacción" />
         <div className="container-editorial py-16 text-sm text-muted-foreground">Cargando…</div>
       </div>
     );
@@ -158,7 +176,7 @@ function TxDetail() {
   if (!tx) {
     return (
       <div className="min-h-screen flex flex-col bg-background">
-        <AppHeader email={user.email} section="Transacción" />
+        <AppHeader email={user.email} userId={user.id} section="Transacción" />
         <div className="container-editorial py-16">
           <h1 className="font-display text-4xl">Transacción no encontrada</h1>
           <Link to="/transactions" className="mt-4 inline-block underline underline-offset-4">Volver</Link>
@@ -175,7 +193,7 @@ function TxDetail() {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <AppHeader email={user.email} section="Transacción" />
+      <AppHeader email={user.email} userId={user.id} section="Transacción" />
       <main className="flex-1">
         <div className="container-editorial py-10 max-w-5xl">
           <div className="flex items-center justify-between gap-4 mb-6">
@@ -232,8 +250,11 @@ function TxDetail() {
                     Liberar fondos al vendedor
                   </button>
                 )}
-                <button disabled={busy} onClick={() => updateStatus("disputed")} className={btnDanger}>Abrir disputa</button>
+                <button disabled={busy} onClick={() => setDisputeOpen(true)} className={btnDanger}>Abrir disputa</button>
               </>
+            )}
+            {tx.status === "disputed" && (
+              <Link to="/disputes" className={btnGhost}>Ir a la disputa</Link>
             )}
           </div>
 
@@ -335,6 +356,37 @@ function TxDetail() {
           </section>
         </div>
       </main>
+
+      {disputeOpen && (
+        <div className="fixed inset-0 z-50 bg-black/50 grid place-items-center p-4" onClick={() => setDisputeOpen(false)}>
+          <div className="w-full max-w-lg border border-yokto-black bg-background p-6" onClick={(e) => e.stopPropagation()}>
+            <h3 className="font-display text-3xl tracking-wide">Abrir disputa</h3>
+            <p className="mt-1 text-sm text-muted-foreground">Detalla el problema con evidencia clara. Un mediador de YOKTO revisará el caso.</p>
+            <div className="mt-5 space-y-4">
+              <label className="block text-sm">
+                <span className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">Motivo</span>
+                <select value={disputeReason} onChange={(e) => setDisputeReason(e.target.value as never)} className="input-editorial w-full mt-1">
+                  <option value="not_delivered">No entregado</option>
+                  <option value="not_as_described">No como se describió</option>
+                  <option value="quality">Problemas de calidad</option>
+                  <option value="delay">Retraso significativo</option>
+                  <option value="fraud">Fraude</option>
+                  <option value="other">Otro</option>
+                </select>
+              </label>
+              <label className="block text-sm">
+                <span className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">Descripción (mín. 20 caracteres)</span>
+                <textarea rows={5} value={disputeDesc} onChange={(e) => setDisputeDesc(e.target.value)} className="input-editorial w-full mt-1" placeholder="Explica qué pasó, cuándo y qué esperas como resolución" />
+              </label>
+              {error && <div role="alert" className="border border-[#FF3B3B] bg-[#FF3B3B]/10 text-[#FF3B3B] p-3 text-sm">{error}</div>}
+              <div className="flex justify-end gap-2">
+                <button onClick={() => setDisputeOpen(false)} className={btnGhost}>Cancelar</button>
+                <button disabled={busy || disputeDesc.trim().length < 20} onClick={submitDispute} className={btnDanger}>Abrir disputa</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
