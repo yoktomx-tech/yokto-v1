@@ -502,11 +502,38 @@ function Step3Fiscal({ onSaved, onBack, setError, loading, setLoading }: {
       setRfcCheck({ ok: r.valid, msg: r.valid ? "RFC con formato válido" : (r.error ?? "RFC inválido") });
     } finally { setRfcChecking(false); }
   }
-  function onCurpBlur() {
-    if (!f.curp) return setCurpError(null);
-    const norm = normalizeCurp(f.curp); set("curp", norm);
-    const c = validateCurp(norm);
-    setCurpError(c.valid ? null : (c.error ?? "CURP inválida"));
+  function onCurpChange(v: string) {
+    const norm = normalizeCurp(v);
+    set("curp", norm);
+    if (curpVerified) setCurpVerified(null);
+    setCurpError(null);
+  }
+  async function validateCurpAction() {
+    setCurpError(null);
+    const norm = normalizeCurp(f.curp ?? "");
+    set("curp", norm);
+    const local = validateCurp(norm);
+    if (!local.valid) { setCurpError(local.error ?? "CURP inválida"); return; }
+    setCurpChecking(true);
+    try {
+      const r = await validateCurpFn({ data: { curp: norm } });
+      setCurpVerified({
+        nombre: r.nombre, apellidoPaterno: r.apellidoPaterno, apellidoMaterno: r.apellidoMaterno,
+        sexo: r.sexo, fechaNacimiento: r.fechaNacimiento, estadoNacimiento: r.estadoNacimiento,
+        estatusCurp: r.estatusCurp,
+      });
+      setF((p) => ({
+        ...p,
+        first_name: r.nombre || p.first_name,
+        last_name: r.apellidoPaterno || p.last_name,
+        second_last_name: r.apellidoMaterno || p.second_last_name,
+        birth_date: r.fechaNacimiento || p.birth_date,
+      }));
+    } catch (e) {
+      setCurpError(e instanceof Error ? e.message : "No se pudo validar la CURP");
+    } finally {
+      setCurpChecking(false);
+    }
   }
 
   const regimenes = tipo === "persona_fisica" ? REGIMEN_FISICA : REGIMEN_MORAL;
