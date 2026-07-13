@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      api_clients: {
+        Row: {
+          active: boolean
+          created_at: string
+          id: string
+          key_id: string
+          last_used_at: string | null
+          name: string
+          owner_id: string
+          scopes: string[]
+          secret_hash: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          key_id: string
+          last_used_at?: string | null
+          name: string
+          owner_id: string
+          scopes?: string[]
+          secret_hash: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          key_id?: string
+          last_used_at?: string | null
+          name?: string
+          owner_id?: string
+          scopes?: string[]
+          secret_hash?: string
+        }
+        Relationships: []
+      }
       connected_accounts: {
         Row: {
           charges_enabled: boolean
@@ -437,6 +473,50 @@ export type Database = {
         }
         Relationships: []
       }
+      reports_ledger: {
+        Row: {
+          created_at: string
+          id: string
+          kind: string
+          metadata: Json | null
+          owner_id: string
+          period_from: string | null
+          period_to: string | null
+          row_count: number | null
+          transaction_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          kind: string
+          metadata?: Json | null
+          owner_id: string
+          period_from?: string | null
+          period_to?: string | null
+          row_count?: number | null
+          transaction_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          kind?: string
+          metadata?: Json | null
+          owner_id?: string
+          period_from?: string | null
+          period_to?: string | null
+          row_count?: number | null
+          transaction_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reports_ledger_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       transaction_conditions: {
         Row: {
           created_at: string
@@ -608,6 +688,71 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      verification_evidence: {
+        Row: {
+          ai_model: string | null
+          ai_provider: string | null
+          ai_raw: Json | null
+          ai_score: number | null
+          ai_summary: string | null
+          ai_verdict: string | null
+          analyzed_at: string | null
+          created_at: string
+          file_name: string
+          file_path: string
+          id: string
+          mime_type: string | null
+          note: string | null
+          size_bytes: number | null
+          transaction_id: string
+          uploaded_by: string
+        }
+        Insert: {
+          ai_model?: string | null
+          ai_provider?: string | null
+          ai_raw?: Json | null
+          ai_score?: number | null
+          ai_summary?: string | null
+          ai_verdict?: string | null
+          analyzed_at?: string | null
+          created_at?: string
+          file_name: string
+          file_path: string
+          id?: string
+          mime_type?: string | null
+          note?: string | null
+          size_bytes?: number | null
+          transaction_id: string
+          uploaded_by: string
+        }
+        Update: {
+          ai_model?: string | null
+          ai_provider?: string | null
+          ai_raw?: Json | null
+          ai_score?: number | null
+          ai_summary?: string | null
+          ai_verdict?: string | null
+          analyzed_at?: string | null
+          created_at?: string
+          file_name?: string
+          file_path?: string
+          id?: string
+          mime_type?: string | null
+          note?: string | null
+          size_bytes?: number | null
+          transaction_id?: string
+          uploaded_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "verification_evidence_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
