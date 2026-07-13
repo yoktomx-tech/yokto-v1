@@ -203,7 +203,7 @@ export const saveOnboardingStep = createServerFn({ method: "POST" })
         rfc: data.rfc.toUpperCase(),
         curp: data.curp.toUpperCase(),
         regimen_fiscal: data.regimen_fiscal,
-        uso_cfdi_default: data.uso_cfdi_default,
+        uso_cfdi_default: data.uso_cfdi_default ?? null,
         fiscal_street: data.fiscal_street,
         fiscal_ext_number: data.fiscal_ext_number,
         fiscal_int_number: data.fiscal_int_number ?? null,
