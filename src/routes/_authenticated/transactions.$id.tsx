@@ -58,7 +58,7 @@ function TxDetail() {
   useEffect(() => { load(); }, [id]);
 
   async function logEvent(event_type: string, metadata: Record<string, unknown> = {}) {
-    await supabase.from("transaction_events").insert({ transaction_id: id, actor_id: user.id, event_type, metadata });
+    await supabase.from("transaction_events").insert({ transaction_id: id, actor_id: user.id, event_type, metadata: metadata as never });
   }
 
   async function updateStatus(status: TxStatus, extra: Partial<Tx> = {}) {
