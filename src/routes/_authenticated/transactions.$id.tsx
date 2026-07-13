@@ -152,6 +152,19 @@ function TxDetail() {
     setBusy(false);
   }
 
+  async function submitDispute() {
+    setBusy(true); setError(null);
+    try {
+      const res = await openDisputeFn({ data: {
+        transactionId: id,
+        reasonCode: disputeReason,
+        reasonDescription: disputeDesc.trim(),
+      }}) as { id: string };
+      setDisputeOpen(false);
+      navigate({ to: "/disputes/$id", params: { id: res.id } });
+    } catch (e) { setError((e as Error).message); setBusy(false); }
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen flex flex-col bg-background">
