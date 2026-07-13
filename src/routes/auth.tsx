@@ -244,21 +244,8 @@ function AuthPage() {
               </button>
             </form>
 
-            <div className="my-5 flex items-center gap-3" aria-hidden>
-              <div className="h-px flex-1 bg-white/[0.08]" />
-              <span className="text-[11px] uppercase tracking-widest text-yokto-text-3">o</span>
-              <div className="h-px flex-1 bg-white/[0.08]" />
-            </div>
 
-            <button
-              onClick={handleGoogle}
-              disabled={loading}
-              type="button"
-              className="w-full inline-flex items-center justify-center gap-3 min-h-11 px-5 rounded-md border border-white/[0.10] hover:border-white/[0.20] bg-yokto-hover/50 hover:bg-yokto-hover text-sm font-medium text-yokto-text-1 transition disabled:opacity-50"
-            >
-              <GoogleIcon className="size-4" />
-              Continuar con Google
-            </button>
+
 
             <p className="mt-6 text-sm text-yokto-text-2 text-center">
               {mode === "login" ? "¿No tienes una cuenta? " : "¿Ya tienes cuenta? "}
