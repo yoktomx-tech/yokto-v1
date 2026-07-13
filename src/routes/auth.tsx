@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { z } from "zod";
 import { Mail, Lock, Eye, EyeOff, User, Loader2, ShieldCheck, ArrowRight, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable";
+
 import { YoktoLogo } from "@/components/logo";
 
 const searchSchema = z.object({
