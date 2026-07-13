@@ -21,6 +21,7 @@ import { Route as AuthenticatedDashboardRouteImport } from './routes/_authentica
 import { Route as AuthenticatedTransactionsNewRouteImport } from './routes/_authenticated/transactions.new'
 import { Route as AuthenticatedTransactionsIdRouteImport } from './routes/_authenticated/transactions.$id'
 import { Route as AuthenticatedDisputesIdRouteImport } from './routes/_authenticated/disputes.$id'
+import { Route as ApiPublicV1TransactionsRouteImport } from './routes/api/public/v1.transactions'
 
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
@@ -84,6 +85,11 @@ const AuthenticatedDisputesIdRoute = AuthenticatedDisputesIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => AuthenticatedDisputesRoute,
 } as any)
+const ApiPublicV1TransactionsRoute = ApiPublicV1TransactionsRouteImport.update({
+  id: '/api/public/v1/transactions',
+  path: '/api/public/v1/transactions',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -97,6 +103,7 @@ export interface FileRoutesByFullPath {
   '/disputes/$id': typeof AuthenticatedDisputesIdRoute
   '/transactions/$id': typeof AuthenticatedTransactionsIdRoute
   '/transactions/new': typeof AuthenticatedTransactionsNewRoute
+  '/api/public/v1/transactions': typeof ApiPublicV1TransactionsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -110,6 +117,7 @@ export interface FileRoutesByTo {
   '/disputes/$id': typeof AuthenticatedDisputesIdRoute
   '/transactions/$id': typeof AuthenticatedTransactionsIdRoute
   '/transactions/new': typeof AuthenticatedTransactionsNewRoute
+  '/api/public/v1/transactions': typeof ApiPublicV1TransactionsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -125,6 +133,7 @@ export interface FileRoutesById {
   '/_authenticated/disputes/$id': typeof AuthenticatedDisputesIdRoute
   '/_authenticated/transactions/$id': typeof AuthenticatedTransactionsIdRoute
   '/_authenticated/transactions/new': typeof AuthenticatedTransactionsNewRoute
+  '/api/public/v1/transactions': typeof ApiPublicV1TransactionsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -140,6 +149,7 @@ export interface FileRouteTypes {
     | '/disputes/$id'
     | '/transactions/$id'
     | '/transactions/new'
+    | '/api/public/v1/transactions'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -153,6 +163,7 @@ export interface FileRouteTypes {
     | '/disputes/$id'
     | '/transactions/$id'
     | '/transactions/new'
+    | '/api/public/v1/transactions'
   id:
     | '__root__'
     | '/'
@@ -167,6 +178,7 @@ export interface FileRouteTypes {
     | '/_authenticated/disputes/$id'
     | '/_authenticated/transactions/$id'
     | '/_authenticated/transactions/new'
+    | '/api/public/v1/transactions'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -174,6 +186,7 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  ApiPublicV1TransactionsRoute: typeof ApiPublicV1TransactionsRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -262,6 +275,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDisputesIdRouteImport
       parentRoute: typeof AuthenticatedDisputesRoute
     }
+    '/api/public/v1/transactions': {
+      id: '/api/public/v1/transactions'
+      path: '/api/public/v1/transactions'
+      fullPath: '/api/public/v1/transactions'
+      preLoaderRoute: typeof ApiPublicV1TransactionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -318,6 +338,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  ApiPublicV1TransactionsRoute: ApiPublicV1TransactionsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
