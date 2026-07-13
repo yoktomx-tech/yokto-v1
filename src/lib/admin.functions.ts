@@ -14,7 +14,7 @@ void ({} as Sb);
 export const adminOverview = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    await assertAdmin(context.supabase, context.userId);
+    await assertAdmin(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
     const [{ data: profiles }, { data: txs }, { data: disputes }, { data: kyc }] = await Promise.all([
@@ -45,7 +45,7 @@ export const adminSetKycStatus = createServerFn({ method: "POST" })
     status: z.enum(["pending", "in_review", "approved", "rejected"]),
   }).parse(i))
   .handler(async ({ data, context }) => {
-    await assertAdmin(context.supabase, context.userId);
+    await assertAdmin(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { error } = await supabaseAdmin
       .from("profiles")
@@ -62,7 +62,7 @@ export const adminGrantRole = createServerFn({ method: "POST" })
     role: z.enum(["buyer", "seller", "admin"]),
   }).parse(i))
   .handler(async ({ data, context }) => {
-    await assertAdmin(context.supabase, context.userId);
+    await assertAdmin(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { error } = await supabaseAdmin
       .from("user_roles")
@@ -79,7 +79,7 @@ export const adminForceResolveDispute = createServerFn({ method: "POST" })
     note: z.string().max(1000).optional(),
   }).parse(i))
   .handler(async ({ data, context }) => {
-    await assertAdmin(context.supabase, context.userId);
+    await assertAdmin(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: d, error } = await supabaseAdmin
       .from("disputes")
