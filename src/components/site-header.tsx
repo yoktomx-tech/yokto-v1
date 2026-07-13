@@ -85,16 +85,6 @@ export function SiteHeader() {
       {open && (
         <div className="md:hidden border-t border-white/[0.06] bg-yokto-elevated">
           <div className="container-editorial flex flex-col py-4 gap-1">
-            {nav.map((item) => (
-              <Link
-                key={item.to}
-                to={item.to}
-                onClick={() => setOpen(false)}
-                className="px-3 py-2.5 rounded-md text-sm font-medium text-yokto-text-2 hover:text-yokto-text-1 hover:bg-yokto-hover"
-              >
-                {item.label}
-              </Link>
-            ))}
             <Link
               to={authed ? "/dashboard" : "/auth"}
               onClick={() => setOpen(false)}
