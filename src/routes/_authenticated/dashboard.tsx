@@ -1,17 +1,17 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
-import { ArrowRight, ShieldCheck, Wallet, UserCheck, ArrowUpRight } from "lucide-react";
+import { createFileRoute } from "@tanstack/react-router";
+import { useEffect, useMemo, useState } from "react";
+import { Lock, Activity, AlertCircle, Star } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 import { AppHeader } from "@/components/app-header";
-
-type Profile = {
-  first_name: string | null;
-  last_name: string | null;
-  email: string | null;
-  kyc_status: "pending" | "in_review" | "approved" | "rejected";
-  onboarding_completed: boolean;
-  account_type: string | null;
-};
+import { MetricCard } from "@/components/dashboard/metric-card";
+import { SectorChart, type SectorRow } from "@/components/dashboard/sector-chart";
+import { UpcomingDeadlines, type Deadline } from "@/components/dashboard/upcoming-deadlines";
+import { RecentTransactions, type TxRow } from "@/components/dashboard/recent-transactions";
+import { ActivityFeed, type ActivityItem } from "@/components/dashboard/activity-feed";
+import { QuickActionBar } from "@/components/dashboard/quick-action-bar";
+import { EmptyStateDashboard } from "@/components/dashboard/empty-state";
+import type { TxStatus } from "@/lib/tx";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
@@ -23,164 +23,234 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
   component: Dashboard,
 });
 
-const KYC_BADGE: Record<Profile["kyc_status"], { label: string; cls: string }> = {
-  pending:   { label: "Pendiente",   cls: "bg-yo-warn-bg text-yo-warn" },
-  in_review: { label: "En revisión", cls: "bg-yo-ac-bg   text-yo-ac-txt" },
-  approved:  { label: "Aprobado",    cls: "bg-yo-ok-bg   text-yo-ok" },
-  rejected:  { label: "Rechazado",   cls: "bg-yo-err-bg  text-yo-err" },
-};
+type Profile = { first_name: string | null; email: string | null; kyc_status: string };
+
+const CUSTODY_STATUSES: TxStatus[] = ["funded", "in_progress", "conditions_met", "disputed"];
+const ACTIVE_STATUSES: TxStatus[] = ["awaiting_funding", "funded", "in_progress", "conditions_met", "disputed"];
 
 function Dashboard() {
   const { user } = Route.useRouteContext();
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [roles, setRoles] = useState<string[]>([]);
+  const [txs, setTxs] = useState<TxRow[]>([]);
+  const [events, setEvents] = useState<ActivityItem[]>([]);
   const [loading, setLoading] = useState(true);
 
+  async function loadAll() {
+    const [{ data: p }, { data: t }, { data: e }] = await Promise.all([
+      supabase.from("profiles").select("first_name,email,kyc_status").eq("id", user.id).maybeSingle(),
+      supabase
+        .from("transactions")
+        .select("id,title,counterparty_email,seller_id,buyer_id,amount_cents,status,sector,created_at,delivery_deadline")
+        .or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`)
+        .order("created_at", { ascending: false })
+        .limit(50),
+      supabase
+        .from("transaction_events")
+        .select("id,event_type,transaction_id,metadata,created_at,transactions(title,buyer_id,seller_id)")
+        .order("created_at", { ascending: false })
+        .limit(15),
+    ]);
+    setProfile((p as Profile) ?? null);
+    setTxs((t ?? []) as TxRow[]);
+    setEvents(
+      ((e ?? []) as Array<ActivityItem & { transactions?: { title: string } | null }>)
+        .map((row) => ({
+          id: row.id,
+          event_type: row.event_type,
+          transaction_id: row.transaction_id,
+          transaction_title: row.transactions?.title,
+          metadata: row.metadata,
+          created_at: row.created_at,
+        }))
+    );
+    setLoading(false);
+  }
+
   useEffect(() => {
-    (async () => {
-      const [p, r] = await Promise.all([
-        supabase.from("profiles").select("first_name,last_name,email,kyc_status,onboarding_completed,account_type").eq("id", user.id).maybeSingle(),
-        supabase.from("user_roles").select("role").eq("user_id", user.id),
-      ]);
-      setProfile((p.data as Profile) ?? null);
-      setRoles((r.data ?? []).map((x: { role: string }) => x.role));
-      setLoading(false);
-    })();
+    loadAll();
+    // Realtime: notifications toast + refetch on tx changes
+    const chTx = supabase
+      .channel(`tx-${user.id}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "transactions", filter: `buyer_id=eq.${user.id}` }, () => loadAll())
+      .on("postgres_changes", { event: "*", schema: "public", table: "transactions", filter: `seller_id=eq.${user.id}` }, () => loadAll())
+      .subscribe();
+    const chNotif = supabase
+      .channel(`dash-notif-${user.id}`)
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "notifications", filter: `user_id=eq.${user.id}` }, (payload) => {
+        const n = payload.new as { title: string; body: string | null };
+        toast(n.title, { description: n.body ?? undefined });
+      })
+      .subscribe();
+    return () => {
+      supabase.removeChannel(chTx);
+      supabase.removeChannel(chNotif);
+    };
+     
   }, [user.id]);
 
+  const metrics = useMemo(() => {
+    const custody = txs
+      .filter((t) => CUSTODY_STATUSES.includes(t.status))
+      .reduce((s, t) => s + t.amount_cents, 0);
+    const active = txs.filter((t) => ACTIVE_STATUSES.includes(t.status)).length;
+    const needsAction = txs.filter((t) =>
+      (t.buyer_id === user.id && t.status === "awaiting_funding") ||
+      (t.seller_id === user.id && t.status === "conditions_met") ||
+      t.status === "disputed"
+    ).length;
+    const kycOk = profile?.kyc_status === "approved";
+    // Simple derived SGY score: base 400 + KYC 300 + tx activity
+    const score = Math.min(1000, 400 + (kycOk ? 300 : profile?.kyc_status === "in_review" ? 150 : 0) + active * 20 + Math.min(200, txs.filter((t) => t.status === "released").length * 40));
+    return { custody, active, needsAction, score };
+  }, [txs, profile, user.id]);
+
+  const sectorData: SectorRow[] = useMemo(() => {
+    const map = new Map<string, { count: number; total: number }>();
+    txs.filter((t) => ACTIVE_STATUSES.includes(t.status)).forEach((t) => {
+      const k = t.sector ?? "Otro";
+      const cur = map.get(k) ?? { count: 0, total: 0 };
+      cur.count += 1;
+      cur.total += t.amount_cents;
+      map.set(k, cur);
+    });
+    return Array.from(map.entries())
+      .map(([sector, v]) => ({ sector, count: v.count, total_cents: v.total }))
+      .sort((a, b) => b.count - a.count);
+  }, [txs]);
+
+  const deadlines: Deadline[] = useMemo(() => {
+    const now = Date.now();
+    const in7d = now + 7 * 86400_000;
+    return txs
+      .filter((t): t is TxRow & { delivery_deadline: string } => {
+        const raw = (t as unknown as { delivery_deadline?: string | null }).delivery_deadline;
+        if (!raw) return false;
+        const ts = new Date(raw).getTime();
+        return ACTIVE_STATUSES.includes(t.status) && ts <= in7d;
+      })
+      .sort((a, b) => new Date(a.delivery_deadline).getTime() - new Date(b.delivery_deadline).getTime())
+      .slice(0, 6)
+      .map((t) => ({
+        id: t.id,
+        title: t.title,
+        counterparty: t.counterparty_email ?? "—",
+        delivery_deadline: t.delivery_deadline,
+        status: t.status,
+      }));
+  }, [txs]);
+
   const displayName = profile?.first_name || profile?.email?.split("@")[0] || "Operador";
-  const approved = profile?.kyc_status === "approved";
+  const isEmpty = !loading && txs.length === 0;
 
   return (
-    <div className="min-h-dvh flex flex-col bg-yo-bg">
+    <>
       <AppHeader email={user.email} userId={user.id} section="Panel" />
-
-      <main className="flex-1">
-        <div className="container-editorial py-8 lg:py-12">
-          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
-            <div className="min-w-0">
-              <p className="text-[10px] uppercase tracking-[0.14em] text-yo-txt-3 font-semibold">Bienvenido</p>
-              <h1 className="mt-2 text-3xl md:text-4xl font-bold text-yo-txt tracking-tight">
-                Hola, {displayName}.
-              </h1>
-              <p className="mt-2 max-w-2xl text-sm text-yo-txt-2">
-                Este es tu panel de operaciones YOKTO. Controla transacciones, verificaciones y liberaciones de fondos.
-              </p>
-            </div>
-            {approved && (
-              <Link
-                to="/transactions/new"
-                className="inline-flex items-center gap-2 rounded-md bg-yo-ac hover:bg-yo-ac-h text-white text-sm font-semibold px-4 py-2.5 shadow-sm transition"
-              >
-                Nueva transacción
-                <ArrowRight className="size-4" />
-              </Link>
-            )}
+      <main className="flex-1 min-w-0">
+        <div className="px-4 sm:px-6 lg:px-8 py-6 lg:py-8 max-w-[1400px] mx-auto">
+          <div>
+            <p className="text-[10px] uppercase tracking-[0.14em] text-yo-txt-3 font-semibold">Bienvenido</p>
+            <h1 className="mt-1 text-2xl md:text-3xl font-bold text-yo-txt tracking-tight">
+              Hola, {displayName}.
+            </h1>
+            <p className="mt-1 text-sm text-yo-txt-2">
+              Este es tu centro de control YOKTO. Fondos custodiados, transacciones activas y alertas críticas.
+            </p>
           </div>
 
-          {loading ? (
-            <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
-              {[0, 1, 2].map((i) => (
-                <div key={i} className="h-32 rounded-[10px] bg-yo-surface border border-yo-border animate-pulse" />
-              ))}
-            </div>
+          {isEmpty ? (
+            <EmptyStateDashboard name={displayName} />
           ) : (
             <>
-              <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* KPIs */}
+              <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <MetricCard
-                  label="Estado KYC"
-                  value={profile ? KYC_BADGE[profile.kyc_status].label : "—"}
-                  icon={ShieldCheck}
-                  accent={profile ? KYC_BADGE[profile.kyc_status].cls : undefined}
-                  accentLine={profile?.kyc_status === "approved" ? "bg-yo-ok" : profile?.kyc_status === "rejected" ? "bg-yo-err" : "bg-yo-ac"}
+                  loading={loading}
+                  titulo="Fondos en retención"
+                  valor={metrics.custody / 100 * 100}
+                  formato="MONEDA_MXN"
+                  icon={Lock}
+                  variant="custody"
                 />
                 <MetricCard
-                  label="Roles asignados"
-                  value={roles.length ? roles.join(", ") : "buyer"}
-                  icon={UserCheck}
-                  accentLine="bg-yo-ac"
+                  loading={loading}
+                  titulo="Transacciones activas"
+                  valor={metrics.active}
+                  formato="NUMERO"
+                  icon={Activity}
                 />
                 <MetricCard
-                  label="Onboarding"
-                  value={profile?.onboarding_completed ? "Completo" : "Incompleto"}
-                  icon={Wallet}
-                  accent={
-                    profile?.onboarding_completed
-                      ? "bg-yo-ok-bg text-yo-ok"
-                      : "bg-yo-warn-bg text-yo-warn"
+                  loading={loading}
+                  titulo="Requieren atención"
+                  valor={metrics.needsAction}
+                  formato="NUMERO"
+                  icon={AlertCircle}
+                  variant="urgent"
+                  accion={metrics.needsAction > 0 ? { label: "Ver pendientes", href: "/transactions" } : undefined}
+                />
+                <MetricCard
+                  loading={loading}
+                  titulo="Tu Score YOKTO"
+                  valor={metrics.score}
+                  formato="NUMERO"
+                  icon={Star}
+                  variant="score"
+                  scoreCategory={
+                    metrics.score >= 850 ? "Élite" :
+                    metrics.score >= 700 ? "Premium" :
+                    metrics.score >= 500 ? "Confiable" :
+                    metrics.score >= 300 ? "Básico" : "Nuevo"
                   }
-                  accentLine={profile?.onboarding_completed ? "bg-yo-ok" : "bg-yo-warn"}
                 />
               </div>
 
-              <div className="mt-6 relative overflow-hidden rounded-xl border border-yo-border bg-yo-surface p-6 md:p-8 shadow-sm">
-                <div aria-hidden className="absolute top-0 inset-x-0 h-[2px] bg-yo-ac" />
-                <div className="relative">
-                  <p className="text-[10px] uppercase tracking-[0.14em] text-yo-txt-3 font-semibold">Próximo paso</p>
-                  <h2 className="mt-2 text-2xl md:text-3xl font-bold text-yo-txt tracking-tight">
-                    {approved ? "Crea tu primera transacción" : "Completa tu verificación KYC"}
-                  </h2>
-                  <p className="mt-3 text-sm text-yo-txt-2 max-w-xl leading-relaxed">
-                    {approved
-                      ? "Ya puedes iniciar operaciones de pago contra cumplimiento con contrapartes verificadas."
-                      : "Sube tus documentos fiscales y de identidad para habilitar operaciones."}
-                  </p>
-                  <div className="mt-6 flex flex-wrap gap-3">
-                    {approved ? (
-                      <Link
-                        to="/transactions/new"
-                        className="inline-flex items-center gap-2 rounded-md bg-yo-ac hover:bg-yo-ac-h text-white text-sm font-semibold px-5 py-2.5 shadow-sm transition"
-                      >
-                        Crear transacción
-                        <ArrowRight className="size-4" />
-                      </Link>
-                    ) : (
-                      <Link
-                        to="/kyc"
-                        className="inline-flex items-center gap-2 rounded-md bg-yo-ac hover:bg-yo-ac-h text-white text-sm font-semibold px-5 py-2.5 shadow-sm transition"
-                      >
-                        {profile?.kyc_status === "in_review" ? "Ver estado KYC" : "Iniciar KYC"}
-                        <ArrowRight className="size-4" />
-                      </Link>
-                    )}
-                  </div>
-                </div>
+              {/* Fila 2: sectores + vencimientos */}
+              <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <Card title="Transacciones activas por sector">
+                  {loading ? <Skeleton /> : <SectorChart data={sectorData} />}
+                </Card>
+                <Card title="Próximos vencimientos (7 días)">
+                  {loading ? <Skeleton /> : <UpcomingDeadlines items={deadlines} />}
+                </Card>
               </div>
+
+              {/* Fila 3: tabla */}
+              <div className="mt-6">
+                <Card title="Transacciones recientes">
+                  {loading ? <Skeleton /> : <RecentTransactions rows={txs} userId={user.id} />}
+                </Card>
+              </div>
+
+              {/* Fila 4: actividad */}
+              <div className="mt-6">
+                <Card title="Actividad reciente">
+                  {loading ? <Skeleton /> : <ActivityFeed items={events} />}
+                </Card>
+              </div>
+
+              <QuickActionBar />
             </>
           )}
         </div>
       </main>
-    </div>
+    </>
   );
 }
 
-function MetricCard({
-  label, value, icon: Icon, accent, accentLine = "bg-yo-ac",
-}: {
-  label: string;
-  value: string;
-  icon: React.ComponentType<{ className?: string }>;
-  accent?: string;
-  accentLine?: string;
-}) {
+function Card({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="relative overflow-hidden rounded-[10px] bg-yo-surface border border-yo-border p-4 hover:shadow transition-shadow">
-      <div aria-hidden className={`absolute top-0 inset-x-0 h-[2px] ${accentLine}`} />
-      <div className="flex items-start justify-between">
-        <p className="text-[10px] font-semibold uppercase tracking-[0.06em] text-yo-txt-3">{label}</p>
-        <div className="grid place-items-center size-7 rounded-md bg-yo-ac-bg">
-          <Icon className="size-3.5 text-yo-ac" />
-        </div>
-      </div>
-      <div className="mt-3">
-        {accent ? (
-          <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-sm font-semibold ${accent}`}>
-            {value}
-          </span>
-        ) : (
-          <p className="text-2xl font-bold tracking-tight text-yo-txt truncate">{value}</p>
-        )}
-      </div>
+    <section className="rounded-xl border border-yo-border bg-yo-surface p-5">
+      <h2 className="text-sm font-bold text-yo-txt mb-4">{title}</h2>
+      {children}
+    </section>
+  );
+}
+
+function Skeleton() {
+  return (
+    <div className="space-y-3">
+      <div className="h-6 rounded bg-yo-raised animate-pulse" />
+      <div className="h-6 rounded bg-yo-raised animate-pulse w-4/5" />
+      <div className="h-6 rounded bg-yo-raised animate-pulse w-3/5" />
     </div>
   );
 }
