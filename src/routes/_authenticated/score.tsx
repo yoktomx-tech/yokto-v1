@@ -18,6 +18,12 @@ import {
   UserCheck,
   ChevronRight,
   X,
+  Lock,
+  UserPlus,
+  Building2,
+  User,
+  Briefcase,
+  ClipboardList,
 } from "lucide-react";
 import { PageHeader } from "@/components/page-header";
 import { useViewRole } from "@/hooks/use-view-role";
@@ -27,11 +33,17 @@ import {
   TONE_CLASSES,
   KYC_CFG,
   DOC_STATUS_CFG,
+  DOC_CATEGORY_LABEL,
   ALERT_TONE,
+  PERSON_TYPE_CFG,
   fmtDate,
   fmtDateTime,
   type ComplianceDoc,
   type ScoreComponent,
+  type PersonType,
+  type DocCategory,
+  type Representative,
+  type ComplianceProfile,
 } from "@/lib/score-mock";
 import { cn } from "@/lib/utils";
 
@@ -47,15 +59,20 @@ export const Route = createFileRoute("/_authenticated/score")({
 
 type TabKey = "resumen" | "kyc" | "docs" | "score" | "alerts" | "history" | "visibility";
 
-const TABS: { key: TabKey; label: string; icon: typeof ShieldCheck }[] = [
-  { key: "resumen", label: "Resumen", icon: BarChart3 },
-  { key: "kyc", label: "Verificación KYC/KYB", icon: UserCheck },
-  { key: "docs", label: "Documentos del Perfil", icon: FileText },
-  { key: "score", label: "Score y Métricas", icon: ShieldCheck },
-  { key: "alerts", label: "Alertas", icon: Bell },
-  { key: "history", label: "Historial", icon: History },
-  { key: "visibility", label: "Visibilidad", icon: Eye },
-];
+function buildTabs(personType: PersonType): { key: TabKey; label: string; icon: typeof ShieldCheck }[] {
+  const kycLabel = personType === "PM" ? "Verificación de Empresa" : "Verificación de Identidad";
+  const kycIcon = personType === "PM" ? Building2 : UserCheck;
+  return [
+    { key: "resumen", label: "Resumen", icon: BarChart3 },
+    { key: "kyc", label: kycLabel, icon: kycIcon },
+    { key: "docs", label: "Documentos del Perfil", icon: FileText },
+    { key: "score", label: "Indicadores", icon: ShieldCheck },
+    { key: "alerts", label: "Alertas", icon: Bell },
+    { key: "history", label: "Historial", icon: History },
+    { key: "visibility", label: "Visibilidad", icon: Eye },
+  ];
+}
+
 
 function Badge({ tone, children }: { tone: string; children: React.ReactNode }) {
   const c = TONE_CLASSES[tone] ?? TONE_CLASSES.neutral;
