@@ -1450,7 +1450,8 @@ function Step4Biometric({ onDone, onBack, setError }: {
     try {
       const s = await start({});
       setSession(s);
-      const dataUrl = await QRCode.toDataURL(s.mobile_url, { margin: 1, width: 320, color: { dark: "#0A0A0A", light: "#FFFFFF" } });
+      const url = `${window.location.origin}/biometrico/${s.token}`;
+      const dataUrl = await QRCode.toDataURL(url, { margin: 1, width: 320, color: { dark: "#0A0A0A", light: "#FFFFFF" } });
       setQrDataUrl(dataUrl);
     } catch (e) { setError((e as Error).message); }
     finally { setStarting(false); }
