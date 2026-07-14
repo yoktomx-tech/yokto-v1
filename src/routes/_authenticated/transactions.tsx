@@ -225,6 +225,36 @@ function TransactionsList() {
 
   const tabCounts = useMemo(() => countByTab(rows, getTabs(role)), [rows, role]);
 
+  const exportCsv = useCallback(() => {
+    const headers = ["numero","titulo","sector","estado","monto","moneda","contraparte","creado","limite_entrega"];
+    const esc = (v: unknown) => {
+      const s = v == null ? "" : String(v);
+      return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+    };
+    const lines = [headers.join(",")];
+    for (const r of filtered) {
+      lines.push([
+        r.numero ?? r.id.slice(0, 8),
+        r.title,
+        r.sector ?? "",
+        toUiStatus(r.status),
+        (r.amount_cents / 100).toFixed(2),
+        r.currency,
+        r.counterparty_email ?? r.beneficiario_nombre ?? "",
+        r.created_at,
+        r.delivery_deadline ?? "",
+      ].map(esc).join(","));
+    }
+    const blob = new Blob(["\uFEFF" + lines.join("\n")], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `yokto-transacciones-${new Date().toISOString().slice(0,10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }, [filtered]);
+
+
   return (
     <AppShell>
       <div className="flex flex-col gap-6">
