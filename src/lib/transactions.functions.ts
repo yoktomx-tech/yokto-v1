@@ -284,7 +284,12 @@ export const signAndActivateTransaction = createServerFn({ method: "POST" })
     const isBuyer = tx.buyer_id === context.userId;
     const isSeller = tx.seller_id === context.userId;
 
-    const update: Record<string, unknown> = {};
+    const update: {
+      fecha_firma_pagador?: string;
+      fecha_firma_beneficiario?: string;
+      fecha_activacion?: string;
+      status?: "awaiting_funding" | "pending_signature";
+    } = {};
     if (isBuyer && !tx.fecha_firma_pagador) update.fecha_firma_pagador = now;
     if (isSeller && !tx.fecha_firma_beneficiario) update.fecha_firma_beneficiario = now;
 
@@ -300,6 +305,8 @@ export const signAndActivateTransaction = createServerFn({ method: "POST" })
       update.status = "pending_signature";
     }
 
+    const nuevoStatus = update.status;
+
     const { error: upErr } = await context.supabase
       .from("transactions")
       .update(update)
@@ -311,11 +318,11 @@ export const signAndActivateTransaction = createServerFn({ method: "POST" })
     if (contraparteId) {
       await context.supabase.from("notifications").insert({
         user_id: contraparteId,
-        type: update.status === "awaiting_funding" ? "transaction_activated" : "transaction_signature_requested",
-        title: update.status === "awaiting_funding"
+        type: nuevoStatus === "awaiting_funding" ? "transaction_activated" : "transaction_signature_requested",
+        title: nuevoStatus === "awaiting_funding"
           ? `Transacción ${tx.numero} activada`
           : `Firma pendiente: ${tx.numero}`,
-        body: update.status === "awaiting_funding"
+        body: nuevoStatus === "awaiting_funding"
           ? "Ambas partes firmaron. La transacción está lista para fondearse."
           : "Tu contraparte firmó la transacción. Revisa y firma para activarla.",
         link: `/transactions/${tx.id}`,
@@ -327,10 +334,11 @@ export const signAndActivateTransaction = createServerFn({ method: "POST" })
       transaction_id: tx.id,
       event_type: isBuyer ? "signed_by_buyer" : "signed_by_seller",
       actor_id: context.userId,
-      metadata: { status: update.status },
+      metadata: { status: nuevoStatus },
     });
 
-    return { ok: true, status: update.status as string, activated: update.status === "awaiting_funding" };
+    return { ok: true, status: nuevoStatus, activated: nuevoStatus === "awaiting_funding" };
   });
+
 
 
