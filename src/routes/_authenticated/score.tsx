@@ -808,22 +808,42 @@ function SidebarAlerts({ profile }: { profile: ReturnType<typeof getMockProfile>
   );
 }
 
-function NextActionsCard({ viewRole, onUpload }: { viewRole: "buyer" | "seller"; onUpload: () => void }) {
-  const actions =
-    viewRole === "buyer"
-      ? ["Completar verificación", "Subir documento", "Ver recomendaciones"]
-      : ["Subir documento", "Corregir observaciones", "Ver checklist de mejora"];
+function NextActionsCard({ personType, onUpload, onComplete }: { personType: PersonType; onUpload: () => void; onComplete: () => void }) {
+  const actions: { label: string; onClick: () => void }[] =
+    personType === "PF"
+      ? [
+          { label: "Actualizar identidad", onClick: onComplete },
+          { label: "Subir constancia fiscal", onClick: onUpload },
+          { label: "Validar teléfono", onClick: onComplete },
+          { label: "Validar CURP", onClick: onComplete },
+          { label: "Actualizar domicilio", onClick: onUpload },
+        ]
+      : personType === "PFAE"
+      ? [
+          { label: "Subir constancia fiscal", onClick: onUpload },
+          { label: "Actualizar actividad económica", onClick: onComplete },
+          { label: "Validar opinión SAT", onClick: onUpload },
+          { label: "Ver información visible", onClick: onComplete },
+        ]
+      : [
+          { label: "Actualizar empresa", onClick: onComplete },
+          { label: "Subir acta constitutiva", onClick: onUpload },
+          { label: "Agregar representante", onClick: onComplete },
+          { label: "Subir poder legal", onClick: onUpload },
+          { label: "Invitar contacto fiscal", onClick: onComplete },
+        ];
+
   return (
     <div className="rounded-lg border border-yo-border bg-yo-surface p-5">
       <h3 className="text-sm font-semibold text-yo-txt mb-3">Próximas acciones</h3>
       <div className="flex flex-col gap-2">
-        {actions.map((a, i) => (
+        {actions.map((a) => (
           <button
-            key={a}
-            onClick={i === 1 || (viewRole === "seller" && i === 0) ? onUpload : undefined}
+            key={a.label}
+            onClick={a.onClick}
             className="w-full text-left px-3 py-2 rounded-md bg-yo-raised hover:bg-yo-border text-sm text-yo-txt transition flex items-center justify-between"
           >
-            {a}
+            {a.label}
             <ChevronRight className="size-4 text-yo-txt-3" />
           </button>
         ))}
@@ -831,6 +851,78 @@ function NextActionsCard({ viewRole, onUpload }: { viewRole: "buyer" | "seller";
     </div>
   );
 }
+
+function CompleteProfileDrawer({ profile, onClose, onUpload }: { profile: ComplianceProfile; onClose: () => void; onUpload: () => void }) {
+  const pt = profile.personType;
+  const title = pt === "PM" ? "Completa tu perfil empresarial" : "Completa tu perfil personal";
+  const intro =
+    pt === "PM"
+      ? "Agrega documentación corporativa, representación legal y contactos autorizados para habilitar operaciones con mayor nivel de confianza."
+      : pt === "PFAE"
+      ? "Confirma tu régimen fiscal, actividad económica y documentación operativa para fortalecer tu perfil."
+      : "Sube tu identificación oficial, constancia fiscal y comprobante de domicilio para fortalecer tu Perfil de Cumplimiento.";
+  const pending = profile.checklist.filter((c) => !c.done);
+  const done = profile.checklist.filter((c) => c.done);
+  return (
+    <Drawer title={title} onClose={onClose}>
+      <div className="flex flex-col gap-4">
+        <p className="text-sm text-yo-txt-2">{intro}</p>
+
+        <div>
+          <h4 className="text-xs uppercase tracking-wider text-yo-txt-3 mb-2">Pendientes</h4>
+          <ul className="flex flex-col gap-2">
+            {pending.length === 0 && (
+              <li className="text-sm text-yo-txt-2 flex items-center gap-2">
+                <CheckCircle2 className="size-4 text-[#059669]" /> Sin pendientes en este perfil.
+              </li>
+            )}
+            {pending.map((c) => (
+              <li key={c.id} className="flex items-center gap-2 text-sm text-yo-txt">
+                <Circle className="size-4 text-yo-txt-3" /> {c.label}
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        {done.length > 0 && (
+          <div>
+            <h4 className="text-xs uppercase tracking-wider text-yo-txt-3 mb-2">Completos</h4>
+            <ul className="flex flex-col gap-2">
+              {done.map((c) => (
+                <li key={c.id} className="flex items-center gap-2 text-sm text-yo-txt-2 line-through">
+                  <CheckCircle2 className="size-4 text-[#059669]" /> {c.label}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        <div className="rounded-lg border border-[#EBEBF0] bg-[#F0F9FF] p-3 flex gap-2">
+          <Info className="size-4 text-[#0284C7] shrink-0 mt-0.5" />
+          <p className="text-xs text-[#0C4A6E]">
+            El tipo de perfil modifica los requisitos mínimos para crear, aceptar o participar en una operación dentro de YOKTO.
+          </p>
+        </div>
+
+        <div className="flex gap-2 pt-2">
+          <button onClick={onUpload} className="flex-1 rounded-lg bg-yo-ac hover:bg-yo-ac-h text-white px-3 py-2 text-sm font-medium">
+            Subir documentos
+          </button>
+          {pt === "PM" ? (
+            <button className="flex-1 rounded-lg border border-yo-border bg-yo-surface px-3 py-2 text-sm font-medium text-yo-txt hover:bg-yo-raised inline-flex items-center justify-center gap-2">
+              <UserPlus className="size-4" /> Agregar representante
+            </button>
+          ) : (
+            <button className="flex-1 rounded-lg border border-yo-border bg-yo-surface px-3 py-2 text-sm font-medium text-yo-txt hover:bg-yo-raised">
+              Validar ahora
+            </button>
+          )}
+        </div>
+      </div>
+    </Drawer>
+  );
+}
+
 
 function DisclaimerCard() {
   return (
