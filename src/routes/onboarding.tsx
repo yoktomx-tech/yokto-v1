@@ -133,9 +133,9 @@ function OnboardingWizard() {
             />
           )}
           {step === 4 && session && (
-            <Step4Identity
+            <Step4Biometric
               onDone={() => goNext(5)} onBack={goPrev}
-              setError={setError} loading={loading} setLoading={setLoading}
+              setError={setError}
             />
           )}
           {step === 5 && session && (
