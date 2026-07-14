@@ -216,20 +216,20 @@ function TxDetail() {
 
   async function handleCreateIntent(method: "spei" | "card") {
     setBusy(true); setError(null);
-    try { await createIntentFn({ data: { transactionId: id, method } }); await load(); }
-    catch (e) { setError((e as Error).message); }
+    try { await createIntentFn({ data: { transactionId: id, method } }); toast.success(method === "spei" ? "Instrucciones SPEI generadas" : "Intento de pago creado"); await load(); }
+    catch (e) { const msg = (e as Error).message; setError(msg); toast.error("No se pudo crear el intento", { description: msg }); }
     setBusy(false);
   }
   async function handleSimulateFunding(piId: string) {
     setBusy(true); setError(null);
-    try { await simulateFundingFn({ data: { paymentIntentId: piId } }); await load(); }
-    catch (e) { setError((e as Error).message); }
+    try { await simulateFundingFn({ data: { paymentIntentId: piId } }); toast.success("Fondeo recibido — recursos en custodia"); await load(); }
+    catch (e) { const msg = (e as Error).message; setError(msg); toast.error("No se pudo simular el fondeo", { description: msg }); }
     setBusy(false);
   }
   async function handleRelease() {
     setBusy(true); setError(null);
-    try { await releaseFundsFn({ data: { transactionId: id } }); await load(); }
-    catch (e) { setError((e as Error).message); }
+    try { await releaseFundsFn({ data: { transactionId: id } }); toast.success("Fondos liberados al beneficiario"); await load(); }
+    catch (e) { const msg = (e as Error).message; setError(msg); toast.error("No se pudo liberar el pago", { description: msg }); }
     setBusy(false);
   }
   async function submitDispute() {
