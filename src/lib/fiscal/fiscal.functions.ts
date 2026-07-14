@@ -471,7 +471,7 @@ export const acceptFiscalDocument = createServerFn({ method: "POST" })
         estado: "ACEPTADO",
         aceptado_por: userId,
         aceptado_at: new Date().toISOString(),
-        nota_revision: data.nota ?? null,
+
       })
       .eq("id", doc.id)
       .select("*")
