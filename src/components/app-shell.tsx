@@ -6,6 +6,8 @@ import {
 } from "lucide-react";
 import { YoktoLogo } from "@/components/logo";
 import { useViewRole, type ViewRole } from "@/hooks/use-view-role";
+import { useAuthUser } from "@/hooks/use-auth-user";
+import { AppHeader } from "@/components/app-header";
 import { cn } from "@/lib/utils";
 
 type NavItem = { to: string; icon: typeof LayoutDashboard; label: string };
