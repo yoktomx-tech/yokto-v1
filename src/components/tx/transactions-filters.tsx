@@ -24,7 +24,7 @@ type Props = {
   onChange: (v: TxFiltersState) => void;
 };
 
-export function TransactionsFilters({ value, onChange }: Props) {
+export const TransactionsFilters = forwardRef<HTMLInputElement, Props>(function TransactionsFilters({ value, onChange }, ref) {
   const active =
     value.q.trim() !== "" ||
     value.status !== "ALL" ||
@@ -36,9 +36,10 @@ export function TransactionsFilters({ value, onChange }: Props) {
       <div className="relative flex-1 min-w-0">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-yo-txt-3 pointer-events-none" />
         <Input
+          ref={ref}
           value={value.q}
           onChange={(e) => onChange({ ...value, q: e.target.value })}
-          placeholder="Buscar por ID, contraparte, RFC, monto o nombre de operación…"
+          placeholder="Buscar por ID, contraparte, RFC, monto o nombre de operación… ( / )"
           className="pl-9 h-9 text-sm"
         />
       </div>
