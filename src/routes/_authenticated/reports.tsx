@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Download, FileText, Loader2 } from "lucide-react";
 import { exportTransactionsCsv, listRecentReports, generateCfdiStub } from "@/lib/reports.functions";
 import { supabase } from "@/integrations/supabase/client";
+import { PageHeader } from "@/components/page-header";
 
 export const Route = createFileRoute("/_authenticated/reports")({
   head: () => ({ meta: [{ title: "Reportes — YOKTO" }, { name: "robots", content: "noindex" }] }),
