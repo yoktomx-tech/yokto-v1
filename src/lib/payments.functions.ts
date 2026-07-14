@@ -207,3 +207,239 @@ export const simulateAccountVerified = createServerFn({ method: "POST" })
       .eq("user_id", userId);
     return { ok: true };
   });
+
+// ---------- REFUND ----------
+export const refundTransaction = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { transactionId: string; reason: string; percentage?: number }) =>
+    z.object({
+      transactionId: uuid,
+      reason: z.string().min(10),
+      percentage: z.number().min(1).max(100).default(100),
+    }).parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const { data: tx } = await supabase
+      .from("transactions")
+      .select("id, buyer_id, seller_id, amount_cents, currency, status, numero")
+      .eq("id", data.transactionId)
+      .maybeSingle();
+    if (!tx) throw new Error("Transacción no encontrada");
+    if (tx.buyer_id !== userId) throw new Error("Solo el pagador puede solicitar devolución");
+    if (!["funded", "in_progress", "en_verificacion", "disputed", "conditions_met"].includes(tx.status)) {
+      throw new Error("La transacción no está en un estado que permita devolución");
+    }
+
+    // Descontar hitos ya liberados
+    const { data: hitosLiberados } = await supabase
+      .from("transaction_hitos")
+      .select("monto_cents")
+      .eq("transaction_id", tx.id)
+      .eq("estado", "aprobado");
+    const yaLiberado =
+      hitosLiberados?.reduce((s: number, h: { monto_cents?: number | null }) => s + (h.monto_cents ?? 0), 0) ?? 0;
+    const pendiente = Math.max(0, tx.amount_cents - yaLiberado);
+    const montoDevolver = Math.round((pendiente * data.percentage) / 100);
+    if (montoDevolver <= 0) throw new Error("No hay fondos disponibles para devolver");
+
+    // Refund vía Stripe si está activo, si no solo registrar
+    let providerRef = `mock_re_${Date.now().toString(36)}`;
+    const { getStripe } = await import("@/lib/stripe/client.server");
+    const stripe = getStripe();
+    if (stripe) {
+      const { data: pi } = await supabase
+        .from("payment_intents")
+        .select("provider_ref")
+        .eq("transaction_id", tx.id)
+        .eq("status", "succeeded")
+        .maybeSingle();
+      if (!pi?.provider_ref) throw new Error("No se encontró el pago original");
+      const refund = await stripe.refunds.create({
+        payment_intent: pi.provider_ref,
+        amount: montoDevolver,
+        reason: "requested_by_customer",
+        metadata: {
+          yokto_transaction_id: tx.id,
+          yokto_motivo: data.reason,
+          porcentaje: String(data.percentage),
+        },
+      });
+      providerRef = refund.id;
+    }
+
+    await supabase.from("transactions").update({ status: "refunded" }).eq("id", tx.id);
+    await supabase.from("transaction_events").insert({
+      transaction_id: tx.id,
+      actor_id: userId,
+      event_type: "funds.refunded",
+      metadata: {
+        provider_ref: providerRef,
+        amount_cents: montoDevolver,
+        percentage: data.percentage,
+        reason: data.reason,
+      } as never,
+    });
+
+    return { ok: true, refundId: providerRef, amountCents: montoDevolver };
+  });
+
+// ---------- MOVIMIENTOS (historial de pagos) ----------
+export const listPaymentMovements = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabase, userId } = context;
+
+    // PIs donde soy buyer
+    const { data: pis } = await supabase
+      .from("payment_intents")
+      .select("id, provider, provider_ref, method, amount_cents, currency, status, created_at, paid_at, transaction:transactions!inner(numero, buyer_id, seller_id)")
+      .or(`buyer_id.eq.${userId},seller_id.eq.${userId}`, { foreignTable: "transactions" });
+
+    // Payouts donde soy seller
+    const { data: pos } = await supabase
+      .from("payouts")
+      .select("id, provider, provider_ref, gross_cents, commission_cents, net_cents, currency, status, created_at, paid_at, seller_id, transaction:transactions!inner(numero, buyer_id, seller_id)");
+
+    type Row = {
+      id: string;
+      created_at: string;
+      kind: "deposito" | "liberacion" | "comision" | "devolucion" | "payout";
+      amount_cents: number;
+      currency: string;
+      description: string;
+      transaction_numero: string | null;
+      status: string;
+      provider_ref: string | null;
+    };
+
+    const movements: Row[] = [];
+
+    for (const p of pis ?? []) {
+      const tx = Array.isArray(p.transaction) ? p.transaction[0] : p.transaction;
+      const numero = tx?.numero ?? null;
+      const isBuyer = tx?.buyer_id === userId;
+      if (!isBuyer) continue;
+      movements.push({
+        id: p.id,
+        created_at: p.paid_at ?? p.created_at,
+        kind: "deposito",
+        amount_cents: p.amount_cents,
+        currency: p.currency,
+        description: `Depósito ${p.method.toUpperCase()}${numero ? " · " + numero : ""}`,
+        transaction_numero: numero,
+        status: p.status,
+        provider_ref: p.provider_ref,
+      });
+    }
+
+    for (const po of pos ?? []) {
+      const tx = Array.isArray(po.transaction) ? po.transaction[0] : po.transaction;
+      const numero = tx?.numero ?? null;
+      const isBuyer = tx?.buyer_id === userId;
+      const isSeller = tx?.seller_id === userId;
+      if (isSeller) {
+        movements.push({
+          id: `${po.id}-net`,
+          created_at: po.paid_at ?? po.created_at,
+          kind: "liberacion",
+          amount_cents: po.net_cents,
+          currency: po.currency,
+          description: `Liberación recibida${numero ? " · " + numero : ""}`,
+          transaction_numero: numero,
+          status: po.status,
+          provider_ref: po.provider_ref,
+        });
+      }
+      if (isBuyer) {
+        movements.push({
+          id: `${po.id}-com`,
+          created_at: po.paid_at ?? po.created_at,
+          kind: "comision",
+          amount_cents: po.commission_cents,
+          currency: po.currency,
+          description: `Comisión YOKTO${numero ? " · " + numero : ""}`,
+          transaction_numero: numero,
+          status: po.status,
+          provider_ref: po.provider_ref,
+        });
+      }
+    }
+
+    movements.sort((a, b) => (a.created_at < b.created_at ? 1 : -1));
+    return movements;
+  });
+
+// ---------- RESUMEN FINANCIERO ----------
+export const getPaymentsSummary = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabase, userId } = context;
+    const since = new Date(Date.now() - 30 * 24 * 3600 * 1000).toISOString();
+
+    // Retenido (fondeado, no liberado) como buyer
+    const { data: retenidas } = await supabase
+      .from("transactions")
+      .select("amount_cents")
+      .eq("buyer_id", userId)
+      .in("status", ["funded", "in_progress", "en_verificacion", "conditions_met", "partial_release", "disputed"]);
+    const retenidoCents = (retenidas ?? []).reduce((s, r) => s + (r.amount_cents ?? 0), 0);
+
+    // Por recibir como seller
+    const { data: porRecibir } = await supabase
+      .from("transactions")
+      .select("amount_cents, commission_bps")
+      .eq("seller_id", userId)
+      .in("status", ["funded", "in_progress", "en_verificacion", "conditions_met", "partial_release"]);
+    const porRecibirCents = (porRecibir ?? []).reduce((s, r) => {
+      const com = Math.round((r.amount_cents * (r.commission_bps ?? 0)) / 10000);
+      return s + ((r.amount_cents ?? 0) - com);
+    }, 0);
+
+    // Depositado 30d
+    const { data: dep } = await supabase
+      .from("payment_intents")
+      .select("amount_cents, transaction:transactions!inner(buyer_id)")
+      .eq("status", "succeeded")
+      .gte("created_at", since);
+    const depositadoMesCents = (dep ?? [])
+      .filter((d) => {
+        const tx = Array.isArray(d.transaction) ? d.transaction[0] : d.transaction;
+        return tx?.buyer_id === userId;
+      })
+      .reduce((s, d) => s + (d.amount_cents ?? 0), 0);
+
+    // Recibido 30d
+    const { data: rec } = await supabase
+      .from("payouts")
+      .select("net_cents, seller_id")
+      .eq("seller_id", userId)
+      .eq("status", "paid")
+      .gte("created_at", since);
+    const recibidoMesCents = (rec ?? []).reduce((s, r) => s + (r.net_cents ?? 0), 0);
+
+    return { retenidoCents, porRecibirCents, depositadoMesCents, recibidoMesCents, currency: "MXN" };
+  });
+
+// ---------- ONBOARDING LINK (Stripe Connect real) ----------
+export const getOnboardingLink = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabase, userId } = context;
+    const { data: acct } = await supabase
+      .from("connected_accounts")
+      .select("provider_account_id, provider")
+      .eq("user_id", userId)
+      .maybeSingle();
+    if (!acct?.provider_account_id) throw new Error("Sin cuenta conectada");
+
+    const returnUrl = `${process.env.YOKTO_APP_URL ?? "https://yokto.mx"}/payments`;
+    const { getPaymentProvider } = await import("@/lib/payments");
+    const link = await getPaymentProvider().getOnboardingLink(acct.provider_account_id, returnUrl);
+    await supabase
+      .from("connected_accounts")
+      .update({ requirements: { onboarding_url: link.url } as never })
+      .eq("user_id", userId);
+    return link;
+  });
+
