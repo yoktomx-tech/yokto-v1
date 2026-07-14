@@ -1,8 +1,10 @@
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useState } from "react";
+import { AlertTriangle } from "lucide-react";
 import { listMediatorDisputes, isCurrentUserMediator } from "@/lib/mediation.functions";
 import { formatMoney } from "@/lib/tx";
+import { PageHeader } from "@/components/page-header";
 
 export const Route = createFileRoute("/_authenticated/admin/disputes")({
   head: () => ({ meta: [{ title: "Panel de disputas — YOKTO" }, { name: "robots", content: "noindex" }] }),
