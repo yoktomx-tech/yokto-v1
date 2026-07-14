@@ -870,11 +870,12 @@ function FEES_PCT(sector: SectorId): number {
 
 // ─── Paso 5: Revisión y firma ───────────────────────────────────────────────
 function Step5({
-  numero, sector, rol, descripcion, contraparte, hitos, monto, metodoPago,
+  mode, numero, sector, rol, descripcion, contraparte, hitos, monto, metodoPago,
   fechaInicio, fechaFin,
   aceptaTerminos, setAceptaTerminos, aceptaRetencion, setAceptaRetencion,
   firmando, firmaResult, onFirmar,
 }: {
+  mode: "review" | "sign";
   numero: string | null;
   sector: SectorId | null;
   rol: Rol;
