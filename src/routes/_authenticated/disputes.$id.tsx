@@ -1,622 +1,490 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { useServerFn } from "@tanstack/react-start";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { formatMoney } from "@/lib/tx";
+import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { useState } from "react";
 import {
-  addDisputeMessage,
-  confirmDisputeDeposit,
-  resolveDispute,
-  withdrawDispute,
-} from "@/lib/disputes.functions";
-
-type Dispute = {
-  id: string;
-  numero: string | null;
-  transaction_id: string;
-  opened_by: string;
-  opened_role: "buyer" | "seller";
-  reason_code: string;
-  reason_description: string;
-  amount_disputed_cents: number;
-  status: string;
-  hito_id: string | null;
-  deposit_cents: number | null;
-  deposit_paid: boolean | null;
-  deposit_provider_ref: string | null;
-  activated_at: string | null;
-  counterparty_response_due_at: string | null;
-  evidence_due_at: string | null;
-  resolution_due_at: string | null;
-  resolution: string | null;
-  resolution_notes: string | null;
-  buyer_share_cents: number | null;
-  seller_share_cents: number | null;
-  loser_pays: string | null;
-  mediator_id: string | null;
-  resolved_at: string | null;
-  created_at: string;
-  transactions: {
-    title: string;
-    numero: string | null;
-    currency: string;
-    amount_cents: number;
-    buyer_id: string;
-    seller_id: string | null;
-  } | null;
-};
-
-type Msg = {
-  id: string;
-  author_id: string;
-  author_role: string;
-  message_type: string | null;
-  body: string;
-  evidence_urls: string[] | null;
-  attachments: unknown;
-  visible_to: string | null;
-  created_at: string;
-};
-
-type Ev = {
-  id: string;
-  event_type: string;
-  metadata: unknown;
-  created_at: string;
-};
-
-const STATUS_LABEL: Record<string, { label: string; tone: "warn" | "info" | "ok" | "danger" | "neutral" }> = {
-  pending_deposit: { label: "Pendiente de depósito", tone: "warn" },
-  open: { label: "Abierta", tone: "info" },
-  awaiting_response: { label: "Esperando respuesta", tone: "info" },
-  in_review: { label: "En revisión", tone: "info" },
-  in_mediation: { label: "En mediación", tone: "info" },
-  resolved: { label: "Resuelta", tone: "ok" },
-  closed: { label: "Cerrada", tone: "neutral" },
-  withdrawn: { label: "Retirada", tone: "neutral" },
-  cancelled: { label: "Cancelada", tone: "neutral" },
-  escalated: { label: "Escalada", tone: "danger" },
-};
-
-const REASON_LABEL: Record<string, string> = {
-  incumplimiento_hito: "Incumplimiento de hito",
-  documentos_invalidos: "Documentos inválidos",
-  mercancia_incompleta: "Mercancía incompleta",
-  calidad_insuficiente: "Calidad insuficiente",
-  plazo_vencido: "Plazo vencido",
-  fraude_sospechado: "Fraude sospechado",
-  condiciones_no_acordadas: "Condiciones no acordadas",
-  otro: "Otro",
-};
+  ArrowLeft, Download, Plus, X, Info, LockKeyhole, FileCheck, MessageSquare,
+  Clock, CheckCircle2, AlertTriangle, Paperclip, Send, Shield,
+} from "lucide-react";
+import {
+  MOCK_DISPUTES, STATUS_CFG, PRIORITY_CFG, SECTOR_CFG, REASON_LABEL,
+  slaLabel, isResolved, canAcceptResolution, canAddEvidence, canRespond,
+  type Dispute, type DisputeStatus, type SectorId, type DisputeEvidence,
+} from "@/lib/disputes-mock";
+import { useViewRole } from "@/hooks/use-view-role";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/disputes/$id")({
   head: () => ({ meta: [{ title: "Disputa — YOKTO" }, { name: "robots", content: "noindex" }] }),
+  loader: ({ params }) => {
+    const d = MOCK_DISPUTES.find((x) => x.id === params.id);
+    if (!d) throw notFound();
+    return { dispute: d };
+  },
+  errorComponent: ({ reset }) => (
+    <div className="p-8">
+      <p className="text-sm text-[#DC2626]">No fue posible cargar la disputa.</p>
+      <button onClick={reset} className="mt-2 text-xs text-[#4F46E5] hover:underline">Reintentar</button>
+    </div>
+  ),
+  notFoundComponent: () => (
+    <div className="p-8">
+      <p className="text-sm text-[#52525B]">Disputa no encontrada.</p>
+      <Link to="/disputes" className="mt-2 inline-block text-xs text-[#4F46E5] hover:underline">← Volver al listado</Link>
+    </div>
+  ),
   component: DisputeDetail,
 });
 
+const money = (c: number, cur = "MXN") =>
+  new Intl.NumberFormat("es-MX", { style: "currency", currency: cur, maximumFractionDigits: 2 }).format(c / 100);
+
+type ModalKind = null | "evidence" | "respond" | "propose" | "accept" | "review" | "request_evidence";
+
 function DisputeDetail() {
-  const { id } = Route.useParams();
-  const { user } = Route.useRouteContext();
-  const [d, setD] = useState<Dispute | null>(null);
-  const [msgs, setMsgs] = useState<Msg[]>([]);
-  const [events, setEvents] = useState<Ev[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [body, setBody] = useState("");
-  const [files, setFiles] = useState<File[]>([]);
-  const [signed, setSigned] = useState<Record<string, string>>({});
-  const [canMediate, setCanMediate] = useState(false);
-  const [withdrawOpen, setWithdrawOpen] = useState(false);
-  const [withdrawReason, setWithdrawReason] = useState("");
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const data = Route.useLoaderData() as { dispute: Dispute };
+  const d = data.dispute;
+  const { role } = useViewRole();
+  const actor = role as "buyer" | "seller";
+  const isBuyer = actor === "buyer";
+  const counter = isBuyer ? d.seller_name : d.buyer_name;
+  const sla = slaLabel(d.sla_due_at);
+  const [modal, setModal] = useState<ModalKind>(null);
+  const [message, setMessage] = useState("");
 
-  const addMsgFn = useServerFn(addDisputeMessage);
-  const resolveFn = useServerFn(resolveDispute);
-  const confirmDepositFn = useServerFn(confirmDisputeDeposit);
-  const withdrawFn = useServerFn(withdrawDispute);
-
-  const resolveSigned = useCallback(async (mm: Msg[]) => {
-    const paths = mm.flatMap((m) => m.evidence_urls ?? []);
-    if (!paths.length) { setSigned({}); return; }
-    const { data: sig } = await supabase.storage.from("dispute-evidence").createSignedUrls(paths, 3600);
-    const map: Record<string, string> = {};
-    sig?.forEach((s) => { if (s.path && s.signedUrl) map[s.path] = s.signedUrl; });
-    setSigned(map);
-  }, []);
-
-  const load = useCallback(async () => {
-    const [{ data: dd }, { data: mm }] = await Promise.all([
-      supabase
-        .from("disputes")
-        .select("*, transactions:transaction_id(title, numero, currency, amount_cents, buyer_id, seller_id)")
-        .eq("id", id)
-        .maybeSingle(),
-      supabase.from("dispute_messages").select("*").eq("dispute_id", id).order("created_at"),
-    ]);
-    const dispute = dd as unknown as Dispute | null;
-    setD(dispute);
-    const messages = (mm ?? []) as Msg[];
-    setMsgs(messages);
-    setLoading(false);
-    void resolveSigned(messages);
-
-    if (dispute) {
-      const { data: ev } = await supabase
-        .from("transaction_events")
-        .select("id, event_type, metadata, created_at")
-        .eq("transaction_id", dispute.transaction_id)
-        .like("event_type", "dispute.%")
-        .order("created_at");
-      setEvents((ev ?? []) as Ev[]);
-    }
-
-    const [{ data: isM }, { data: isA }] = await Promise.all([
-      supabase.rpc("has_role", { _user_id: user.id, _role: "mediator" }),
-      supabase.rpc("has_role", { _user_id: user.id, _role: "admin" }),
-    ]);
-    setCanMediate(Boolean(isM) || Boolean(isA));
-  }, [id, user.id, resolveSigned]);
-
-  useEffect(() => { void load(); }, [load]);
-
-  // Realtime — mensajes y disputa
-  useEffect(() => {
-    const ch = supabase
-      .channel(`dispute:${id}`)
-      .on(
-        "postgres_changes",
-        { event: "INSERT", schema: "public", table: "dispute_messages", filter: `dispute_id=eq.${id}` },
-        (payload) => {
-          const m = payload.new as Msg;
-          setMsgs((prev) => (prev.some((p) => p.id === m.id) ? prev : [...prev, m]));
-          if (m.evidence_urls?.length) void resolveSigned([m]);
-        },
-      )
-      .on(
-        "postgres_changes",
-        { event: "UPDATE", schema: "public", table: "disputes", filter: `id=eq.${id}` },
-        (payload) => {
-          setD((prev) => (prev ? ({ ...prev, ...(payload.new as Partial<Dispute>) } as Dispute) : prev));
-        },
-      )
-      .subscribe();
-    return () => { supabase.removeChannel(ch); };
-  }, [id, resolveSigned]);
-
-  // Auto-scroll on new messages
-  useEffect(() => {
-    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
-  }, [msgs.length]);
-
-  async function handleSend() {
-    if (!body.trim() && files.length === 0) return;
-    setBusy(true); setError(null);
-    try {
-      const paths: string[] = [];
-      for (const f of files) {
-        if (f.size > 20 * 1024 * 1024) throw new Error(`Archivo demasiado grande: ${f.name}`);
-        const safe = f.name.replace(/[^\w.\-]+/g, "_");
-        const path = `${user.id}/${id}/${Date.now()}_${safe}`;
-        const { error: upErr } = await supabase.storage.from("dispute-evidence").upload(path, f, { upsert: false });
-        if (upErr) throw new Error(upErr.message);
-        paths.push(path);
-      }
-      await addMsgFn({ data: { disputeId: id, body: body.trim() || "(evidencia adjunta)", evidenceUrls: paths } });
-      setBody(""); setFiles([]);
-      if (fileInputRef.current) fileInputRef.current.value = "";
-    } catch (e) { setError((e as Error).message); }
-    setBusy(false);
-  }
-
-  async function payDeposit() {
-    setBusy(true); setError(null);
-    try {
-      const res = await confirmDepositFn({ data: { disputeId: id } });
-      if (!res.ok) setError(`El pago no se completó (estado: ${res.status}).`);
-    } catch (e) { setError((e as Error).message); }
-    setBusy(false);
-  }
-
-  async function submitWithdraw() {
-    if (withdrawReason.trim().length < 10) return;
-    setBusy(true); setError(null);
-    try {
-      await withdrawFn({ data: { disputeId: id, reason: withdrawReason.trim() } });
-      setWithdrawOpen(false);
-      setWithdrawReason("");
-    } catch (e) { setError((e as Error).message); }
-    setBusy(false);
-  }
-
-  if (loading) return (
-    <div className="min-h-screen flex flex-col bg-background">
-      <div className="container-editorial py-16 text-sm text-muted-foreground">Cargando…</div>
-    </div>
-  );
-  if (!d) return (
-    <div className="min-h-screen flex flex-col bg-background">
-      <div className="container-editorial py-16"><h1 className="font-display text-4xl">Disputa no encontrada</h1></div>
-    </div>
-  );
-
-  const tx = d.transactions!;
-  const isActivator = d.opened_by === user.id;
-  const isParty = tx.buyer_id === user.id || tx.seller_id === user.id;
-  const canPost =
-    (isParty || canMediate) && ["open", "awaiting_response", "in_review", "in_mediation"].includes(d.status);
-  const canWithdraw =
-    isActivator && ["pending_deposit", "open", "awaiting_response", "in_review", "in_mediation"].includes(d.status);
-  const statusMeta = STATUS_LABEL[d.status] ?? { label: d.status, tone: "neutral" as const };
+  const [evTab, setEvTab] = useState<"ALL" | "BUYER" | "SELLER" | "VERIFIER" | "DOC" | "PHOTO" | "GPS">("ALL");
+  const evidence = d.evidence.filter((e) => {
+    if (evTab === "ALL") return true;
+    if (evTab === "BUYER") return e.uploaded_by_role === "buyer";
+    if (evTab === "SELLER") return e.uploaded_by_role === "seller";
+    if (evTab === "VERIFIER") return e.uploaded_by_role === "internal";
+    if (evTab === "DOC") return e.kind === "DOCUMENT";
+    if (evTab === "PHOTO") return e.kind === "PHOTO" || e.kind === "VIDEO";
+    if (evTab === "GPS") return e.kind === "GPS" || e.kind === "CHECKLIST";
+    return true;
+  });
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
-      <main className="flex-1">
-        <div className="container-editorial py-10 max-w-5xl">
-          <Link to="/disputes" className="text-[11px] uppercase tracking-[0.14em] font-semibold underline underline-offset-4">← Disputas</Link>
-          <div className="mt-4 flex items-baseline justify-between gap-4 flex-wrap">
-            <div>
-              <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
-                {d.numero ?? "Disputa"} · Transacción {tx.numero ?? ""}
-              </p>
-              <h1 className="mt-1 font-display text-4xl tracking-wide">{tx.title}</h1>
+    <div className="min-h-screen bg-[#F8F8FB]">
+      <div className="mx-auto max-w-[1400px] px-4 py-6 md:px-8 md:py-8">
+        {/* Breadcrumb + header */}
+        <Link to="/disputes" className="inline-flex items-center gap-1 text-xs text-[#52525B] hover:text-[#18181B]">
+          <ArrowLeft className="h-3 w-3" /> Volver a disputas
+        </Link>
+
+        <div className="mt-3 flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="font-mono text-sm font-medium text-[#18181B]">{d.code}</span>
+              <StatusBadge s={d.status} />
+              <span className="rounded-full px-2 py-0.5 text-[10px] font-medium" style={{ background: PRIORITY_CFG[d.priority].bg, color: PRIORITY_CFG[d.priority].txt }}>
+                Prioridad {PRIORITY_CFG[d.priority].label.toLowerCase()}
+              </span>
             </div>
-            <StatusPill tone={statusMeta.tone}>{statusMeta.label}</StatusPill>
+            <h1 className="mt-2 text-2xl font-semibold text-[#18181B]">Disputa {STATUS_CFG[d.status].label.toLowerCase()}</h1>
+            <p className="mt-1 text-sm text-[#52525B]">
+              Operación <span className="font-mono">{d.transaction_folio}</span> · <SectorPill s={d.sector} /> · {money(d.held_amount_cents, d.currency)} retenidos
+            </p>
           </div>
-
-          {/* Countdown banners */}
-          {d.status !== "resolved" && d.status !== "closed" && d.status !== "withdrawn" && (
-            <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-3">
-              <Countdown label="Respuesta contraparte" due={d.counterparty_response_due_at} />
-              <Countdown label="Cierre de evidencia" due={d.evidence_due_at} />
-              <Countdown label="Resolución final" due={d.resolution_due_at} />
-            </div>
-          )}
-
-          {/* Pending deposit banner */}
-          {d.status === "pending_deposit" && isActivator && (
-            <div className="mt-6 border-2 border-yokto-yellow bg-yokto-yellow/20 p-5">
-              <p className="text-[11px] uppercase tracking-[0.14em] font-semibold">Depósito pendiente</p>
-              <p className="mt-2 text-sm">
-                Para activar esta disputa debes cubrir el depósito de seriedad de{" "}
-                <strong>{formatMoney(d.deposit_cents ?? 0, tx.currency)}</strong>. Se devuelve si ganas la disputa; se retiene si la resolución te resulta desfavorable.
-              </p>
-              <div className="mt-4 flex flex-wrap gap-2">
-                <button disabled={busy} onClick={payDeposit} className="px-5 py-2.5 bg-yokto-black text-white text-[12px] uppercase tracking-[0.14em] font-semibold border border-yo-border disabled:opacity-50">
-                  {busy ? "Procesando…" : "Simular pago del depósito"}
-                </button>
-                <button disabled={busy} onClick={() => setWithdrawOpen(true)} className="px-5 py-2.5 bg-background text-[12px] uppercase tracking-[0.14em] font-semibold border border-yo-border">
-                  Cancelar disputa
-                </button>
-              </div>
-              <p className="mt-3 text-[11px] text-muted-foreground">
-                Modo desarrollo: el pago se simula. En producción abrirá la pasarela real.
-              </p>
-            </div>
-          )}
-
-          <div className="mt-6 grid grid-cols-1 md:grid-cols-4 gap-3">
-            <Kv k="Motivo" v={REASON_LABEL[d.reason_code] ?? d.reason_code} />
-            <Kv k="Abierta por" v={d.opened_role === "buyer" ? "Comprador" : "Vendedor"} />
-            <Kv k="Monto disputado" v={formatMoney(d.amount_disputed_cents, tx.currency)} />
-            <Kv k="Depósito" v={formatMoney(d.deposit_cents ?? 0, tx.currency)} />
+          <div className="flex flex-wrap items-center gap-2">
+            <Link to="/transactions/$id" params={{ id: d.transaction_id }} className="inline-flex items-center gap-2 rounded-[8px] border border-[#EBEBF0] bg-white px-3 py-2 text-sm text-[#52525B] hover:bg-[#F4F4F7]">
+              Ver operación
+            </Link>
+            <button className="inline-flex items-center gap-2 rounded-[8px] border border-[#EBEBF0] bg-white px-3 py-2 text-sm text-[#52525B] hover:bg-[#F4F4F7]">
+              <Download className="h-4 w-4" /> Exportar expediente
+            </button>
+            {canAddEvidence(actor, d) && (
+              <button onClick={() => setModal("evidence")} className="inline-flex items-center gap-2 rounded-[8px] bg-[#4F46E5] px-3 py-2 text-sm font-medium text-white hover:bg-[#4338CA]">
+                <Plus className="h-4 w-4" /> Agregar evidencia
+              </button>
+            )}
           </div>
-          <div className="mt-4 border border-yo-border p-4 bg-yo-bg/40">
-            <p className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">Descripción</p>
-            <p className="mt-1 text-sm whitespace-pre-line">{d.reason_description}</p>
-          </div>
+        </div>
 
-          {d.status === "resolved" && (
-            <div className="mt-6 border border-yo-border bg-yokto-yellow/40 p-5">
-              <p className="text-[11px] uppercase tracking-[0.14em] font-semibold">Resolución · {d.resolution}</p>
-              <p className="mt-2 text-sm whitespace-pre-line">{d.resolution_notes}</p>
-              <div className="mt-3 grid grid-cols-2 gap-3 text-sm">
-                <div><span className="text-muted-foreground">Comprador: </span>{formatMoney(d.buyer_share_cents ?? 0, tx.currency)}</div>
-                <div><span className="text-muted-foreground">Vendedor: </span>{formatMoney(d.seller_share_cents ?? 0, tx.currency)}</div>
+        {/* Neutrality */}
+        <div className="mt-4 flex items-start gap-2 rounded-[12px] border border-[#EBEBF0] bg-[#F0F9FF] px-4 py-3 text-xs text-[#0284C7]">
+          <Info className="mt-0.5 h-4 w-4 shrink-0" />
+          <p>La plataforma actúa como tercero neutral. La resolución se basará en las condiciones pactadas, evidencia presentada, documentos verificados y trazabilidad de la operación.</p>
+        </div>
+
+        {/* 70/30 layout */}
+        <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
+          {/* Main */}
+          <div className="space-y-4">
+            {/* Summary */}
+            <Card title="Resumen ejecutivo">
+              <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+                <KV k="Motivo" v={REASON_LABEL[d.reason]} />
+                <KV k="Solicitante" v={d.opened_by_role === "buyer" ? "Comprador" : "Vendedor"} />
+                <KV k="Contraparte" v={counter} />
+                <KV k="Fecha apertura" v={new Date(d.created_at).toLocaleDateString("es-MX")} />
+                <KV k="Monto afectado" v={money(d.affected_amount_cents, d.currency)} mono />
+                <KV k="Fondos retenidos" v={money(d.held_amount_cents, d.currency)} mono />
+                <KV k="Monto total" v={money(d.total_amount_cents, d.currency)} mono />
+                <KV k="SLA" v={sla.text} />
               </div>
-            </div>
-          )}
+              <p className="mt-3 rounded-[8px] bg-[#F4F4F7] p-3 text-xs text-[#52525B]">{d.description}</p>
+            </Card>
 
-          {error && <div role="alert" className="mt-6 border border-[#FF3B3B] bg-[#FF3B3B]/10 text-[#FF3B3B] p-3 text-sm">{error}</div>}
-
-          {/* Two-column: chat + timeline */}
-          <div className="mt-10 grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Chat */}
-            <section className="lg:col-span-2">
-              <div className="flex items-baseline justify-between">
-                <h2 className="font-display text-3xl tracking-wide">Hilo</h2>
-                {canWithdraw && (
-                  <button onClick={() => setWithdrawOpen(true)} className="text-[11px] uppercase tracking-[0.14em] font-semibold underline underline-offset-4 text-muted-foreground hover:text-foreground">
-                    Retirar disputa
-                  </button>
-                )}
-              </div>
-
-              <div ref={scrollRef} className="mt-4 border border-yo-border bg-background max-h-[520px] overflow-y-auto">
-                {msgs.length === 0 && (
-                  <p className="p-6 text-sm text-muted-foreground text-center">
-                    Sin mensajes todavía. Envía la primera actualización o evidencia.
-                  </p>
-                )}
-                <div className="divide-y divide-yo-border/40">
-                  {msgs.map((m) => (
-                    <MessageRow key={m.id} m={m} me={user.id} signed={signed} tx={tx} />
-                  ))}
+            {/* Operation link */}
+            <Card title="Operación vinculada">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <p className="text-sm font-medium text-[#18181B]">{d.transaction_title}</p>
+                  <p className="mt-0.5 text-xs text-[#52525B]"><span className="font-mono">{d.transaction_folio}</span> · <SectorPill s={d.sector} /></p>
+                  <div className="mt-3 grid grid-cols-2 gap-2 text-xs md:grid-cols-4">
+                    <MiniKV k="Comprador" v={d.buyer_name} />
+                    <MiniKV k="Vendedor" v={d.seller_name} />
+                    <MiniKV k="Total" v={money(d.total_amount_cents, d.currency)} mono />
+                    <MiniKV k="Retenido" v={money(d.held_amount_cents, d.currency)} mono />
+                  </div>
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <Link to="/transactions/$id" params={{ id: d.transaction_id }} className="rounded-[8px] border border-[#EBEBF0] bg-white px-3 py-1.5 text-xs text-[#52525B] hover:bg-[#F4F4F7]">Ver operación</Link>
+                  <Link to="/payments" className="rounded-[8px] border border-[#EBEBF0] bg-white px-3 py-1.5 text-xs text-[#52525B] hover:bg-[#F4F4F7]">Ver pagos</Link>
                 </div>
               </div>
+            </Card>
 
-              {canPost && (
-                <div className="mt-4 border border-yo-border bg-background p-4 space-y-3">
+            {/* Milestones */}
+            <Card title="Hitos relacionados">
+              <div className="overflow-hidden rounded-[8px] border border-[#EBEBF0]">
+                <table className="w-full text-sm">
+                  <thead className="bg-[#F4F4F7] text-[11px] uppercase tracking-wide text-[#71717A]">
+                    <tr>
+                      <th className="px-3 py-2 text-left font-medium">Hito</th>
+                      <th className="px-3 py-2 text-left font-medium">Estado</th>
+                      <th className="px-3 py-2 text-left font-medium">Evidencia</th>
+                      <th className="px-3 py-2 text-right font-medium">Monto</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {d.milestones.map((m) => (
+                      <tr key={m.id} className="border-t border-[#EBEBF0]">
+                        <td className="px-3 py-2 text-[#18181B]">{m.label}</td>
+                        <td className="px-3 py-2 text-xs text-[#52525B]">{m.status.replaceAll("_", " ").toLowerCase()}</td>
+                        <td className="px-3 py-2 text-xs">
+                          <span className={cn("rounded-full px-1.5 py-0.5", m.evidence_state === "COMPLETA" ? "bg-[#ECFDF5] text-[#059669]" : "bg-[#FFFBEB] text-[#B45309]")}>{m.evidence_state.toLowerCase()}</span>
+                        </td>
+                        <td className="px-3 py-2 text-right font-mono text-sm text-[#18181B]">{money(m.affected_amount_cents, d.currency)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </Card>
+
+            {/* Evidence */}
+            <Card
+              title="Evidencia presentada"
+              action={canAddEvidence(actor, d) && (
+                <button onClick={() => setModal("evidence")} className="text-xs font-medium text-[#4F46E5] hover:underline">+ Agregar</button>
+              )}
+            >
+              <div className="mb-3 flex flex-wrap gap-1 rounded-[8px] border border-[#EBEBF0] bg-[#F4F4F7] p-1">
+                {([
+                  ["ALL", "Todas"], ["BUYER", "Comprador"], ["SELLER", "Vendedor"],
+                  ["VERIFIER", "Verificador"], ["DOC", "Documentos"], ["PHOTO", "Fotos/Video"], ["GPS", "GPS/Checklist"],
+                ] as const).map(([k, l]) => (
+                  <button key={k} onClick={() => setEvTab(k)} className={cn("rounded-[6px] px-2 py-1 text-[11px] font-medium", evTab === k ? "bg-white text-[#3730A3] shadow-sm" : "text-[#52525B]")}>{l}</button>
+                ))}
+              </div>
+              {evidence.length === 0 ? (
+                <EmptyBlock icon={FileCheck} title="Aún no se ha agregado evidencia" body="Agrega documentos, fotos, checklist o comentarios que ayuden a acreditar tu posición." />
+              ) : (
+                <ul className="space-y-2">
+                  {evidence.map((e) => <EvidenceRow key={e.id} e={e} />)}
+                </ul>
+              )}
+            </Card>
+
+            {/* Messages */}
+            <Card title="Mensajes auditados">
+              {d.messages.length === 0 ? (
+                <EmptyBlock icon={MessageSquare} title="No hay comentarios en esta disputa" body="Los mensajes y solicitudes quedarán registrados en el expediente auditado." />
+              ) : (
+                <ul className="space-y-3">
+                  {d.messages.map((m) => (
+                    <li key={m.id} className="rounded-[10px] border border-[#EBEBF0] p-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className={cn("rounded-full px-2 py-0.5 text-[10px] font-medium",
+                            m.sender_role === "buyer" && "bg-[#EEF2FF] text-[#3730A3]",
+                            m.sender_role === "seller" && "bg-[#FFF7ED] text-[#9A3412]",
+                            m.sender_role === "internal" && "bg-[#F0F9FF] text-[#075985]")}>
+                            {m.sender_name}
+                          </span>
+                          {m.visibility === "internal" && (
+                            <span className="rounded-full bg-[#F4F4F7] px-1.5 py-0.5 text-[10px] text-[#71717A]"><Shield className="mr-0.5 inline h-2.5 w-2.5" />Interna</span>
+                          )}
+                        </div>
+                        <span className="text-[10px] text-[#A1A1AA]">{new Date(m.created_at).toLocaleString("es-MX")}</span>
+                      </div>
+                      <p className="mt-2 text-sm text-[#18181B]">{m.body}</p>
+                    </li>
+                  ))}
+                </ul>
+              )}
+
+              {!isResolved(d.status) && d.status !== "CANCELLED" && (
+                <div className="mt-3 rounded-[10px] border border-[#EBEBF0] bg-[#F4F4F7] p-3">
                   <textarea
-                    value={body}
-                    onChange={(e) => setBody(e.target.value)}
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
                     rows={3}
-                    placeholder="Escribe tu mensaje…"
-                    className="input-editorial w-full"
+                    placeholder="Describe la aclaración o evidencia que deseas agregar a la disputa..."
+                    className="w-full resize-none rounded-[8px] border border-[#EBEBF0] bg-white px-3 py-2 text-sm text-[#18181B] placeholder:text-[#A1A1AA] focus:border-[#4F46E5] focus:outline-none focus:ring-2 focus:ring-[#4F46E5]/15"
                   />
-                  <div className="flex flex-wrap items-center gap-3">
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      multiple
-                      accept="image/*,.pdf,.doc,.docx,.xls,.xlsx"
-                      onChange={(e) => setFiles(Array.from(e.target.files ?? []))}
-                      className="text-xs"
-                    />
-                    {files.length > 0 && (
-                      <span className="text-[11px] text-muted-foreground">{files.length} archivo(s) por adjuntar</span>
-                    )}
-                    <div className="ml-auto">
-                      <button disabled={busy || (!body.trim() && files.length === 0)} onClick={handleSend} className="px-5 py-2.5 bg-yo-ac text-white text-[12px] uppercase tracking-[0.14em] font-semibold border border-yo-border disabled:opacity-50">
-                        {busy ? "Enviando…" : "Enviar"}
-                      </button>
-                    </div>
+                  <div className="mt-2 flex items-center justify-between">
+                    <button className="inline-flex items-center gap-1 text-xs text-[#52525B] hover:text-[#18181B]">
+                      <Paperclip className="h-3 w-3" /> Adjuntar
+                    </button>
+                    <button disabled={!message.trim()} className="inline-flex items-center gap-1 rounded-[8px] bg-[#4F46E5] px-3 py-1.5 text-xs font-medium text-white hover:bg-[#4338CA] disabled:opacity-50">
+                      <Send className="h-3 w-3" /> Enviar
+                    </button>
                   </div>
                 </div>
               )}
-            </section>
+            </Card>
+
+            {/* Resolution */}
+            {d.resolution && (
+              <Card title="Resolución">
+                <div className="rounded-[10px] border border-[#EBEBF0] bg-[#F0F9FF] p-4">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="h-4 w-4 text-[#0284C7]" />
+                    <span className="text-sm font-medium text-[#075985]">
+                      {d.resolution.resolution_type === "RELEASE" && "Resolución favorable a liberación"}
+                      {d.resolution.resolution_type === "REFUND" && "Resolución favorable a devolución"}
+                      {d.resolution.resolution_type === "PARTIAL" && "Resolución parcial"}
+                      {d.resolution.resolution_type === "CORRECTION" && "Corrección requerida"}
+                      {d.resolution.resolution_type === "AGREEMENT" && "Cierre por acuerdo"}
+                      {d.resolution.resolution_type === "IMPROCEDENT" && "Improcedente"}
+                    </span>
+                  </div>
+                  <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
+                    <MiniKV k="Monto liberar" v={money(d.resolution.amount_release_cents, d.currency)} mono />
+                    <MiniKV k="Monto devolver" v={money(d.resolution.amount_refund_cents, d.currency)} mono />
+                    <MiniKV k="Emitida por" v={d.resolution.proposed_by} />
+                    <MiniKV k="Estado ejecución" v={d.resolution.execution_status.toLowerCase()} />
+                  </div>
+                  <p className="mt-3 text-xs text-[#52525B]">{d.resolution.rationale}</p>
+
+                  {canAcceptResolution(actor, d) && (
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      <button onClick={() => setModal("accept")} className="rounded-[8px] bg-[#059669] px-3 py-1.5 text-xs font-medium text-white hover:bg-[#047857]">Aceptar resolución</button>
+                      <button onClick={() => setModal("review")} className="rounded-[8px] border border-[#EBEBF0] bg-white px-3 py-1.5 text-xs font-medium text-[#52525B] hover:bg-[#F4F4F7]">Solicitar revisión</button>
+                    </div>
+                  )}
+                </div>
+              </Card>
+            )}
+          </div>
+
+          {/* Sidebar 30% */}
+          <div className="space-y-4">
+            {/* State panel */}
+            <Card title="Panel de estado">
+              <div className="space-y-2 text-xs">
+                <SideRow k="Estado" v={<StatusBadge s={d.status} />} />
+                <SideRow k="Prioridad" v={<span className="rounded-full px-2 py-0.5 text-[10px] font-medium" style={{ background: PRIORITY_CFG[d.priority].bg, color: PRIORITY_CFG[d.priority].txt }}>{PRIORITY_CFG[d.priority].label}</span>} />
+                <SideRow k="SLA" v={<span className={cn("font-medium", sla.tone === "err" && "text-[#DC2626]", sla.tone === "warn" && "text-[#D97706]", sla.tone === "ok" && "text-[#059669]")}>{sla.text}</span>} />
+                <SideRow k="Debe actuar" v={d.status === "AWAITING_RESPONSE" ? (d.against_role === "seller" ? "Vendedor" : "Comprador") : "Mediación"} />
+                <SideRow k="Monto afectado" v={<span className="font-mono font-semibold text-[#18181B]">{money(d.affected_amount_cents, d.currency)}</span>} />
+              </div>
+
+              <div className="mt-4 space-y-2">
+                {canRespond(actor, d) && <ActionBtn primary onClick={() => setModal("respond")}>Responder disputa</ActionBtn>}
+                {canAddEvidence(actor, d) && <ActionBtn onClick={() => setModal("evidence")}>Agregar evidencia</ActionBtn>}
+                {canAcceptResolution(actor, d) && <ActionBtn primary onClick={() => setModal("accept")}>Aceptar resolución</ActionBtn>}
+              </div>
+            </Card>
+
+            {/* Payment impact */}
+            <Card title="Impacto en pagos">
+              <div className="space-y-2 text-xs">
+                <SideRow k="Total operación" v={<span className="font-mono">{money(d.total_amount_cents, d.currency)}</span>} />
+                <SideRow k="Retenido" v={<span className="font-mono">{money(d.held_amount_cents, d.currency)}</span>} />
+                <SideRow k="Afectado" v={<span className="font-mono">{money(d.affected_amount_cents, d.currency)}</span>} />
+                <SideRow k="Liberación" v={<span className="text-[#B45309]">Pausada</span>} />
+              </div>
+              <div className="mt-3 flex items-start gap-2 rounded-[8px] bg-[#FFFBEB] p-3 text-[11px] text-[#B45309]">
+                <LockKeyhole className="mt-0.5 h-3 w-3 shrink-0" />
+                <p>Mientras la disputa esté activa, la liberación del hito afectado queda pausada hasta resolución o acuerdo.</p>
+              </div>
+            </Card>
+
+            {/* Compliance link */}
+            <div className="rounded-[12px] border border-[#EBEBF0] bg-[#EEF2FF] p-3 text-[11px] text-[#3730A3]">
+              <Info className="mr-1 inline h-3 w-3" />
+              Esta disputa puede impactar el Perfil de Cumplimiento de las partes según su resultado, evidencia y tiempos de respuesta.
+            </div>
 
             {/* Timeline */}
-            <aside>
-              <h2 className="font-display text-3xl tracking-wide">Línea de tiempo</h2>
-              <ol className="mt-4 border border-yo-border bg-background divide-y divide-yo-border/40">
-                <TimelineRow when={d.created_at} title="Disputa creada" />
-                {d.deposit_paid && (
-                  <TimelineRow when={d.activated_at ?? d.created_at} title="Depósito confirmado" />
-                )}
-                {events.map((e) => (
-                  <TimelineRow key={e.id} when={e.created_at} title={eventLabel(e.event_type)} />
+            <Card title="Timeline auditado">
+              <ol className="space-y-3">
+                {d.timeline.map((e, i) => (
+                  <li key={i} className="relative pl-5">
+                    <span className="absolute left-0 top-1.5 h-2 w-2 rounded-full bg-[#4F46E5]" />
+                    {i < d.timeline.length - 1 && <span className="absolute left-[3px] top-3 h-full w-px bg-[#EBEBF0]" />}
+                    <p className="text-[11px] text-[#A1A1AA]">{new Date(e.at).toLocaleString("es-MX")}</p>
+                    <p className="mt-0.5 text-xs text-[#18181B]"><span className="font-medium">{e.actor}</span> — {e.action}</p>
+                    {e.hash && <p className="mt-0.5 font-mono text-[10px] text-[#A1A1AA]">Hash {e.hash}</p>}
+                  </li>
                 ))}
-                {d.resolved_at && <TimelineRow when={d.resolved_at} title="Disputa resuelta" />}
               </ol>
-            </aside>
-          </div>
-
-          {/* Mediation panel */}
-          {canMediate && d.status !== "resolved" && d.status !== "closed" && d.status !== "withdrawn" && d.status !== "pending_deposit" && (
-            <ResolvePanel dispute={d} resolveFn={resolveFn} />
-          )}
-        </div>
-      </main>
-
-      {/* Withdraw modal */}
-      {withdrawOpen && (
-        <div className="fixed inset-0 z-50 bg-yokto-black/50 flex items-center justify-center p-4" onClick={() => setWithdrawOpen(false)}>
-          <div className="w-full max-w-lg border border-yo-border bg-background p-6" onClick={(e) => e.stopPropagation()}>
-            <h3 className="font-display text-3xl tracking-wide">Retirar disputa</h3>
-            <p className="mt-1 text-sm text-muted-foreground">
-              La transacción volverá a su estado anterior. Si ya pagaste depósito, aplican las reglas de reembolso.
-            </p>
-            <label className="mt-4 block text-sm">
-              <span className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">Motivo (mín. 10 caracteres)</span>
-              <textarea rows={4} value={withdrawReason} onChange={(e) => setWithdrawReason(e.target.value)} className="input-editorial w-full mt-1" />
-            </label>
-            <div className="mt-4 flex justify-end gap-2">
-              <button onClick={() => setWithdrawOpen(false)} className="px-4 py-2 border border-yo-border text-[12px] uppercase tracking-[0.14em] font-semibold">Cancelar</button>
-              <button disabled={busy || withdrawReason.trim().length < 10} onClick={submitWithdraw} className="px-4 py-2 bg-[#FF3B3B] text-white text-[12px] uppercase tracking-[0.14em] font-semibold disabled:opacity-50">
-                Confirmar retiro
-              </button>
-            </div>
+            </Card>
           </div>
         </div>
-      )}
-    </div>
-  );
-}
-
-function eventLabel(t: string): string {
-  switch (t) {
-    case "dispute.draft": return "Borrador creado";
-    case "dispute.opened": return "Disputa activada";
-    case "dispute.withdrawn": return "Disputa retirada";
-    case "dispute.resolved": return "Disputa resuelta";
-    case "dispute.message": return "Nuevo mensaje";
-    default: return t;
-  }
-}
-
-function MessageRow({ m, me, signed, tx }: {
-  m: Msg;
-  me: string;
-  signed: Record<string, string>;
-  tx: { buyer_id: string; seller_id: string | null };
-}) {
-  const isSystem = m.author_role === "system" || m.message_type === "system";
-  if (isSystem) {
-    return (
-      <div className="px-4 py-3 bg-yo-bg/40">
-        <p className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">Sistema · {new Date(m.created_at).toLocaleString("es-MX")}</p>
-        <p className="mt-1 text-sm">{m.body}</p>
       </div>
-    );
-  }
-  const mine = m.author_id === me;
-  const roleLabel =
-    m.author_role === "buyer" ? (tx.buyer_id === m.author_id ? "Comprador" : "Comprador")
-    : m.author_role === "seller" ? "Vendedor"
-    : m.author_role === "mediator" ? "Mediador YOKTO"
-    : m.author_role === "admin" ? "Administrador"
-    : m.author_role;
-  return (
-    <div className={`px-4 py-3 flex ${mine ? "justify-end" : "justify-start"}`}>
-      <div className={`max-w-[85%] ${mine ? "bg-yokto-black text-white" : "bg-yo-bg"} border border-yo-border p-3`}>
-        <div className="flex items-baseline justify-between gap-3">
-          <span className={`text-[10px] uppercase tracking-[0.14em] font-semibold ${mine ? "text-white/70" : "text-muted-foreground"}`}>
-            {roleLabel}{mine ? " · tú" : ""}
-          </span>
-          <span className={`text-[10px] ${mine ? "text-white/60" : "text-muted-foreground"}`}>
-            {new Date(m.created_at).toLocaleString("es-MX")}
-          </span>
-        </div>
-        <p className="mt-2 text-sm whitespace-pre-line">{m.body}</p>
-        {m.evidence_urls && m.evidence_urls.length > 0 && (
-          <ul className={`mt-3 space-y-1 border-t ${mine ? "border-white/20" : "border-yo-border"} pt-2`}>
-            {m.evidence_urls.map((p) => (
-              <li key={p} className="text-xs">
-                📎{" "}
-                <a href={signed[p] ?? "#"} target="_blank" rel="noreferrer" className={`underline underline-offset-4 font-mono break-all ${mine ? "text-white" : ""}`}>
-                  {p.split("/").slice(-1)[0]}
-                </a>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-    </div>
-  );
-}
 
-function Countdown({ label, due }: { label: string; due: string | null }) {
-  const remaining = useMemo(() => {
-    if (!due) return null;
-    const ms = new Date(due).getTime() - Date.now();
-    if (ms <= 0) return { text: "Vencido", tone: "danger" as const };
-    const days = Math.floor(ms / 86400000);
-    const hours = Math.floor((ms % 86400000) / 3600000);
-    const tone = days < 1 ? ("danger" as const) : days < 2 ? ("warn" as const) : ("info" as const);
-    return { text: `${days}d ${hours}h`, tone };
-  }, [due]);
-  if (!due) return (
-    <div className="border border-dashed border-yo-border p-3 bg-background">
-      <p className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">{label}</p>
-      <p className="mt-1 text-sm text-muted-foreground">—</p>
-    </div>
-  );
-  const cls =
-    remaining?.tone === "danger" ? "border-[#FF3B3B] bg-[#FF3B3B]/10"
-    : remaining?.tone === "warn" ? "border-yokto-yellow bg-yokto-yellow/20"
-    : "border-yo-border bg-background";
-  return (
-    <div className={`border p-3 ${cls}`}>
-      <p className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">{label}</p>
-      <p className="mt-1 font-mono text-sm">{remaining?.text}</p>
-      <p className="text-[11px] text-muted-foreground">{new Date(due).toLocaleString("es-MX")}</p>
-    </div>
-  );
-}
-
-function TimelineRow({ when, title }: { when: string; title: string }) {
-  return (
-    <li className="p-3">
-      <p className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">{new Date(when).toLocaleString("es-MX")}</p>
-      <p className="mt-1 text-sm">{title}</p>
-    </li>
-  );
-}
-
-function StatusPill({ tone, children }: { tone: "warn" | "info" | "ok" | "danger" | "neutral"; children: React.ReactNode }) {
-  const cls =
-    tone === "ok" ? "bg-[#0aa15a] text-white"
-    : tone === "danger" ? "bg-[#FF3B3B] text-white"
-    : tone === "warn" ? "bg-yokto-yellow text-yokto-black"
-    : tone === "info" ? "bg-yokto-black text-white"
-    : "bg-yo-bg text-foreground";
-  return <span className={`px-3 py-1.5 text-[11px] uppercase tracking-[0.14em] font-semibold border border-yo-border ${cls}`}>{children}</span>;
-}
-
-function ResolvePanel({ dispute, resolveFn }: {
-  dispute: Dispute;
-  resolveFn: (a: { data: Parameters<typeof resolveDispute>[0]["data"] }) => Promise<unknown>;
-}) {
-  const tx = dispute.transactions!;
-  const [resolution, setResolution] = useState<"buyer_favor" | "seller_favor" | "split" | "no_resolution">("buyer_favor");
-  const [buyerShare, setBuyerShare] = useState(tx.amount_cents / 100);
-  const [sellerShare, setSellerShare] = useState(0);
-  const [loserPays, setLoserPays] = useState<"buyer" | "seller" | "split" | "none">("seller");
-  const [notes, setNotes] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [err, setErr] = useState<string | null>(null);
-
-  function preset(r: typeof resolution) {
-    setResolution(r);
-    if (r === "buyer_favor") { setBuyerShare(tx.amount_cents / 100); setSellerShare(0); setLoserPays("seller"); }
-    if (r === "seller_favor") { setBuyerShare(0); setSellerShare(tx.amount_cents / 100); setLoserPays("buyer"); }
-    if (r === "split") { setBuyerShare(tx.amount_cents / 200); setSellerShare(tx.amount_cents / 200); setLoserPays("split"); }
-    if (r === "no_resolution") { setBuyerShare(0); setSellerShare(0); setLoserPays("none"); }
-  }
-
-  async function submit() {
-    setBusy(true); setErr(null);
-    try {
-      await resolveFn({ data: {
-        disputeId: dispute.id, resolution,
-        buyerShareCents: Math.round(buyerShare * 100),
-        sellerShareCents: Math.round(sellerShare * 100),
-        loserPays, notes,
-      }});
-    } catch (e) { setErr((e as Error).message); }
-    setBusy(false);
-  }
-
-  return (
-    <section className="mt-10">
-      <h2 className="font-display text-3xl tracking-wide">Panel de mediación</h2>
-      <div className="mt-4 border border-yo-border bg-yo-bg/40 p-5 space-y-4">
-        <div className="flex flex-wrap gap-2">
-          {(["buyer_favor", "seller_favor", "split", "no_resolution"] as const).map((r) => (
-            <button key={r} onClick={() => preset(r)} className={`px-3 py-2 text-[11px] uppercase tracking-[0.14em] border border-yo-border ${resolution === r ? "bg-yo-ac text-white" : "bg-background"}`}>
-              {r}
-            </button>
-          ))}
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          <label className="text-sm">
-            <span className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">Reembolso comprador ({tx.currency})</span>
-            <input type="number" min={0} step="0.01" value={buyerShare} onChange={(e) => setBuyerShare(Number(e.target.value))} className="input-editorial w-full mt-1" />
-          </label>
-          <label className="text-sm">
-            <span className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">Liberación vendedor ({tx.currency})</span>
-            <input type="number" min={0} step="0.01" value={sellerShare} onChange={(e) => setSellerShare(Number(e.target.value))} className="input-editorial w-full mt-1" />
-          </label>
-          <label className="text-sm">
-            <span className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">Depósito de seriedad (loser pays)</span>
-            <select value={loserPays} onChange={(e) => setLoserPays(e.target.value as never)} className="input-editorial w-full mt-1">
-              <option value="buyer">Comprador</option>
-              <option value="seller">Vendedor</option>
-              <option value="split">Dividido</option>
-              <option value="none">Sin cargo</option>
-            </select>
-          </label>
-        </div>
-        <label className="block text-sm">
-          <span className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">Notas de resolución (visibles para las partes)</span>
-          <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={4} className="input-editorial w-full mt-1" />
+      {/* Modals */}
+      {modal === "evidence" && <SimpleModal title="Agregar evidencia" onClose={() => setModal(null)} primary="Subir evidencia">
+        <p className="text-xs text-[#52525B]">Sube documentos, fotos, video, GPS o checklist relacionados al hito.</p>
+        <div className="mt-3 rounded-[10px] border-2 border-dashed border-[#EBEBF0] bg-[#F4F4F7] px-4 py-6 text-center text-xs text-[#71717A]">Arrastra archivos o haz clic para seleccionar</div>
+        <label className="mt-3 block text-xs">
+          <span className="mb-1 block text-[#52525B]">Comentarios</span>
+          <textarea rows={3} className={ipt} placeholder="Contexto para el verificador..." />
         </label>
-        {err && <div role="alert" className="border border-[#FF3B3B] bg-[#FF3B3B]/10 text-[#FF3B3B] p-3 text-sm">{err}</div>}
-        <button disabled={busy || notes.length < 10} onClick={submit} className="px-5 py-2.5 bg-yo-ac text-white text-[12px] uppercase tracking-[0.14em] font-semibold border border-yo-border disabled:opacity-50">
-          {busy ? "Resolviendo…" : "Resolver disputa"}
-        </button>
+      </SimpleModal>}
+
+      {modal === "respond" && <SimpleModal title="Responder disputa" onClose={() => setModal(null)} primary="Enviar respuesta">
+        <label className="block text-xs">
+          <span className="mb-1 block text-[#52525B]">Respuesta</span>
+          <textarea rows={4} className={ipt} placeholder="Describe tu posición con evidencia verificable..." />
+        </label>
+      </SimpleModal>}
+
+      {modal === "accept" && <SimpleModal title="Aceptar resolución" onClose={() => setModal(null)} primary="Aceptar resolución" primaryTone="ok">
+        <p className="text-xs text-[#52525B]">Se ejecutarán las instrucciones de liberación o devolución acordadas.</p>
+        <label className="mt-3 flex items-start gap-2 rounded-[8px] bg-[#F4F4F7] p-3 text-xs text-[#52525B]">
+          <input type="checkbox" className="mt-0.5" />
+          Acepto la resolución propuesta y entiendo que la orden se ejecutará en la pasarela correspondiente.
+        </label>
+      </SimpleModal>}
+
+      {modal === "review" && <SimpleModal title="Solicitar revisión" onClose={() => setModal(null)} primary="Solicitar revisión">
+        <label className="block text-xs">
+          <span className="mb-1 block text-[#52525B]">Fundamento (obligatorio)</span>
+          <textarea rows={4} className={ipt} placeholder="Explica por qué solicitas una revisión de la resolución..." />
+        </label>
+      </SimpleModal>}
+    </div>
+  );
+}
+
+// ---------- Helpers ----------
+function Card({ title, children, action }: { title: string; children: React.ReactNode; action?: React.ReactNode }) {
+  return (
+    <section className="rounded-[12px] border border-[#EBEBF0] bg-white p-4 shadow-[0_1px_2px_rgb(0_0_0/.04)]">
+      <div className="mb-3 flex items-center justify-between">
+        <h3 className="text-xs font-medium uppercase tracking-wide text-[#71717A]">{title}</h3>
+        {action}
       </div>
+      {children}
     </section>
   );
 }
-
-function Kv({ k, v }: { k: string; v: string }) {
+function KV({ k, v, mono }: { k: string; v: string; mono?: boolean }) {
   return (
-    <div className="border border-yo-border p-3 bg-background">
-      <p className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">{k}</p>
-      <p className="mt-1 font-mono text-sm">{v}</p>
+    <div className="rounded-[8px] bg-[#F4F4F7] px-3 py-2">
+      <p className="text-[10px] uppercase tracking-wide text-[#A1A1AA]">{k}</p>
+      <p className={cn("mt-0.5 text-sm text-[#18181B]", mono && "font-mono font-semibold")}>{v}</p>
+    </div>
+  );
+}
+function MiniKV({ k, v, mono }: { k: string; v: string; mono?: boolean }) {
+  return (
+    <div>
+      <p className="text-[10px] uppercase tracking-wide text-[#A1A1AA]">{k}</p>
+      <p className={cn("mt-0.5 text-[#18181B]", mono && "font-mono font-semibold")}>{v}</p>
+    </div>
+  );
+}
+function SideRow({ k, v }: { k: string; v: React.ReactNode }) {
+  return (
+    <div className="flex items-center justify-between border-b border-[#EBEBF0] pb-2 last:border-0 last:pb-0">
+      <span className="text-[#71717A]">{k}</span>
+      <span className="text-right text-[#18181B]">{v}</span>
+    </div>
+  );
+}
+function StatusBadge({ s }: { s: DisputeStatus }) {
+  const c = STATUS_CFG[s];
+  return (
+    <span className="inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[11px] font-medium" style={{ background: c.bg, color: c.txt }}>
+      <span className="h-1.5 w-1.5 rounded-full" style={{ background: c.dot }} />
+      {c.label}
+    </span>
+  );
+}
+function SectorPill({ s }: { s: SectorId }) {
+  const c = SECTOR_CFG[s];
+  return <span className="inline-flex items-center gap-1 rounded-[6px] px-1.5 py-0.5 text-[11px]" style={{ background: c.bg, color: c.txt }}>{c.emoji} {c.label}</span>;
+}
+function EmptyBlock({ icon: Icon, title, body }: { icon: typeof FileCheck; title: string; body: string }) {
+  return (
+    <div className="flex flex-col items-center justify-center rounded-[8px] bg-[#F4F4F7] px-4 py-8 text-center">
+      <Icon className="h-5 w-5 text-[#A1A1AA]" />
+      <p className="mt-2 text-sm font-medium text-[#18181B]">{title}</p>
+      <p className="mt-1 max-w-sm text-xs text-[#52525B]">{body}</p>
+    </div>
+  );
+}
+function EvidenceRow({ e }: { e: DisputeEvidence }) {
+  const v = e.validation;
+  return (
+    <li className="flex items-center justify-between gap-3 rounded-[8px] border border-[#EBEBF0] p-3 hover:bg-[#F4F4F7]">
+      <div className="min-w-0">
+        <p className="truncate text-sm text-[#18181B]">{e.title}</p>
+        <p className="mt-0.5 text-[10px] text-[#A1A1AA]">
+          {e.uploaded_by_name} · {new Date(e.uploaded_at).toLocaleDateString("es-MX")}
+          {e.milestone_label && <> · {e.milestone_label}</>}
+          {" · "}<span className="font-mono">{e.hash}</span>
+        </p>
+        {e.comments && <p className="mt-1 text-[11px] text-[#B45309]">{e.comments}</p>}
+      </div>
+      <div className="flex items-center gap-2">
+        <span className={cn("rounded-full px-2 py-0.5 text-[10px] font-medium",
+          v === "VALIDATED" && "bg-[#ECFDF5] text-[#059669]",
+          v === "PENDING" && "bg-[#FFFBEB] text-[#B45309]",
+          v === "REJECTED" && "bg-[#FEF2F2] text-[#B91C1C]")}>
+          {v === "VALIDATED" ? "Validada" : v === "PENDING" ? "Pendiente" : "Rechazada"}
+        </span>
+        <button className="rounded-[6px] border border-[#EBEBF0] bg-white px-2 py-1 text-[11px] text-[#52525B] hover:bg-white"><Download className="h-3 w-3" /></button>
+      </div>
+    </li>
+  );
+}
+function ActionBtn({ children, primary, onClick }: { children: React.ReactNode; primary?: boolean; onClick?: () => void }) {
+  return (
+    <button onClick={onClick} className={cn(
+      "block w-full rounded-[8px] px-3 py-2 text-xs font-medium",
+      primary ? "bg-[#4F46E5] text-white hover:bg-[#4338CA]" : "border border-[#EBEBF0] bg-white text-[#52525B] hover:bg-[#F4F4F7]"
+    )}>{children}</button>
+  );
+}
+
+const ipt = "w-full rounded-[8px] border border-[#EBEBF0] bg-white px-3 py-2 text-sm text-[#18181B] placeholder:text-[#A1A1AA] focus:border-[#4F46E5] focus:outline-none focus:ring-2 focus:ring-[#4F46E5]/15";
+function SimpleModal({ title, children, onClose, primary, primaryTone = "accent" }: { title: string; children: React.ReactNode; onClose: () => void; primary: string; primaryTone?: "accent" | "ok" | "err" }) {
+  const tone = primaryTone === "ok" ? "bg-[#059669] hover:bg-[#047857]" : primaryTone === "err" ? "bg-[#DC2626] hover:bg-[#B91C1C]" : "bg-[#4F46E5] hover:bg-[#4338CA]";
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+      <div className="w-full max-w-lg overflow-hidden rounded-[12px] bg-white shadow-2xl">
+        <div className="flex items-center justify-between border-b border-[#EBEBF0] px-5 py-4">
+          <h3 className="text-base font-semibold text-[#18181B]">{title}</h3>
+          <button onClick={onClose} className="rounded-[6px] p-1 hover:bg-[#F4F4F7]"><X className="h-4 w-4 text-[#52525B]" /></button>
+        </div>
+        <div className="p-5">
+          <div className="mb-3 flex items-start gap-2 rounded-[8px] bg-[#F0F9FF] px-3 py-2 text-[11px] text-[#075985]">
+            <Info className="mt-0.5 h-3 w-3 shrink-0" />
+            <p>Toda acción queda registrada en el expediente auditado.</p>
+          </div>
+          {children}
+        </div>
+        <div className="flex items-center justify-end gap-2 border-t border-[#EBEBF0] bg-[#F4F4F7] px-5 py-3">
+          <button onClick={onClose} className="rounded-[8px] px-3 py-2 text-sm text-[#52525B] hover:text-[#18181B]">Cancelar</button>
+          <button onClick={onClose} className={cn("rounded-[8px] px-4 py-2 text-sm font-medium text-white", tone)}>{primary}</button>
+        </div>
+      </div>
     </div>
   );
 }
