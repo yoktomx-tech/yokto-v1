@@ -1,0 +1,222 @@
+import { createServerFn } from "@tanstack/react-start";
+import { z } from "zod";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+
+/** List all orgs the current user is a member of */
+export const listMyOrganizations = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabase, userId } = context;
+    const { data, error } = await supabase
+      .from("memberships")
+      .select("org_role, status, joined_at, organizations!inner(id, name, slug, type, rfc, kyb_status)")
+      .eq("user_id", userId)
+      .eq("status", "active")
+      .order("joined_at", { ascending: true });
+    if (error) throw error;
+    return (data ?? []).map((row: any) => ({
+      id: row.organizations.id,
+      name: row.organizations.name,
+      slug: row.organizations.slug,
+      type: row.organizations.type as "individual" | "business",
+      rfc: row.organizations.rfc,
+      kyb_status: row.organizations.kyb_status,
+      org_role: row.org_role,
+    }));
+  });
+
+/** Create a new business organization owned by the current user */
+export const createOrganization = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data) =>
+    z
+      .object({
+        name: z.string().min(2, "Nombre demasiado corto").max(120),
+        rfc: z.string().trim().toUpperCase().optional().nullable(),
+        razon_social: z.string().optional().nullable(),
+      })
+      .parse(data)
+  )
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const { data: org, error } = await supabase
+      .from("organizations")
+      .insert({
+        name: data.name,
+        type: "business",
+        rfc: data.rfc || null,
+        razon_social: data.razon_social || null,
+        owner_user_id: userId,
+      })
+      .select("id, name, type")
+      .single();
+    if (error) throw error;
+
+    const { error: mErr } = await supabase
+      .from("memberships")
+      .insert({ org_id: org.id, user_id: userId, org_role: "owner", status: "active" });
+    if (mErr) throw mErr;
+
+    return org;
+  });
+
+/** List members of an org (must be a member) */
+export const listOrgMembers = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ org_id: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { supabase } = context;
+    const { data: rows, error } = await supabase
+      .from("memberships")
+      .select("user_id, org_role, status, joined_at, profiles!inner(id, email, first_name, last_name, avatar_url)")
+      .eq("org_id", data.org_id)
+      .order("joined_at", { ascending: true });
+    if (error) throw error;
+    return (rows ?? []).map((r: any) => ({
+      user_id: r.user_id,
+      org_role: r.org_role,
+      status: r.status,
+      joined_at: r.joined_at,
+      email: r.profiles.email,
+      first_name: r.profiles.first_name,
+      last_name: r.profiles.last_name,
+      avatar_url: r.profiles.avatar_url,
+    }));
+  });
+
+const ORG_ROLES = ["owner", "buyer_admin", "buyer_user", "seller_admin", "seller_user", "auditor"] as const;
+
+/** Invite a user by email (owner only, enforced by RLS) */
+export const inviteMember = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) =>
+    z
+      .object({
+        org_id: z.string().uuid(),
+        email: z.string().email().trim().toLowerCase(),
+        org_role: z.enum(ORG_ROLES),
+      })
+      .parse(d)
+  )
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const token = crypto.randomUUID().replace(/-/g, "") + crypto.randomUUID().replace(/-/g, "");
+    const { data: inv, error } = await supabase
+      .from("invitations")
+      .insert({
+        org_id: data.org_id,
+        email: data.email,
+        org_role: data.org_role,
+        token,
+        invited_by: userId,
+      })
+      .select("id, email, org_role, token, expires_at")
+      .single();
+    if (error) throw error;
+    return inv;
+  });
+
+/** List pending invitations of an org (owner only via RLS) */
+export const listOrgInvitations = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ org_id: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { supabase } = context;
+    const { data: rows, error } = await supabase
+      .from("invitations")
+      .select("id, email, org_role, expires_at, accepted_at, created_at")
+      .eq("org_id", data.org_id)
+      .order("created_at", { ascending: false });
+    if (error) throw error;
+    return rows ?? [];
+  });
+
+/** Accept an invitation by token */
+export const acceptInvitation = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ token: z.string().min(10) }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { supabase, userId, claims } = context;
+    const userEmail = (claims as any)?.email as string | undefined;
+
+    const { data: inv, error } = await supabase
+      .from("invitations")
+      .select("id, org_id, email, org_role, expires_at, accepted_at")
+      .eq("token", data.token)
+      .maybeSingle();
+    if (error) throw error;
+    if (!inv) throw new Error("Invitación no encontrada");
+    if (inv.accepted_at) throw new Error("Invitación ya utilizada");
+    if (new Date(inv.expires_at) < new Date()) throw new Error("Invitación expirada");
+    if (userEmail && userEmail.toLowerCase() !== inv.email.toLowerCase()) {
+      throw new Error("Esta invitación es para otro correo electrónico");
+    }
+
+    const { error: mErr } = await supabase.from("memberships").insert({
+      org_id: inv.org_id,
+      user_id: userId,
+      org_role: inv.org_role,
+      status: "active",
+    });
+    if (mErr && !mErr.message.includes("duplicate")) throw mErr;
+
+    await supabase
+      .from("invitations")
+      .update({ accepted_at: new Date().toISOString(), accepted_by: userId })
+      .eq("id", inv.id);
+
+    return { org_id: inv.org_id };
+  });
+
+/** Remove a member (owner only) */
+export const removeMember = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ org_id: z.string().uuid(), user_id: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { supabase } = context;
+    const { error } = await supabase
+      .from("memberships")
+      .delete()
+      .eq("org_id", data.org_id)
+      .eq("user_id", data.user_id);
+    if (error) throw error;
+    return { ok: true };
+  });
+
+/** Update a member's role (owner only) */
+export const updateMemberRole = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) =>
+    z
+      .object({
+        org_id: z.string().uuid(),
+        user_id: z.string().uuid(),
+        org_role: z.enum(ORG_ROLES),
+      })
+      .parse(d)
+  )
+  .handler(async ({ data, context }) => {
+    const { supabase } = context;
+    const { error } = await supabase
+      .from("memberships")
+      .update({ org_role: data.org_role })
+      .eq("org_id", data.org_id)
+      .eq("user_id", data.user_id);
+    if (error) throw error;
+    return { ok: true };
+  });
+
+/** Get a single org (member only) */
+export const getOrganization = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ org_id: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { supabase } = context;
+    const { data: org, error } = await supabase
+      .from("organizations")
+      .select("*")
+      .eq("id", data.org_id)
+      .single();
+    if (error) throw error;
+    return org;
+  });
