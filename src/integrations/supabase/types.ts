@@ -982,71 +982,202 @@ export type Database = {
           },
         ]
       }
+      transaction_hitos: {
+        Row: {
+          aprobado_at: string | null
+          aprobado_por: string | null
+          auto_release: boolean
+          created_at: string
+          descripcion: string | null
+          documentos_requeridos: string[]
+          estado: string
+          evidencia_requerida: string[]
+          fecha_limite: string | null
+          id: string
+          liberacion_stripe_transfer_id: string | null
+          monto_cents: number | null
+          monto_porcentaje: number
+          notas_rechazo: string | null
+          orden: number
+          responsable: string
+          tipo_verificacion: string
+          titulo: string
+          transaction_id: string
+          updated_at: string
+        }
+        Insert: {
+          aprobado_at?: string | null
+          aprobado_por?: string | null
+          auto_release?: boolean
+          created_at?: string
+          descripcion?: string | null
+          documentos_requeridos?: string[]
+          estado?: string
+          evidencia_requerida?: string[]
+          fecha_limite?: string | null
+          id?: string
+          liberacion_stripe_transfer_id?: string | null
+          monto_cents?: number | null
+          monto_porcentaje: number
+          notas_rechazo?: string | null
+          orden: number
+          responsable: string
+          tipo_verificacion: string
+          titulo: string
+          transaction_id: string
+          updated_at?: string
+        }
+        Update: {
+          aprobado_at?: string | null
+          aprobado_por?: string | null
+          auto_release?: boolean
+          created_at?: string
+          descripcion?: string | null
+          documentos_requeridos?: string[]
+          estado?: string
+          evidencia_requerida?: string[]
+          fecha_limite?: string | null
+          id?: string
+          liberacion_stripe_transfer_id?: string | null
+          monto_cents?: number | null
+          monto_porcentaje?: number
+          notas_rechazo?: string | null
+          orden?: number
+          responsable?: string
+          tipo_verificacion?: string
+          titulo?: string
+          transaction_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transaction_hitos_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       transactions: {
         Row: {
           amount_cents: number
+          auto_release_global: boolean | null
+          beneficiario_nombre: string | null
           buyer_id: string
           cancelled_at: string | null
+          clabe_virtual: string | null
+          comision_cents: number | null
           commission_bps: number
           commission_payer: Database["public"]["Enums"]["commission_payer"]
+          contrato_pdf_url: string | null
           counterparty_email: string | null
+          creado_por: string | null
           created_at: string
           currency: string
           delivery_deadline: string | null
           description: string | null
+          descuento_volumetrico: number | null
+          fecha_activacion: string | null
+          fecha_cancelada: string | null
+          fecha_completada: string | null
+          fecha_firma_beneficiario: string | null
+          fecha_firma_pagador: string | null
           funded_at: string | null
           funding_deadline: string | null
           id: string
+          ip_creacion: unknown
+          iva_comision_cents: number | null
+          numero: string | null
           payment_method: Database["public"]["Enums"]["payment_method"]
           released_at: string | null
+          repse_requerido: boolean | null
           sector: string | null
           seller_id: string | null
           status: Database["public"]["Enums"]["transaction_status"]
+          stripe_payment_intent_id: string | null
           title: string
+          total_a_depositar_cents: number | null
           updated_at: string
         }
         Insert: {
           amount_cents: number
+          auto_release_global?: boolean | null
+          beneficiario_nombre?: string | null
           buyer_id: string
           cancelled_at?: string | null
+          clabe_virtual?: string | null
+          comision_cents?: number | null
           commission_bps?: number
           commission_payer?: Database["public"]["Enums"]["commission_payer"]
+          contrato_pdf_url?: string | null
           counterparty_email?: string | null
+          creado_por?: string | null
           created_at?: string
           currency?: string
           delivery_deadline?: string | null
           description?: string | null
+          descuento_volumetrico?: number | null
+          fecha_activacion?: string | null
+          fecha_cancelada?: string | null
+          fecha_completada?: string | null
+          fecha_firma_beneficiario?: string | null
+          fecha_firma_pagador?: string | null
           funded_at?: string | null
           funding_deadline?: string | null
           id?: string
+          ip_creacion?: unknown
+          iva_comision_cents?: number | null
+          numero?: string | null
           payment_method?: Database["public"]["Enums"]["payment_method"]
           released_at?: string | null
+          repse_requerido?: boolean | null
           sector?: string | null
           seller_id?: string | null
           status?: Database["public"]["Enums"]["transaction_status"]
+          stripe_payment_intent_id?: string | null
           title: string
+          total_a_depositar_cents?: number | null
           updated_at?: string
         }
         Update: {
           amount_cents?: number
+          auto_release_global?: boolean | null
+          beneficiario_nombre?: string | null
           buyer_id?: string
           cancelled_at?: string | null
+          clabe_virtual?: string | null
+          comision_cents?: number | null
           commission_bps?: number
           commission_payer?: Database["public"]["Enums"]["commission_payer"]
+          contrato_pdf_url?: string | null
           counterparty_email?: string | null
+          creado_por?: string | null
           created_at?: string
           currency?: string
           delivery_deadline?: string | null
           description?: string | null
+          descuento_volumetrico?: number | null
+          fecha_activacion?: string | null
+          fecha_cancelada?: string | null
+          fecha_completada?: string | null
+          fecha_firma_beneficiario?: string | null
+          fecha_firma_pagador?: string | null
           funded_at?: string | null
           funding_deadline?: string | null
           id?: string
+          ip_creacion?: unknown
+          iva_comision_cents?: number | null
+          numero?: string | null
           payment_method?: Database["public"]["Enums"]["payment_method"]
           released_at?: string | null
+          repse_requerido?: boolean | null
           sector?: string | null
           seller_id?: string | null
           status?: Database["public"]["Enums"]["transaction_status"]
+          stripe_payment_intent_id?: string | null
           title?: string
+          total_a_depositar_cents?: number | null
           updated_at?: string
         }
         Relationships: []
@@ -1192,6 +1323,8 @@ export type Database = {
         | "disputed"
         | "cancelled"
         | "refunded"
+        | "pending_signature"
+        | "partial_release"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1361,6 +1494,8 @@ export const Constants = {
         "disputed",
         "cancelled",
         "refunded",
+        "pending_signature",
+        "partial_release",
       ],
     },
   },
