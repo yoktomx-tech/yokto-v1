@@ -864,3 +864,175 @@ function FEES_PCT(sector: SectorId): number {
   return map[sector];
 }
 
+// ─── Paso 5: Revisión y firma ───────────────────────────────────────────────
+function Step5({
+  numero, sector, rol, descripcion, contraparte, hitos, monto, metodoPago,
+  fechaInicio, fechaFin,
+  aceptaTerminos, setAceptaTerminos, aceptaRetencion, setAceptaRetencion,
+  firmando, firmaResult, onFirmar,
+}: {
+  numero: string | null;
+  sector: SectorId | null;
+  rol: Rol;
+  descripcion: string;
+  contraparte: Contraparte | null;
+  hitos: HitoDraft[];
+  monto: number;
+  metodoPago: "SPEI" | "TARJETA" | "OXXO";
+  fechaInicio: string;
+  fechaFin: string;
+  aceptaTerminos: boolean;
+  setAceptaTerminos: (v: boolean) => void;
+  aceptaRetencion: boolean;
+  setAceptaRetencion: (v: boolean) => void;
+  firmando: boolean;
+  firmaResult: { status: string; activated: boolean } | null;
+  onFirmar: () => void;
+}) {
+  const sectorDef = sector ? getSector(sector) : null;
+  const fee = useMemo(() => (sector ? calcularFee(sector, monto || 0, 0) : null), [sector, monto]);
+  const fmt = (n: number) => new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN" }).format(n);
+
+  if (firmaResult) {
+    return (
+      <div className="py-10 text-center space-y-4">
+        <div className="text-6xl">{firmaResult.activated ? "✓" : "⏳"}</div>
+        <h2 className="font-display text-3xl tracking-wide text-foreground">
+          {firmaResult.activated ? "Transacción activada" : "Firma registrada"}
+        </h2>
+        <p className="text-sm text-muted-foreground max-w-md mx-auto">
+          {firmaResult.activated
+            ? `Ambas partes firmaron. La transacción ${numero} está lista para fondearse.`
+            : contraparte?.user_id
+              ? `Notificamos a ${contraparte?.nombre} para que firme y active la transacción ${numero}.`
+              : `Enviamos una invitación a ${contraparte?.email}. La transacción ${numero} quedará pendiente hasta que se registre y firme.`}
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="border border-yo-border bg-yo-bg/30 p-4">
+        <div className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">Contrato de depósito en garantía</div>
+        <div className="mt-1 font-mono text-sm text-foreground">{numero}</div>
+        <p className="mt-2 text-xs text-muted-foreground">
+          Revisa cuidadosamente los términos. Al firmar aceptas que YOKTO retenga los fondos y libere hito por hito conforme se cumplan las condiciones.
+        </p>
+      </div>
+
+      {/* Resumen general */}
+      <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <SummaryCard title="Sector">
+          <div>{sectorDef?.emoji} {sectorDef?.titulo}</div>
+        </SummaryCard>
+        <SummaryCard title="Tu rol">
+          <div>{rol === "PAGADOR" ? "Pagador (deposita)" : "Beneficiario (recibe)"}</div>
+        </SummaryCard>
+        <SummaryCard title="Contraparte">
+          <div className="font-semibold">{contraparte?.nombre}</div>
+          <div className="text-xs text-muted-foreground">
+            {contraparte?.email}{contraparte?.rfc ? ` · ${contraparte.rfc}` : ""} · {contraparte?.user_id ? "usuario YOKTO" : "por invitar"}
+          </div>
+        </SummaryCard>
+        <SummaryCard title="Método de pago">
+          <div>{metodoPago}</div>
+          <div className="text-xs text-muted-foreground">{fechaInicio} → {fechaFin || "s/f"}</div>
+        </SummaryCard>
+        <SummaryCard title="Descripción" wide>
+          <div className="text-sm whitespace-pre-wrap">{descripcion}</div>
+        </SummaryCard>
+      </section>
+
+      {/* Hitos */}
+      <section>
+        <div className="text-[11px] uppercase tracking-[0.14em] font-semibold text-foreground mb-2">Hitos ({hitos.length})</div>
+        <div className="border border-yo-border divide-y divide-yo-border/50">
+          {hitos.map((h) => (
+            <div key={h.orden} className="p-3 flex items-start justify-between gap-3">
+              <div>
+                <div className="text-sm font-semibold text-foreground">{h.orden}. {h.titulo}</div>
+                <div className="text-xs text-muted-foreground">
+                  {h.tipo_verificacion} · aprueba {h.responsable.toLowerCase()} · vence {h.fecha_limite}
+                  {h.auto_release && " · auto-liberación"}
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="text-sm font-semibold text-foreground tabular-nums">{Number(h.monto_porcentaje).toFixed(2)}%</div>
+                <div className="text-xs text-muted-foreground tabular-nums">{fmt((monto || 0) * (Number(h.monto_porcentaje) / 100))}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Comisiones */}
+      {fee && (
+        <section className="border-2 border-yokto-black bg-yo-bg/40 p-4 space-y-1">
+          <div className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground font-semibold">Comisiones y total</div>
+          <Row label="Monto de la operación" value={fmt(monto || 0)} />
+          <Row label="Comisión YOKTO" value={fmt(fee.comision_final)} />
+          <Row label="IVA 16%" value={fmt(fee.iva_comision)} />
+          <div className="border-t border-yo-border pt-2 mt-2">
+            <Row
+              label={<span className="font-semibold text-foreground">Total a depositar</span>}
+              value={<span className="font-display text-xl">{fmt(fee.total_a_depositar)}</span>}
+            />
+          </div>
+        </section>
+      )}
+
+      {/* Términos */}
+      <section className="space-y-3 border border-yo-border p-4 bg-background">
+        <label className="flex items-start gap-3 cursor-pointer">
+          <input
+            type="checkbox"
+            className="mt-1"
+            checked={aceptaTerminos}
+            onChange={(e) => setAceptaTerminos(e.target.checked)}
+          />
+          <span className="text-sm text-foreground">
+            Declaro que la información es veraz y acepto los <a href="/terminos" target="_blank" className="underline">Términos y Condiciones</a>, el <a href="/privacidad" target="_blank" className="underline">Aviso de Privacidad</a> y las reglas de disputa de YOKTO.
+          </span>
+        </label>
+        <label className="flex items-start gap-3 cursor-pointer">
+          <input
+            type="checkbox"
+            className="mt-1"
+            checked={aceptaRetencion}
+            onChange={(e) => setAceptaRetencion(e.target.checked)}
+          />
+          <span className="text-sm text-foreground">
+            Entiendo que los fondos serán retenidos en cuenta de garantía hasta el cumplimiento verificable de cada hito y que YOKTO no es entidad financiera.
+          </span>
+        </label>
+      </section>
+
+      <p className="text-[11px] text-muted-foreground">
+        Al pulsar <strong>Firmar y activar</strong> se registra tu firma electrónica con fecha, hora e IP.
+        {contraparte?.user_id
+          ? " Se notificará a tu contraparte para que firme también."
+          : " Se enviará una invitación por correo a la contraparte."}
+      </p>
+
+      {/* Botón inline redundante para mobile */}
+      <button
+        onClick={onFirmar}
+        disabled={firmando || !aceptaTerminos || !aceptaRetencion}
+        className="w-full md:hidden px-6 py-3 bg-yokto-black text-yokto-yellow text-[12px] uppercase tracking-[0.14em] font-semibold border border-yokto-black hover:opacity-90 disabled:opacity-40"
+      >
+        {firmando ? "Firmando…" : "Firmar y activar ✓"}
+      </button>
+    </div>
+  );
+}
+
+function SummaryCard({ title, children, wide }: { title: string; children: React.ReactNode; wide?: boolean }) {
+  return (
+    <div className={`border border-yo-border p-3 ${wide ? "md:col-span-2" : ""}`}>
+      <div className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">{title}</div>
+      <div className="mt-1 text-foreground">{children}</div>
+    </div>
+  );
+}
+
