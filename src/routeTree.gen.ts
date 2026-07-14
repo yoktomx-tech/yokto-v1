@@ -32,6 +32,7 @@ import { Route as AuthenticatedDisputesIdRouteImport } from './routes/_authentic
 import { Route as AuthenticatedAdminDisputesRouteImport } from './routes/_authenticated/admin.disputes'
 import { Route as ApiPublicV1TransactionsRouteImport } from './routes/api/public/v1.transactions'
 import { Route as ApiPublicStripeWebhookRouteImport } from './routes/api/public/stripe.webhook'
+import { Route as ApiPublicHooksDisputeDeadlinesRouteImport } from './routes/api/public/hooks/dispute-deadlines'
 import { Route as AuthenticatedAdminDisputesIdRouteImport } from './routes/_authenticated/admin.disputes.$id'
 
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
@@ -153,6 +154,12 @@ const ApiPublicStripeWebhookRoute = ApiPublicStripeWebhookRouteImport.update({
   path: '/api/public/stripe/webhook',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicHooksDisputeDeadlinesRoute =
+  ApiPublicHooksDisputeDeadlinesRouteImport.update({
+    id: '/api/public/hooks/dispute-deadlines',
+    path: '/api/public/hooks/dispute-deadlines',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AuthenticatedAdminDisputesIdRoute =
   AuthenticatedAdminDisputesIdRouteImport.update({
     id: '/$id',
@@ -182,6 +189,7 @@ export interface FileRoutesByFullPath {
   '/transactions/$id': typeof AuthenticatedTransactionsIdRoute
   '/transactions/new': typeof AuthenticatedTransactionsNewRoute
   '/admin/disputes/$id': typeof AuthenticatedAdminDisputesIdRoute
+  '/api/public/hooks/dispute-deadlines': typeof ApiPublicHooksDisputeDeadlinesRoute
   '/api/public/stripe/webhook': typeof ApiPublicStripeWebhookRoute
   '/api/public/v1/transactions': typeof ApiPublicV1TransactionsRoute
 }
@@ -207,6 +215,7 @@ export interface FileRoutesByTo {
   '/transactions/$id': typeof AuthenticatedTransactionsIdRoute
   '/transactions/new': typeof AuthenticatedTransactionsNewRoute
   '/admin/disputes/$id': typeof AuthenticatedAdminDisputesIdRoute
+  '/api/public/hooks/dispute-deadlines': typeof ApiPublicHooksDisputeDeadlinesRoute
   '/api/public/stripe/webhook': typeof ApiPublicStripeWebhookRoute
   '/api/public/v1/transactions': typeof ApiPublicV1TransactionsRoute
 }
@@ -234,6 +243,7 @@ export interface FileRoutesById {
   '/_authenticated/transactions/$id': typeof AuthenticatedTransactionsIdRoute
   '/_authenticated/transactions/new': typeof AuthenticatedTransactionsNewRoute
   '/_authenticated/admin/disputes/$id': typeof AuthenticatedAdminDisputesIdRoute
+  '/api/public/hooks/dispute-deadlines': typeof ApiPublicHooksDisputeDeadlinesRoute
   '/api/public/stripe/webhook': typeof ApiPublicStripeWebhookRoute
   '/api/public/v1/transactions': typeof ApiPublicV1TransactionsRoute
 }
@@ -261,6 +271,7 @@ export interface FileRouteTypes {
     | '/transactions/$id'
     | '/transactions/new'
     | '/admin/disputes/$id'
+    | '/api/public/hooks/dispute-deadlines'
     | '/api/public/stripe/webhook'
     | '/api/public/v1/transactions'
   fileRoutesByTo: FileRoutesByTo
@@ -286,6 +297,7 @@ export interface FileRouteTypes {
     | '/transactions/$id'
     | '/transactions/new'
     | '/admin/disputes/$id'
+    | '/api/public/hooks/dispute-deadlines'
     | '/api/public/stripe/webhook'
     | '/api/public/v1/transactions'
   id:
@@ -312,6 +324,7 @@ export interface FileRouteTypes {
     | '/_authenticated/transactions/$id'
     | '/_authenticated/transactions/new'
     | '/_authenticated/admin/disputes/$id'
+    | '/api/public/hooks/dispute-deadlines'
     | '/api/public/stripe/webhook'
     | '/api/public/v1/transactions'
   fileRoutesById: FileRoutesById
@@ -325,6 +338,7 @@ export interface RootRouteChildren {
   ResetPasswordRoute: typeof ResetPasswordRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   BiometricoTokenRoute: typeof BiometricoTokenRoute
+  ApiPublicHooksDisputeDeadlinesRoute: typeof ApiPublicHooksDisputeDeadlinesRoute
   ApiPublicStripeWebhookRoute: typeof ApiPublicStripeWebhookRoute
   ApiPublicV1TransactionsRoute: typeof ApiPublicV1TransactionsRoute
 }
@@ -492,6 +506,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicStripeWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/dispute-deadlines': {
+      id: '/api/public/hooks/dispute-deadlines'
+      path: '/api/public/hooks/dispute-deadlines'
+      fullPath: '/api/public/hooks/dispute-deadlines'
+      preLoaderRoute: typeof ApiPublicHooksDisputeDeadlinesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/admin/disputes/$id': {
       id: '/_authenticated/admin/disputes/$id'
       path: '/$id'
@@ -592,6 +613,7 @@ const rootRouteChildren: RootRouteChildren = {
   ResetPasswordRoute: ResetPasswordRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   BiometricoTokenRoute: BiometricoTokenRoute,
+  ApiPublicHooksDisputeDeadlinesRoute: ApiPublicHooksDisputeDeadlinesRoute,
   ApiPublicStripeWebhookRoute: ApiPublicStripeWebhookRoute,
   ApiPublicV1TransactionsRoute: ApiPublicV1TransactionsRoute,
 }
