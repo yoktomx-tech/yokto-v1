@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { useViewRole } from "@/hooks/use-view-role";
 import { listPaymentsForCenter } from "@/lib/payments-list.functions";
@@ -9,9 +9,10 @@ import { PaymentsFilters, type PaymentsFiltersState } from "@/components/payment
 import { PaymentsTabs } from "@/components/payments/payments-tabs";
 import { PaymentsTable } from "@/components/payments/payments-table";
 import { NoCustodyBanner } from "@/components/payments/ui/no-custody-banner";
+import { FundingWizard } from "@/components/payments/funding-wizard";
 import { matchesTab, type TabId } from "@/lib/payments-catalog";
 import { PageHeader } from "@/components/page-header";
-import { Banknote } from "lucide-react";
+import { Banknote, Plus } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/payments")({
   head: () => ({ meta: [{ title: "Centro de Pagos — YOKTO" }, { name: "robots", content: "noindex" }] }),
