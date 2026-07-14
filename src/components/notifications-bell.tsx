@@ -80,7 +80,11 @@ export function NotificationsBell({ userId }: { userId: string }) {
               </li>
             ))}
           </ul>
+          <a href="/notifications" onClick={() => setOpen(false)} className="block p-3 text-center text-[12px] font-semibold text-yo-ac hover:bg-yo-raised border-t border-yo-border">
+            Ver todas las notificaciones
+          </a>
         </div>
+
       )}
     </div>
   );
