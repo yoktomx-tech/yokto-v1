@@ -26,6 +26,7 @@ import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authen
 import { Route as AuthenticatedKycRouteImport } from './routes/_authenticated/kyc'
 import { Route as AuthenticatedDisputesRouteImport } from './routes/_authenticated/disputes'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedCumplimientoRouteImport } from './routes/_authenticated/cumplimiento'
 import { Route as AuthenticatedCrmRouteImport } from './routes/_authenticated/crm'
 import { Route as AuthenticatedApprovalsRouteImport } from './routes/_authenticated/approvals'
 import { Route as AuthenticatedApiClientsRouteImport } from './routes/_authenticated/api-clients'
@@ -131,6 +132,12 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedCumplimientoRoute =
+  AuthenticatedCumplimientoRouteImport.update({
+    id: '/cumplimiento',
+    path: '/cumplimiento',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedCrmRoute = AuthenticatedCrmRouteImport.update({
   id: '/crm',
   path: '/crm',
@@ -243,6 +250,7 @@ export interface FileRoutesByFullPath {
   '/api-clients': typeof AuthenticatedApiClientsRoute
   '/approvals': typeof AuthenticatedApprovalsRoute
   '/crm': typeof AuthenticatedCrmRoute
+  '/cumplimiento': typeof AuthenticatedCumplimientoRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/disputes': typeof AuthenticatedDisputesRouteWithChildren
   '/kyc': typeof AuthenticatedKycRoute
@@ -279,6 +287,7 @@ export interface FileRoutesByTo {
   '/api-clients': typeof AuthenticatedApiClientsRoute
   '/approvals': typeof AuthenticatedApprovalsRoute
   '/crm': typeof AuthenticatedCrmRoute
+  '/cumplimiento': typeof AuthenticatedCumplimientoRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/disputes': typeof AuthenticatedDisputesRouteWithChildren
   '/kyc': typeof AuthenticatedKycRoute
@@ -317,6 +326,7 @@ export interface FileRoutesById {
   '/_authenticated/api-clients': typeof AuthenticatedApiClientsRoute
   '/_authenticated/approvals': typeof AuthenticatedApprovalsRoute
   '/_authenticated/crm': typeof AuthenticatedCrmRoute
+  '/_authenticated/cumplimiento': typeof AuthenticatedCumplimientoRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/disputes': typeof AuthenticatedDisputesRouteWithChildren
   '/_authenticated/kyc': typeof AuthenticatedKycRoute
@@ -355,6 +365,7 @@ export interface FileRouteTypes {
     | '/api-clients'
     | '/approvals'
     | '/crm'
+    | '/cumplimiento'
     | '/dashboard'
     | '/disputes'
     | '/kyc'
@@ -391,6 +402,7 @@ export interface FileRouteTypes {
     | '/api-clients'
     | '/approvals'
     | '/crm'
+    | '/cumplimiento'
     | '/dashboard'
     | '/disputes'
     | '/kyc'
@@ -428,6 +440,7 @@ export interface FileRouteTypes {
     | '/_authenticated/api-clients'
     | '/_authenticated/approvals'
     | '/_authenticated/crm'
+    | '/_authenticated/cumplimiento'
     | '/_authenticated/dashboard'
     | '/_authenticated/disputes'
     | '/_authenticated/kyc'
@@ -588,6 +601,13 @@ declare module '@tanstack/react-router' {
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/cumplimiento': {
+      id: '/_authenticated/cumplimiento'
+      path: '/cumplimiento'
+      fullPath: '/cumplimiento'
+      preLoaderRoute: typeof AuthenticatedCumplimientoRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/crm': {
@@ -810,6 +830,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedApiClientsRoute: typeof AuthenticatedApiClientsRoute
   AuthenticatedApprovalsRoute: typeof AuthenticatedApprovalsRoute
   AuthenticatedCrmRoute: typeof AuthenticatedCrmRoute
+  AuthenticatedCumplimientoRoute: typeof AuthenticatedCumplimientoRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedDisputesRoute: typeof AuthenticatedDisputesRouteWithChildren
   AuthenticatedKycRoute: typeof AuthenticatedKycRoute
@@ -827,6 +848,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedApiClientsRoute: AuthenticatedApiClientsRoute,
   AuthenticatedApprovalsRoute: AuthenticatedApprovalsRoute,
   AuthenticatedCrmRoute: AuthenticatedCrmRoute,
+  AuthenticatedCumplimientoRoute: AuthenticatedCumplimientoRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedDisputesRoute: AuthenticatedDisputesRouteWithChildren,
   AuthenticatedKycRoute: AuthenticatedKycRoute,
