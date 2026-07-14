@@ -27,6 +27,7 @@ function TransactionsList() {
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<"all" | "as_buyer" | "as_seller">("all");
+  const [view, setView] = useState<"cards" | "table">("cards");
   const [kycOk, setKycOk] = useState<boolean | null>(null);
 
   useEffect(() => {
