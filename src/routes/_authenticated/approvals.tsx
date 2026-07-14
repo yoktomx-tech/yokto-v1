@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { useViewRole } from "@/hooks/use-view-role";
 import { cn } from "@/lib/utils";
+import { PageHeader } from "@/components/page-header";
 import {
   MOCK_APPROVALS, STATUS_CFG, SECTOR_CFG, formatMoney, daysUntil,
   type Approval, type ApprovalStatus,
@@ -93,24 +94,20 @@ function ApprovalsPage() {
 
   return (
     <>
-      <div className="max-w-[1400px] mx-auto w-full">
+      <div className="flex flex-col gap-6">
         {/* Header */}
-        <section className="mb-5 flex items-start justify-between gap-4 flex-wrap">
-          <div className="flex items-start gap-3">
-            <div className="size-10 rounded-md bg-yo-ac-bg grid place-items-center shrink-0">
-              <ClipboardCheck className="size-5 text-yo-ac" />
-            </div>
-            <div>
-              <h1 className="text-[22px] font-semibold tracking-[-.02em] text-yo-txt">Aprobaciones</h1>
-              <p className="text-sm text-yo-txt-2 mt-1">Revisa entregables, evidencia y condiciones antes de liberar fondos.</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <BtnSecondary icon={RefreshCw} onClick={() => toast.info("Actualizado")}>Actualizar</BtnSecondary>
-            <BtnSecondary icon={Download} onClick={() => toast.success("Expediente exportado")}>Exportar</BtnSecondary>
-            <BtnPrimary icon={BookOpen}>Ver reglas</BtnPrimary>
-          </div>
-        </section>
+        <PageHeader
+          icon={ClipboardCheck}
+          title="Aprobaciones"
+          subtitle="Revisa entregables, evidencia y condiciones antes de liberar fondos."
+          actions={
+            <>
+              <BtnSecondary icon={RefreshCw} onClick={() => toast.info("Actualizado")}>Actualizar</BtnSecondary>
+              <BtnSecondary icon={Download} onClick={() => toast.success("Expediente exportado")}>Exportar</BtnSecondary>
+              <BtnPrimary icon={BookOpen}>Ver reglas</BtnPrimary>
+            </>
+          }
+        />
 
         {/* Metrics */}
         <section className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 mb-5">
