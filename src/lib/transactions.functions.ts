@@ -1,8 +1,10 @@
-// Server functions para el wizard de transacciones (Módulo C – Fase 1)
+// Server functions para el wizard de transacciones (Módulo C – Fase 1-2)
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { Step1Schema, Step2Schema, RFC_REGEX } from "@/lib/validations/transaction";
+import { Step1Schema, Step2Schema, Step3Schema, Step4Schema, RFC_REGEX } from "@/lib/validations/transaction";
+import { calcularFee, type SectorId } from "@/lib/sectors";
+
 
 // ─── Buscar contraparte por RFC o email ──────────────────────────────────────
 export const searchCounterpart = createServerFn({ method: "POST" })
