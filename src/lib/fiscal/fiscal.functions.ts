@@ -143,7 +143,7 @@ export const uploadFiscalDocument = createServerFn({ method: "POST" })
     // Evento en la transacción
     await supabase.from("transaction_events").insert({
       transaction_id: data.transaction_id,
-      user_id: userId,
+      actor_id: userId,
       event_type: "fiscal_document_uploaded",
       metadata: {
         fiscal_document_id: inserted.id,
