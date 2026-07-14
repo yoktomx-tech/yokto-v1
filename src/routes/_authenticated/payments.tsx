@@ -27,6 +27,7 @@ function withinRange(iso: string, range: string): boolean {
 
 function PaymentsPage() {
   const { role } = useViewRole();
+  const navigate = useNavigate();
   const listFn = useServerFn(listPaymentsForCenter);
 
   const { data: rows = [], isLoading } = useQuery({
