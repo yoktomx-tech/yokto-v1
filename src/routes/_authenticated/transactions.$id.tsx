@@ -457,6 +457,10 @@ function TxDetail() {
             <DocumentsPanel transactionId={id} canUpload={isBuyer || isSeller} userId={user.id} />
           )}
 
+          {tab === "fiscal" && (
+            <FiscalPanel transactionId={id} canUpload={isBuyer || isSeller} userId={user.id} />
+          )}
+
           {tab === "evidencia" && (
             <VerificationPanel transactionId={id} canUpload={isBuyer || isSeller} />
           )}
