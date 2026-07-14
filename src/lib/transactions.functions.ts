@@ -216,7 +216,7 @@ export const saveTransactionMonto = createServerFn({ method: "POST" })
       .from("transactions")
       .update({
         amount_cents,
-        payment_method: data.step4.metodo_pago.toLowerCase(),
+        payment_method: (data.step4.metodo_pago === "TARJETA" ? "card" : "spei") as "card" | "spei",
         comision_cents,
         iva_comision_cents,
         total_a_depositar_cents,
