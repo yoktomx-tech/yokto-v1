@@ -1,0 +1,4 @@
+ALTER TABLE public.disputes
+  ADD COLUMN IF NOT EXISTS evidence_closed_at TIMESTAMPTZ,
+  ADD COLUMN IF NOT EXISTS escalated_at TIMESTAMPTZ,
+  ADD COLUMN IF NOT EXISTS escalation_reason TEXT;
