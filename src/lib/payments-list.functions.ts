@@ -16,7 +16,7 @@ export const listPaymentsForCenter = createServerFn({ method: "GET" })
     const { data: txs, error: txErr } = await supabase
       .from("transactions")
       .select(
-        "id, numero, title, sector, buyer_id, seller_id, amount_cents, currency, status, created_at, updated_at, counterparty_email, beneficiario_nombre",
+        "id, numero, title, sector, buyer_id, seller_id, amount_cents, currency, status, created_at, counterparty_email, beneficiario_nombre",
       )
       .or(`buyer_id.eq.${userId},seller_id.eq.${userId}`)
       .order("created_at", { ascending: false })
