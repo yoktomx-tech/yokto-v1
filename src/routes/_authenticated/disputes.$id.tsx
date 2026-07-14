@@ -40,7 +40,8 @@ const money = (c: number, cur = "MXN") =>
 type ModalKind = null | "evidence" | "respond" | "propose" | "accept" | "review" | "request_evidence";
 
 function DisputeDetail() {
-  const { dispute: d } = Route.useLoaderData();
+  const data = Route.useLoaderData() as { dispute: Dispute };
+  const d = data.dispute;
   const { role } = useViewRole();
   const actor = role as "buyer" | "seller";
   const isBuyer = actor === "buyer";
