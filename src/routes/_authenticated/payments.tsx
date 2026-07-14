@@ -80,7 +80,7 @@ function PaymentsPage() {
             Cargando pagos…
           </div>
         ) : (
-          <PaymentsTable rows={filtered} role={role} />
+          <PaymentsTable rows={filtered} role={role} onOpen={(r) => { if (!r.id.startsWith("tx-")) navigate({ to: "/payments/$id", params: { id: r.id } }); else navigate({ to: "/transactions/$id", params: { id: r.transactionId } }); }} />
         )}
       </div>
     </>
