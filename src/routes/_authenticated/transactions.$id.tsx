@@ -29,7 +29,7 @@ type Tx = {
   seller_id: string | null;
   counterparty_email: string | null;
   beneficiario_nombre: string | null;
-  beneficiario_rfc: string | null;
+  beneficiario_rfc?: string | null;
   title: string;
   description: string | null;
   sector: string | null;
