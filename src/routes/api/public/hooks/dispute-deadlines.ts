@@ -58,7 +58,7 @@ export const Route = createFileRoute("/api/public/hooks/dispute-deadlines")({
             await supabaseAdmin.from("transaction_events").insert({
               transaction_id: d.transaction_id,
               event_type: "dispute_auto_response_expired",
-              payload: { dispute_id: d.id, numero: d.numero },
+              metadata: { dispute_id: d.id, numero: d.numero },
             });
             results.push({ id: d.id, action: "response_expired->in_review" });
             continue;
@@ -78,7 +78,7 @@ export const Route = createFileRoute("/api/public/hooks/dispute-deadlines")({
             await supabaseAdmin.from("transaction_events").insert({
               transaction_id: d.transaction_id,
               event_type: "dispute_evidence_window_closed",
-              payload: { dispute_id: d.id, numero: d.numero },
+              metadata: { dispute_id: d.id, numero: d.numero },
             });
             results.push({ id: d.id, action: "evidence_closed" });
           }
@@ -102,7 +102,7 @@ export const Route = createFileRoute("/api/public/hooks/dispute-deadlines")({
             await supabaseAdmin.from("transaction_events").insert({
               transaction_id: d.transaction_id,
               event_type: "dispute_auto_escalated",
-              payload: { dispute_id: d.id, numero: d.numero, reason: "resolution_deadline" },
+              metadata: { dispute_id: d.id, numero: d.numero, reason: "resolution_deadline" },
             });
             results.push({ id: d.id, action: "auto_escalated" });
           }
