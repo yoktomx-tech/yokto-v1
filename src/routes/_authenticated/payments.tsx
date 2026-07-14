@@ -10,9 +10,12 @@ import { PaymentsTabs } from "@/components/payments/payments-tabs";
 import { PaymentsTable } from "@/components/payments/payments-table";
 import { NoCustodyBanner } from "@/components/payments/ui/no-custody-banner";
 import { FundingWizard } from "@/components/payments/funding-wizard";
+import { ReleaseCalendar } from "@/components/payments/release-calendar";
 import { matchesTab, type TabId } from "@/lib/payments-catalog";
 import { PageHeader } from "@/components/page-header";
-import { Banknote, Plus } from "lucide-react";
+import { Banknote, Plus, Download } from "lucide-react";
+import { exportPaymentsCsv } from "@/lib/payments-csv";
+import { usePaymentsRealtime } from "@/hooks/use-payments-realtime";
 
 export const Route = createFileRoute("/_authenticated/payments")({
   head: () => ({ meta: [{ title: "Centro de Pagos — YOKTO" }, { name: "robots", content: "noindex" }] }),
@@ -32,6 +35,7 @@ function PaymentsPage() {
   const qc = useQueryClient();
   const listFn = useServerFn(listPaymentsForCenter);
   const [fundingOpen, setFundingOpen] = useState(false);
+  usePaymentsRealtime();
 
   const { data: rows = [], isLoading } = useQuery({
     queryKey: ["payments-center"],
@@ -67,14 +71,23 @@ function PaymentsPage() {
           title="Centro de Pagos"
           subtitle={`Vista ${role === "buyer" ? "de comprador" : "de vendedor"} — pagos, retenciones y liberaciones procesados por la pasarela.`}
           actions={
-            role === "buyer" ? (
+            <div className="flex items-center gap-2">
               <button
-                onClick={() => setFundingOpen(true)}
-                className="inline-flex items-center gap-1.5 px-3 py-2 bg-yo-ac text-white text-sm font-medium rounded-md hover:bg-yo-ac-h"
+                onClick={() => exportPaymentsCsv(filtered)}
+                disabled={filtered.length === 0}
+                className="inline-flex items-center gap-1.5 px-3 py-2 bg-yo-card border border-yo-border text-yo-t1 text-sm font-medium rounded-md hover:bg-yo-hover disabled:opacity-50"
               >
-                <Plus className="size-4" /> Fondear transacción
+                <Download className="size-4" /> Exportar CSV
               </button>
-            ) : null
+              {role === "buyer" ? (
+                <button
+                  onClick={() => setFundingOpen(true)}
+                  className="inline-flex items-center gap-1.5 px-3 py-2 bg-yo-ac text-white text-sm font-medium rounded-md hover:bg-yo-ac-h"
+                >
+                  <Plus className="size-4" /> Fondear transacción
+                </button>
+              ) : null}
+            </div>
           }
         />
 
@@ -83,9 +96,19 @@ function PaymentsPage() {
 
         <PaymentsMetricsGrid role={role} rows={rows} />
 
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div className="lg:col-span-2">
+            <PaymentsFilters value={filters} onChange={setFilters} />
+            <div className="mt-3">
+              <PaymentsTabs role={role} rows={rows} active={tab} onChange={setTab} />
+            </div>
+          </div>
+          <div className="lg:col-span-1">
+            <ReleaseCalendar rows={rows} />
+          </div>
+        </div>
+
         <div className="space-y-3">
-          <PaymentsFilters value={filters} onChange={setFilters} />
-          <PaymentsTabs role={role} rows={rows} active={tab} onChange={setTab} />
         </div>
 
         {isLoading ? (
