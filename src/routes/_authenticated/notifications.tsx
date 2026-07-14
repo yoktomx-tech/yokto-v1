@@ -90,21 +90,13 @@ function NotificationsPage() {
   ];
 
   return (
-    <>
-      <main className="p-6 md:p-8 max-w-4xl mx-auto w-full">
-        <div className="flex items-center justify-between gap-3 mb-6">
-          <div className="flex items-center gap-3">
-            <div className="size-10 rounded-md bg-yo-ac-bg grid place-items-center">
-              <Bell className="size-5 text-yo-ac" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold text-yo-txt">Notificaciones</h1>
-              <p className="text-sm text-yo-txt-3">
-                {unread > 0 ? `Tienes ${unread} sin leer` : "Estás al día"}
-              </p>
-            </div>
-          </div>
-          {unread > 0 && (
+    <div className="flex flex-col gap-6">
+      <PageHeader
+        icon={Bell}
+        title="Notificaciones"
+        subtitle={unread > 0 ? `Tienes ${unread} sin leer` : "Estás al día"}
+        actions={
+          unread > 0 ? (
             <button
               onClick={markAll}
               className="inline-flex items-center gap-1.5 px-3 py-2 rounded-md border border-yo-border bg-yo-surface hover:bg-yo-raised text-[13px] font-semibold text-yo-txt transition"
@@ -112,9 +104,11 @@ function NotificationsPage() {
               <CheckCheck className="size-4 text-yo-ac" />
               Marcar todas como leídas
             </button>
-          )}
-        </div>
+          ) : undefined
+        }
+      />
 
+      <div>
         <div className="flex items-center gap-1 mb-4 border-b border-yo-border">
           {filters.map((f) => (
             <button
