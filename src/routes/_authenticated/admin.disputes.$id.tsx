@@ -1,7 +1,6 @@
 import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useState } from "react";
-import { AppHeader } from "@/components/app-header";
 import {
   getDisputeAdminView,
   assignMediator,
@@ -158,7 +157,6 @@ function AdminDisputeDetail() {
   if (loading || !view || !dispute || !tx) {
     return (
       <div className="min-h-screen flex flex-col bg-background">
-        <AppHeader email={user.email} userId={user.id} section="Admin · Disputa" />
         <main className="flex-1 container-editorial py-8 max-w-6xl">
           <p className="text-sm text-yo-txt-3">Cargando…</p>
         </main>
@@ -175,7 +173,6 @@ function AdminDisputeDetail() {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <AppHeader email={user.email} userId={user.id} section={`Disputa ${dispute.numero as string}`} />
       <main className="flex-1 container-editorial py-8 max-w-6xl">
         {/* Sticky header */}
         <div className="sticky top-16 z-20 -mx-4 md:mx-0 mb-4 rounded-lg border border-yo-border bg-yo-surface/90 backdrop-blur px-4 py-3">

@@ -2,7 +2,6 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { Bell, Check, CheckCheck, Inbox } from "lucide-react";
-import { AppHeader } from "@/components/app-header";
 import { supabase } from "@/integrations/supabase/client";
 import { markNotificationRead } from "@/lib/disputes.functions";
 import { cn } from "@/lib/utils";
@@ -91,7 +90,6 @@ function NotificationsPage() {
 
   return (
     <>
-      <AppHeader email={user.email} userId={user.id} />
       <main className="p-6 md:p-8 max-w-4xl mx-auto w-full">
         <div className="flex items-center justify-between gap-3 mb-6">
           <div className="flex items-center gap-3">

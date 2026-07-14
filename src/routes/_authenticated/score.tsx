@@ -1,7 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Star } from "lucide-react";
-import { AppHeader } from "@/components/app-header";
-
 export const Route = createFileRoute("/_authenticated/score")({
   head: () => ({ meta: [{ title: "Score de confianza — YOKTO" }, { name: "robots", content: "noindex" }] }),
   component: ScorePage,
@@ -14,7 +12,6 @@ function ScorePage() {
   const r = 60, c = 2 * Math.PI * r;
   return (
     <>
-      <AppHeader email={user.email} userId={user.id} />
       <main className="p-6 md:p-8 max-w-4xl mx-auto w-full">
         <div className="flex items-center gap-3 mb-6">
           <div className="size-10 rounded-md bg-yo-ac-bg grid place-items-center">

@@ -2,7 +2,6 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
 import { Copy, Key, Loader2, Trash2 } from "lucide-react";
-import { AppHeader } from "@/components/app-header";
 import { listApiClients, createApiClient, revokeApiClient } from "@/lib/api-clients.functions";
 
 export const Route = createFileRoute("/_authenticated/api-clients")({
@@ -42,7 +41,6 @@ function ApiClientsPage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <AppHeader email={user.email} userId={user.id} section="API" />
       <main className="flex-1 container-editorial py-8 max-w-4xl">
         <h1 className="text-2xl font-bold tracking-tight text-yo-txt">API pública</h1>
         <p className="text-sm text-yo-txt-3 mt-1">

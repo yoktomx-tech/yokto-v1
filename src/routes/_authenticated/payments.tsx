@@ -2,7 +2,6 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
-import { AppShell } from "@/components/app-shell";
 import { useViewRole } from "@/hooks/use-view-role";
 import { listPaymentsForCenter } from "@/lib/payments-list.functions";
 import { PaymentsMetricsGrid } from "@/components/payments/payments-metrics-grid";
@@ -55,7 +54,7 @@ function PaymentsPage() {
   }, [rows, tab, filters]);
 
   return (
-    <AppShell>
+    <>
       <div className="mx-auto max-w-[1400px] p-6 space-y-6">
         <header className="flex flex-col md:flex-row md:items-end md:justify-between gap-3">
           <div>
@@ -83,6 +82,6 @@ function PaymentsPage() {
           <PaymentsTable rows={filtered} role={role} />
         )}
       </div>
-    </AppShell>
+    </>
   );
 }

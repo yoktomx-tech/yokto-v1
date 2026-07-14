@@ -2,7 +2,6 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
 import { Download, FileText, Loader2 } from "lucide-react";
-import { AppHeader } from "@/components/app-header";
 import { exportTransactionsCsv, listRecentReports, generateCfdiStub } from "@/lib/reports.functions";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -66,7 +65,6 @@ function ReportsPage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <AppHeader email={user.email} userId={user.id} section="Reportes" />
       <main className="flex-1 container-editorial py-8 max-w-4xl">
         <h1 className="text-2xl font-bold tracking-tight text-yo-txt">Reportes y CFDI</h1>
         <p className="text-sm text-yo-txt-3 mt-1">Exporta tu operación en CSV y genera CFDI stub para pruebas de integración.</p>

@@ -3,7 +3,6 @@ import { useEffect, useMemo, useState } from "react";
 import { Lock, Activity, AlertCircle, Star } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { AppHeader } from "@/components/app-header";
 import { MetricCard } from "@/components/dashboard/metric-card";
 import { SectorChart, type SectorRow } from "@/components/dashboard/sector-chart";
 import { UpcomingDeadlines, type Deadline } from "@/components/dashboard/upcoming-deadlines";
@@ -144,7 +143,6 @@ function Dashboard() {
 
   return (
     <>
-      <AppHeader email={user.email} userId={user.id} section="Panel" />
       <main className="flex-1 min-w-0">
         <div className="px-4 sm:px-6 lg:px-8 py-6 lg:py-8 max-w-[1400px] mx-auto">
           <div>

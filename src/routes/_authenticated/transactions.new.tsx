@@ -1,5 +1,4 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { AppShell } from "@/components/app-shell";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
@@ -208,7 +207,7 @@ function NewTransactionWizard() {
 
   if (kycOk === false) {
     return (
-      <AppShell>
+      <>
         <div className="container-editorial py-16 max-w-2xl">
           <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Requisito</p>
           <h1 className="mt-2 font-display text-5xl tracking-wide">Completa tu verificación</h1>
@@ -220,12 +219,12 @@ function NewTransactionWizard() {
             Ir a onboarding
           </button>
         </div>
-      </AppShell>
+      </>
     );
   }
 
   return (
-    <AppShell>
+    <>
       <div className="container-editorial py-10 max-w-4xl">
         <div className="flex items-baseline justify-between gap-4">
           <div>
@@ -354,7 +353,7 @@ function NewTransactionWizard() {
           </div>
         )}
       </div>
-    </AppShell>
+    </>
   );
 }
 

@@ -1,7 +1,6 @@
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
-import { AppHeader } from "@/components/app-header";
 import {
   adminOverview, adminSetKycStatus, adminGrantRole,
   adminForceResolveDispute, isCurrentUserAdmin,
@@ -54,7 +53,6 @@ function AdminPage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <AppHeader email={user.email} userId={user.id} section="Admin" />
       <main className="flex-1 container-editorial py-8 max-w-6xl">
         <div className="flex items-center justify-between gap-3 flex-wrap">
           <div>

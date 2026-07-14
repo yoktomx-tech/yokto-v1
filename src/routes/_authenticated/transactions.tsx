@@ -2,7 +2,6 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Plus, LayoutGrid, List as ListIcon, Download } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { AppShell } from "@/components/app-shell";
 import { useViewRole } from "@/hooks/use-view-role";
 import { toUiStatus, type UiStatus, type SectorUiId } from "@/lib/tx-catalog";
 import { TransactionsMetricsGrid, type TxMetricsData } from "@/components/tx/transactions-metrics-grid";
@@ -256,7 +255,7 @@ function TransactionsList() {
 
 
   return (
-    <AppShell>
+    <>
       <div className="flex flex-col gap-6">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
@@ -356,6 +355,6 @@ function TransactionsList() {
           </>
         )}
       </div>
-    </AppShell>
+    </>
   );
 }
