@@ -61,10 +61,21 @@ function NewTransactionWizard() {
   const [fechaInicio, setFechaInicio] = useState<string>(new Date().toISOString().slice(0, 10));
   const [fechaFin, setFechaFin] = useState<string>("");
 
+  // Paso 5
+  const [aceptaTerminos, setAceptaTerminos] = useState(false);
+  const [aceptaRetencion, setAceptaRetencion] = useState(false);
+  const [firmando, setFirmando] = useState(false);
+  const [firmaResult, setFirmaResult] = useState<{ status: string; activated: boolean } | null>(null);
+
+  // Auto-save
+  const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
+
   const upsertDraft = useServerFn(upsertTransactionDraft);
   const cancelDraft = useServerFn(cancelTransactionDraft);
   const saveHitos = useServerFn(saveTransactionHitos);
   const saveMonto = useServerFn(saveTransactionMonto);
+  const signAndActivate = useServerFn(signAndActivateTransaction);
+
 
   useEffect(() => {
     supabase.from("profiles").select("kyc_status").eq("id", user.id).maybeSingle().then(({ data }) => {
