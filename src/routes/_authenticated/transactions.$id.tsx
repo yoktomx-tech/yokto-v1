@@ -573,22 +573,25 @@ function TxDetail() {
               <label className="block text-sm">
                 <span className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">Motivo</span>
                 <select value={disputeReason} onChange={(e) => setDisputeReason(e.target.value as never)} className="input-editorial w-full mt-1">
-                  <option value="not_delivered">No entregado</option>
-                  <option value="not_as_described">No como se describió</option>
-                  <option value="quality">Problemas de calidad</option>
-                  <option value="delay">Retraso significativo</option>
-                  <option value="fraud">Fraude</option>
-                  <option value="other">Otro</option>
+                  <option value="incumplimiento_hito">Incumplimiento de hito</option>
+                  <option value="documentos_invalidos">Documentos inválidos</option>
+                  <option value="mercancia_incompleta">Mercancía incompleta</option>
+                  <option value="calidad_insuficiente">Calidad insuficiente</option>
+                  <option value="plazo_vencido">Plazo vencido</option>
+                  <option value="fraude_sospechado">Fraude sospechado</option>
+                  <option value="condiciones_no_acordadas">Condiciones no acordadas</option>
+                  <option value="otro">Otro</option>
                 </select>
               </label>
               <label className="block text-sm">
-                <span className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">Descripción (mín. 20 caracteres)</span>
-                <textarea rows={5} value={disputeDesc} onChange={(e) => setDisputeDesc(e.target.value)} className="input-editorial w-full mt-1" placeholder="Explica qué pasó, cuándo y qué esperas como resolución" />
+                <span className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">Descripción (mín. 100 caracteres)</span>
+                <textarea rows={5} value={disputeDesc} onChange={(e) => setDisputeDesc(e.target.value)} className="input-editorial w-full mt-1" placeholder="Explica qué pasó, cuándo y qué esperas como resolución. Incluye fechas, montos y evidencia." />
+                <span className="text-[11px] text-muted-foreground mt-1 block">{disputeDesc.trim().length}/100</span>
               </label>
               {error && <div role="alert" className="border border-[#FF3B3B] bg-[#FF3B3B]/10 text-[#FF3B3B] p-3 text-sm">{error}</div>}
               <div className="flex justify-end gap-2">
                 <button onClick={() => setDisputeOpen(false)} className={btnGhost}>Cancelar</button>
-                <button disabled={busy || disputeDesc.trim().length < 20} onClick={submitDispute} className={btnDanger}>Abrir disputa</button>
+                <button disabled={busy || disputeDesc.trim().length < 100} onClick={submitDispute} className={btnDanger}>Continuar al depósito</button>
               </div>
             </div>
           </div>
