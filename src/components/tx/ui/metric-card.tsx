@@ -10,6 +10,8 @@ type Props = {
   icon?: ReactNode;
   trend?: Trend;
   tone?: "neutral" | "accent" | "ok" | "warn" | "err" | "info";
+  /** Color hex para la línea superior de acento (2px). */
+  topAccent?: string;
   className?: string;
 };
 
