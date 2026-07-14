@@ -208,7 +208,7 @@ function NewTransactionWizard() {
 
   if (kycOk === false) {
     return (
-      <main className="flex-1">
+      <AppShell>
         <div className="container-editorial py-16 max-w-2xl">
           <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Requisito</p>
           <h1 className="mt-2 font-display text-5xl tracking-wide">Completa tu verificación</h1>
@@ -220,12 +220,12 @@ function NewTransactionWizard() {
             Ir a onboarding
           </button>
         </div>
-      </main>
+      </AppShell>
     );
   }
 
   return (
-    <main className="flex-1">
+    <AppShell>
       <div className="container-editorial py-10 max-w-4xl">
         <div className="flex items-baseline justify-between gap-4">
           <div>
@@ -354,7 +354,7 @@ function NewTransactionWizard() {
           </div>
         )}
       </div>
-    </main>
+    </AppShell>
   );
 }
 
