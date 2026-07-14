@@ -2,7 +2,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { Step1Schema, Step2Schema, Step3Schema, Step4Schema, RFC_REGEX } from "@/lib/validations/transaction";
+import { Step1Schema, Step2Schema, Step4Schema, HitoSchema, RFC_REGEX } from "@/lib/validations/transaction";
 import { calcularFee, type SectorId } from "@/lib/sectors";
 
 
