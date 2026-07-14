@@ -158,6 +158,21 @@ function TxDetail() {
     /* eslint-disable-next-line react-hooks/exhaustive-deps */
   }, [id]);
 
+  // Toast when the transaction status changes (e.g., realtime update from counterparty or webhook)
+  const prevStatusRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!tx) return;
+    const prev = prevStatusRef.current;
+    const curr = tx.status;
+    if (prev && prev !== curr && !busy) {
+      const label = STATUS_CFG[toUiStatus(curr)]?.label ?? curr;
+      toast.info("Estado actualizado", { description: `Ahora: ${label}` });
+    }
+    prevStatusRef.current = curr;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tx?.status]);
+
+
   async function logEvent(event_type: string, metadata: Record<string, unknown> = {}) {
     await supabase.from("transaction_events").insert({ transaction_id: id, actor_id: user.id, event_type, metadata: metadata as never });
   }
