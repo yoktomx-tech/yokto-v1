@@ -75,11 +75,12 @@ type Payout = {
   paid_at: string | null;
 };
 
-type TabKey = "resumen" | "hitos" | "documentos" | "evidencia" | "pagos" | "disputa" | "auditoria";
+type TabKey = "resumen" | "hitos" | "documentos" | "fiscal" | "evidencia" | "pagos" | "disputa" | "auditoria";
 const TABS: { key: TabKey; label: string }[] = [
   { key: "resumen", label: "Resumen" },
   { key: "hitos", label: "Hitos" },
   { key: "documentos", label: "Documentos" },
+  { key: "fiscal", label: "Fiscal" },
   { key: "evidencia", label: "Evidencia" },
   { key: "pagos", label: "Pagos" },
   { key: "disputa", label: "Disputa" },
