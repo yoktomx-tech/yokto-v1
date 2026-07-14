@@ -17,15 +17,18 @@ export type TxRow = {
 };
 
 const STATUS_STYLE: Record<TxStatus, string> = {
-  draft:            "bg-yo-raised text-yo-txt-2",
-  awaiting_funding: "bg-yo-warn-bg text-yo-warn",
-  funded:           "bg-yo-ac-bg text-yo-ac-txt",
-  in_progress:      "bg-yo-info-bg text-yo-info",
-  conditions_met:   "bg-yo-ok-bg text-yo-ok",
-  released:         "bg-yo-txt text-white",
-  disputed:         "bg-yo-err-bg text-yo-err",
-  cancelled:        "bg-yo-raised text-yo-txt-3",
-  refunded:         "bg-yo-raised text-yo-txt-3",
+  draft:             "bg-yo-raised text-yo-txt-2",
+  pending_signature: "bg-yo-warn-bg text-yo-warn",
+  awaiting_funding:  "bg-yo-warn-bg text-yo-warn",
+  funded:            "bg-yo-ac-bg text-yo-ac-txt",
+  in_progress:       "bg-yo-info-bg text-yo-info",
+  en_verificacion:   "bg-yo-info-bg text-yo-info",
+  conditions_met:    "bg-yo-ok-bg text-yo-ok",
+  partial_release:   "bg-yo-ok-bg text-yo-ok",
+  released:          "bg-yo-txt text-white",
+  disputed:          "bg-yo-err-bg text-yo-err",
+  cancelled:         "bg-yo-raised text-yo-txt-3",
+  refunded:          "bg-yo-raised text-yo-txt-3",
 };
 
 type Filter = "all" | "active" | "needs_action" | "completed";
