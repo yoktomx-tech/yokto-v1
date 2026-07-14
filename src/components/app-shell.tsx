@@ -161,17 +161,19 @@ function RoleSelect({ role, setRole }: { role: ViewRole; setRole: (r: ViewRole) 
 }
 
 function SidebarContent({
-  pathname, nav, role, setRole, sgyScore, onNavigate,
+  pathname, nav, role, setRole, score, level, onNavigate,
 }: {
   pathname: string;
   nav: NavItem[];
   role: ViewRole;
   setRole: (r: ViewRole) => void;
-  sgyScore: number;
+  score: number;
+  level: import("@/lib/score-mock").ComplianceLevel;
   onNavigate?: () => void;
 }) {
-  const level = scoreLevel(sgyScore);
-  const pct = Math.min(100, (sgyScore / 1000) * 100);
+  const cfg = LEVEL_CFG[level];
+  const tone = TONE_CLASSES[cfg.tone];
+  const pct = Math.min(100, Math.max(0, score));
 
   return (
     <>
@@ -214,16 +216,16 @@ function SidebarContent({
           <div className="flex items-center justify-between mb-1.5">
             <div className="flex items-center gap-1.5">
               <Star className="size-3.5 text-yo-ac" />
-              <span className="text-[10px] uppercase tracking-[0.14em] font-semibold text-yo-txt-3">Score SGY</span>
+              <span className="text-[10px] uppercase tracking-[0.14em] font-semibold text-yo-txt-3">Perfil de cumplimiento</span>
             </div>
-            <span className={cn("text-[11px] font-semibold", level.color)}>{level.label}</span>
+            <span className={cn("text-[10px] font-semibold px-1.5 py-0.5 rounded", tone.bg, tone.text)}>{cfg.label}</span>
           </div>
           <div className="flex items-baseline gap-1 mb-1.5">
-            <span className="text-lg font-bold text-yo-txt tabular-nums">{sgyScore}</span>
-            <span className="text-[10px] text-yo-txt-3">/ 1000</span>
+            <span className="text-lg font-bold text-yo-txt tabular-nums">{score}</span>
+            <span className="text-[10px] text-yo-txt-3">/ 100</span>
           </div>
           <div className="h-1 w-full rounded-full bg-yo-border overflow-hidden">
-            <div className="h-full bg-yo-ac rounded-full transition-all" style={{ width: `${pct}%` }} />
+            <div className={cn("h-full rounded-full transition-all", tone.dot)} style={{ width: `${pct}%` }} />
           </div>
         </Link>
 
