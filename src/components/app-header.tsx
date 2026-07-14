@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Maximize2, Minimize2, Moon, Sun } from "lucide-react";
+import { Maximize2, Minimize2, Moon, Search, Sun } from "lucide-react";
 import { NotificationsBell } from "@/components/notifications-bell";
 import { OrgSwitcher } from "@/components/org-switcher";
 import { UserMenu } from "@/components/user-menu";
@@ -25,11 +25,21 @@ export function AppHeader({ email, userId }: { email?: string | null; section?: 
   return (
     <header className="sticky top-0 z-30 border-b border-yo-border bg-yo-surface/85 backdrop-blur-sm">
       <div className="flex h-14 items-center gap-3 pl-14 md:pl-6 pr-4 md:pr-6">
-        <div className="min-w-0 max-w-[280px]">
+        <div className="min-w-0 w-[220px] md:w-[300px] lg:w-[360px] shrink-0">
           <OrgSwitcher />
         </div>
 
-        <div className="flex-1" />
+        <div className="hidden md:flex flex-1 max-w-xl relative">
+          <Search className="size-4 text-yo-txt-2 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+          <input
+            type="search"
+            placeholder="Buscar operaciones, contrapartes, documentos…"
+            className="w-full h-9 pl-9 pr-3 rounded-md bg-yo-raised border border-yo-border text-sm text-yo-txt placeholder:text-yo-txt-2 focus:outline-none focus:ring-2 focus:ring-yo-accent/40 focus:border-yo-accent"
+          />
+        </div>
+
+        <div className="flex-1 md:hidden" />
+
 
         <div className="flex items-center gap-1 shrink-0">
           {userId && <NotificationsBell userId={userId} />}
