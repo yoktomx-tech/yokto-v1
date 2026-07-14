@@ -213,7 +213,7 @@ export const MOCK_OPS: Operation[] = [
         priority: "ALTA",
         hasPendingPayment: true,
         documents: [
-          { id: "DOC-8831", name: "CFDI entrega parcial", type: "CFDI_INGRESO", status: "RECHAZADO", version: "v2", hash: "sha256:9d7c...a24f", uploadedAt: "2026-07-14", observation: "El XML no corresponde al monto pactado del hito." },
+          { id: "DOC-8831", name: "CFDI entrega parcial", type: "CFDI_INGRESO", status: "RECHAZADO", version: "v2", hash: "sha256:9d7c...a24f", uploadedAt: "2026-07-14", observation: "El XML no corresponde al monto pactado del hito." , history: [{ version: "v2", hash: "sha256:9d7c...a24f", uploadedAt: "2026-07-14", uploadedBy: "Tú", status: "RECHAZADO", note: "Monto no coincide con hito" }, { version: "v1", hash: "sha256:8a01...11bd", uploadedAt: "2026-07-10", uploadedBy: "Tú", status: "REEMPLAZADO", note: "Sustituido por v2" }]},
           { id: "DOC-8832", name: "Checklist entrega", type: "Checklist", status: "EN_VALIDACION", version: "v1", hash: "sha256:5f2a...bb10", uploadedAt: "2026-07-14" },
         ],
         evidences: [
