@@ -24,15 +24,22 @@ const TONE_ACCENT: Record<NonNullable<Props["tone"]>, string> = {
   info:    "text-[color:var(--yo-info)]",
 };
 
-export function MetricCard({ label, value, hint, icon, trend, tone = "neutral", className }: Props) {
+export function MetricCard({ label, value, hint, icon, trend, tone = "neutral", topAccent, className }: Props) {
   const dir = trend?.direction ?? (trend && trend.value > 0 ? "up" : trend && trend.value < 0 ? "down" : "flat");
   return (
     <div
       className={cn(
-        "surface-card p-4 flex flex-col gap-2 transition-shadow hover:shadow-[var(--shadow-card-hover)]",
+        "surface-card p-4 flex flex-col gap-2 transition-shadow hover:shadow-[var(--shadow-card-hover)] relative overflow-hidden",
         className,
       )}
     >
+      {topAccent && (
+        <span
+          aria-hidden
+          className="absolute inset-x-0 top-0 h-0.5"
+          style={{ backgroundColor: topAccent }}
+        />
+      )}
       <div className="flex items-center justify-between text-yo-txt-2">
         <span className="text-[11px] uppercase tracking-wider font-medium">{label}</span>
         {icon && <span className="text-yo-txt-3">{icon}</span>}
