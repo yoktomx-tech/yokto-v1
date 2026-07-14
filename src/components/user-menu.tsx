@@ -1,0 +1,78 @@
+import { useEffect, useRef, useState } from "react";
+import { Link, useNavigate } from "@tanstack/react-router";
+import { LogOut, User } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+
+async function sha256Hex(s: string) {
+  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s));
+  return Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+export function UserMenu({ email }: { email?: string | null }) {
+  const [open, setOpen] = useState(false);
+  const [avatar, setAvatar] = useState<string | null>(null);
+  const navigate = useNavigate();
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!email) return;
+    sha256Hex(email.trim().toLowerCase()).then((h) => {
+      setAvatar(`https://www.gravatar.com/avatar/${h}?d=mp&s=64`);
+    });
+  }, [email]);
+
+  useEffect(() => {
+    function onClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    if (open) document.addEventListener("mousedown", onClick);
+    return () => document.removeEventListener("mousedown", onClick);
+  }, [open]);
+
+  async function signOut() {
+    await supabase.auth.signOut();
+    navigate({ to: "/auth", replace: true });
+  }
+
+  const initial = (email ?? "U").slice(0, 1).toUpperCase();
+
+  return (
+    <div className="relative" ref={ref}>
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="grid place-items-center size-8 rounded-full overflow-hidden bg-yo-ac text-white text-xs font-bold ring-1 ring-yo-border hover:ring-yo-ac transition"
+        aria-label="Menú de usuario"
+      >
+        {avatar ? (
+          <img src={avatar} alt="" className="size-full object-cover" />
+        ) : (
+          <span>{initial}</span>
+        )}
+      </button>
+
+      {open && (
+        <div className="absolute right-0 mt-2 w-56 rounded-lg border border-yo-border bg-yo-surface shadow-lg overflow-hidden z-50">
+          {email && (
+            <div className="px-3 py-2 border-b border-yo-border">
+              <p className="text-[11px] text-yo-txt-3">Sesión iniciada como</p>
+              <p className="text-[12.5px] font-medium text-yo-txt truncate">{email}</p>
+            </div>
+          )}
+          <Link
+            to="/onboarding/pendiente"
+            onClick={() => setOpen(false)}
+            className="flex items-center gap-2 px-3 py-2 text-[13px] text-yo-txt hover:bg-yo-raised"
+          >
+            <User className="size-3.5 text-yo-txt-3" /> Mi perfil
+          </Link>
+          <button
+            onClick={signOut}
+            className="w-full flex items-center gap-2 px-3 py-2 text-[13px] text-yo-txt hover:bg-yo-raised border-t border-yo-border"
+          >
+            <LogOut className="size-3.5 text-yo-txt-3" /> Cerrar sesión
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}

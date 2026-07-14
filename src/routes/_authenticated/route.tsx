@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/app-shell";
 import { OrgProvider } from "@/hooks/use-current-org";
+import { ViewRoleProvider } from "@/hooks/use-view-role";
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
@@ -29,9 +30,11 @@ function AuthedLayout() {
 
   return (
     <OrgProvider>
-      <AppShell displayName={name} sgyScore={500}>
-        <Outlet />
-      </AppShell>
+      <ViewRoleProvider>
+        <AppShell displayName={name} sgyScore={500}>
+          <Outlet />
+        </AppShell>
+      </ViewRoleProvider>
     </OrgProvider>
   );
 }
