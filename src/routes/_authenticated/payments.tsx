@@ -71,14 +71,23 @@ function PaymentsPage() {
           title="Centro de Pagos"
           subtitle={`Vista ${role === "buyer" ? "de comprador" : "de vendedor"} — pagos, retenciones y liberaciones procesados por la pasarela.`}
           actions={
-            role === "buyer" ? (
+            <div className="flex items-center gap-2">
               <button
-                onClick={() => setFundingOpen(true)}
-                className="inline-flex items-center gap-1.5 px-3 py-2 bg-yo-ac text-white text-sm font-medium rounded-md hover:bg-yo-ac-h"
+                onClick={() => exportPaymentsCsv(filtered)}
+                disabled={filtered.length === 0}
+                className="inline-flex items-center gap-1.5 px-3 py-2 bg-yo-card border border-yo-border text-yo-t1 text-sm font-medium rounded-md hover:bg-yo-hover disabled:opacity-50"
               >
-                <Plus className="size-4" /> Fondear transacción
+                <Download className="size-4" /> Exportar CSV
               </button>
-            ) : null
+              {role === "buyer" ? (
+                <button
+                  onClick={() => setFundingOpen(true)}
+                  className="inline-flex items-center gap-1.5 px-3 py-2 bg-yo-ac text-white text-sm font-medium rounded-md hover:bg-yo-ac-h"
+                >
+                  <Plus className="size-4" /> Fondear transacción
+                </button>
+              ) : null}
+            </div>
           }
         />
 
