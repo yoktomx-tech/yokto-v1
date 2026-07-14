@@ -55,60 +55,122 @@ function nextActionFor(status: string, role: "buyer" | "seller"): TxRow["next_ac
 function TransactionsList() {
   const { user } = Route.useRouteContext();
   const { role } = useViewRole();
+  const search = Route.useSearch();
+  const navigate = useNavigate({ from: "/transactions" });
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
   const [rows, setRows] = useState<TxRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [kycOk, setKycOk] = useState<boolean | null>(null);
-  const [filters, setFilters] = useState<TxFiltersState>(EMPTY_FILTERS);
-  const [tab, setTab] = useState<TabId>("ALL");
-  const [view, setView] = useState<"cards" | "table">("table");
+
+  // Filters + tab + view derived from URL search params (shareable state)
+  const filters: TxFiltersState = useMemo(() => ({
+    q: search.q ?? "",
+    status: search.status ?? "ALL",
+    sector: search.sector ?? "ALL",
+    dateRange: search.date ?? "ALL",
+  }), [search.q, search.status, search.sector, search.date]);
+  const tab: TabId = search.tab ?? "ALL";
+  const view: "cards" | "table" = search.view ?? "table";
+
+  const setFilters = useCallback((v: TxFiltersState) => {
+    navigate({
+      search: (s) => ({
+        ...s,
+        q: v.q || undefined,
+        status: v.status === "ALL" ? undefined : v.status,
+        sector: v.sector === "ALL" ? undefined : v.sector,
+        date: v.dateRange === "ALL" ? undefined : v.dateRange,
+      }),
+      replace: true,
+    });
+  }, [navigate]);
+  const setTab = useCallback((t: TabId) => {
+    navigate({ search: (s) => ({ ...s, tab: t === "ALL" ? undefined : t }), replace: true });
+  }, [navigate]);
+  const setView = useCallback((v: "cards" | "table") => {
+    navigate({ search: (s) => ({ ...s, view: v === "table" ? undefined : v }), replace: true });
+  }, [navigate]);
+
+  const fetchAll = useCallback(async () => {
+    const [{ data: txs }, { data: prof }] = await Promise.all([
+      supabase
+        .from("transactions")
+        .select("id,numero,title,sector,amount_cents,currency,status,buyer_id,seller_id,counterparty_email,beneficiario_nombre,created_at,delivery_deadline,funding_deadline")
+        .or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`)
+        .order("created_at", { ascending: false }),
+      supabase.from("profiles").select("kyc_status").eq("id", user.id).maybeSingle(),
+    ]);
+
+    const txList = (txs ?? []) as TxRow[];
+    const ids = txList.map((t) => t.id);
+
+    let hitos: MilestoneRow[] = [];
+    if (ids.length > 0) {
+      const { data: h } = await supabase
+        .from("transaction_hitos")
+        .select("transaction_id,estado,monto_cents")
+        .in("transaction_id", ids);
+      hitos = (h ?? []) as MilestoneRow[];
+    }
+
+    const withDerived: TxRow[] = txList.map((t) => {
+      const own = hitos.filter((m) => m.transaction_id === t.id);
+      const total = own.length;
+      const done = own.filter((m) => ["released", "approved", "completed"].includes(m.estado)).length;
+      const ui = toUiStatus(t.status);
+      const isBuyer = t.buyer_id === user.id;
+      const held = ["FUNDED", "IN_PROGRESS", "IN_VERIFICATION", "READY_FOR_APPROVAL", "READY_TO_RELEASE", "DISPUTED", "PARTIALLY_RELEASED"].includes(ui) ? t.amount_cents : 0;
+      const releasable = ["READY_TO_RELEASE", "READY_FOR_APPROVAL", "PARTIALLY_RELEASED"].includes(ui) ? t.amount_cents : 0;
+      return {
+        ...t,
+        milestones_total: total,
+        milestones_done: done,
+        held_cents: held,
+        releasable_cents: releasable,
+        next_action: nextActionFor(t.status, isBuyer ? "buyer" : "seller"),
+      };
+    });
+
+    setRows(withDerived);
+    setKycOk(prof?.kyc_status === "approved");
+    setLoading(false);
+  }, [user.id]);
 
   useEffect(() => {
-    (async () => {
-      setLoading(true);
-      const [{ data: txs }, { data: prof }] = await Promise.all([
-        supabase
-          .from("transactions")
-          .select("id,numero,title,sector,amount_cents,currency,status,buyer_id,seller_id,counterparty_email,beneficiario_nombre,created_at,delivery_deadline,funding_deadline")
-          .or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`)
-          .order("created_at", { ascending: false }),
-        supabase.from("profiles").select("kyc_status").eq("id", user.id).maybeSingle(),
-      ]);
+    setLoading(true);
+    fetchAll();
+  }, [fetchAll]);
 
-      const txList = (txs ?? []) as TxRow[];
-      const ids = txList.map((t) => t.id);
+  // Realtime: refetch on any change to my transactions or their hitos
+  useEffect(() => {
+    const ch = supabase
+      .channel(`tx-list-${user.id}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "transactions", filter: `buyer_id=eq.${user.id}` }, () => fetchAll())
+      .on("postgres_changes", { event: "*", schema: "public", table: "transactions", filter: `seller_id=eq.${user.id}` }, () => fetchAll())
+      .on("postgres_changes", { event: "*", schema: "public", table: "transaction_hitos" }, () => fetchAll())
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, [user.id, fetchAll]);
 
-      let hitos: MilestoneRow[] = [];
-      if (ids.length > 0) {
-        const { data: h } = await supabase
-          .from("transaction_hitos")
-          .select("transaction_id,estado,monto_cents")
-          .in("transaction_id", ids);
-        hitos = (h ?? []) as MilestoneRow[];
+  // Keyboard shortcuts: "/" focus search, "n" new transaction
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null;
+      const isEditable = target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable);
+      if (isEditable) return;
+      if (e.key === "/") {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+      } else if (e.key.toLowerCase() === "n" && kycOk) {
+        e.preventDefault();
+        navigate({ to: "/transactions/new" });
       }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [navigate, kycOk]);
 
-      const withDerived: TxRow[] = txList.map((t) => {
-        const own = hitos.filter((m) => m.transaction_id === t.id);
-        const total = own.length;
-        const done = own.filter((m) => ["released", "approved", "completed"].includes(m.estado)).length;
-        const ui = toUiStatus(t.status);
-        const isBuyer = t.buyer_id === user.id;
-        const held = ["FUNDED", "IN_PROGRESS", "IN_VERIFICATION", "READY_FOR_APPROVAL", "READY_TO_RELEASE", "DISPUTED", "PARTIALLY_RELEASED"].includes(ui) ? t.amount_cents : 0;
-        const releasable = ["READY_TO_RELEASE", "READY_FOR_APPROVAL", "PARTIALLY_RELEASED"].includes(ui) ? t.amount_cents : 0;
-        return {
-          ...t,
-          milestones_total: total,
-          milestones_done: done,
-          held_cents: held,
-          releasable_cents: releasable,
-          next_action: nextActionFor(t.status, isBuyer ? "buyer" : "seller"),
-        };
-      });
-
-      setRows(withDerived);
-      setKycOk(prof?.kyc_status === "approved");
-      setLoading(false);
-    })();
-  }, [user.id]);
 
   // Filtering by tab + filters
   const filtered = useMemo(() => {
