@@ -58,7 +58,7 @@ export function PaymentsTable({ rows, role, onOpen }: Props) {
                 {r.reference && <div className="mt-1 font-mono text-[11px] text-yo-t2">{r.reference}</div>}
               </td>
               <td className="px-4 py-3 text-right">
-                <MoneyCell cents={r.amountCents} currency={r.currency} />
+                <MoneyCell amountCents={r.amountCents} currency={r.currency} />
                 {r.status === "PARTIALLY_RELEASED" && (
                   <div className="text-[11px] text-yo-t2 mt-0.5">
                     Liberado: {(r.releasedCents / 100).toLocaleString("es-MX", { style: "currency", currency: r.currency })}
