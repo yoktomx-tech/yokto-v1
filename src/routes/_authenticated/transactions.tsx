@@ -83,18 +83,33 @@ function TransactionsList() {
             </div>
           </div>
 
-          <div className="mt-8 flex gap-2 text-[11px] uppercase tracking-[0.14em] font-semibold">
-            {(["all", "as_buyer", "as_seller"] as const).map((f) => (
-              <button
-                key={f}
-                onClick={() => setFilter(f)}
-                className={`px-3 py-2 border border-yo-border ${
-                  filter === f ? "bg-yo-ac text-white" : "bg-background hover:bg-yo-bg"
-                }`}
-              >
-                {f === "all" ? "Todas" : f === "as_buyer" ? "Como comprador" : "Como vendedor"}
-              </button>
-            ))}
+          <div className="mt-8 flex flex-wrap gap-2 text-[11px] uppercase tracking-[0.14em] font-semibold justify-between">
+            <div className="flex gap-2">
+              {(["all", "as_buyer", "as_seller"] as const).map((f) => (
+                <button
+                  key={f}
+                  onClick={() => setFilter(f)}
+                  className={`px-3 py-2 border border-yo-border ${
+                    filter === f ? "bg-yo-ac text-white" : "bg-background hover:bg-yo-bg"
+                  }`}
+                >
+                  {f === "all" ? "Todas" : f === "as_buyer" ? "Como comprador" : "Como vendedor"}
+                </button>
+              ))}
+            </div>
+            <div className="flex gap-2">
+              {(["cards", "table"] as const).map((v) => (
+                <button
+                  key={v}
+                  onClick={() => setView(v)}
+                  className={`px-3 py-2 border border-yo-border ${
+                    view === v ? "bg-yo-ac text-white" : "bg-background hover:bg-yo-bg"
+                  }`}
+                >
+                  {v === "cards" ? "Tarjetas" : "Tabla"}
+                </button>
+              ))}
+            </div>
           </div>
 
           <div className="mt-6 border border-yo-border bg-background">
