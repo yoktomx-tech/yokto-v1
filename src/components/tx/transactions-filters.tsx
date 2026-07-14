@@ -97,4 +97,4 @@ export const TransactionsFilters = forwardRef<HTMLInputElement, Props>(function 
       </div>
     </div>
   );
-}
+});
