@@ -91,13 +91,11 @@ export function AppShell({ children }: { children: React.ReactNode; sgyScore?: n
   );
 }
 
-function scoreLevel(score: number): { label: string; color: string } {
-  if (score >= 850) return { label: "Élite", color: "text-emerald-500" };
-  if (score >= 700) return { label: "Premium", color: "text-yo-ac" };
-  if (score >= 500) return { label: "Confiable", color: "text-yo-ac" };
-  if (score >= 300) return { label: "Básico", color: "text-amber-500" };
-  return { label: "Nuevo", color: "text-yo-txt-3" };
-}
+const ROLE_DESC: Record<ViewRole, string> = {
+  seller: "Envías hitos y evidencia para liberar pagos.",
+  buyer: "Fondeas operaciones y apruebas hitos entregados.",
+};
+
 
 function RoleSelect({ role, setRole }: { role: ViewRole; setRole: (r: ViewRole) => void }) {
   const [open, setOpen] = useState(false);
