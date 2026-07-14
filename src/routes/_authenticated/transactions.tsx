@@ -1,203 +1,243 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { Plus, LayoutGrid, List as ListIcon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { AppHeader } from "@/components/app-header";
-import { SiteFooter } from "@/components/site-footer";
-import { STATUS_LABEL, STATUS_ACCENT, formatMoney, type TxStatus } from "@/lib/tx";
-
-type Row = {
-  id: string;
-  title: string;
-  amount_cents: number;
-  currency: string;
-  status: TxStatus;
-  buyer_id: string;
-  seller_id: string | null;
-  counterparty_email: string | null;
-  created_at: string;
-};
+import { AppShell } from "@/components/app-shell";
+import { useViewRole } from "@/hooks/use-view-role";
+import { toUiStatus } from "@/lib/tx-catalog";
+import { TransactionsMetricsGrid, type TxMetricsData } from "@/components/tx/transactions-metrics-grid";
+import { TransactionsFilters, EMPTY_FILTERS, type TxFiltersState } from "@/components/tx/transactions-filters";
+import { TransactionsTabs, getTabs, countByTab, type TabId } from "@/components/tx/transactions-tabs";
+import { TransactionsTable, type TxRow } from "@/components/tx/transactions-table";
+import { TransactionCardMobile } from "@/components/tx/transaction-card-mobile";
+import { EmptyState } from "@/components/tx/ui";
 
 export const Route = createFileRoute("/_authenticated/transactions")({
   head: () => ({ meta: [{ title: "Transacciones — YOKTO" }, { name: "robots", content: "noindex" }] }),
   component: TransactionsList,
 });
 
+type MilestoneRow = { transaction_id: string; estado: string };
+
+function nextActionFor(status: string, role: "buyer" | "seller"): TxRow["next_action"] {
+  const ui = toUiStatus(status);
+  if (role === "buyer") {
+    if (ui === "PENDING_FUNDING") return { label: "Fondear ahora", tone: "warn" };
+    if (ui === "READY_FOR_APPROVAL") return { label: "Aprobar hito", tone: "warn" };
+    if (ui === "READY_TO_RELEASE") return { label: "Liberar pago", tone: "info" };
+    if (ui === "DISPUTED") return { label: "Responder disputa", tone: "err" };
+    return null;
+  }
+  if (ui === "INVITED") return { label: "Aceptar invitación", tone: "info" };
+  if (ui === "FUNDED" || ui === "IN_PROGRESS") return { label: "Subir evidencia", tone: "warn" };
+  if (ui === "IN_VERIFICATION") return { label: "En revisión", tone: "info" };
+  if (ui === "DISPUTED") return { label: "Responder disputa", tone: "err" };
+  return null;
+}
+
 function TransactionsList() {
   const { user } = Route.useRouteContext();
-  const [rows, setRows] = useState<Row[]>([]);
+  const { role } = useViewRole();
+  const [rows, setRows] = useState<TxRow[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<"all" | "as_buyer" | "as_seller">("all");
-  const [view, setView] = useState<"cards" | "table">("cards");
   const [kycOk, setKycOk] = useState<boolean | null>(null);
+  const [filters, setFilters] = useState<TxFiltersState>(EMPTY_FILTERS);
+  const [tab, setTab] = useState<TabId>("ALL");
+  const [view, setView] = useState<"cards" | "table">("table");
 
   useEffect(() => {
     (async () => {
-      const [{ data }, { data: prof }] = await Promise.all([
+      setLoading(true);
+      const [{ data: txs }, { data: prof }] = await Promise.all([
         supabase
           .from("transactions")
-          .select("id,title,amount_cents,currency,status,buyer_id,seller_id,counterparty_email,created_at")
+          .select("id,numero,title,sector,amount_cents,currency,status,buyer_id,seller_id,counterparty_email,beneficiario_nombre,created_at,delivery_deadline,funding_deadline")
+          .or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`)
           .order("created_at", { ascending: false }),
         supabase.from("profiles").select("kyc_status").eq("id", user.id).maybeSingle(),
       ]);
-      setRows((data ?? []) as Row[]);
+
+      const txList = (txs ?? []) as TxRow[];
+      const ids = txList.map((t) => t.id);
+
+      let hitos: MilestoneRow[] = [];
+      if (ids.length > 0) {
+        const { data: h } = await supabase
+          .from("transaction_hitos")
+          .select("transaction_id,estado,monto_cents")
+          .in("transaction_id", ids);
+        hitos = (h ?? []) as MilestoneRow[];
+      }
+
+      const withDerived: TxRow[] = txList.map((t) => {
+        const own = hitos.filter((m) => m.transaction_id === t.id);
+        const total = own.length;
+        const done = own.filter((m) => ["released", "approved", "completed"].includes(m.estado)).length;
+        const ui = toUiStatus(t.status);
+        const isBuyer = t.buyer_id === user.id;
+        const held = ["FUNDED", "IN_PROGRESS", "IN_VERIFICATION", "READY_FOR_APPROVAL", "READY_TO_RELEASE", "DISPUTED", "PARTIALLY_RELEASED"].includes(ui) ? t.amount_cents : 0;
+        const releasable = ["READY_TO_RELEASE", "READY_FOR_APPROVAL", "PARTIALLY_RELEASED"].includes(ui) ? t.amount_cents : 0;
+        return {
+          ...t,
+          milestones_total: total,
+          milestones_done: done,
+          held_cents: held,
+          releasable_cents: releasable,
+          next_action: nextActionFor(t.status, isBuyer ? "buyer" : "seller"),
+        };
+      });
+
+      setRows(withDerived);
       setKycOk(prof?.kyc_status === "approved");
       setLoading(false);
     })();
   }, [user.id]);
 
-  const filtered = rows.filter((r) => {
-    if (filter === "as_buyer") return r.buyer_id === user.id;
-    if (filter === "as_seller") return r.seller_id === user.id;
-    return true;
-  });
+  // Filtering by tab + filters
+  const filtered = useMemo(() => {
+    const tabs = getTabs(role);
+    const tabDef = tabs.find((t) => t.id === tab)!;
+
+    const now = Date.now();
+    const cutoffDays: Record<TxFiltersState["dateRange"], number | null> = {
+      ALL: null, "7D": 7, "30D": 30, "90D": 90,
+    };
+    const cutoff = cutoffDays[filters.dateRange];
+    const q = filters.q.trim().toLowerCase();
+
+    return rows.filter((r) => {
+      const ui = toUiStatus(r.status);
+      if (!tabDef.match(ui)) return false;
+      if (filters.status !== "ALL" && ui !== filters.status) return false;
+      if (filters.sector !== "ALL" && r.sector !== filters.sector) return false;
+      if (cutoff != null) {
+        const age = (now - new Date(r.created_at).getTime()) / (1000 * 60 * 60 * 24);
+        if (age > cutoff) return false;
+      }
+      if (q) {
+        const hay = [r.numero, r.title, r.counterparty_email, r.beneficiario_nombre, String(r.amount_cents / 100)]
+          .filter(Boolean).join(" ").toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
+      return true;
+    });
+  }, [rows, tab, filters, role]);
+
+  const metrics: TxMetricsData = useMemo(() => {
+    const acc: TxMetricsData = {
+      active: 0, heldAmount: 0, pendingApproval: 0, disputed: 0, releasable: 0, closed: 0,
+      readyToRelease: 0, pendingDeliverables: 0, changesRequested: 0, evidenceInReview: 0, releasedTotal: 0,
+    };
+    for (const r of rows) {
+      const ui = toUiStatus(r.status);
+      const amt = r.amount_cents / 100;
+      if (["ACCEPTED", "PENDING_FUNDING", "FUNDED", "IN_PROGRESS", "IN_VERIFICATION", "READY_FOR_APPROVAL", "READY_TO_RELEASE", "PARTIALLY_RELEASED"].includes(ui)) acc.active++;
+      if (["FUNDED", "IN_PROGRESS", "IN_VERIFICATION", "READY_FOR_APPROVAL", "READY_TO_RELEASE", "DISPUTED", "PARTIALLY_RELEASED"].includes(ui)) acc.heldAmount += amt;
+      if (ui === "READY_FOR_APPROVAL") acc.pendingApproval++;
+      if (ui === "DISPUTED") acc.disputed++;
+      if (["READY_TO_RELEASE", "READY_FOR_APPROVAL", "PARTIALLY_RELEASED"].includes(ui)) { acc.releasable += amt; acc.readyToRelease += amt; }
+      if (["RELEASED", "CLOSED", "REFUNDED", "CANCELLED"].includes(ui)) acc.closed++;
+      if (["FUNDED", "IN_PROGRESS"].includes(ui)) acc.pendingDeliverables++;
+      if (ui === "IN_VERIFICATION") { acc.changesRequested++; acc.evidenceInReview++; }
+      if (["RELEASED", "PARTIALLY_RELEASED"].includes(ui)) acc.releasedTotal += amt;
+    }
+    return acc;
+  }, [rows]);
+
+  const tabCounts = useMemo(() => countByTab(rows, getTabs(role)), [rows, role]);
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
-      <AppHeader email={user.email} userId={user.id} section="Transacciones" />
-      <main className="flex-1">
-        <div className="container-editorial py-10">
-          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
-            <div>
-              <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Módulo B</p>
-              <h1 className="mt-1 font-display text-5xl tracking-wide text-foreground">Transacciones</h1>
-              <p className="mt-2 text-sm text-muted-foreground max-w-xl">
-                Historial de operaciones de pago contra cumplimiento en las que participas como comprador o vendedor.
-              </p>
+    <AppShell>
+      <div className="flex flex-col gap-6">
+        {/* Header */}
+        <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+          <div>
+            <p className="text-[11px] uppercase tracking-wider text-yo-txt-3 font-medium">Transacciones</p>
+            <h1 className="mt-1 text-2xl font-semibold text-yo-txt">
+              {role === "buyer" ? "Mis compras" : "Mis ventas"}
+            </h1>
+            <p className="mt-1 text-sm text-yo-txt-2">
+              Vista {role === "buyer" ? "de comprador" : "de vendedor"} — {rows.length} operaciones en total.
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="hidden md:inline-flex border border-yo-border rounded-md p-0.5 bg-yo-surface">
+              <button
+                onClick={() => setView("table")}
+                className={`px-2 py-1.5 rounded ${view === "table" ? "bg-yo-raised text-yo-txt" : "text-yo-txt-2 hover:text-yo-txt"}`}
+                aria-label="Vista tabla"
+              >
+                <ListIcon className="h-4 w-4" />
+              </button>
+              <button
+                onClick={() => setView("cards")}
+                className={`px-2 py-1.5 rounded ${view === "cards" ? "bg-yo-raised text-yo-txt" : "text-yo-txt-2 hover:text-yo-txt"}`}
+                aria-label="Vista tarjetas"
+              >
+                <LayoutGrid className="h-4 w-4" />
+              </button>
             </div>
-            <div className="flex gap-3">
-              {kycOk ? (
-                <Link
-                  to="/transactions/new"
-                  className="inline-flex items-center px-5 py-2.5 bg-yo-ac text-white text-[12px] uppercase tracking-[0.14em] font-semibold border border-yo-border hover:bg-yo-ac-h"
-                >
-                  Nueva transacción
-                </Link>
+            {kycOk ? (
+              <Link
+                to="/transactions/new"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-yo-ac text-white text-sm font-medium rounded-md hover:bg-yo-ac-h transition-colors"
+              >
+                <Plus className="h-4 w-4" />
+                Nueva transacción
+              </Link>
+            ) : (
+              <Link
+                to="/kyc"
+                className="inline-flex items-center px-4 py-2 border border-yo-border text-sm font-medium rounded-md hover:bg-yo-raised"
+              >
+                Completar KYC
+              </Link>
+            )}
+          </div>
+        </div>
+
+        {/* Metrics */}
+        <TransactionsMetricsGrid role={role} data={metrics} />
+
+        {/* Filters */}
+        <TransactionsFilters value={filters} onChange={setFilters} />
+
+        {/* Tabs */}
+        <TransactionsTabs active={tab} onChange={setTab} role={role} counts={tabCounts} />
+
+        {/* List */}
+        {loading ? (
+          <div className="surface-card p-8 text-sm text-yo-txt-2 text-center">Cargando…</div>
+        ) : filtered.length === 0 ? (
+          <EmptyState
+            title="Sin resultados"
+            description={rows.length === 0
+              ? "Aún no participas en operaciones YOKTO."
+              : "No hay operaciones que coincidan con los filtros actuales."}
+          />
+        ) : (
+          <>
+            {/* Mobile: siempre tarjetas */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:hidden">
+              {filtered.map((r) => (
+                <TransactionCardMobile key={r.id} row={r} role={role} currentUserId={user.id} />
+              ))}
+            </div>
+            {/* Desktop: tabla o tarjetas */}
+            <div className="hidden md:block">
+              {view === "table" ? (
+                <TransactionsTable rows={filtered} role={role} currentUserId={user.id} />
               ) : (
-                <Link
-                  to="/kyc"
-                  className="inline-flex items-center px-5 py-2.5 border border-yo-border text-[12px] uppercase tracking-[0.14em] font-semibold hover:bg-yo-ac-h hover:text-white"
-                >
-                  Completar KYC para operar
-                </Link>
+                <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
+                  {filtered.map((r) => (
+                    <TransactionCardMobile key={r.id} row={r} role={role} currentUserId={user.id} />
+                  ))}
+                </div>
               )}
             </div>
-          </div>
-
-          <div className="mt-8 flex flex-wrap gap-2 text-[11px] uppercase tracking-[0.14em] font-semibold justify-between">
-            <div className="flex gap-2">
-              {(["all", "as_buyer", "as_seller"] as const).map((f) => (
-                <button
-                  key={f}
-                  onClick={() => setFilter(f)}
-                  className={`px-3 py-2 border border-yo-border ${
-                    filter === f ? "bg-yo-ac text-white" : "bg-background hover:bg-yo-bg"
-                  }`}
-                >
-                  {f === "all" ? "Todas" : f === "as_buyer" ? "Como comprador" : "Como vendedor"}
-                </button>
-              ))}
-            </div>
-            <div className="flex gap-2">
-              {(["cards", "table"] as const).map((v) => (
-                <button
-                  key={v}
-                  onClick={() => setView(v)}
-                  className={`px-3 py-2 border border-yo-border ${
-                    view === v ? "bg-yo-ac text-white" : "bg-background hover:bg-yo-bg"
-                  }`}
-                >
-                  {v === "cards" ? "Tarjetas" : "Tabla"}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {loading ? (
-            <div className="mt-6 border border-yo-border bg-background p-8 text-sm text-muted-foreground">Cargando…</div>
-          ) : filtered.length === 0 ? (
-            <div className="mt-6 border border-yo-border bg-background p-10 text-center">
-              <p className="font-display text-3xl text-foreground">Sin transacciones</p>
-              <p className="mt-2 text-sm text-muted-foreground">
-                Aún no has creado ni participado en una operación YOKTO.
-              </p>
-            </div>
-          ) : view === "cards" ? (
-            <div className="mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filtered.map((r) => {
-                const role = r.buyer_id === user.id ? "Comprador" : "Vendedor";
-                const cp = r.buyer_id === user.id ? r.counterparty_email ?? "—" : "Comprador";
-                return (
-                  <Link
-                    key={r.id}
-                    to="/transactions/$id"
-                    params={{ id: r.id }}
-                    className="group border border-yo-border bg-background p-5 hover:border-yo-ac transition-colors flex flex-col gap-3"
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <span className={`inline-block px-2 py-1 text-[10px] uppercase tracking-[0.14em] border ${STATUS_ACCENT[r.status]}`}>
-                        {STATUS_LABEL[r.status]}
-                      </span>
-                      <span className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">{role}</span>
-                    </div>
-                    <h3 className="font-display text-xl tracking-wide text-foreground line-clamp-2 group-hover:text-yo-ac">{r.title}</h3>
-                    <p className="text-xs text-muted-foreground truncate">↔ {cp}</p>
-                    <div className="mt-auto flex items-end justify-between pt-2 border-t border-yo-border/40">
-                      <span className="font-mono text-lg">{formatMoney(r.amount_cents, r.currency)}</span>
-                      <span className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
-                        {new Date(r.created_at).toLocaleDateString("es-MX")}
-                      </span>
-                    </div>
-                  </Link>
-                );
-              })}
-            </div>
-          ) : (
-            <div className="mt-6 border border-yo-border bg-background overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead className="bg-yo-bg border-b border-yo-border text-left text-[11px] uppercase tracking-[0.14em]">
-                  <tr>
-                    <th className="px-4 py-3">Título</th>
-                    <th className="px-4 py-3">Contraparte</th>
-                    <th className="px-4 py-3">Rol</th>
-                    <th className="px-4 py-3 text-right">Monto</th>
-                    <th className="px-4 py-3">Estado</th>
-                    <th className="px-4 py-3"></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filtered.map((r) => (
-                    <tr key={r.id} className="border-b border-yo-border/20 hover:bg-yo-bg/40">
-                      <td className="px-4 py-3 font-medium text-foreground">{r.title}</td>
-                      <td className="px-4 py-3 text-muted-foreground">
-                        {r.buyer_id === user.id ? r.counterparty_email ?? "—" : "Comprador"}
-                      </td>
-                      <td className="px-4 py-3 text-[11px] uppercase tracking-[0.14em]">
-                        {r.buyer_id === user.id ? "Comprador" : "Vendedor"}
-                      </td>
-                      <td className="px-4 py-3 text-right font-mono">{formatMoney(r.amount_cents, r.currency)}</td>
-                      <td className="px-4 py-3">
-                        <span className={`inline-block px-2 py-1 text-[10px] uppercase tracking-[0.14em] border ${STATUS_ACCENT[r.status]}`}>
-                          {STATUS_LABEL[r.status]}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-right">
-                        <Link
-                          to="/transactions/$id"
-                          params={{ id: r.id }}
-                          className="text-[11px] uppercase tracking-[0.14em] font-semibold underline underline-offset-4"
-                        >
-                          Ver
-                        </Link>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-      </main>
-      <SiteFooter />
-    </div>
+          </>
+        )}
+      </div>
+    </AppShell>
   );
 }
