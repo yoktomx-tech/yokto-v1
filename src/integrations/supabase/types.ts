@@ -83,6 +83,146 @@ export type Database = {
         }
         Relationships: []
       }
+      biometric_api_logs: {
+        Row: {
+          created_at: string
+          endpoint: string
+          enrollment_id: string | null
+          error_message: string | null
+          http_status: number | null
+          id: string
+          ok: boolean
+          provider: string
+          request_summary: Json | null
+          response_summary: Json | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          endpoint: string
+          enrollment_id?: string | null
+          error_message?: string | null
+          http_status?: number | null
+          id?: string
+          ok?: boolean
+          provider?: string
+          request_summary?: Json | null
+          response_summary?: Json | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          endpoint?: string
+          enrollment_id?: string | null
+          error_message?: string | null
+          http_status?: number | null
+          id?: string
+          ok?: boolean
+          provider?: string
+          request_summary?: Json | null
+          response_summary?: Json | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "biometric_api_logs_enrollment_id_fkey"
+            columns: ["enrollment_id"]
+            isOneToOne: false
+            referencedRelation: "biometric_enrollments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      biometric_enrollments: {
+        Row: {
+          address_doc_data: Json | null
+          address_doc_issued_at: string | null
+          address_doc_ok: boolean | null
+          address_doc_path: string | null
+          address_doc_type: string | null
+          completed_at: string | null
+          created_at: string
+          curp_match: boolean | null
+          curp_renapo_data: Json | null
+          expires_at: string
+          face_match_ok: boolean | null
+          face_score: number | null
+          id: string
+          id_back_path: string | null
+          id_front_path: string | null
+          id_type: string | null
+          last_error: string | null
+          lista_nominal_data: Json | null
+          lista_nominal_ok: boolean | null
+          ocr_curp: string | null
+          ocr_data: Json | null
+          selfie_path: string | null
+          status: string
+          token: string
+          updated_at: string
+          user_id: string
+          video_path: string | null
+        }
+        Insert: {
+          address_doc_data?: Json | null
+          address_doc_issued_at?: string | null
+          address_doc_ok?: boolean | null
+          address_doc_path?: string | null
+          address_doc_type?: string | null
+          completed_at?: string | null
+          created_at?: string
+          curp_match?: boolean | null
+          curp_renapo_data?: Json | null
+          expires_at: string
+          face_match_ok?: boolean | null
+          face_score?: number | null
+          id?: string
+          id_back_path?: string | null
+          id_front_path?: string | null
+          id_type?: string | null
+          last_error?: string | null
+          lista_nominal_data?: Json | null
+          lista_nominal_ok?: boolean | null
+          ocr_curp?: string | null
+          ocr_data?: Json | null
+          selfie_path?: string | null
+          status?: string
+          token: string
+          updated_at?: string
+          user_id: string
+          video_path?: string | null
+        }
+        Update: {
+          address_doc_data?: Json | null
+          address_doc_issued_at?: string | null
+          address_doc_ok?: boolean | null
+          address_doc_path?: string | null
+          address_doc_type?: string | null
+          completed_at?: string | null
+          created_at?: string
+          curp_match?: boolean | null
+          curp_renapo_data?: Json | null
+          expires_at?: string
+          face_match_ok?: boolean | null
+          face_score?: number | null
+          id?: string
+          id_back_path?: string | null
+          id_front_path?: string | null
+          id_type?: string | null
+          last_error?: string | null
+          lista_nominal_data?: Json | null
+          lista_nominal_ok?: boolean | null
+          ocr_curp?: string | null
+          ocr_data?: Json | null
+          selfie_path?: string | null
+          status?: string
+          token?: string
+          updated_at?: string
+          user_id?: string
+          video_path?: string | null
+        }
+        Relationships: []
+      }
       clabe_verifications: {
         Row: {
           banco: string | null
