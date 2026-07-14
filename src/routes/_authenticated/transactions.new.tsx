@@ -279,22 +279,39 @@ function NewTransactionWizard() {
             />
           )}
           {step === 5 && (
-            <div className="py-12 text-center space-y-3">
-              <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">En construcción — Fase 3</p>
-              <p className="text-foreground">
-                <strong>Revisión y firma</strong> se activará en la siguiente iteración (contrato PDF, firmas y activación).
-              </p>
-              <p className="text-sm text-muted-foreground">
-                Tu borrador <span className="font-mono">{numero}</span> quedó guardado y puedes retomarlo desde <em>Transacciones</em>.
-              </p>
-            </div>
+            <Step5
+              numero={numero}
+              sector={sector}
+              rol={rol}
+              descripcion={descripcion}
+              contraparte={contraparte}
+              hitos={hitos}
+              monto={monto}
+              metodoPago={metodoPago}
+              fechaInicio={fechaInicio}
+              fechaFin={fechaFin}
+              aceptaTerminos={aceptaTerminos}
+              setAceptaTerminos={setAceptaTerminos}
+              aceptaRetencion={aceptaRetencion}
+              setAceptaRetencion={setAceptaRetencion}
+              firmando={firmando}
+              firmaResult={firmaResult}
+              onFirmar={handleFirmar}
+            />
           )}
         </div>
+
+        {lastSavedAt && step >= 2 && step <= 4 && (
+          <div className="mt-2 text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+            Guardado automático · {lastSavedAt.toLocaleTimeString("es-MX")}
+          </div>
+        )}
 
         <div className="mt-6 flex justify-between gap-3">
           <button
             onClick={() => (step === 1 ? handleCancel() : setStep((s) => s - 1))}
-            className="px-5 py-2.5 border border-yo-border text-[12px] uppercase tracking-[0.14em] font-semibold hover:bg-yo-ac-h hover:text-white"
+            disabled={step === 5 && firmaResult?.activated === true}
+            className="px-5 py-2.5 border border-yo-border text-[12px] uppercase tracking-[0.14em] font-semibold hover:bg-yo-ac-h hover:text-white disabled:opacity-40"
           >
             {step === 1 ? "Cancelar" : "Atrás"}
           </button>
@@ -306,15 +323,24 @@ function NewTransactionWizard() {
             >
               {saving ? "Guardando…" : "Continuar →"}
             </button>
-          ) : (
+          ) : firmaResult ? (
             <button
               onClick={() => navigate({ to: "/transactions" })}
-              className="px-6 py-2.5 bg-yo-ac text-white text-[12px] uppercase tracking-[0.14em] font-semibold border border-yo-border hover:bg-yo-ac-h"
+              className="px-6 py-2.5 bg-yokto-yellow text-yokto-black text-[12px] uppercase tracking-[0.14em] font-semibold border border-yokto-black hover:bg-yokto-yellow/80"
             >
-              Ir a mis transacciones
+              Ir a mis transacciones →
+            </button>
+          ) : (
+            <button
+              onClick={handleFirmar}
+              disabled={firmando || !aceptaTerminos || !aceptaRetencion}
+              className="px-6 py-2.5 bg-yokto-black text-yokto-yellow text-[12px] uppercase tracking-[0.14em] font-semibold border border-yokto-black hover:opacity-90 disabled:opacity-40"
+            >
+              {firmando ? "Firmando…" : "Firmar y activar ✓"}
             </button>
           )}
         </div>
+
 
         {sectorDef && step > 1 && (
           <div className="mt-6 border border-yo-border/40 bg-yo-bg/30 p-4 text-xs text-muted-foreground">
