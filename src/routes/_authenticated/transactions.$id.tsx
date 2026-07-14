@@ -259,9 +259,9 @@ function TxDetail() {
         transactionId: id,
         reasonCode: disputeReason,
         reasonDescription: disputeDesc.trim(),
-      }}) as { id: string };
+      }});
       setDisputeOpen(false);
-      navigate({ to: "/disputes/$id", params: { id: res.id } });
+      navigate({ to: "/disputes/$id", params: { id: res.disputeId } });
     } catch (e) { setError((e as Error).message); setBusy(false); }
   }
 
