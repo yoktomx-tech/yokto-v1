@@ -191,7 +191,6 @@ function AdminDisputesList() {
             </tbody>
           </table>
         </div>
-      </main>
     </div>
   );
 }
