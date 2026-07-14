@@ -15,7 +15,7 @@ type NavItem = { to: string; icon: typeof LayoutDashboard; label: string };
 const SELLER_NAV: NavItem[] = [
   { to: "/dashboard",    icon: LayoutDashboard, label: "Dashboard" },
   { to: "/transactions", icon: Briefcase,       label: "Mis Operaciones" },
-  { to: "/cumplimiento", icon: PackageCheck,     label: "Cumplimiento operativo" },
+  { to: "/cumplimiento", icon: PackageCheck,     label: "Cumplimiento" },
   { to: "/disputes",     icon: AlertTriangle,   label: "Disputas" },
   { to: "/payments",     icon: Banknote,        label: "Pagos y retenciones" },
   { to: "/crm",          icon: Users,           label: "CRM" },
