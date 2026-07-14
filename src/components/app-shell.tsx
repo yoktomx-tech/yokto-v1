@@ -36,6 +36,7 @@ export function AppShell({ children, sgyScore = 500 }: { children: React.ReactNo
   const pathname = useRouterState({ select: (r) => r.location.pathname });
   const [mobileOpen, setMobileOpen] = useState(false);
   const { role, setRole } = useViewRole();
+  const { userId, email } = useAuthUser();
 
   const nav = role === "seller" ? SELLER_NAV : BUYER_NAV;
 
