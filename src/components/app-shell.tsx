@@ -91,10 +91,11 @@ function SidebarContent({
 }) {
   return (
     <>
-      <div className="px-5 py-5 border-b border-yo-border">
+      <div className="px-5 py-5 border-b border-yo-border space-y-3">
         <Link to="/dashboard" onClick={onNavigate} className="flex items-center gap-2">
           <YoktoLogo variant="dark" className="h-6 w-auto" />
         </Link>
+        <OrgSwitcher />
       </div>
 
       <nav className="flex-1 overflow-y-auto p-3 space-y-0.5">
