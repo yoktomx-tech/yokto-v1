@@ -237,7 +237,8 @@ function NewTransactionWizard() {
               {step === 2 && "Partes de la transacción"}
               {step === 3 && "Hitos y condiciones"}
               {step === 4 && "Monto y comisiones"}
-              {step === 5 && "Revisión y firma"}
+              {step === 5 && "Revisión final"}
+              {step === 6 && "Firma y activación"}
             </h1>
           </div>
           <button
