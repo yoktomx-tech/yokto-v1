@@ -79,7 +79,8 @@ export function AppShell({ children, sgyScore = 500 }: { children: React.ReactNo
         >
           <Menu className="size-4" />
         </button>
-        {children}
+        <AppHeader email={email} userId={userId} />
+        <main className="flex-1 p-4 md:p-6">{children}</main>
       </div>
     </div>
   );
