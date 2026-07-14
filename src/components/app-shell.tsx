@@ -9,6 +9,7 @@ import { useViewRole, type ViewRole } from "@/hooks/use-view-role";
 import { useAuthUser } from "@/hooks/use-auth-user";
 import { AppHeader } from "@/components/app-header";
 import { cn } from "@/lib/utils";
+import { getMockProfile, LEVEL_CFG, TONE_CLASSES } from "@/lib/score-mock";
 
 type NavItem = { to: string; icon: typeof LayoutDashboard; label: string };
 
