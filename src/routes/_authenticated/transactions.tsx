@@ -1,10 +1,10 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Plus, LayoutGrid, List as ListIcon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/app-shell";
 import { useViewRole } from "@/hooks/use-view-role";
-import { toUiStatus } from "@/lib/tx-catalog";
+import { toUiStatus, type UiStatus, type SectorUiId } from "@/lib/tx-catalog";
 import { TransactionsMetricsGrid, type TxMetricsData } from "@/components/tx/transactions-metrics-grid";
 import { TransactionsFilters, EMPTY_FILTERS, type TxFiltersState } from "@/components/tx/transactions-filters";
 import { TransactionsTabs, getTabs, countByTab, type TabId } from "@/components/tx/transactions-tabs";
@@ -12,8 +12,25 @@ import { TransactionsTable, type TxRow } from "@/components/tx/transactions-tabl
 import { TransactionCardMobile } from "@/components/tx/transaction-card-mobile";
 import { EmptyState } from "@/components/tx/ui";
 
+type SearchParams = {
+  tab?: TabId;
+  q?: string;
+  status?: UiStatus | "ALL";
+  sector?: SectorUiId | "ALL";
+  date?: TxFiltersState["dateRange"];
+  view?: "table" | "cards";
+};
+
 export const Route = createFileRoute("/_authenticated/transactions")({
   head: () => ({ meta: [{ title: "Transacciones — YOKTO" }, { name: "robots", content: "noindex" }] }),
+  validateSearch: (s: Record<string, unknown>): SearchParams => ({
+    tab: (s.tab as TabId) || undefined,
+    q: typeof s.q === "string" ? s.q : undefined,
+    status: (s.status as SearchParams["status"]) || undefined,
+    sector: (s.sector as SearchParams["sector"]) || undefined,
+    date: (s.date as SearchParams["date"]) || undefined,
+    view: (s.view as SearchParams["view"]) || undefined,
+  }),
   component: TransactionsList,
 });
 
