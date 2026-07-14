@@ -5,6 +5,7 @@ import {
   Users, User, Settings, Menu, X, ShieldCheck, Star,
 } from "lucide-react";
 import { YoktoLogo } from "@/components/logo";
+import { OrgSwitcher } from "@/components/org-switcher";
 import { cn } from "@/lib/utils";
 
 const NAV = [
