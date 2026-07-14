@@ -1,16 +1,20 @@
-import { createFileRoute, Navigate } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { createFileRoute } from "@tanstack/react-router";
+import { useEffect, useMemo, useState } from "react";
 import {
   PackageCheck, ClipboardList, LoaderCircle, AlertTriangle, CircleDollarSign, ShieldCheck,
   UploadCloud, FileDown, ChevronDown, ChevronRight, FileCheck2, Camera, MapPin, History,
   ReceiptText, Clock, X, CheckCircle2, XCircle, Circle, CircleDashed, Search, Filter,
+  LayoutGrid, Table as TableIcon, BellRing, Lock, Info,
 } from "lucide-react";
 import { PageHeader } from "@/components/page-header";
 import { useViewRole } from "@/hooks/use-view-role";
+import { useCurrentOrg } from "@/hooks/use-current-org";
+import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import {
   MOCK_OPS, HITO_STATUS_CFG, DOC_STATUS_CFG, TONE_BADGE, TONE_ACCENT, formatMXN,
-  type Operation, type Hito, type HitoStatus,
+  withComputedDueStatus, daysUntil,
+  type Operation, type Hito, type HitoStatus, type Document as HitoDoc, type Observation,
 } from "@/lib/cumplimiento-mock";
 
 export const Route = createFileRoute("/_authenticated/cumplimiento")({
@@ -32,27 +36,77 @@ const TABS: { key: "ALL" | HitoStatus; label: string }[] = [
   { key: "VENCIDO", label: "Vencidos" },
 ];
 
+type QuickFilter = "atencion" | "vence7d" | "conPago" | "docsRechazados" | null;
+
+type AdvFilters = {
+  sector: string;
+  contraparte: string;
+  priority: "" | "ALTA" | "MEDIA" | "BAJA";
+  dueBefore: string;
+  hasPayment: boolean;
+  hasObservations: boolean;
+};
+
+const EMPTY_ADV: AdvFilters = {
+  sector: "", contraparte: "", priority: "", dueBefore: "", hasPayment: false, hasObservations: false,
+};
+
 function CumplimientoPage() {
   const { role } = useViewRole();
-  if (role !== "seller") {
-    return <RoleGate />;
-  }
+  const { currentOrg, can } = useCurrentOrg();
 
+  // Hooks always run in same order (fix hooks-order bug).
   const [tab, setTab] = useState<(typeof TABS)[number]["key"]>("ALL");
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState<{ opId: string; hitoId?: string } | null>(null);
   const [uploadFor, setUploadFor] = useState<{ opId: string; hitoId?: string } | null>(null);
+  const [markReadyFor, setMarkReadyFor] = useState<{ op: Operation; hito: Hito } | null>(null);
+  const [fixObsFor, setFixObsFor] = useState<{ op: Operation; hito: Hito; obs: Observation } | null>(null);
+  const [view, setView] = useState<"cards" | "table">("cards");
+  const [quick, setQuick] = useState<QuickFilter>(null);
+  const [showFilters, setShowFilters] = useState(false);
+  const [adv, setAdv] = useState<AdvFilters>(EMPTY_ADV);
+  const [profileMissing, setProfileMissing] = useState<string[]>([]);
+  const [rtBump, setRtBump] = useState(0);
 
-  const ops = MOCK_OPS;
+  // Auto-computed VENCIDO status.
+  const ops = useMemo<Operation[]>(() => MOCK_OPS.map(withComputedDueStatus), [rtBump]);
 
-  // Aggregate metrics from hitos
+  // Realtime: bump ops when hitos/documents change for this org.
+  useEffect(() => {
+    if (!currentOrg?.id) return;
+    const ch = supabase
+      .channel("cumplimiento:" + currentOrg.id)
+      .on("postgres_changes", { event: "*", schema: "public", table: "transaction_hitos" }, () => setRtBump((n) => n + 1))
+      .on("postgres_changes", { event: "*", schema: "public", table: "transaction_documents" }, () => setRtBump((n) => n + 1))
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, [currentOrg?.id]);
+
+  // Profile pending docs sanity-check (KYC status on profile).
+  useEffect(() => {
+    (async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data } = await supabase
+        .from("profiles").select("kyc_status, onboarding_completed").eq("id", user.id).maybeSingle();
+      const miss: string[] = [];
+      if (data && data.kyc_status !== "approved") miss.push("KYC pendiente de aprobación");
+      if (data && !data.onboarding_completed) miss.push("Onboarding incompleto");
+      setProfileMissing(miss);
+    })().catch(() => {});
+  }, []);
+
+  const sectors = useMemo(() => Array.from(new Set(ops.map((o) => o.sector))).sort(), [ops]);
+
   const metrics = useMemo(() => {
     const allHitos = ops.flatMap((o) => o.hitos);
     return {
-      pendientes: allHitos.filter((h) => h.status === "PENDIENTE" || h.status === "EN_CARGA" || h.status === "NO_INICIADO").length,
-      enRevision: allHitos.filter((h) => h.status === "EN_REVISION" || h.status === "LISTO_REVISION").length,
+      pendientes: allHitos.filter((h) => ["PENDIENTE", "EN_CARGA", "NO_INICIADO"].includes(h.status)).length,
+      enRevision: allHitos.filter((h) => ["EN_REVISION", "LISTO_REVISION"].includes(h.status)).length,
       porCorregir: allHitos.filter((h) => h.status === "RECHAZADO").length,
       listosLiberar: allHitos.filter((h) => h.status === "APROBADO").reduce((s, h) => s + h.amountLinked, 0),
+      vencidos: allHitos.filter((h) => h.status === "VENCIDO").length,
       score: 86,
     };
   }, [ops]);
@@ -67,17 +121,48 @@ function CumplimientoPage() {
             const hay = [op.id, op.name, op.buyer, h.name, h.id].join(" ").toLowerCase();
             if (!hay.includes(q)) return false;
           }
+          if (adv.sector && op.sector !== adv.sector) return false;
+          if (adv.contraparte && !op.buyer.toLowerCase().includes(adv.contraparte.toLowerCase())) return false;
+          if (adv.priority && h.priority !== adv.priority) return false;
+          if (adv.dueBefore && new Date(h.dueDate) > new Date(adv.dueBefore)) return false;
+          if (adv.hasPayment && !h.hasPendingPayment) return false;
+          if (adv.hasObservations && h.observationsOpen === 0) return false;
+          if (quick === "atencion" && !(h.status === "RECHAZADO" || h.observationsOpen > 0 || h.status === "VENCIDO")) return false;
+          if (quick === "vence7d") { const d = daysUntil(h.dueDate); if (d < 0 || d > 7) return false; }
+          if (quick === "conPago" && !h.hasPendingPayment) return false;
+          if (quick === "docsRechazados" && !h.documents.some((d) => d.status === "RECHAZADO")) return false;
           return true;
         });
         return { ...op, hitos };
       })
       .filter((op) => op.hitos.length > 0);
-  }, [ops, tab, query]);
+  }, [ops, tab, query, adv, quick]);
 
   const selectedOp = selected ? ops.find((o) => o.id === selected.opId) ?? null : null;
   const selectedHito = selectedOp && selected?.hitoId
     ? selectedOp.hitos.find((h) => h.id === selected.hitoId) ?? null
     : null;
+
+  const canMarkReady = can("transaction.write"); // seller_admin+
+  const canUpload = can("fiscal.upload");
+
+  const exportCsv = () => {
+    const rows = [["Operacion", "Comprador", "Sector", "Hito", "Estado", "Vence", "Monto", "Prioridad", "Obs abiertas", "Docs"]];
+    for (const op of filteredOps) for (const h of op.hitos) {
+      rows.push([
+        op.id, op.buyer, op.sector, h.name, HITO_STATUS_CFG[h.status].label, h.dueDate,
+        String(h.amountLinked), h.priority, String(h.observationsOpen), String(h.documents.length),
+      ]);
+    }
+    const csv = rows.map((r) => r.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(",")).join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = `cumplimiento_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click(); URL.revokeObjectURL(url);
+  };
+
+  if (role !== "seller") return <RoleGate />;
 
   return (
     <div className="space-y-6">
@@ -87,26 +172,40 @@ function CumplimientoPage() {
         subtitle="Gestiona los hitos, documentos y evidencias requeridas para validar el cumplimiento de tus operaciones activas."
         actions={
           <>
-            <button className="inline-flex items-center gap-1.5 h-9 px-3 rounded-md border border-yo-border bg-yo-surface text-yo-txt text-sm hover:border-yo-border-s">
-              <FileDown className="size-4" /> Exportar reporte
+            <button onClick={exportCsv} className="inline-flex items-center gap-1.5 h-9 px-3 rounded-md border border-yo-border bg-yo-surface text-yo-txt text-sm hover:border-yo-border-s">
+              <FileDown className="size-4" /> Exportar CSV
             </button>
-            <button
-              onClick={() => setUploadFor({ opId: ops[0]?.id })}
-              className="inline-flex items-center gap-1.5 h-9 px-4 rounded-md bg-yo-ac text-white text-sm font-medium hover:bg-yo-ac-h"
-            >
-              <UploadCloud className="size-4" /> Subir evidencia
-            </button>
+            {canUpload && (
+              <button
+                onClick={() => setUploadFor({ opId: ops[0]?.id })}
+                className="inline-flex items-center gap-1.5 h-9 px-4 rounded-md bg-yo-ac text-white text-sm font-medium hover:bg-yo-ac-h"
+              >
+                <UploadCloud className="size-4" /> Subir evidencia
+              </button>
+            )}
           </>
         }
       />
 
+      {profileMissing.length > 0 && (
+        <div className="rounded-lg border border-[#FEF3C7] bg-[#FFFBEB] px-4 py-3 flex items-start gap-3">
+          <BellRing className="size-4 mt-0.5 text-[#D97706]" />
+          <div className="flex-1 text-[12.5px] text-[#92400E]">
+            <div className="font-medium">Tu perfil tiene requisitos pendientes</div>
+            <div className="mt-0.5">{profileMissing.join(" · ")}. Complétalos para evitar bloqueos en la liberación de fondos.</div>
+          </div>
+          <a href="/onboarding" className="h-8 px-3 rounded-md bg-white border border-[#F5D08A] text-xs font-medium text-[#92400E] hover:bg-[#FEF3C7] inline-flex items-center">Ir al perfil</a>
+        </div>
+      )}
+
       {/* Metric cards */}
-      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
         <MetricCard title="Hitos pendientes" value={metrics.pendientes} tone="ac" icon={ClipboardList} hint="Requieren entrega o evidencia" />
         <MetricCard title="En revisión" value={metrics.enRevision} tone="info" icon={LoaderCircle} hint="Esperando validación" />
         <MetricCard title="Por corregir" value={metrics.porCorregir} tone="err" icon={AlertTriangle} hint="Atención requerida" />
+        <MetricCard title="Vencidos" value={metrics.vencidos} tone="warn" icon={Clock} hint="Requieren acción inmediata" />
         <MetricCard title="Listos para liberar" value={formatMXN(metrics.listosLiberar)} tone="ok" icon={CircleDollarSign} hint="Hitos aprobados" mono />
-        <MetricCard title="Score operativo" value={metrics.score} tone="ac" icon={ShieldCheck} hint="Cumplimiento de operaciones activas" />
+        <MetricCard title="Score operativo" value={metrics.score} tone="ac" icon={ShieldCheck} hint="Cumplimiento de operaciones" />
       </div>
 
       {/* Tabs */}
@@ -115,14 +214,9 @@ function CumplimientoPage() {
           {TABS.map((t) => {
             const active = tab === t.key;
             return (
-              <button
-                key={t.key}
-                onClick={() => setTab(t.key)}
-                className={cn(
-                  "px-3 h-9 text-sm font-medium border-b-2 -mb-px transition whitespace-nowrap",
-                  active ? "border-yo-ac text-yo-ac" : "border-transparent text-yo-txt-2 hover:text-yo-txt"
-                )}
-              >
+              <button key={t.key} onClick={() => setTab(t.key)}
+                className={cn("px-3 h-9 text-sm font-medium border-b-2 -mb-px transition whitespace-nowrap",
+                  active ? "border-yo-ac text-yo-ac" : "border-transparent text-yo-txt-2 hover:text-yo-txt")}>
                 {t.label}
               </button>
             );
@@ -130,49 +224,105 @@ function CumplimientoPage() {
         </div>
       </div>
 
-      {/* Search + filters */}
+      {/* Search + filters + view toggle */}
       <div className="flex flex-wrap items-center gap-2">
         <div className="flex-1 min-w-[280px] relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-yo-txt-3" />
-          <input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Buscar por operación, hito, documento, folio, RFC o contraparte..."
-            className="w-full pl-9 pr-3 h-9 rounded-md border border-yo-border bg-yo-surface text-sm text-yo-txt hover:border-yo-border-s focus:border-yo-ac focus:ring-2 focus:ring-indigo-100 outline-none"
-          />
+          <input value={query} onChange={(e) => setQuery(e.target.value)}
+            placeholder="Buscar por operación, hito, folio, RFC o contraparte..."
+            className="w-full pl-9 pr-3 h-9 rounded-md border border-yo-border bg-yo-surface text-sm text-yo-txt hover:border-yo-border-s focus:border-yo-ac focus:ring-2 focus:ring-indigo-100 outline-none" />
         </div>
-        <button className="inline-flex items-center gap-1.5 h-9 px-3 rounded-md border border-yo-border bg-yo-surface text-yo-txt-2 text-sm hover:border-yo-border-s">
-          <Filter className="size-4" /> Filtros
+        <button onClick={() => setShowFilters((v) => !v)}
+          className={cn("inline-flex items-center gap-1.5 h-9 px-3 rounded-md border text-sm",
+            showFilters ? "border-yo-ac text-yo-ac bg-yo-ac-bg" : "border-yo-border bg-yo-surface text-yo-txt-2 hover:border-yo-border-s")}>
+          <Filter className="size-4" /> Filtros{Object.values(adv).some(Boolean) && <span className="ml-1 text-[10px] rounded-full bg-yo-ac text-white px-1.5 py-0.5">•</span>}
         </button>
-        {["Requiere mi atención", "Vence esta semana", "Con pago pendiente", "Docs rechazados"].map((f) => (
-          <button key={f} className="h-9 px-3 rounded-full border border-yo-border bg-yo-surface text-xs font-medium text-yo-txt-2 hover:border-yo-ac hover:text-yo-ac">
-            {f}
+        {([
+          ["atencion", "Requiere mi atención"],
+          ["vence7d", "Vence esta semana"],
+          ["conPago", "Con pago pendiente"],
+          ["docsRechazados", "Docs rechazados"],
+        ] as [QuickFilter, string][]).map(([k, label]) => (
+          <button key={k} onClick={() => setQuick(quick === k ? null : k)}
+            className={cn("h-9 px-3 rounded-full border text-xs font-medium",
+              quick === k ? "border-yo-ac bg-yo-ac-bg text-yo-ac" : "border-yo-border bg-yo-surface text-yo-txt-2 hover:border-yo-ac hover:text-yo-ac")}>
+            {label}
           </button>
         ))}
+        <div className="ml-auto inline-flex rounded-md border border-yo-border bg-yo-surface p-0.5">
+          <button onClick={() => setView("cards")}
+            className={cn("h-8 px-2.5 rounded text-xs inline-flex items-center gap-1.5", view === "cards" ? "bg-yo-raised text-yo-txt" : "text-yo-txt-2")}>
+            <LayoutGrid className="size-3.5" /> Tarjetas
+          </button>
+          <button onClick={() => setView("table")}
+            className={cn("h-8 px-2.5 rounded text-xs inline-flex items-center gap-1.5", view === "table" ? "bg-yo-raised text-yo-txt" : "text-yo-txt-2")}>
+            <TableIcon className="size-3.5" /> Tabla
+          </button>
+        </div>
       </div>
 
-      {/* Main layout 70/30 */}
+      {showFilters && (
+        <div className="rounded-lg border border-yo-border bg-yo-surface p-3 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 items-end">
+          <label className="text-[11px] text-yo-txt-2">Sector
+            <select value={adv.sector} onChange={(e) => setAdv({ ...adv, sector: e.target.value })}
+              className="mt-1 w-full h-9 px-2 rounded-md border border-yo-border bg-yo-raised text-sm">
+              <option value="">Todos</option>
+              {sectors.map((s) => <option key={s} value={s}>{s}</option>)}
+            </select>
+          </label>
+          <label className="text-[11px] text-yo-txt-2">Contraparte
+            <input value={adv.contraparte} onChange={(e) => setAdv({ ...adv, contraparte: e.target.value })} placeholder="Nombre o RFC"
+              className="mt-1 w-full h-9 px-2 rounded-md border border-yo-border bg-yo-raised text-sm" />
+          </label>
+          <label className="text-[11px] text-yo-txt-2">Prioridad
+            <select value={adv.priority} onChange={(e) => setAdv({ ...adv, priority: e.target.value as AdvFilters["priority"] })}
+              className="mt-1 w-full h-9 px-2 rounded-md border border-yo-border bg-yo-raised text-sm">
+              <option value="">Cualquiera</option><option value="ALTA">Alta</option><option value="MEDIA">Media</option><option value="BAJA">Baja</option>
+            </select>
+          </label>
+          <label className="text-[11px] text-yo-txt-2">Vence antes de
+            <input type="date" value={adv.dueBefore} onChange={(e) => setAdv({ ...adv, dueBefore: e.target.value })}
+              className="mt-1 w-full h-9 px-2 rounded-md border border-yo-border bg-yo-raised text-sm" />
+          </label>
+          <label className="inline-flex items-center gap-2 text-[12px] text-yo-txt-2 mt-4">
+            <input type="checkbox" checked={adv.hasPayment} onChange={(e) => setAdv({ ...adv, hasPayment: e.target.checked })} /> Con pago
+          </label>
+          <div className="flex items-center gap-2">
+            <label className="inline-flex items-center gap-2 text-[12px] text-yo-txt-2 mt-4">
+              <input type="checkbox" checked={adv.hasObservations} onChange={(e) => setAdv({ ...adv, hasObservations: e.target.checked })} /> Con obs.
+            </label>
+            <button onClick={() => setAdv(EMPTY_ADV)} className="ml-auto mt-4 h-8 px-2.5 rounded-md text-[11px] font-medium text-yo-txt-2 hover:text-yo-txt">Limpiar</button>
+          </div>
+        </div>
+      )}
+
+      {/* Main layout */}
       <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_360px] gap-4">
         <div className="space-y-4">
           {filteredOps.length === 0 ? (
             <EmptyState />
-          ) : (
+          ) : view === "cards" ? (
             filteredOps.map((op) => (
-              <OperationCard
-                key={op.id}
-                op={op}
+              <OperationCard key={op.id} op={op}
                 onOpenHito={(hitoId) => setSelected({ opId: op.id, hitoId })}
                 onOpenOp={() => setSelected({ opId: op.id })}
                 onUpload={(hitoId) => setUploadFor({ opId: op.id, hitoId })}
-                highlight={selected?.opId === op.id ? selected?.hitoId : undefined}
-              />
+                onMarkReady={canMarkReady ? (h) => setMarkReadyFor({ op, hito: h }) : undefined}
+                highlight={selected?.opId === op.id ? selected?.hitoId : undefined} />
             ))
+          ) : (
+            <TableView ops={filteredOps} onOpen={(o, h) => setSelected({ opId: o, hitoId: h })} onUpload={(o, h) => setUploadFor({ opId: o, hitoId: h })} />
           )}
         </div>
 
         <aside className="xl:sticky xl:top-4 h-fit">
           {selectedOp ? (
-            <DetailPanel op={selectedOp} hito={selectedHito} onClose={() => setSelected(null)} onUpload={(hitoId) => setUploadFor({ opId: selectedOp.id, hitoId })} />
+            <DetailPanel op={selectedOp} hito={selectedHito}
+              canMarkReady={canMarkReady}
+              onClose={() => setSelected(null)}
+              onUpload={(hitoId) => setUploadFor({ opId: selectedOp.id, hitoId })}
+              onMarkReady={() => selectedHito && setMarkReadyFor({ op: selectedOp, hito: selectedHito })}
+              onFixObs={(obs) => selectedHito && setFixObsFor({ op: selectedOp, hito: selectedHito, obs })} />
           ) : (
             <ContextEmpty />
           )}
@@ -180,11 +330,13 @@ function CumplimientoPage() {
       </div>
 
       {uploadFor && (
-        <UploadModal
-          op={ops.find((o) => o.id === uploadFor.opId) ?? null}
-          hitoId={uploadFor.hitoId}
-          onClose={() => setUploadFor(null)}
-        />
+        <UploadModal op={ops.find((o) => o.id === uploadFor.opId) ?? null} hitoId={uploadFor.hitoId} onClose={() => setUploadFor(null)} />
+      )}
+      {markReadyFor && (
+        <MarkReadyModal op={markReadyFor.op} hito={markReadyFor.hito} onClose={() => setMarkReadyFor(null)} />
+      )}
+      {fixObsFor && (
+        <FixObservationModal op={fixObsFor.op} hito={fixObsFor.hito} obs={fixObsFor.obs} onClose={() => setFixObsFor(null)} />
       )}
     </div>
   );
@@ -201,14 +353,12 @@ function RoleGate() {
         El Cumplimiento de operación está disponible cuando participas como vendedor. Cambia tu vista a
         "Vendedor" desde el selector en la barra lateral para acceder.
       </p>
-      <Navigate to="/dashboard" />
     </div>
   );
 }
 
-function MetricCard({
-  title, value, tone, icon: Icon, hint, mono,
-}: { title: string; value: string | number; tone: keyof typeof TONE_ACCENT; icon: any; hint: string; mono?: boolean }) {
+function MetricCard({ title, value, tone, icon: Icon, hint, mono }:
+  { title: string; value: string | number; tone: keyof typeof TONE_ACCENT; icon: any; hint: string; mono?: boolean }) {
   return (
     <div className="relative overflow-hidden rounded-xl border border-yo-border bg-yo-surface p-4 shadow-sm">
       <span aria-hidden className="absolute inset-x-0 top-0 h-0.5" style={{ backgroundColor: TONE_ACCENT[tone] }} />
@@ -216,9 +366,7 @@ function MetricCard({
         <span className="text-[11px] uppercase tracking-wider font-medium">{title}</span>
         <Icon className="size-4 text-yo-txt-3" />
       </div>
-      <div className={cn("mt-2 text-2xl font-semibold leading-none text-yo-txt", mono && "font-mono tabular-nums")}>
-        {value}
-      </div>
+      <div className={cn("mt-2 text-2xl font-semibold leading-none text-yo-txt", mono && "font-mono tabular-nums")}>{value}</div>
       <p className="mt-2 text-[11px] text-yo-txt-3">{hint}</p>
     </div>
   );
@@ -245,12 +393,13 @@ function DocStatusBadge({ status }: { status: keyof typeof DOC_STATUS_CFG }) {
 }
 
 function OperationCard({
-  op, onOpenHito, onOpenOp, onUpload, highlight,
+  op, onOpenHito, onOpenOp, onUpload, onMarkReady, highlight,
 }: {
   op: Operation;
   onOpenHito: (hitoId: string) => void;
   onOpenOp: () => void;
   onUpload: (hitoId: string) => void;
+  onMarkReady?: (h: Hito) => void;
   highlight?: string;
 }) {
   const [open, setOpen] = useState(true);
@@ -266,12 +415,10 @@ function OperationCard({
             </div>
             <p className="mt-0.5 text-xs text-yo-txt-2">
               Comprador: <span className="text-yo-txt">{op.buyer}</span> · Sector: {op.sector} · Riesgo{" "}
-              <span className={cn(
-                "font-medium",
+              <span className={cn("font-medium",
                 op.risk === "BAJO" && "text-[#059669]",
                 op.risk === "MEDIO" && "text-[#D97706]",
-                op.risk === "ALTO" && "text-[#DC2626]",
-              )}>{op.risk}</span>
+                op.risk === "ALTO" && "text-[#DC2626]")}>{op.risk}</span>
             </p>
           </div>
           <div className="text-right">
@@ -292,13 +439,8 @@ function OperationCard({
         </div>
 
         <div className="mt-3 flex flex-wrap gap-2">
-          <button onClick={onOpenOp} className="h-8 px-3 rounded-md border border-yo-border bg-yo-surface text-xs font-medium text-yo-txt hover:border-yo-border-s">
-            Ver detalle
-          </button>
-          <button
-            onClick={() => setOpen((v) => !v)}
-            className="h-8 px-3 rounded-md text-xs font-medium text-yo-ac hover:bg-yo-ac-bg inline-flex items-center gap-1"
-          >
+          <button onClick={onOpenOp} className="h-8 px-3 rounded-md border border-yo-border bg-yo-surface text-xs font-medium text-yo-txt hover:border-yo-border-s">Ver detalle</button>
+          <button onClick={() => setOpen((v) => !v)} className="h-8 px-3 rounded-md text-xs font-medium text-yo-ac hover:bg-yo-ac-bg inline-flex items-center gap-1">
             {open ? <ChevronDown className="size-3.5" /> : <ChevronRight className="size-3.5" />}
             {open ? "Ocultar hitos" : `Ver ${op.hitos.length} hitos`}
           </button>
@@ -308,13 +450,10 @@ function OperationCard({
       {open && (
         <div className="border-t border-yo-border divide-y divide-yo-border">
           {op.hitos.map((h) => (
-            <HitoRow
-              key={h.id}
-              hito={h}
-              highlighted={highlight === h.id}
+            <HitoRow key={h.id} hito={h} highlighted={highlight === h.id}
               onOpen={() => onOpenHito(h.id)}
               onUpload={() => onUpload(h.id)}
-            />
+              onMarkReady={onMarkReady ? () => onMarkReady(h) : undefined} />
           ))}
         </div>
       )}
@@ -322,8 +461,10 @@ function OperationCard({
   );
 }
 
-function HitoRow({ hito, onOpen, onUpload, highlighted }: { hito: Hito; onOpen: () => void; onUpload: () => void; highlighted?: boolean }) {
+function HitoRow({ hito, onOpen, onUpload, onMarkReady, highlighted }:
+  { hito: Hito; onOpen: () => void; onUpload: () => void; onMarkReady?: () => void; highlighted?: boolean }) {
   const pct = Math.round((hito.requirementsCompleted / hito.requirementsTotal) * 100) || 0;
+  const dd = daysUntil(hito.dueDate);
   return (
     <div className={cn("p-4 flex flex-wrap items-start justify-between gap-3 hover:bg-yo-raised/60 transition", highlighted && "bg-yo-ac-bg/40")}>
       <div className="min-w-0 flex-1">
@@ -331,14 +472,20 @@ function HitoRow({ hito, onOpen, onUpload, highlighted }: { hito: Hito; onOpen: 
           <span className="font-mono text-[11px] text-yo-txt-3">{hito.id}</span>
           <span className="font-medium text-yo-txt">{hito.name}</span>
           <StatusBadge status={hito.status} />
+          {hito.priority === "ALTA" && (
+            <span className="inline-flex items-center gap-1 text-[10.5px] font-medium text-[#DC2626] bg-[#FEF2F2] rounded-full px-2 py-0.5">Prioridad alta</span>
+          )}
           {hito.observationsOpen > 0 && (
             <span className="inline-flex items-center gap-1 text-[10.5px] font-medium text-[#DC2626] bg-[#FEF2F2] rounded-full px-2 py-0.5">
               <AlertTriangle className="size-3" /> {hito.observationsOpen} obs.
             </span>
           )}
+          {dd >= 0 && dd <= 3 && hito.status !== "APROBADO" && (
+            <span className="inline-flex items-center gap-1 text-[10.5px] font-medium text-[#D97706] bg-[#FFFBEB] rounded-full px-2 py-0.5">Vence en {dd}d</span>
+          )}
         </div>
         <p className="mt-0.5 text-xs text-yo-txt-2 truncate">{hito.description}</p>
-        <div className="mt-2 flex items-center gap-4 text-[11px] text-yo-txt-3">
+        <div className="mt-2 flex items-center gap-4 text-[11px] text-yo-txt-3 flex-wrap">
           <span className="inline-flex items-center gap-1"><Clock className="size-3" /> Vence {hito.dueDate}</span>
           <span className="inline-flex items-center gap-1"><CircleDollarSign className="size-3" /> <span className="font-mono text-yo-txt-2">{formatMXN(hito.amountLinked)}</span></span>
           <span>Requisitos {hito.requirementsCompleted}/{hito.requirementsTotal}</span>
@@ -348,13 +495,14 @@ function HitoRow({ hito, onOpen, onUpload, highlighted }: { hito: Hito; onOpen: 
         </div>
       </div>
       <div className="flex flex-wrap gap-1.5 shrink-0">
-        <HitoActions status={hito.status} onOpen={onOpen} onUpload={onUpload} />
+        <HitoActions status={hito.status} onOpen={onOpen} onUpload={onUpload} onMarkReady={onMarkReady} />
       </div>
     </div>
   );
 }
 
-function HitoActions({ status, onOpen, onUpload }: { status: HitoStatus; onOpen: () => void; onUpload: () => void }) {
+function HitoActions({ status, onOpen, onUpload, onMarkReady }:
+  { status: HitoStatus; onOpen: () => void; onUpload: () => void; onMarkReady?: () => void }) {
   const btn = "h-8 px-3 rounded-md text-xs font-medium";
   const primary = `${btn} bg-yo-ac text-white hover:bg-yo-ac-h`;
   const secondary = `${btn} border border-yo-border bg-yo-surface text-yo-txt hover:border-yo-border-s`;
@@ -363,20 +511,83 @@ function HitoActions({ status, onOpen, onUpload }: { status: HitoStatus; onOpen:
     case "RECHAZADO":
       return (<><button className={danger} onClick={onOpen}>Ver observaciones</button><button className={secondary} onClick={onUpload}>Enviar corrección</button></>);
     case "APROBADO":
-      return (<><button className={secondary} onClick={onOpen}>Ver aprobación</button></>);
+      return (<button className={secondary} onClick={onOpen}>Ver aprobación</button>);
     case "EN_REVISION":
     case "LISTO_REVISION":
-      return (<><button className={secondary} onClick={onOpen}>Ver estado</button></>);
+      return (<button className={secondary} onClick={onOpen}>Ver estado</button>);
     case "EN_CARGA":
-      return (<><button className={secondary} onClick={onUpload}>Continuar carga</button><button className={primary} onClick={onOpen}>Marcar listo</button></>);
+      return (<>
+        <button className={secondary} onClick={onUpload}>Continuar carga</button>
+        {onMarkReady ? (
+          <button className={primary} onClick={onMarkReady}>Marcar listo</button>
+        ) : (
+          <button className={cn(primary, "opacity-50 cursor-not-allowed")} title="Requiere rol seller_admin" disabled><Lock className="inline size-3 mr-1" />Marcar listo</button>
+        )}
+      </>);
     case "EN_DISPUTA":
-      return (<><button className={secondary} onClick={onOpen}>Ver disputa</button></>);
+      return (<button className={secondary} onClick={onOpen}>Ver disputa</button>);
+    case "VENCIDO":
+      return (<><button className={danger} onClick={onUpload}>Subir urgente</button><button className={secondary} onClick={onOpen}>Ver detalle</button></>);
     default:
       return (<><button className={secondary} onClick={onUpload}>Subir evidencia</button><button className={secondary} onClick={onOpen}>Ver detalle</button></>);
   }
 }
 
-function DetailPanel({ op, hito, onClose, onUpload }: { op: Operation; hito: Hito | null; onClose: () => void; onUpload: (hitoId?: string) => void }) {
+/* ============= Table view ============= */
+function TableView({ ops, onOpen, onUpload }: { ops: Operation[]; onOpen: (op: string, h: string) => void; onUpload: (op: string, h: string) => void }) {
+  return (
+    <div className="rounded-xl border border-yo-border bg-yo-surface overflow-hidden">
+      <div className="overflow-x-auto">
+        <table className="w-full text-[12.5px]">
+          <thead className="bg-yo-raised text-left text-yo-txt-3">
+            <tr>
+              <th className="px-3 py-2 font-medium">Operación</th>
+              <th className="px-3 py-2 font-medium">Hito</th>
+              <th className="px-3 py-2 font-medium">Estado</th>
+              <th className="px-3 py-2 font-medium">Vence</th>
+              <th className="px-3 py-2 font-medium text-right">Monto</th>
+              <th className="px-3 py-2 font-medium">Prioridad</th>
+              <th className="px-3 py-2 font-medium">Obs.</th>
+              <th className="px-3 py-2 font-medium">Acciones</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-yo-border">
+            {ops.flatMap((op) =>
+              op.hitos.map((h) => (
+                <tr key={op.id + h.id} className="hover:bg-yo-raised/60">
+                  <td className="px-3 py-2">
+                    <div className="font-mono text-[11px] text-yo-ac-txt">{op.id}</div>
+                    <div className="text-yo-txt truncate max-w-[220px]">{op.name}</div>
+                  </td>
+                  <td className="px-3 py-2">
+                    <div className="font-mono text-[11px] text-yo-txt-3">{h.id}</div>
+                    <div className="text-yo-txt truncate max-w-[220px]">{h.name}</div>
+                  </td>
+                  <td className="px-3 py-2"><StatusBadge status={h.status} /></td>
+                  <td className="px-3 py-2 whitespace-nowrap text-yo-txt-2">{h.dueDate}</td>
+                  <td className="px-3 py-2 text-right font-mono tabular-nums text-yo-txt">{formatMXN(h.amountLinked)}</td>
+                  <td className="px-3 py-2">{h.priority}</td>
+                  <td className="px-3 py-2">{h.observationsOpen || "—"}</td>
+                  <td className="px-3 py-2">
+                    <div className="flex gap-1">
+                      <button onClick={() => onOpen(op.id, h.id)} className="h-7 px-2 rounded-md border border-yo-border text-[11px]">Ver</button>
+                      <button onClick={() => onUpload(op.id, h.id)} className="h-7 px-2 rounded-md bg-yo-ac text-white text-[11px]">Subir</button>
+                    </div>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+/* ============= Detail panel ============= */
+
+function DetailPanel({ op, hito, canMarkReady, onClose, onUpload, onMarkReady, onFixObs }:
+  { op: Operation; hito: Hito | null; canMarkReady: boolean; onClose: () => void; onUpload: (hitoId?: string) => void; onMarkReady: () => void; onFixObs: (o: Observation) => void }) {
   const [tab, setTab] = useState<"resumen" | "docs" | "evid" | "obs" | "timeline">("resumen");
 
   return (
@@ -402,36 +613,25 @@ function DetailPanel({ op, hito, onClose, onUpload }: { op: Operation; hito: Hit
         )}
       </div>
 
-      {/* Payment box */}
       <div className="p-4 border-b border-yo-border bg-yo-raised/40">
         <div className="text-[10px] uppercase tracking-wider text-yo-txt-3 font-semibold">Pago asociado</div>
-        <div className="mt-1 font-mono tabular-nums text-lg text-yo-txt font-semibold">
-          {formatMXN(hito?.amountLinked ?? op.heldAmount, op.currency)}
-        </div>
-        <p className="mt-1 text-[11px] text-yo-txt-3">
-          La liberación depende de la aprobación de este hito y de las reglas pactadas en la operación.
-        </p>
+        <div className="mt-1 font-mono tabular-nums text-lg text-yo-txt font-semibold">{formatMXN(hito?.amountLinked ?? op.heldAmount, op.currency)}</div>
+        <p className="mt-1 text-[11px] text-yo-txt-3">La liberación depende de la aprobación de este hito y de las reglas pactadas.</p>
       </div>
 
-      {/* Tabs */}
       <div className="border-b border-yo-border flex overflow-x-auto">
         {([
-          { k: "resumen",  l: "Resumen" },
-          { k: "docs",     l: "Documentos" },
-          { k: "evid",     l: "Evidencias" },
-          { k: "obs",      l: "Observaciones" },
+          { k: "resumen", l: "Resumen" },
+          { k: "docs", l: "Documentos" },
+          { k: "evid", l: "Evidencias" },
+          { k: "obs", l: "Observaciones" },
           { k: "timeline", l: "Timeline" },
         ] as const).map((t) => {
           const active = tab === t.k;
           return (
-            <button
-              key={t.k}
-              onClick={() => setTab(t.k)}
-              className={cn(
-                "px-3 h-9 text-[12.5px] font-medium border-b-2 -mb-px whitespace-nowrap",
-                active ? "border-yo-ac text-yo-ac" : "border-transparent text-yo-txt-2 hover:text-yo-txt"
-              )}
-            >
+            <button key={t.k} onClick={() => setTab(t.k)}
+              className={cn("px-3 h-9 text-[12.5px] font-medium border-b-2 -mb-px whitespace-nowrap",
+                active ? "border-yo-ac text-yo-ac" : "border-transparent text-yo-txt-2 hover:text-yo-txt")}>
               {t.l}
             </button>
           );
@@ -442,20 +642,25 @@ function DetailPanel({ op, hito, onClose, onUpload }: { op: Operation; hito: Hit
         {tab === "resumen" && <ResumenTab op={op} hito={hito} />}
         {tab === "docs" && <DocsTab hito={hito} />}
         {tab === "evid" && <EvidTab hito={hito} />}
-        {tab === "obs" && <ObsTab hito={hito} />}
+        {tab === "obs" && <ObsTab hito={hito} onFix={onFixObs} />}
         {tab === "timeline" && <TimelineTab />}
       </div>
 
       <div className="p-3 border-t border-yo-border flex flex-wrap gap-2">
-        <button
-          onClick={() => onUpload(hito?.id)}
-          className="flex-1 h-9 rounded-md bg-yo-ac text-white text-xs font-medium hover:bg-yo-ac-h inline-flex items-center justify-center gap-1.5"
-        >
+        <button onClick={() => onUpload(hito?.id)}
+          className="flex-1 h-9 rounded-md bg-yo-ac text-white text-xs font-medium hover:bg-yo-ac-h inline-flex items-center justify-center gap-1.5">
           <UploadCloud className="size-3.5" /> Subir evidencia
         </button>
-        <button className="flex-1 h-9 rounded-md border border-yo-border bg-yo-surface text-xs font-medium text-yo-txt hover:border-yo-border-s inline-flex items-center justify-center gap-1.5">
-          <FileCheck2 className="size-3.5" /> Marcar hito listo
-        </button>
+        {canMarkReady ? (
+          <button onClick={onMarkReady} disabled={!hito}
+            className="flex-1 h-9 rounded-md border border-yo-border bg-yo-surface text-xs font-medium text-yo-txt hover:border-yo-border-s disabled:opacity-40 inline-flex items-center justify-center gap-1.5">
+            <FileCheck2 className="size-3.5" /> Marcar hito listo
+          </button>
+        ) : (
+          <div className="flex-1 h-9 rounded-md border border-yo-border bg-yo-raised text-xs font-medium text-yo-txt-3 inline-flex items-center justify-center gap-1.5" title="Requiere rol seller_admin">
+            <Lock className="size-3.5" /> Marcar listo (admin)
+          </div>
+        )}
       </div>
     </div>
   );
@@ -467,14 +672,12 @@ function ResumenTab({ op, hito }: { op: Operation; hito: Hito | null }) {
       <div>
         <div className="text-[10px] uppercase tracking-wider text-yo-txt-3 font-semibold mb-2">Cumplimiento de esta operación</div>
         <div className="text-2xl font-semibold text-yo-txt">{op.progress}%</div>
-        <div className="mt-1 h-1.5 rounded-full bg-yo-raised overflow-hidden">
-          <div className="h-full bg-yo-ac" style={{ width: `${op.progress}%` }} />
-        </div>
+        <div className="mt-1 h-1.5 rounded-full bg-yo-raised overflow-hidden"><div className="h-full bg-yo-ac" style={{ width: `${op.progress}%` }} /></div>
         <div className="mt-3 grid grid-cols-2 gap-2 text-[11px]">
           <Kv k="Documental" v="78%" />
           <Kv k="Evidencia" v="65%" />
-          <Kv k="Hitos" v={`${op.hitos.filter(h=>h.status==="APROBADO").length}/${op.hitos.length}`} />
-          <Kv k="Obs. abiertas" v={String(op.hitos.reduce((s,h)=>s+h.observationsOpen,0))} />
+          <Kv k="Hitos" v={`${op.hitos.filter((h) => h.status === "APROBADO").length}/${op.hitos.length}`} />
+          <Kv k="Obs. abiertas" v={String(op.hitos.reduce((s, h) => s + h.observationsOpen, 0))} />
         </div>
       </div>
 
@@ -512,31 +715,47 @@ function Kv({ k, v }: { k: string; v: string }) {
 }
 
 function DocsTab({ hito }: { hito: Hito | null }) {
+  const [expanded, setExpanded] = useState<string | null>(null);
   if (!hito) return <NoHito />;
   if (hito.documents.length === 0) return <Empty text="Sin documentos cargados en este hito." />;
   return (
-    <table className="w-full text-[12px]">
-      <thead className="text-left text-yo-txt-3">
-        <tr>
-          <th className="pb-2 font-medium">Documento</th>
-          <th className="pb-2 font-medium">Ver.</th>
-          <th className="pb-2 font-medium">Estado</th>
-        </tr>
-      </thead>
-      <tbody className="divide-y divide-yo-border">
-        {hito.documents.map((d) => (
-          <tr key={d.id}>
-            <td className="py-2">
-              <div className="text-yo-txt font-medium flex items-center gap-1.5"><ReceiptText className="size-3.5 text-yo-txt-3" />{d.name}</div>
-              <div className="font-mono text-[10.5px] text-yo-txt-3 truncate max-w-[220px]">{d.hash}</div>
+    <div className="space-y-2">
+      {hito.documents.map((d: HitoDoc) => (
+        <div key={d.id} className="rounded-md border border-yo-border">
+          <div className="p-2.5 flex items-start justify-between gap-2">
+            <div className="min-w-0">
+              <div className="text-yo-txt font-medium text-[12.5px] flex items-center gap-1.5"><ReceiptText className="size-3.5 text-yo-txt-3" />{d.name}</div>
+              <div className="font-mono text-[10.5px] text-yo-txt-3 truncate max-w-[260px]">{d.hash}</div>
+              <div className="mt-1 text-[11px] text-yo-txt-2">Versión actual <span className="font-mono">{d.version}</span>{d.uploadedAt && <> · Cargado {d.uploadedAt}</>}</div>
               {d.observation && <div className="mt-1 text-[11px] text-[#DC2626]">{d.observation}</div>}
-            </td>
-            <td className="py-2 font-mono text-[11px] text-yo-txt-2">{d.version}</td>
-            <td className="py-2"><DocStatusBadge status={d.status} /></td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
+            </div>
+            <div className="flex items-center gap-1.5 shrink-0">
+              <DocStatusBadge status={d.status} />
+              {d.history && d.history.length > 0 && (
+                <button onClick={() => setExpanded(expanded === d.id ? null : d.id)}
+                  className="h-7 px-2 rounded-md text-[11px] text-yo-ac hover:bg-yo-ac-bg inline-flex items-center gap-1">
+                  <History className="size-3" /> {d.history.length} versiones
+                </button>
+              )}
+            </div>
+          </div>
+          {expanded === d.id && d.history && (
+            <div className="border-t border-yo-border bg-yo-raised/40 p-2.5 space-y-1.5">
+              {d.history.map((v) => (
+                <div key={v.version} className="flex items-start justify-between gap-2 text-[11.5px]">
+                  <div className="min-w-0">
+                    <div><span className="font-mono text-yo-txt">{v.version}</span> · {v.uploadedBy} · {v.uploadedAt}</div>
+                    <div className="font-mono text-[10.5px] text-yo-txt-3 truncate max-w-[240px]">{v.hash}</div>
+                    {v.note && <div className="text-yo-txt-2">{v.note}</div>}
+                  </div>
+                  <DocStatusBadge status={v.status} />
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
   );
 }
 
@@ -555,9 +774,7 @@ function EvidTab({ hito }: { hito: Hito | null }) {
                 {e.type === "GPS" && <MapPin className="size-3.5 text-yo-txt-3" />}
                 {e.title}
               </div>
-              <div className="text-[11px] text-yo-txt-3 mt-0.5">
-                {e.type} · Cap. {e.capturedAt}{e.hasGps && <> · <MapPin className="inline size-3" /> GPS</>}
-              </div>
+              <div className="text-[11px] text-yo-txt-3 mt-0.5">{e.type} · Cap. {e.capturedAt}{e.hasGps && <> · <MapPin className="inline size-3" /> GPS</>}</div>
             </div>
             <DocStatusBadge status={e.status} />
           </div>
@@ -567,7 +784,7 @@ function EvidTab({ hito }: { hito: Hito | null }) {
   );
 }
 
-function ObsTab({ hito }: { hito: Hito | null }) {
+function ObsTab({ hito, onFix }: { hito: Hito | null; onFix: (o: Observation) => void }) {
   if (!hito) return <NoHito />;
   if (hito.observations.length === 0) return <Empty text="Sin observaciones abiertas." />;
   return (
@@ -583,7 +800,7 @@ function ObsTab({ hito }: { hito: Hito | null }) {
           <div className="mt-1.5 text-[12px] text-yo-txt">{o.message}</div>
           <div className="mt-1 text-[11px] text-yo-txt-3">Sobre: {o.targetLabel} · {o.author}</div>
           <div className="mt-2 flex gap-1.5">
-            <button className="h-7 px-2.5 rounded-md bg-yo-ac text-white text-[11px] font-medium">Enviar corrección</button>
+            <button onClick={() => onFix(o)} className="h-7 px-2.5 rounded-md bg-yo-ac text-white text-[11px] font-medium">Enviar corrección</button>
             <button className="h-7 px-2.5 rounded-md border border-yo-border text-[11px] font-medium text-yo-txt">Solicitar aclaración</button>
           </div>
         </li>
@@ -623,9 +840,7 @@ function ContextEmpty() {
     <div className="rounded-xl border border-dashed border-yo-border bg-yo-surface p-6 text-center">
       <PackageCheck className="size-8 text-yo-txt-3 mx-auto mb-2" />
       <div className="text-sm font-medium text-yo-txt">Selecciona una operación</div>
-      <p className="mt-1 text-xs text-yo-txt-3">
-        Verás el resumen de cumplimiento, documentos, evidencias, observaciones y timeline.
-      </p>
+      <p className="mt-1 text-xs text-yo-txt-3">Verás el resumen de cumplimiento, documentos, evidencias, observaciones y timeline.</p>
     </div>
   );
 }
@@ -640,73 +855,155 @@ function EmptyState() {
   );
 }
 
-function UploadModal({ op, hitoId, onClose }: { op: Operation | null; hitoId?: string; onClose: () => void }) {
-  const [dragging, setDragging] = useState(false);
+/* ============= Modals ============= */
+
+function ModalShell({ title, subtitle, onClose, children, footer }:
+  { title: string; subtitle?: React.ReactNode; onClose: () => void; children: React.ReactNode; footer: React.ReactNode }) {
   return (
     <div className="fixed inset-0 z-50 bg-black/40 grid place-items-center p-4" onClick={onClose}>
-      <div
-        className="w-full max-w-lg rounded-xl bg-yo-surface border border-yo-border shadow-lg overflow-hidden"
-        onClick={(e) => e.stopPropagation()}
-      >
+      <div className="w-full max-w-lg rounded-xl bg-yo-surface border border-yo-border shadow-lg overflow-hidden" onClick={(e) => e.stopPropagation()}>
         <div className="p-4 border-b border-yo-border flex items-center justify-between">
           <div>
-            <h3 className="text-[15px] font-semibold text-yo-txt">Subir evidencia / documento</h3>
-            <p className="text-xs text-yo-txt-3 mt-0.5">
-              {op ? <>Operación <span className="font-mono">{op.id}</span></> : "Selecciona una operación"}
-              {hitoId && <> · Hito <span className="font-mono">{hitoId}</span></>}
-            </p>
+            <h3 className="text-[15px] font-semibold text-yo-txt">{title}</h3>
+            {subtitle && <p className="text-xs text-yo-txt-3 mt-0.5">{subtitle}</p>}
           </div>
-          <button onClick={onClose} className="size-8 grid place-items-center rounded-md hover:bg-yo-raised" aria-label="Cerrar">
-            <X className="size-4" />
-          </button>
+          <button onClick={onClose} className="size-8 grid place-items-center rounded-md hover:bg-yo-raised" aria-label="Cerrar"><X className="size-4" /></button>
         </div>
-
-        <div className="p-4 space-y-3">
-          <div className="grid grid-cols-2 gap-2">
-            <label className="text-[11px] text-yo-txt-2">
-              Tipo
-              <select className="mt-1 w-full h-9 px-2 rounded-md border border-yo-border bg-yo-raised text-sm">
-                <option>CFDI ingreso</option><option>Checklist</option><option>Fotografía</option><option>Contrato</option><option>Otro</option>
-              </select>
-            </label>
-            <label className="text-[11px] text-yo-txt-2">
-              Hito
-              <select className="mt-1 w-full h-9 px-2 rounded-md border border-yo-border bg-yo-raised text-sm" defaultValue={hitoId}>
-                {op?.hitos.map((h) => <option key={h.id} value={h.id}>{h.id} · {h.name}</option>)}
-              </select>
-            </label>
-          </div>
-          <label className="text-[11px] text-yo-txt-2 block">
-            Descripción
-            <textarea rows={2} className="mt-1 w-full px-2 py-1.5 rounded-md border border-yo-border bg-yo-raised text-sm" placeholder="Notas para el revisor" />
-          </label>
-
-          <div
-            onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
-            onDragLeave={() => setDragging(false)}
-            onDrop={(e) => { e.preventDefault(); setDragging(false); }}
-            className={cn(
-              "rounded-xl border-2 border-dashed p-6 text-center transition",
-              dragging ? "border-yo-ac bg-yo-ac-bg/50" : "border-yo-border-s bg-yo-raised",
-            )}
-          >
-            <UploadCloud className="size-8 mx-auto text-yo-txt-3 mb-2" />
-            <div className="text-sm text-yo-txt">Arrastra tus archivos aquí o selecciónalos desde tu equipo.</div>
-            <p className="mt-1 text-[11px] text-yo-txt-3">
-              Formatos permitidos: PDF, XML, JPG, PNG, MP4. Máx 25 MB por archivo.
-            </p>
-            <button className="mt-3 h-8 px-3 rounded-md border border-yo-border bg-yo-surface text-xs font-medium text-yo-txt hover:border-yo-border-s">
-              Seleccionar archivo
-            </button>
-          </div>
-        </div>
-
-        <div className="p-3 border-t border-yo-border flex justify-end gap-2">
-          <button onClick={onClose} className="h-9 px-3 rounded-md border border-yo-border text-sm text-yo-txt">Cancelar</button>
-          <button className="h-9 px-3 rounded-md border border-yo-border bg-yo-surface text-sm text-yo-txt hover:border-yo-border-s">Guardar borrador</button>
-          <button className="h-9 px-4 rounded-md bg-yo-ac text-white text-sm font-medium hover:bg-yo-ac-h">Enviar a revisión</button>
-        </div>
+        <div className="p-4 space-y-3">{children}</div>
+        <div className="p-3 border-t border-yo-border flex justify-end gap-2">{footer}</div>
       </div>
     </div>
+  );
+}
+
+function UploadModal({ op, hitoId, onClose }: { op: Operation | null; hitoId?: string; onClose: () => void }) {
+  const [dragging, setDragging] = useState(false);
+  const [files, setFiles] = useState<File[]>([]);
+  const onFiles = (fs: FileList | null) => { if (fs) setFiles(Array.from(fs)); };
+  return (
+    <ModalShell
+      title="Subir evidencia / documento"
+      subtitle={<>{op ? <>Operación <span className="font-mono">{op.id}</span></> : "Selecciona una operación"}{hitoId && <> · Hito <span className="font-mono">{hitoId}</span></>}</>}
+      onClose={onClose}
+      footer={<>
+        <button onClick={onClose} className="h-9 px-3 rounded-md border border-yo-border text-sm text-yo-txt">Cancelar</button>
+        <button className="h-9 px-3 rounded-md border border-yo-border bg-yo-surface text-sm text-yo-txt hover:border-yo-border-s">Guardar borrador</button>
+        <button onClick={onClose} className="h-9 px-4 rounded-md bg-yo-ac text-white text-sm font-medium hover:bg-yo-ac-h">Enviar a revisión</button>
+      </>}
+    >
+      <div className="grid grid-cols-2 gap-2">
+        <label className="text-[11px] text-yo-txt-2">Tipo
+          <select className="mt-1 w-full h-9 px-2 rounded-md border border-yo-border bg-yo-raised text-sm">
+            <option>CFDI ingreso</option><option>Checklist</option><option>Fotografía</option><option>Contrato</option><option>Otro</option>
+          </select>
+        </label>
+        <label className="text-[11px] text-yo-txt-2">Hito
+          <select defaultValue={hitoId} className="mt-1 w-full h-9 px-2 rounded-md border border-yo-border bg-yo-raised text-sm">
+            {op?.hitos.map((h) => <option key={h.id} value={h.id}>{h.id} · {h.name}</option>)}
+          </select>
+        </label>
+      </div>
+      <label className="text-[11px] text-yo-txt-2 block">Descripción
+        <textarea rows={2} className="mt-1 w-full px-2 py-1.5 rounded-md border border-yo-border bg-yo-raised text-sm" placeholder="Notas para el revisor" />
+      </label>
+      <div onDragOver={(e) => { e.preventDefault(); setDragging(true); }} onDragLeave={() => setDragging(false)}
+        onDrop={(e) => { e.preventDefault(); setDragging(false); onFiles(e.dataTransfer.files); }}
+        className={cn("rounded-xl border-2 border-dashed p-6 text-center transition", dragging ? "border-yo-ac bg-yo-ac-bg/50" : "border-yo-border-s bg-yo-raised")}>
+        <UploadCloud className="size-8 mx-auto text-yo-txt-3 mb-2" />
+        <div className="text-sm text-yo-txt">Arrastra tus archivos aquí o selecciónalos desde tu equipo.</div>
+        <p className="mt-1 text-[11px] text-yo-txt-3">Formatos permitidos: PDF, XML, JPG, PNG, MP4. Máx 25 MB por archivo.</p>
+        <label className="mt-3 inline-block h-8 px-3 rounded-md border border-yo-border bg-yo-surface text-xs font-medium text-yo-txt hover:border-yo-border-s cursor-pointer">
+          Seleccionar archivo
+          <input type="file" multiple className="hidden" onChange={(e) => onFiles(e.target.files)} />
+        </label>
+        {files.length > 0 && (
+          <ul className="mt-3 text-left text-[11.5px] space-y-1 max-h-24 overflow-auto">
+            {files.map((f, i) => <li key={i} className="text-yo-txt-2 truncate">• {f.name} <span className="text-yo-txt-3">({Math.round(f.size / 1024)} KB)</span></li>)}
+          </ul>
+        )}
+      </div>
+    </ModalShell>
+  );
+}
+
+function MarkReadyModal({ op, hito, onClose }: { op: Operation; hito: Hito; onClose: () => void }) {
+  const initial = useMemo(() => {
+    const map: Record<number, boolean> = {};
+    hito.checklist.forEach((c, i) => { map[i] = c.state === "ok"; });
+    return map;
+  }, [hito]);
+  const [checks, setChecks] = useState<Record<number, boolean>>(initial);
+  const [comment, setComment] = useState("");
+  const allOk = hito.checklist.every((c, i) => c.state === "opt" || checks[i]);
+  return (
+    <ModalShell
+      title="Marcar hito como listo"
+      subtitle={<>Operación <span className="font-mono">{op.id}</span> · Hito <span className="font-mono">{hito.id}</span></>}
+      onClose={onClose}
+      footer={<>
+        <button onClick={onClose} className="h-9 px-3 rounded-md border border-yo-border text-sm text-yo-txt">Cancelar</button>
+        <button disabled={!allOk} onClick={onClose}
+          className={cn("h-9 px-4 rounded-md text-sm font-medium inline-flex items-center gap-1.5",
+            allOk ? "bg-yo-ac text-white hover:bg-yo-ac-h" : "bg-yo-raised text-yo-txt-3 cursor-not-allowed")}>
+          <FileCheck2 className="size-3.5" /> Enviar a revisión
+        </button>
+      </>}
+    >
+      <div className="rounded-md border border-yo-border bg-yo-raised/40 p-3 text-[12px] text-yo-txt-2 flex gap-2">
+        <Info className="size-4 mt-0.5 text-yo-ac" />
+        <div>Confirma que cada requisito está cargado y correcto. Una vez enviado, el verificador Yokto tendrá 48h para dictaminar.</div>
+      </div>
+      <ul className="space-y-1.5">
+        {hito.checklist.map((c, i) => (
+          <li key={i} className="flex items-start gap-2 text-[12.5px]">
+            <input type="checkbox" checked={!!checks[i]} onChange={(e) => setChecks({ ...checks, [i]: e.target.checked })}
+              className="mt-1 accent-[#4F46E5]" disabled={c.state === "opt"} />
+            <div className="min-w-0">
+              <div className="text-yo-txt">{c.label} {c.state === "opt" && <span className="text-yo-txt-3">(opcional)</span>}</div>
+              {c.state === "reject" && <div className="text-[11px] text-[#DC2626]">Requiere corrección previa.</div>}
+            </div>
+          </li>
+        ))}
+      </ul>
+      <label className="text-[11px] text-yo-txt-2 block">Comentario para el revisor (opcional)
+        <textarea rows={2} value={comment} onChange={(e) => setComment(e.target.value)}
+          className="mt-1 w-full px-2 py-1.5 rounded-md border border-yo-border bg-yo-raised text-sm" placeholder="Detalles relevantes del cumplimiento" />
+      </label>
+    </ModalShell>
+  );
+}
+
+function FixObservationModal({ op, hito, obs, onClose }: { op: Operation; hito: Hito; obs: Observation; onClose: () => void }) {
+  const [comment, setComment] = useState("");
+  const [files, setFiles] = useState<File[]>([]);
+  return (
+    <ModalShell
+      title="Corregir observación"
+      subtitle={<>Operación <span className="font-mono">{op.id}</span> · Hito <span className="font-mono">{hito.id}</span></>}
+      onClose={onClose}
+      footer={<>
+        <button onClick={onClose} className="h-9 px-3 rounded-md border border-yo-border text-sm text-yo-txt">Cancelar</button>
+        <button disabled={!comment.trim() && files.length === 0} onClick={onClose}
+          className={cn("h-9 px-4 rounded-md text-sm font-medium",
+            comment.trim() || files.length ? "bg-yo-ac text-white hover:bg-yo-ac-h" : "bg-yo-raised text-yo-txt-3 cursor-not-allowed")}>
+          Enviar corrección
+        </button>
+      </>}
+    >
+      <div className="rounded-md border border-[#FEF2F2] bg-[#FEF2F2]/50 p-3 text-[12px] text-[#7F1D1D]">
+        <div className="font-medium">{obs.severity}</div>
+        <div className="mt-1">{obs.message}</div>
+        <div className="mt-1 text-[11px] text-yo-txt-3">Sobre: {obs.targetLabel} · {obs.author} · {obs.date}</div>
+      </div>
+      <label className="text-[11px] text-yo-txt-2 block">Explicación de la corrección
+        <textarea rows={3} value={comment} onChange={(e) => setComment(e.target.value)}
+          className="mt-1 w-full px-2 py-1.5 rounded-md border border-yo-border bg-yo-raised text-sm" placeholder="Describe qué corregiste y cómo se resuelve la observación" />
+      </label>
+      <label className="text-[11px] text-yo-txt-2 block">Adjuntar nuevo documento / evidencia
+        <input type="file" multiple onChange={(e) => setFiles(Array.from(e.target.files ?? []))}
+          className="mt-1 block w-full text-[12px] file:mr-3 file:h-8 file:px-3 file:rounded-md file:border file:border-yo-border file:bg-yo-surface file:text-yo-txt hover:file:border-yo-border-s" />
+        {files.length > 0 && <div className="mt-1.5 text-[11px] text-yo-txt-3">{files.length} archivo(s) seleccionado(s)</div>}
+      </label>
+    </ModalShell>
   );
 }
