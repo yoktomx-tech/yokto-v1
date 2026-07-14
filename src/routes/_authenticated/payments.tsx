@@ -57,15 +57,13 @@ function PaymentsPage() {
 
   return (
     <>
-      <div className="mx-auto max-w-[1400px] p-6 space-y-6">
-        <header className="flex flex-col md:flex-row md:items-end md:justify-between gap-3">
-          <div>
-            <h1 className="text-2xl font-bold text-yo-t1">Centro de Pagos</h1>
-            <p className="text-sm text-yo-t2 mt-1">
-              Vista {role === "buyer" ? "de comprador" : "de vendedor"} — pagos, retenciones y liberaciones procesados por la pasarela.
-            </p>
-          </div>
-        </header>
+      <div className="space-y-6">
+        <PageHeader
+          icon={Banknote}
+          title="Centro de Pagos"
+          subtitle={`Vista ${role === "buyer" ? "de comprador" : "de vendedor"} — pagos, retenciones y liberaciones procesados por la pasarela.`}
+        />
+
 
         <NoCustodyBanner />
 
