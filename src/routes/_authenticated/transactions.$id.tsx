@@ -241,8 +241,9 @@ function TxDetail() {
         reasonDescription: disputeDesc.trim(),
       }});
       setDisputeOpen(false);
+      toast.success("Disputa abierta", { description: "Se notificó a la contraparte." });
       navigate({ to: "/disputes/$id", params: { id: res.disputeId } });
-    } catch (e) { setError((e as Error).message); setBusy(false); }
+    } catch (e) { const msg = (e as Error).message; setError(msg); toast.error("No se pudo abrir la disputa", { description: msg }); setBusy(false); }
   }
 
   const isBuyer = tx?.buyer_id === user.id;
