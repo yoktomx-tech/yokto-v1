@@ -69,6 +69,15 @@ export const TONE_ACCENT: Record<Tone, string> = {
   ac:      "#4F46E5",
 };
 
+export type DocVersion = {
+  version: string;
+  hash: string;
+  uploadedAt: string;
+  uploadedBy: string;
+  status: DocStatus;
+  note?: string;
+};
+
 export type Document = {
   id: string;
   name: string;
@@ -79,6 +88,7 @@ export type Document = {
   uploadedAt?: string;
   dueDate?: string;
   observation?: string;
+  history?: DocVersion[];
 };
 
 export type Evidence = {
@@ -108,9 +118,11 @@ export type Hito = {
   status: HitoStatus;
   dueDate: string;
   amountLinked: number;
+  priority: "BAJA" | "MEDIA" | "ALTA";
   requirementsTotal: number;
   requirementsCompleted: number;
   observationsOpen: number;
+  hasPendingPayment: boolean;
   documents: Document[];
   evidences: Evidence[];
   observations: Observation[];
@@ -131,6 +143,24 @@ export type Operation = {
   risk: "BAJO" | "MEDIO" | "ALTO";
   hitos: Hito[];
 };
+
+/** Compute VENCIDO client-side (72h alerts + overdue). */
+export function withComputedDueStatus(op: Operation): Operation {
+  const now = Date.now();
+  const hitos = op.hitos.map((h) => {
+    const isOverdue = new Date(h.dueDate).getTime() < now;
+    if (isOverdue && !["APROBADO", "CANCELADO", "EN_DISPUTA"].includes(h.status)) {
+      return { ...h, status: "VENCIDO" as HitoStatus };
+    }
+    return h;
+  });
+  return { ...op, hitos };
+}
+
+export function daysUntil(dateStr: string): number {
+  const ms = new Date(dateStr).getTime() - Date.now();
+  return Math.ceil(ms / (24 * 3600 * 1000));
+}
 
 export const MOCK_OPS: Operation[] = [
   {
@@ -156,6 +186,8 @@ export const MOCK_OPS: Operation[] = [
         requirementsTotal: 3,
         requirementsCompleted: 3,
         observationsOpen: 0,
+        priority: "ALTA",
+        hasPendingPayment: true,
         documents: [
           { id: "DOC-8801", name: "Contrato firmado", type: "Contrato", status: "VALIDADO", version: "v1", hash: "sha256:11ab...cd82", uploadedAt: "2026-06-20" },
           { id: "DOC-8802", name: "CFDI anticipo", type: "CFDI_INGRESO", status: "VALIDADO", version: "v1", hash: "sha256:22bc...ef91", uploadedAt: "2026-06-21" },
@@ -178,8 +210,10 @@ export const MOCK_OPS: Operation[] = [
         requirementsTotal: 6,
         requirementsCompleted: 4,
         observationsOpen: 1,
+        priority: "ALTA",
+        hasPendingPayment: true,
         documents: [
-          { id: "DOC-8831", name: "CFDI entrega parcial", type: "CFDI_INGRESO", status: "RECHAZADO", version: "v2", hash: "sha256:9d7c...a24f", uploadedAt: "2026-07-14", observation: "El XML no corresponde al monto pactado del hito." },
+          { id: "DOC-8831", name: "CFDI entrega parcial", type: "CFDI_INGRESO", status: "RECHAZADO", version: "v2", hash: "sha256:9d7c...a24f", uploadedAt: "2026-07-14", observation: "El XML no corresponde al monto pactado del hito." , history: [{ version: "v2", hash: "sha256:9d7c...a24f", uploadedAt: "2026-07-14", uploadedBy: "Tú", status: "RECHAZADO", note: "Monto no coincide con hito" }, { version: "v1", hash: "sha256:8a01...11bd", uploadedAt: "2026-07-10", uploadedBy: "Tú", status: "REEMPLAZADO", note: "Sustituido por v2" }]},
           { id: "DOC-8832", name: "Checklist entrega", type: "Checklist", status: "EN_VALIDACION", version: "v1", hash: "sha256:5f2a...bb10", uploadedAt: "2026-07-14" },
         ],
         evidences: [
@@ -208,6 +242,8 @@ export const MOCK_OPS: Operation[] = [
         requirementsTotal: 4,
         requirementsCompleted: 0,
         observationsOpen: 0,
+        priority: "MEDIA",
+        hasPendingPayment: true,
         documents: [],
         evidences: [],
         observations: [],
@@ -243,6 +279,8 @@ export const MOCK_OPS: Operation[] = [
         requirementsTotal: 4,
         requirementsCompleted: 2,
         observationsOpen: 0,
+        priority: "MEDIA",
+        hasPendingPayment: true,
         documents: [
           { id: "DOC-9001", name: "Reporte técnico", type: "Nota técnica", status: "CARGADO", version: "v1", hash: "sha256:aa11...ff22", uploadedAt: "2026-07-12" },
         ],
@@ -267,6 +305,8 @@ export const MOCK_OPS: Operation[] = [
         requirementsTotal: 5,
         requirementsCompleted: 0,
         observationsOpen: 0,
+        priority: "BAJA",
+        hasPendingPayment: false,
         documents: [],
         evidences: [],
         observations: [],
@@ -303,6 +343,8 @@ export const MOCK_OPS: Operation[] = [
         requirementsTotal: 2,
         requirementsCompleted: 2,
         observationsOpen: 0,
+        priority: "BAJA",
+        hasPendingPayment: false,
         documents: [
           { id: "DOC-9500", name: "Reporte final", type: "PDF", status: "EN_VALIDACION", version: "v3", hash: "sha256:beef...cafe", uploadedAt: "2026-07-15" },
           { id: "DOC-9501", name: "CFDI final", type: "CFDI_INGRESO", status: "EN_VALIDACION", version: "v1", hash: "sha256:1234...5678", uploadedAt: "2026-07-15" },
