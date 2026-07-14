@@ -625,10 +625,9 @@ function Step3Fiscal({ onSaved, onBack, setError, loading, setLoading }: {
     if (curpVerified) { setCurpVerified(null); setCurpBoxOpen(true); }
     setCurpError(null);
   }
-  async function validateCurpAction() {
+  const validateCurpAction = useCallback(async (curpValue: string) => {
     setCurpError(null);
-    const norm = normalizeCurp(f.curp ?? "");
-    set("curp", norm);
+    const norm = normalizeCurp(curpValue);
     const local = validateCurp(norm);
     if (!local.valid) { setCurpError(local.error ?? "CURP inválida"); return; }
     setCurpChecking(true);
@@ -652,7 +651,19 @@ function Step3Fiscal({ onSaved, onBack, setError, loading, setLoading }: {
     } finally {
       setCurpChecking(false);
     }
-  }
+  }, [validateCurpFn]);
+
+  // Auto-validar CURP al capturar 18 caracteres válidos (modo manual)
+  useEffect(() => {
+    if (fillMode !== "manual") return;
+    const norm = normalizeCurp(f.curp ?? "");
+    if (norm.length !== 18) return;
+    if (curpVerified || curpChecking) return;
+    if (!validateCurp(norm).valid) return;
+    const t = setTimeout(() => { void validateCurpAction(norm); }, 400);
+    return () => clearTimeout(t);
+  }, [f.curp, fillMode, curpVerified, curpChecking, validateCurpAction]);
+
 
   async function onCsfFile(file: File) {
     setCsfErr(null); setCsfBusy(true); setCsfInfo(null);
