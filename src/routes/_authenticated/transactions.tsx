@@ -279,7 +279,7 @@ function TransactionsList() {
         <TransactionsMetricsGrid role={role} data={metrics} />
 
         {/* Filters */}
-        <TransactionsFilters value={filters} onChange={setFilters} />
+        <TransactionsFilters ref={searchInputRef} value={filters} onChange={setFilters} />
 
         {/* Tabs */}
         <TransactionsTabs active={tab} onChange={setTab} role={role} counts={tabCounts} />
