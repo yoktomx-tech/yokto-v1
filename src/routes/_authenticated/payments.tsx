@@ -29,7 +29,9 @@ function withinRange(iso: string, range: string): boolean {
 function PaymentsPage() {
   const { role } = useViewRole();
   const navigate = useNavigate();
+  const qc = useQueryClient();
   const listFn = useServerFn(listPaymentsForCenter);
+  const [fundingOpen, setFundingOpen] = useState(false);
 
   const { data: rows = [], isLoading } = useQuery({
     queryKey: ["payments-center"],
