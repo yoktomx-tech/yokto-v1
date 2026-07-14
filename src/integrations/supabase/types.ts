@@ -376,8 +376,56 @@ export type Database = {
         }
         Relationships: []
       }
+      dispute_evidence: {
+        Row: {
+          created_at: string
+          description: string
+          dispute_id: string
+          id: string
+          kind: string
+          mime_type: string | null
+          size_bytes: number | null
+          storage_path: string
+          uploaded_by: string
+          uploader_role: string
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          dispute_id: string
+          id?: string
+          kind: string
+          mime_type?: string | null
+          size_bytes?: number | null
+          storage_path: string
+          uploaded_by: string
+          uploader_role: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          dispute_id?: string
+          id?: string
+          kind?: string
+          mime_type?: string | null
+          size_bytes?: number | null
+          storage_path?: string
+          uploaded_by?: string
+          uploader_role?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dispute_evidence_dispute_id_fkey"
+            columns: ["dispute_id"]
+            isOneToOne: false
+            referencedRelation: "disputes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       dispute_messages: {
         Row: {
+          attachments: Json
           author_id: string
           author_role: string
           body: string
@@ -385,8 +433,14 @@ export type Database = {
           dispute_id: string
           evidence_urls: string[]
           id: string
+          message_type: string
+          read_by_buyer: boolean
+          read_by_mediator: boolean
+          read_by_seller: boolean
+          visible_to: string
         }
         Insert: {
+          attachments?: Json
           author_id: string
           author_role: string
           body: string
@@ -394,8 +448,14 @@ export type Database = {
           dispute_id: string
           evidence_urls?: string[]
           id?: string
+          message_type?: string
+          read_by_buyer?: boolean
+          read_by_mediator?: boolean
+          read_by_seller?: boolean
+          visible_to?: string
         }
         Update: {
+          attachments?: Json
           author_id?: string
           author_role?: string
           body?: string
@@ -403,6 +463,11 @@ export type Database = {
           dispute_id?: string
           evidence_urls?: string[]
           id?: string
+          message_type?: string
+          read_by_buyer?: boolean
+          read_by_mediator?: boolean
+          read_by_seller?: boolean
+          visible_to?: string
         }
         Relationships: [
           {
@@ -416,63 +481,121 @@ export type Database = {
       }
       disputes: {
         Row: {
+          activated_at: string | null
           amount_disputed_cents: number
+          arbitration_case_number: string | null
+          arbitration_entity: string | null
           buyer_share_cents: number | null
+          counterparty_response_due_at: string | null
           created_at: string
+          deposit_cents: number | null
+          deposit_distribution: Json | null
+          deposit_paid: boolean
+          deposit_paid_at: string | null
+          deposit_provider_ref: string | null
+          deposit_returned_to: string | null
+          evidence_due_at: string | null
+          hito_id: string | null
           id: string
           loser_pays: string | null
           mediator_id: string | null
+          numero: string | null
           opened_by: string
           opened_role: string
+          percent_release_seller: number | null
           reason_code: string
           reason_description: string
           resolution: string | null
+          resolution_due_at: string | null
           resolution_notes: string | null
           resolved_at: string | null
           seller_share_cents: number | null
           status: string
+          summary_ai: string | null
+          summary_ai_generated_at: string | null
           transaction_id: string
           updated_at: string
         }
         Insert: {
+          activated_at?: string | null
           amount_disputed_cents: number
+          arbitration_case_number?: string | null
+          arbitration_entity?: string | null
           buyer_share_cents?: number | null
+          counterparty_response_due_at?: string | null
           created_at?: string
+          deposit_cents?: number | null
+          deposit_distribution?: Json | null
+          deposit_paid?: boolean
+          deposit_paid_at?: string | null
+          deposit_provider_ref?: string | null
+          deposit_returned_to?: string | null
+          evidence_due_at?: string | null
+          hito_id?: string | null
           id?: string
           loser_pays?: string | null
           mediator_id?: string | null
+          numero?: string | null
           opened_by: string
           opened_role: string
+          percent_release_seller?: number | null
           reason_code: string
           reason_description: string
           resolution?: string | null
+          resolution_due_at?: string | null
           resolution_notes?: string | null
           resolved_at?: string | null
           seller_share_cents?: number | null
           status?: string
+          summary_ai?: string | null
+          summary_ai_generated_at?: string | null
           transaction_id: string
           updated_at?: string
         }
         Update: {
+          activated_at?: string | null
           amount_disputed_cents?: number
+          arbitration_case_number?: string | null
+          arbitration_entity?: string | null
           buyer_share_cents?: number | null
+          counterparty_response_due_at?: string | null
           created_at?: string
+          deposit_cents?: number | null
+          deposit_distribution?: Json | null
+          deposit_paid?: boolean
+          deposit_paid_at?: string | null
+          deposit_provider_ref?: string | null
+          deposit_returned_to?: string | null
+          evidence_due_at?: string | null
+          hito_id?: string | null
           id?: string
           loser_pays?: string | null
           mediator_id?: string | null
+          numero?: string | null
           opened_by?: string
           opened_role?: string
+          percent_release_seller?: number | null
           reason_code?: string
           reason_description?: string
           resolution?: string | null
+          resolution_due_at?: string | null
           resolution_notes?: string | null
           resolved_at?: string | null
           seller_share_cents?: number | null
           status?: string
+          summary_ai?: string | null
+          summary_ai_generated_at?: string | null
           transaction_id?: string
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "disputes_hito_id_fkey"
+            columns: ["hito_id"]
+            isOneToOne: false
+            referencedRelation: "transaction_hitos"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "disputes_transaction_id_fkey"
             columns: ["transaction_id"]
