@@ -127,7 +127,16 @@ function TxDetail() {
   const [error, setError] = useState<string | null>(null);
   const [tab, setTab] = useState<TabKey>("resumen");
   const [disputeOpen, setDisputeOpen] = useState(false);
-  const [disputeReason, setDisputeReason] = useState<"not_delivered" | "not_as_described" | "quality" | "delay" | "fraud" | "other">("not_delivered");
+  const [disputeReason, setDisputeReason] = useState<
+    | "incumplimiento_hito"
+    | "documentos_invalidos"
+    | "mercancia_incompleta"
+    | "calidad_insuficiente"
+    | "plazo_vencido"
+    | "fraude_sospechado"
+    | "condiciones_no_acordadas"
+    | "otro"
+  >("incumplimiento_hito");
   const [disputeDesc, setDisputeDesc] = useState("");
 
   const createIntentFn = useServerFn(createFundingIntent);
