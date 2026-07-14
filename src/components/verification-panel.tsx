@@ -18,7 +18,21 @@ type Evidence = {
   analyzed_at: string | null;
   created_at: string;
   uploaded_by: string;
+  latitude: number | null;
+  longitude: number | null;
+  captured_at: string | null;
 };
+
+function getGeolocation(): Promise<{ lat: number; lng: number } | null> {
+  return new Promise((resolve) => {
+    if (typeof navigator === "undefined" || !navigator.geolocation) return resolve(null);
+    navigator.geolocation.getCurrentPosition(
+      (p) => resolve({ lat: p.coords.latitude, lng: p.coords.longitude }),
+      () => resolve(null),
+      { enableHighAccuracy: true, timeout: 4000, maximumAge: 30000 }
+    );
+  });
+}
 
 const VERDICT_META: Record<string, { label: string; cls: string; Icon: typeof ShieldCheck }> = {
   approve: { label: "Recomendado aprobar", cls: "bg-emerald-50 text-emerald-800 border-emerald-200", Icon: ShieldCheck },
@@ -62,10 +76,13 @@ export function VerificationPanel({ transactionId, canUpload }: { transactionId:
         .from("verification-evidence")
         .upload(path, file, { contentType: file.type, upsert: false });
       if (upErr) throw upErr;
+      const geo = await getGeolocation();
       const { error: insErr } = await supabase.from("verification_evidence").insert({
         transaction_id: transactionId, uploaded_by: uid, file_path: path,
         file_name: file.name, mime_type: file.type, size_bytes: file.size,
         note: note.trim() || null,
+        latitude: geo?.lat ?? null, longitude: geo?.lng ?? null,
+        captured_at: new Date().toISOString(),
       });
       if (insErr) throw insErr;
       setNote("");
@@ -151,6 +168,15 @@ export function VerificationPanel({ transactionId, canUpload }: { transactionId:
                       {new Date(it.created_at).toLocaleString("es-MX")}
                     </div>
                     {it.note && <div className="text-xs mt-1 text-yo-txt-2">"{it.note}"</div>}
+                    {it.latitude != null && it.longitude != null && (
+                      <a
+                        href={`https://www.google.com/maps?q=${it.latitude},${it.longitude}`}
+                        target="_blank" rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 mt-1 text-xs text-yo-ac underline underline-offset-2"
+                      >
+                        📍 {it.latitude.toFixed(5)}, {it.longitude.toFixed(5)} — ver en mapa
+                      </a>
+                    )}
                   </div>
                   <button
                     onClick={() => analyze(it.id)}
