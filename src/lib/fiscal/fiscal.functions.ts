@@ -428,3 +428,145 @@ export const getInstruccionesREP = createServerFn({ method: "GET" })
       ],
     };
   });
+
+/**
+ * Acepta un documento fiscal. Solo el receptor (o admin) puede aceptar.
+ * Requiere que el doc esté VALIDADO (sin errores críticos).
+ */
+export const acceptFiscalDocument = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data) =>
+    z.object({ fiscal_document_id: z.string().uuid(), nota: z.string().optional().nullable() }).parse(data)
+  )
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+
+    const { data: doc, error } = await supabase
+      .from("fiscal_documents")
+      .select("*")
+      .eq("id", data.fiscal_document_id)
+      .single();
+    if (error || !doc) throw new Error("Documento fiscal no encontrado");
+
+    const { data: tx } = await supabase
+      .from("transactions")
+      .select("id, numero, buyer_id, seller_id")
+      .eq("id", doc.transaction_id)
+      .single();
+    if (!tx) throw new Error("Transacción no encontrada");
+
+    // Autorización: comprador o vendedor de la tx, o admin
+    const { data: isAdmin } = await supabase.rpc("has_role", { _user_id: userId, _role: "admin" });
+    if (!isAdmin && tx.buyer_id !== userId && tx.seller_id !== userId) {
+      throw new Error("No autorizado");
+    }
+
+    if (doc.estado !== "VALIDADO") {
+      throw new Error("El documento debe estar VALIDADO antes de aceptarlo");
+    }
+
+    const { data: updated, error: updErr } = await supabase
+      .from("fiscal_documents")
+      .update({
+        estado: "ACEPTADO",
+        aceptado_por: userId,
+        aceptado_at: new Date().toISOString(),
+        nota_revision: data.nota ?? null,
+      })
+      .eq("id", doc.id)
+      .select("*")
+      .single();
+    if (updErr) throw updErr;
+
+    await supabase.from("transaction_events").insert({
+      transaction_id: doc.transaction_id,
+      actor_id: userId,
+      event_type: "fiscal_document_accepted",
+      metadata: { fiscal_document_id: doc.id, uuid: doc.uuid_fiscal, tipo: doc.tipo },
+    });
+
+    // Notificar al emisor (uploader) de que fue aceptado
+    if (doc.uploaded_by && doc.uploaded_by !== userId) {
+      await supabase.from("notifications").insert({
+        user_id: doc.uploaded_by,
+        type: "fiscal_document_accepted",
+        title: `CFDI aceptado · ${tx.numero}`,
+        body: `Tu ${doc.tipo === "REP" ? "Complemento de Pago" : "CFDI"} ${doc.uuid_fiscal?.slice(0, 8)}… fue aceptado.`,
+        link: `/transactions/${doc.transaction_id}`,
+      });
+    }
+
+    return updated;
+  });
+
+/**
+ * Rechaza un documento fiscal con motivo obligatorio.
+ */
+export const rejectFiscalDocument = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data) =>
+    z
+      .object({
+        fiscal_document_id: z.string().uuid(),
+        motivo: z.string().min(5, "Escribe un motivo claro (mínimo 5 caracteres)"),
+      })
+      .parse(data)
+  )
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+
+    const { data: doc, error } = await supabase
+      .from("fiscal_documents")
+      .select("*")
+      .eq("id", data.fiscal_document_id)
+      .single();
+    if (error || !doc) throw new Error("Documento fiscal no encontrado");
+
+    const { data: tx } = await supabase
+      .from("transactions")
+      .select("id, numero, buyer_id, seller_id")
+      .eq("id", doc.transaction_id)
+      .single();
+    if (!tx) throw new Error("Transacción no encontrada");
+
+    const { data: isAdmin } = await supabase.rpc("has_role", { _user_id: userId, _role: "admin" });
+    if (!isAdmin && tx.buyer_id !== userId && tx.seller_id !== userId) {
+      throw new Error("No autorizado");
+    }
+
+    if (doc.estado === "ACEPTADO") {
+      throw new Error("No se puede rechazar un documento ya aceptado");
+    }
+
+    const { data: updated, error: updErr } = await supabase
+      .from("fiscal_documents")
+      .update({
+        estado: "RECHAZADO",
+        rechazado_por: userId,
+        rechazado_at: new Date().toISOString(),
+        motivo_rechazo: data.motivo,
+      })
+      .eq("id", doc.id)
+      .select("*")
+      .single();
+    if (updErr) throw updErr;
+
+    await supabase.from("transaction_events").insert({
+      transaction_id: doc.transaction_id,
+      actor_id: userId,
+      event_type: "fiscal_document_rejected",
+      metadata: { fiscal_document_id: doc.id, uuid: doc.uuid_fiscal, motivo: data.motivo },
+    });
+
+    if (doc.uploaded_by && doc.uploaded_by !== userId) {
+      await supabase.from("notifications").insert({
+        user_id: doc.uploaded_by,
+        type: "fiscal_document_rejected",
+        title: `CFDI rechazado · ${tx.numero}`,
+        body: `Motivo: ${data.motivo.slice(0, 140)}`,
+        link: `/transactions/${doc.transaction_id}`,
+      });
+    }
+
+    return updated;
+  });
