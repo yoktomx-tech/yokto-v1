@@ -29,8 +29,10 @@ import { Route as AuthenticatedTransactionsNewRouteImport } from './routes/_auth
 import { Route as AuthenticatedTransactionsIdRouteImport } from './routes/_authenticated/transactions.$id'
 import { Route as AuthenticatedOnboardingPendienteRouteImport } from './routes/_authenticated/onboarding.pendiente'
 import { Route as AuthenticatedDisputesIdRouteImport } from './routes/_authenticated/disputes.$id'
+import { Route as AuthenticatedAdminDisputesRouteImport } from './routes/_authenticated/admin.disputes'
 import { Route as ApiPublicV1TransactionsRouteImport } from './routes/api/public/v1.transactions'
 import { Route as ApiPublicStripeWebhookRouteImport } from './routes/api/public/stripe.webhook'
+import { Route as AuthenticatedAdminDisputesIdRouteImport } from './routes/_authenticated/admin.disputes.$id'
 
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
@@ -135,6 +137,12 @@ const AuthenticatedDisputesIdRoute = AuthenticatedDisputesIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => AuthenticatedDisputesRoute,
 } as any)
+const AuthenticatedAdminDisputesRoute =
+  AuthenticatedAdminDisputesRouteImport.update({
+    id: '/disputes',
+    path: '/disputes',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const ApiPublicV1TransactionsRoute = ApiPublicV1TransactionsRouteImport.update({
   id: '/api/public/v1/transactions',
   path: '/api/public/v1/transactions',
@@ -145,6 +153,12 @@ const ApiPublicStripeWebhookRoute = ApiPublicStripeWebhookRouteImport.update({
   path: '/api/public/stripe/webhook',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedAdminDisputesIdRoute =
+  AuthenticatedAdminDisputesIdRouteImport.update({
+    id: '/$id',
+    path: '/$id',
+    getParentRoute: () => AuthenticatedAdminDisputesRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -153,7 +167,7 @@ export interface FileRoutesByFullPath {
   '/onboarding': typeof OnboardingRoute
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
-  '/admin': typeof AuthenticatedAdminRoute
+  '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/api-clients': typeof AuthenticatedApiClientsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/disputes': typeof AuthenticatedDisputesRouteWithChildren
@@ -162,10 +176,12 @@ export interface FileRoutesByFullPath {
   '/reports': typeof AuthenticatedReportsRoute
   '/transactions': typeof AuthenticatedTransactionsRouteWithChildren
   '/biometrico/$token': typeof BiometricoTokenRoute
+  '/admin/disputes': typeof AuthenticatedAdminDisputesRouteWithChildren
   '/disputes/$id': typeof AuthenticatedDisputesIdRoute
   '/onboarding/pendiente': typeof AuthenticatedOnboardingPendienteRoute
   '/transactions/$id': typeof AuthenticatedTransactionsIdRoute
   '/transactions/new': typeof AuthenticatedTransactionsNewRoute
+  '/admin/disputes/$id': typeof AuthenticatedAdminDisputesIdRoute
   '/api/public/stripe/webhook': typeof ApiPublicStripeWebhookRoute
   '/api/public/v1/transactions': typeof ApiPublicV1TransactionsRoute
 }
@@ -176,7 +192,7 @@ export interface FileRoutesByTo {
   '/onboarding': typeof OnboardingRoute
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
-  '/admin': typeof AuthenticatedAdminRoute
+  '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/api-clients': typeof AuthenticatedApiClientsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/disputes': typeof AuthenticatedDisputesRouteWithChildren
@@ -185,10 +201,12 @@ export interface FileRoutesByTo {
   '/reports': typeof AuthenticatedReportsRoute
   '/transactions': typeof AuthenticatedTransactionsRouteWithChildren
   '/biometrico/$token': typeof BiometricoTokenRoute
+  '/admin/disputes': typeof AuthenticatedAdminDisputesRouteWithChildren
   '/disputes/$id': typeof AuthenticatedDisputesIdRoute
   '/onboarding/pendiente': typeof AuthenticatedOnboardingPendienteRoute
   '/transactions/$id': typeof AuthenticatedTransactionsIdRoute
   '/transactions/new': typeof AuthenticatedTransactionsNewRoute
+  '/admin/disputes/$id': typeof AuthenticatedAdminDisputesIdRoute
   '/api/public/stripe/webhook': typeof ApiPublicStripeWebhookRoute
   '/api/public/v1/transactions': typeof ApiPublicV1TransactionsRoute
 }
@@ -201,7 +219,7 @@ export interface FileRoutesById {
   '/onboarding': typeof OnboardingRoute
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
-  '/_authenticated/admin': typeof AuthenticatedAdminRoute
+  '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/api-clients': typeof AuthenticatedApiClientsRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/disputes': typeof AuthenticatedDisputesRouteWithChildren
@@ -210,10 +228,12 @@ export interface FileRoutesById {
   '/_authenticated/reports': typeof AuthenticatedReportsRoute
   '/_authenticated/transactions': typeof AuthenticatedTransactionsRouteWithChildren
   '/biometrico/$token': typeof BiometricoTokenRoute
+  '/_authenticated/admin/disputes': typeof AuthenticatedAdminDisputesRouteWithChildren
   '/_authenticated/disputes/$id': typeof AuthenticatedDisputesIdRoute
   '/_authenticated/onboarding/pendiente': typeof AuthenticatedOnboardingPendienteRoute
   '/_authenticated/transactions/$id': typeof AuthenticatedTransactionsIdRoute
   '/_authenticated/transactions/new': typeof AuthenticatedTransactionsNewRoute
+  '/_authenticated/admin/disputes/$id': typeof AuthenticatedAdminDisputesIdRoute
   '/api/public/stripe/webhook': typeof ApiPublicStripeWebhookRoute
   '/api/public/v1/transactions': typeof ApiPublicV1TransactionsRoute
 }
@@ -235,10 +255,12 @@ export interface FileRouteTypes {
     | '/reports'
     | '/transactions'
     | '/biometrico/$token'
+    | '/admin/disputes'
     | '/disputes/$id'
     | '/onboarding/pendiente'
     | '/transactions/$id'
     | '/transactions/new'
+    | '/admin/disputes/$id'
     | '/api/public/stripe/webhook'
     | '/api/public/v1/transactions'
   fileRoutesByTo: FileRoutesByTo
@@ -258,10 +280,12 @@ export interface FileRouteTypes {
     | '/reports'
     | '/transactions'
     | '/biometrico/$token'
+    | '/admin/disputes'
     | '/disputes/$id'
     | '/onboarding/pendiente'
     | '/transactions/$id'
     | '/transactions/new'
+    | '/admin/disputes/$id'
     | '/api/public/stripe/webhook'
     | '/api/public/v1/transactions'
   id:
@@ -282,10 +306,12 @@ export interface FileRouteTypes {
     | '/_authenticated/reports'
     | '/_authenticated/transactions'
     | '/biometrico/$token'
+    | '/_authenticated/admin/disputes'
     | '/_authenticated/disputes/$id'
     | '/_authenticated/onboarding/pendiente'
     | '/_authenticated/transactions/$id'
     | '/_authenticated/transactions/new'
+    | '/_authenticated/admin/disputes/$id'
     | '/api/public/stripe/webhook'
     | '/api/public/v1/transactions'
   fileRoutesById: FileRoutesById
@@ -445,6 +471,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDisputesIdRouteImport
       parentRoute: typeof AuthenticatedDisputesRoute
     }
+    '/_authenticated/admin/disputes': {
+      id: '/_authenticated/admin/disputes'
+      path: '/disputes'
+      fullPath: '/admin/disputes'
+      preLoaderRoute: typeof AuthenticatedAdminDisputesRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/api/public/v1/transactions': {
       id: '/api/public/v1/transactions'
       path: '/api/public/v1/transactions'
@@ -459,8 +492,40 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicStripeWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/admin/disputes/$id': {
+      id: '/_authenticated/admin/disputes/$id'
+      path: '/$id'
+      fullPath: '/admin/disputes/$id'
+      preLoaderRoute: typeof AuthenticatedAdminDisputesIdRouteImport
+      parentRoute: typeof AuthenticatedAdminDisputesRoute
+    }
   }
 }
+
+interface AuthenticatedAdminDisputesRouteChildren {
+  AuthenticatedAdminDisputesIdRoute: typeof AuthenticatedAdminDisputesIdRoute
+}
+
+const AuthenticatedAdminDisputesRouteChildren: AuthenticatedAdminDisputesRouteChildren =
+  {
+    AuthenticatedAdminDisputesIdRoute: AuthenticatedAdminDisputesIdRoute,
+  }
+
+const AuthenticatedAdminDisputesRouteWithChildren =
+  AuthenticatedAdminDisputesRoute._addFileChildren(
+    AuthenticatedAdminDisputesRouteChildren,
+  )
+
+interface AuthenticatedAdminRouteChildren {
+  AuthenticatedAdminDisputesRoute: typeof AuthenticatedAdminDisputesRouteWithChildren
+}
+
+const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
+  AuthenticatedAdminDisputesRoute: AuthenticatedAdminDisputesRouteWithChildren,
+}
+
+const AuthenticatedAdminRouteWithChildren =
+  AuthenticatedAdminRoute._addFileChildren(AuthenticatedAdminRouteChildren)
 
 interface AuthenticatedDisputesRouteChildren {
   AuthenticatedDisputesIdRoute: typeof AuthenticatedDisputesIdRoute
@@ -492,7 +557,7 @@ const AuthenticatedTransactionsRouteWithChildren =
   )
 
 interface AuthenticatedRouteRouteChildren {
-  AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
+  AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
   AuthenticatedApiClientsRoute: typeof AuthenticatedApiClientsRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedDisputesRoute: typeof AuthenticatedDisputesRouteWithChildren
@@ -504,7 +569,7 @@ interface AuthenticatedRouteRouteChildren {
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
-  AuthenticatedAdminRoute: AuthenticatedAdminRoute,
+  AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
   AuthenticatedApiClientsRoute: AuthenticatedApiClientsRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedDisputesRoute: AuthenticatedDisputesRouteWithChildren,
