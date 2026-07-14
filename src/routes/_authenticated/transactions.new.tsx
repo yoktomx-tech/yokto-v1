@@ -12,8 +12,10 @@ import {
   cancelTransactionDraft,
   saveTransactionHitos,
   saveTransactionMonto,
+  signAndActivateTransaction,
 } from "@/lib/transactions.functions";
-import { Step1Schema, Step2Schema, Step3Schema, Step4Schema } from "@/lib/validations/transaction";
+import { Step1Schema, Step2Schema, Step3Schema, Step4Schema, Step5Schema } from "@/lib/validations/transaction";
+
 
 export const Route = createFileRoute("/_authenticated/transactions/new")({
   head: () => ({ meta: [{ title: "Nueva transacción — YOKTO" }, { name: "robots", content: "noindex" }] }),
@@ -59,10 +61,21 @@ function NewTransactionWizard() {
   const [fechaInicio, setFechaInicio] = useState<string>(new Date().toISOString().slice(0, 10));
   const [fechaFin, setFechaFin] = useState<string>("");
 
+  // Paso 5
+  const [aceptaTerminos, setAceptaTerminos] = useState(false);
+  const [aceptaRetencion, setAceptaRetencion] = useState(false);
+  const [firmando, setFirmando] = useState(false);
+  const [firmaResult, setFirmaResult] = useState<{ status: string; activated: boolean } | null>(null);
+
+  // Auto-save
+  const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
+
   const upsertDraft = useServerFn(upsertTransactionDraft);
   const cancelDraft = useServerFn(cancelTransactionDraft);
   const saveHitos = useServerFn(saveTransactionHitos);
   const saveMonto = useServerFn(saveTransactionMonto);
+  const signAndActivate = useServerFn(signAndActivateTransaction);
+
 
   useEffect(() => {
     supabase.from("profiles").select("kyc_status").eq("id", user.id).maybeSingle().then(({ data }) => {
@@ -71,6 +84,45 @@ function NewTransactionWizard() {
   }, [user.id]);
 
   const sectorDef = useMemo(() => (sector ? getSector(sector) : undefined), [sector]);
+
+  // Auto-save cada 30s si hay borrador y estamos en pasos 2-4
+  useEffect(() => {
+    if (!txId || step < 2 || step > 4 || !sector) return;
+    const interval = setInterval(async () => {
+      const payload = Step2Schema.safeParse({
+        rol, descripcion,
+        contraparte_user_id: contraparte?.user_id ?? null,
+        contraparte_email: contraparte?.email ?? null,
+        contraparte_nombre: contraparte?.nombre ?? null,
+        contraparte_rfc: contraparte?.rfc ?? null,
+      });
+      if (!payload.success) return;
+      try {
+        await upsertDraft({ data: { transaction_id: txId, step1: { sector }, step2: payload.data } });
+        setLastSavedAt(new Date());
+      } catch { /* silencio */ }
+    }, 30_000);
+    return () => clearInterval(interval);
+  }, [txId, step, sector, rol, descripcion, contraparte, upsertDraft]);
+
+  const handleFirmar = useCallback(async () => {
+    setError(null);
+    const parsed = Step5Schema.safeParse({ acepta_terminos: aceptaTerminos, acepta_retencion: aceptaRetencion });
+    if (!parsed.success) { setError(parsed.error.issues[0]?.message ?? "Acepta los términos"); return; }
+    if (!txId) { setError("Falta el borrador"); return; }
+    setFirmando(true);
+    try {
+      const res = await signAndActivate({
+        data: { transaction_id: txId, acepta_terminos: true, acepta_retencion: true },
+      });
+      setFirmaResult({ status: res.status ?? "pending_signature", activated: res.activated });
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setFirmando(false);
+    }
+  }, [txId, aceptaTerminos, aceptaRetencion, signAndActivate]);
+
 
   const goNext = useCallback(async () => {
     setError(null);
@@ -227,22 +279,39 @@ function NewTransactionWizard() {
             />
           )}
           {step === 5 && (
-            <div className="py-12 text-center space-y-3">
-              <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">En construcción — Fase 3</p>
-              <p className="text-foreground">
-                <strong>Revisión y firma</strong> se activará en la siguiente iteración (contrato PDF, firmas y activación).
-              </p>
-              <p className="text-sm text-muted-foreground">
-                Tu borrador <span className="font-mono">{numero}</span> quedó guardado y puedes retomarlo desde <em>Transacciones</em>.
-              </p>
-            </div>
+            <Step5
+              numero={numero}
+              sector={sector}
+              rol={rol}
+              descripcion={descripcion}
+              contraparte={contraparte}
+              hitos={hitos}
+              monto={monto}
+              metodoPago={metodoPago}
+              fechaInicio={fechaInicio}
+              fechaFin={fechaFin}
+              aceptaTerminos={aceptaTerminos}
+              setAceptaTerminos={setAceptaTerminos}
+              aceptaRetencion={aceptaRetencion}
+              setAceptaRetencion={setAceptaRetencion}
+              firmando={firmando}
+              firmaResult={firmaResult}
+              onFirmar={handleFirmar}
+            />
           )}
         </div>
+
+        {lastSavedAt && step >= 2 && step <= 4 && (
+          <div className="mt-2 text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+            Guardado automático · {lastSavedAt.toLocaleTimeString("es-MX")}
+          </div>
+        )}
 
         <div className="mt-6 flex justify-between gap-3">
           <button
             onClick={() => (step === 1 ? handleCancel() : setStep((s) => s - 1))}
-            className="px-5 py-2.5 border border-yo-border text-[12px] uppercase tracking-[0.14em] font-semibold hover:bg-yo-ac-h hover:text-white"
+            disabled={step === 5 && firmaResult?.activated === true}
+            className="px-5 py-2.5 border border-yo-border text-[12px] uppercase tracking-[0.14em] font-semibold hover:bg-yo-ac-h hover:text-white disabled:opacity-40"
           >
             {step === 1 ? "Cancelar" : "Atrás"}
           </button>
@@ -254,15 +323,24 @@ function NewTransactionWizard() {
             >
               {saving ? "Guardando…" : "Continuar →"}
             </button>
-          ) : (
+          ) : firmaResult ? (
             <button
               onClick={() => navigate({ to: "/transactions" })}
-              className="px-6 py-2.5 bg-yo-ac text-white text-[12px] uppercase tracking-[0.14em] font-semibold border border-yo-border hover:bg-yo-ac-h"
+              className="px-6 py-2.5 bg-yokto-yellow text-yokto-black text-[12px] uppercase tracking-[0.14em] font-semibold border border-yokto-black hover:bg-yokto-yellow/80"
             >
-              Ir a mis transacciones
+              Ir a mis transacciones →
+            </button>
+          ) : (
+            <button
+              onClick={handleFirmar}
+              disabled={firmando || !aceptaTerminos || !aceptaRetencion}
+              className="px-6 py-2.5 bg-yokto-black text-yokto-yellow text-[12px] uppercase tracking-[0.14em] font-semibold border border-yokto-black hover:opacity-90 disabled:opacity-40"
+            >
+              {firmando ? "Firmando…" : "Firmar y activar ✓"}
             </button>
           )}
         </div>
+
 
         {sectorDef && step > 1 && (
           <div className="mt-6 border border-yo-border/40 bg-yo-bg/30 p-4 text-xs text-muted-foreground">
@@ -784,5 +862,177 @@ function FEES_PCT(sector: SectorId): number {
     INMOBILIARIO: 0.012, VEHICULOS: 0.025, SERVICIOS: 0.030,
   };
   return map[sector];
+}
+
+// ─── Paso 5: Revisión y firma ───────────────────────────────────────────────
+function Step5({
+  numero, sector, rol, descripcion, contraparte, hitos, monto, metodoPago,
+  fechaInicio, fechaFin,
+  aceptaTerminos, setAceptaTerminos, aceptaRetencion, setAceptaRetencion,
+  firmando, firmaResult, onFirmar,
+}: {
+  numero: string | null;
+  sector: SectorId | null;
+  rol: Rol;
+  descripcion: string;
+  contraparte: Contraparte | null;
+  hitos: HitoDraft[];
+  monto: number;
+  metodoPago: "SPEI" | "TARJETA" | "OXXO";
+  fechaInicio: string;
+  fechaFin: string;
+  aceptaTerminos: boolean;
+  setAceptaTerminos: (v: boolean) => void;
+  aceptaRetencion: boolean;
+  setAceptaRetencion: (v: boolean) => void;
+  firmando: boolean;
+  firmaResult: { status: string; activated: boolean } | null;
+  onFirmar: () => void;
+}) {
+  const sectorDef = sector ? getSector(sector) : null;
+  const fee = useMemo(() => (sector ? calcularFee(sector, monto || 0, 0) : null), [sector, monto]);
+  const fmt = (n: number) => new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN" }).format(n);
+
+  if (firmaResult) {
+    return (
+      <div className="py-10 text-center space-y-4">
+        <div className="text-6xl">{firmaResult.activated ? "✓" : "⏳"}</div>
+        <h2 className="font-display text-3xl tracking-wide text-foreground">
+          {firmaResult.activated ? "Transacción activada" : "Firma registrada"}
+        </h2>
+        <p className="text-sm text-muted-foreground max-w-md mx-auto">
+          {firmaResult.activated
+            ? `Ambas partes firmaron. La transacción ${numero} está lista para fondearse.`
+            : contraparte?.user_id
+              ? `Notificamos a ${contraparte?.nombre} para que firme y active la transacción ${numero}.`
+              : `Enviamos una invitación a ${contraparte?.email}. La transacción ${numero} quedará pendiente hasta que se registre y firme.`}
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="border border-yo-border bg-yo-bg/30 p-4">
+        <div className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">Contrato de depósito en garantía</div>
+        <div className="mt-1 font-mono text-sm text-foreground">{numero}</div>
+        <p className="mt-2 text-xs text-muted-foreground">
+          Revisa cuidadosamente los términos. Al firmar aceptas que YOKTO retenga los fondos y libere hito por hito conforme se cumplan las condiciones.
+        </p>
+      </div>
+
+      {/* Resumen general */}
+      <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <SummaryCard title="Sector">
+          <div>{sectorDef?.emoji} {sectorDef?.titulo}</div>
+        </SummaryCard>
+        <SummaryCard title="Tu rol">
+          <div>{rol === "PAGADOR" ? "Pagador (deposita)" : "Beneficiario (recibe)"}</div>
+        </SummaryCard>
+        <SummaryCard title="Contraparte">
+          <div className="font-semibold">{contraparte?.nombre}</div>
+          <div className="text-xs text-muted-foreground">
+            {contraparte?.email}{contraparte?.rfc ? ` · ${contraparte.rfc}` : ""} · {contraparte?.user_id ? "usuario YOKTO" : "por invitar"}
+          </div>
+        </SummaryCard>
+        <SummaryCard title="Método de pago">
+          <div>{metodoPago}</div>
+          <div className="text-xs text-muted-foreground">{fechaInicio} → {fechaFin || "s/f"}</div>
+        </SummaryCard>
+        <SummaryCard title="Descripción" wide>
+          <div className="text-sm whitespace-pre-wrap">{descripcion}</div>
+        </SummaryCard>
+      </section>
+
+      {/* Hitos */}
+      <section>
+        <div className="text-[11px] uppercase tracking-[0.14em] font-semibold text-foreground mb-2">Hitos ({hitos.length})</div>
+        <div className="border border-yo-border divide-y divide-yo-border/50">
+          {hitos.map((h) => (
+            <div key={h.orden} className="p-3 flex items-start justify-between gap-3">
+              <div>
+                <div className="text-sm font-semibold text-foreground">{h.orden}. {h.titulo}</div>
+                <div className="text-xs text-muted-foreground">
+                  {h.tipo_verificacion} · aprueba {h.responsable.toLowerCase()} · vence {h.fecha_limite}
+                  {h.auto_release && " · auto-liberación"}
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="text-sm font-semibold text-foreground tabular-nums">{Number(h.monto_porcentaje).toFixed(2)}%</div>
+                <div className="text-xs text-muted-foreground tabular-nums">{fmt((monto || 0) * (Number(h.monto_porcentaje) / 100))}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Comisiones */}
+      {fee && (
+        <section className="border-2 border-yokto-black bg-yo-bg/40 p-4 space-y-1">
+          <div className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground font-semibold">Comisiones y total</div>
+          <Row label="Monto de la operación" value={fmt(monto || 0)} />
+          <Row label="Comisión YOKTO" value={fmt(fee.comision_final)} />
+          <Row label="IVA 16%" value={fmt(fee.iva_comision)} />
+          <div className="border-t border-yo-border pt-2 mt-2">
+            <Row
+              label={<span className="font-semibold text-foreground">Total a depositar</span>}
+              value={<span className="font-display text-xl">{fmt(fee.total_a_depositar)}</span>}
+            />
+          </div>
+        </section>
+      )}
+
+      {/* Términos */}
+      <section className="space-y-3 border border-yo-border p-4 bg-background">
+        <label className="flex items-start gap-3 cursor-pointer">
+          <input
+            type="checkbox"
+            className="mt-1"
+            checked={aceptaTerminos}
+            onChange={(e) => setAceptaTerminos(e.target.checked)}
+          />
+          <span className="text-sm text-foreground">
+            Declaro que la información es veraz y acepto los <a href="/terminos" target="_blank" className="underline">Términos y Condiciones</a>, el <a href="/privacidad" target="_blank" className="underline">Aviso de Privacidad</a> y las reglas de disputa de YOKTO.
+          </span>
+        </label>
+        <label className="flex items-start gap-3 cursor-pointer">
+          <input
+            type="checkbox"
+            className="mt-1"
+            checked={aceptaRetencion}
+            onChange={(e) => setAceptaRetencion(e.target.checked)}
+          />
+          <span className="text-sm text-foreground">
+            Entiendo que los fondos serán retenidos en cuenta de garantía hasta el cumplimiento verificable de cada hito y que YOKTO no es entidad financiera.
+          </span>
+        </label>
+      </section>
+
+      <p className="text-[11px] text-muted-foreground">
+        Al pulsar <strong>Firmar y activar</strong> se registra tu firma electrónica con fecha, hora e IP.
+        {contraparte?.user_id
+          ? " Se notificará a tu contraparte para que firme también."
+          : " Se enviará una invitación por correo a la contraparte."}
+      </p>
+
+      {/* Botón inline redundante para mobile */}
+      <button
+        onClick={onFirmar}
+        disabled={firmando || !aceptaTerminos || !aceptaRetencion}
+        className="w-full md:hidden px-6 py-3 bg-yokto-black text-yokto-yellow text-[12px] uppercase tracking-[0.14em] font-semibold border border-yokto-black hover:opacity-90 disabled:opacity-40"
+      >
+        {firmando ? "Firmando…" : "Firmar y activar ✓"}
+      </button>
+    </div>
+  );
+}
+
+function SummaryCard({ title, children, wide }: { title: string; children: React.ReactNode; wide?: boolean }) {
+  return (
+    <div className={`border border-yo-border p-3 ${wide ? "md:col-span-2" : ""}`}>
+      <div className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">{title}</div>
+      <div className="mt-1 text-foreground">{children}</div>
+    </div>
+  );
 }
 
