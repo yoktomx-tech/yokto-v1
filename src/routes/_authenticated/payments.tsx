@@ -35,6 +35,7 @@ function PaymentsPage() {
   const qc = useQueryClient();
   const listFn = useServerFn(listPaymentsForCenter);
   const [fundingOpen, setFundingOpen] = useState(false);
+  usePaymentsRealtime();
 
   const { data: rows = [], isLoading } = useQuery({
     queryKey: ["payments-center"],
