@@ -143,9 +143,8 @@ function Dashboard() {
 
   return (
     <>
-      <main className="flex-1 min-w-0">
-        <div className="px-4 sm:px-6 lg:px-8 py-6 lg:py-8 max-w-[1400px] mx-auto">
-          <div>
+      <div className="flex flex-col gap-6">
+        <div>
             <p className="text-[10px] uppercase tracking-[0.14em] text-yo-txt-3 font-semibold">Bienvenido</p>
             <h1 className="mt-1 text-2xl md:text-3xl font-bold text-yo-txt tracking-tight">
               Hola, {displayName}.
@@ -228,8 +227,7 @@ function Dashboard() {
               <QuickActionBar />
             </>
           )}
-        </div>
-      </main>
+      </div>
     </>
   );
 }

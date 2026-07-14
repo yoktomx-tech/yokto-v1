@@ -11,6 +11,7 @@ import {
 } from "@/lib/disputes-mock";
 import { useViewRole } from "@/hooks/use-view-role";
 import { cn } from "@/lib/utils";
+import { PageHeader } from "@/components/page-header";
 
 export const Route = createFileRoute("/_authenticated/disputes")({
   head: () => ({ meta: [{ title: "Disputas — YOKTO" }, { name: "robots", content: "noindex" }] }),
@@ -86,30 +87,29 @@ function DisputesModule() {
   const active = drawerId ? MOCK_DISPUTES.find((d) => d.id === drawerId) ?? null : null;
 
   return (
-    <div className="min-h-screen bg-[#F8F8FB]">
-      <div className="mx-auto max-w-[1400px] px-4 py-6 md:px-8 md:py-8">
+    <>
+      <div className="flex flex-col gap-6">
         {/* Header */}
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-semibold text-[#18181B]">Disputas</h1>
-            <p className="mt-1 text-sm text-[#52525B]">
-              Gestiona controversias vinculadas a operaciones, hitos, evidencia y pagos retenidos.
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
-            <button className="inline-flex items-center gap-2 rounded-[8px] border border-[#EBEBF0] bg-white px-3 py-2 text-sm text-[#52525B] hover:bg-[#F4F4F7]">
-              <RefreshCw className="h-4 w-4" /> Actualizar
-            </button>
-            <button className="inline-flex items-center gap-2 rounded-[8px] border border-[#EBEBF0] bg-white px-3 py-2 text-sm text-[#52525B] hover:bg-[#F4F4F7]">
-              <Download className="h-4 w-4" /> Exportar
-            </button>
-            {canOpenDispute(isBuyer ? "buyer" : "seller") && (
-              <button onClick={() => setOpenModal(true)} className="inline-flex items-center gap-2 rounded-[8px] bg-[#4F46E5] px-3 py-2 text-sm font-medium text-white hover:bg-[#4338CA]">
-                <Plus className="h-4 w-4" /> Abrir disputa
+        <PageHeader
+          icon={AlertTriangle}
+          title="Disputas"
+          subtitle="Gestiona controversias vinculadas a operaciones, hitos, evidencia y pagos retenidos."
+          actions={
+            <>
+              <button className="inline-flex items-center gap-2 rounded-[8px] border border-[#EBEBF0] bg-white px-3 py-2 text-sm text-[#52525B] hover:bg-[#F4F4F7]">
+                <RefreshCw className="h-4 w-4" /> Actualizar
               </button>
-            )}
-          </div>
-        </div>
+              <button className="inline-flex items-center gap-2 rounded-[8px] border border-[#EBEBF0] bg-white px-3 py-2 text-sm text-[#52525B] hover:bg-[#F4F4F7]">
+                <Download className="h-4 w-4" /> Exportar
+              </button>
+              {canOpenDispute(isBuyer ? "buyer" : "seller") && (
+                <button onClick={() => setOpenModal(true)} className="inline-flex items-center gap-2 rounded-[8px] bg-[#4F46E5] px-3 py-2 text-sm font-medium text-white hover:bg-[#4338CA]">
+                  <Plus className="h-4 w-4" /> Abrir disputa
+                </button>
+              )}
+            </>
+          }
+        />
 
         {/* Metrics */}
         <div className="mt-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
@@ -220,7 +220,7 @@ function DisputesModule() {
       {/* Drawer */}
       {active && <QuickDrawer d={active} isBuyer={isBuyer} onClose={() => setDrawerId(null)} />}
       {openModal && <OpenDisputeModal onClose={() => setOpenModal(false)} />}
-    </div>
+    </>
   );
 }
 
