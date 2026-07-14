@@ -409,9 +409,7 @@ function TxDetail() {
           )}
 
           {tab === "documentos" && (
-            <section className="border border-yo-border bg-background p-6">
-              <p className="text-sm text-muted-foreground">Módulo de documentos (CFDI/SAT) próximamente en Fase 3.</p>
-            </section>
+            <DocumentsPanel transactionId={id} canUpload={isBuyer || isSeller} userId={user.id} />
           )}
 
           {tab === "evidencia" && (
