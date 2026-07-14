@@ -1,11 +1,12 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, Calendar, ShieldAlert, Wallet, CheckCircle2 } from "lucide-react";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/app-shell";
 import { useViewRole } from "@/hooks/use-view-role";
-import { toUiStatus, SECTOR_UI_CFG, type SectorUiId } from "@/lib/tx-catalog";
+import { toUiStatus, SECTOR_UI_CFG, STATUS_CFG, type SectorUiId } from "@/lib/tx-catalog";
 import { formatMoney, commissionAmount, type TxStatus } from "@/lib/tx";
 import {
   createFundingIntent,
@@ -157,6 +158,21 @@ function TxDetail() {
     /* eslint-disable-next-line react-hooks/exhaustive-deps */
   }, [id]);
 
+  // Toast when the transaction status changes (e.g., realtime update from counterparty or webhook)
+  const prevStatusRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!tx) return;
+    const prev = prevStatusRef.current;
+    const curr = tx.status;
+    if (prev && prev !== curr && !busy) {
+      const label = STATUS_CFG[toUiStatus(curr)]?.label ?? curr;
+      toast.info("Estado actualizado", { description: `Ahora: ${label}` });
+    }
+    prevStatusRef.current = curr;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tx?.status]);
+
+
   async function logEvent(event_type: string, metadata: Record<string, unknown> = {}) {
     await supabase.from("transaction_events").insert({ transaction_id: id, actor_id: user.id, event_type, metadata: metadata as never });
   }
@@ -215,20 +231,20 @@ function TxDetail() {
 
   async function handleCreateIntent(method: "spei" | "card") {
     setBusy(true); setError(null);
-    try { await createIntentFn({ data: { transactionId: id, method } }); await load(); }
-    catch (e) { setError((e as Error).message); }
+    try { await createIntentFn({ data: { transactionId: id, method } }); toast.success(method === "spei" ? "Instrucciones SPEI generadas" : "Intento de pago creado"); await load(); }
+    catch (e) { const msg = (e as Error).message; setError(msg); toast.error("No se pudo crear el intento", { description: msg }); }
     setBusy(false);
   }
   async function handleSimulateFunding(piId: string) {
     setBusy(true); setError(null);
-    try { await simulateFundingFn({ data: { paymentIntentId: piId } }); await load(); }
-    catch (e) { setError((e as Error).message); }
+    try { await simulateFundingFn({ data: { paymentIntentId: piId } }); toast.success("Fondeo recibido — recursos en custodia"); await load(); }
+    catch (e) { const msg = (e as Error).message; setError(msg); toast.error("No se pudo simular el fondeo", { description: msg }); }
     setBusy(false);
   }
   async function handleRelease() {
     setBusy(true); setError(null);
-    try { await releaseFundsFn({ data: { transactionId: id } }); await load(); }
-    catch (e) { setError((e as Error).message); }
+    try { await releaseFundsFn({ data: { transactionId: id } }); toast.success("Fondos liberados al beneficiario"); await load(); }
+    catch (e) { const msg = (e as Error).message; setError(msg); toast.error("No se pudo liberar el pago", { description: msg }); }
     setBusy(false);
   }
   async function submitDispute() {
@@ -240,8 +256,9 @@ function TxDetail() {
         reasonDescription: disputeDesc.trim(),
       }});
       setDisputeOpen(false);
+      toast.success("Disputa abierta", { description: "Se notificó a la contraparte." });
       navigate({ to: "/disputes/$id", params: { id: res.disputeId } });
-    } catch (e) { setError((e as Error).message); setBusy(false); }
+    } catch (e) { const msg = (e as Error).message; setError(msg); toast.error("No se pudo abrir la disputa", { description: msg }); setBusy(false); }
   }
 
   const isBuyer = tx?.buyer_id === user.id;

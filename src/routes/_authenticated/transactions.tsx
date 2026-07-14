@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Plus, LayoutGrid, List as ListIcon } from "lucide-react";
+import { Plus, LayoutGrid, List as ListIcon, Download } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/app-shell";
 import { useViewRole } from "@/hooks/use-view-role";
@@ -225,6 +225,36 @@ function TransactionsList() {
 
   const tabCounts = useMemo(() => countByTab(rows, getTabs(role)), [rows, role]);
 
+  const exportCsv = useCallback(() => {
+    const headers = ["numero","titulo","sector","estado","monto","moneda","contraparte","creado","limite_entrega"];
+    const esc = (v: unknown) => {
+      const s = v == null ? "" : String(v);
+      return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+    };
+    const lines = [headers.join(",")];
+    for (const r of filtered) {
+      lines.push([
+        r.numero ?? r.id.slice(0, 8),
+        r.title,
+        r.sector ?? "",
+        toUiStatus(r.status),
+        (r.amount_cents / 100).toFixed(2),
+        r.currency,
+        r.counterparty_email ?? r.beneficiario_nombre ?? "",
+        r.created_at,
+        r.delivery_deadline ?? "",
+      ].map(esc).join(","));
+    }
+    const blob = new Blob(["\uFEFF" + lines.join("\n")], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `yokto-transacciones-${new Date().toISOString().slice(0,10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }, [filtered]);
+
+
   return (
     <AppShell>
       <div className="flex flex-col gap-6">
@@ -256,6 +286,15 @@ function TransactionsList() {
                 <LayoutGrid className="h-4 w-4" />
               </button>
             </div>
+            <button
+              onClick={exportCsv}
+              disabled={filtered.length === 0}
+              className="inline-flex items-center gap-1.5 px-3 py-2 border border-yo-border text-sm font-medium rounded-md text-yo-txt-2 hover:bg-yo-raised hover:text-yo-txt disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              title="Exportar filtrados a CSV"
+            >
+              <Download className="h-4 w-4" />
+              <span className="hidden lg:inline">CSV</span>
+            </button>
             {kycOk ? (
               <Link
                 to="/transactions/new"
