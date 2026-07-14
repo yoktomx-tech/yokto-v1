@@ -897,19 +897,21 @@ function Step3Fiscal({ onSaved, onBack, setError, loading, setLoading }: {
                 <label className="text-xs font-semibold uppercase tracking-widest text-yo-txt-2">CURP (18 caracteres)</label>
                 <p className="mt-1 text-xs text-yo-txt-3">Consulta oficial en RENAPO para autocompletar tus datos personales.</p>
               </div>
-              <div className="flex flex-col sm:flex-row gap-2 items-start">
-                <div className="flex-1 w-full">
-                  <Field id="curp" label="" value={f.curp ?? ""} onChange={onCurpChange}
-                    required uppercase maxLength={18} error={curpError}
-                    trailing={curpVerified ? <Check className="size-4 text-yo-ok" /> : undefined} />
-                </div>
-                <button type="button" onClick={validateCurpAction}
-                  disabled={curpChecking || !f.curp || (f.curp ?? "").length !== 18}
-                  className="inline-flex items-center gap-2 min-h-10 px-4 rounded-md bg-yo-ac hover:bg-yo-ac-h text-white text-sm font-semibold disabled:opacity-50">
-                  {curpChecking ? <Loader2 className="size-4 animate-spin" /> : <ShieldCheck className="size-4" />}
-                  {curpVerified ? "Validada" : "Validar CURP"}
-                </button>
+              <div className="flex-1 w-full">
+                <Field id="curp" label="" value={f.curp ?? ""} onChange={onCurpChange}
+                  required uppercase maxLength={18} error={curpError}
+                  trailing={
+                    curpChecking ? <Loader2 className="size-4 animate-spin text-yo-txt-3" /> :
+                    curpVerified ? <Check className="size-4 text-yo-ok" /> :
+                    undefined
+                  } />
+                <p className="mt-1 text-[11px] text-yo-txt-3">
+                  {curpChecking ? "Consultando RENAPO…" :
+                   curpVerified ? "Validada automáticamente en RENAPO." :
+                   "La validación se ejecuta automáticamente al capturar los 18 caracteres."}
+                </p>
               </div>
+
             </div>
           )}
 
