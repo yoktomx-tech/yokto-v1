@@ -27,7 +27,6 @@ import { Route as AuthenticatedKycRouteImport } from './routes/_authenticated/ky
 import { Route as AuthenticatedDisputesRouteImport } from './routes/_authenticated/disputes'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedCrmRouteImport } from './routes/_authenticated/crm'
-import { Route as AuthenticatedComplianceRouteImport } from './routes/_authenticated/compliance'
 import { Route as AuthenticatedApprovalsRouteImport } from './routes/_authenticated/approvals'
 import { Route as AuthenticatedApiClientsRouteImport } from './routes/_authenticated/api-clients'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
@@ -137,11 +136,6 @@ const AuthenticatedCrmRoute = AuthenticatedCrmRouteImport.update({
   path: '/crm',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedComplianceRoute = AuthenticatedComplianceRouteImport.update({
-  id: '/compliance',
-  path: '/compliance',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
 const AuthenticatedApprovalsRoute = AuthenticatedApprovalsRouteImport.update({
   id: '/approvals',
   path: '/approvals',
@@ -248,7 +242,6 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/api-clients': typeof AuthenticatedApiClientsRoute
   '/approvals': typeof AuthenticatedApprovalsRoute
-  '/compliance': typeof AuthenticatedComplianceRoute
   '/crm': typeof AuthenticatedCrmRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/disputes': typeof AuthenticatedDisputesRouteWithChildren
@@ -285,7 +278,6 @@ export interface FileRoutesByTo {
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/api-clients': typeof AuthenticatedApiClientsRoute
   '/approvals': typeof AuthenticatedApprovalsRoute
-  '/compliance': typeof AuthenticatedComplianceRoute
   '/crm': typeof AuthenticatedCrmRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/disputes': typeof AuthenticatedDisputesRouteWithChildren
@@ -324,7 +316,6 @@ export interface FileRoutesById {
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/api-clients': typeof AuthenticatedApiClientsRoute
   '/_authenticated/approvals': typeof AuthenticatedApprovalsRoute
-  '/_authenticated/compliance': typeof AuthenticatedComplianceRoute
   '/_authenticated/crm': typeof AuthenticatedCrmRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/disputes': typeof AuthenticatedDisputesRouteWithChildren
@@ -363,7 +354,6 @@ export interface FileRouteTypes {
     | '/admin'
     | '/api-clients'
     | '/approvals'
-    | '/compliance'
     | '/crm'
     | '/dashboard'
     | '/disputes'
@@ -400,7 +390,6 @@ export interface FileRouteTypes {
     | '/admin'
     | '/api-clients'
     | '/approvals'
-    | '/compliance'
     | '/crm'
     | '/dashboard'
     | '/disputes'
@@ -438,7 +427,6 @@ export interface FileRouteTypes {
     | '/_authenticated/admin'
     | '/_authenticated/api-clients'
     | '/_authenticated/approvals'
-    | '/_authenticated/compliance'
     | '/_authenticated/crm'
     | '/_authenticated/dashboard'
     | '/_authenticated/disputes'
@@ -607,13 +595,6 @@ declare module '@tanstack/react-router' {
       path: '/crm'
       fullPath: '/crm'
       preLoaderRoute: typeof AuthenticatedCrmRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/compliance': {
-      id: '/_authenticated/compliance'
-      path: '/compliance'
-      fullPath: '/compliance'
-      preLoaderRoute: typeof AuthenticatedComplianceRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/approvals': {
@@ -828,7 +809,6 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
   AuthenticatedApiClientsRoute: typeof AuthenticatedApiClientsRoute
   AuthenticatedApprovalsRoute: typeof AuthenticatedApprovalsRoute
-  AuthenticatedComplianceRoute: typeof AuthenticatedComplianceRoute
   AuthenticatedCrmRoute: typeof AuthenticatedCrmRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedDisputesRoute: typeof AuthenticatedDisputesRouteWithChildren
@@ -846,7 +826,6 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
   AuthenticatedApiClientsRoute: AuthenticatedApiClientsRoute,
   AuthenticatedApprovalsRoute: AuthenticatedApprovalsRoute,
-  AuthenticatedComplianceRoute: AuthenticatedComplianceRoute,
   AuthenticatedCrmRoute: AuthenticatedCrmRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedDisputesRoute: AuthenticatedDisputesRouteWithChildren,
@@ -881,13 +860,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
