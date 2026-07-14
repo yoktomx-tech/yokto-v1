@@ -98,6 +98,11 @@ function NewTransactionWizard() {
         });
         setTxId(res.id);
         setNumero(res.numero ?? null);
+        // Pre-cargar plantilla de hitos si aún no hay
+        if (hitos.length === 0 && sector) {
+          const plantillas = PLANTILLAS_HITOS[sector];
+          setHitos(plantillas.map((p, i) => plantillaToDraft(p, i + 1, fechaInicio)));
+        }
         setStep(3);
       } catch (e) {
         setError((e as Error).message);
@@ -106,9 +111,40 @@ function NewTransactionWizard() {
       }
       return;
     }
-    // Pasos 3–5: en construcción en Fase 2/3
+    if (step === 3) {
+      const r = Step3Schema.safeParse({ hitos });
+      if (!r.success) { setError(r.error.issues[0]?.message ?? "Revisa los hitos"); return; }
+      if (!txId) { setError("Falta guardar los pasos anteriores"); return; }
+      setSaving(true);
+      try {
+        await saveHitos({ data: { transaction_id: txId, hitos: r.data.hitos } });
+        setStep(4);
+      } catch (e) {
+        setError((e as Error).message);
+      } finally { setSaving(false); }
+      return;
+    }
+    if (step === 4) {
+      const r = Step4Schema.safeParse({
+        monto,
+        metodo_pago: metodoPago,
+        fecha_inicio_estimada: fechaInicio || null,
+        fecha_fin_estimada: fechaFin || null,
+      });
+      if (!r.success) { setError(r.error.issues[0]?.message ?? "Revisa el monto"); return; }
+      if (!txId || !sector) { setError("Falta información previa"); return; }
+      setSaving(true);
+      try {
+        await saveMonto({ data: { transaction_id: txId, sector, step4: r.data } });
+        setStep(5);
+      } catch (e) {
+        setError((e as Error).message);
+      } finally { setSaving(false); }
+      return;
+    }
+    // Paso 5: Fase 3
     setStep((s) => Math.min(TOTAL_STEPS, s + 1));
-  }, [step, sector, rol, descripcion, contraparte, txId, upsertDraft]);
+  }, [step, sector, rol, descripcion, contraparte, txId, hitos, monto, metodoPago, fechaInicio, fechaFin, upsertDraft, saveHitos, saveMonto]);
 
   async function handleCancel() {
     if (txId) {
