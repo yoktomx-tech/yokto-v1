@@ -1,9 +1,12 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useState } from "react";
+import { ArrowLeft, Calendar, ShieldAlert, Wallet, CheckCircle2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { AppHeader } from "@/components/app-header";
-import { STATUS_LABEL, STATUS_ACCENT, formatMoney, commissionAmount, type TxStatus } from "@/lib/tx";
+import { AppShell } from "@/components/app-shell";
+import { useViewRole } from "@/hooks/use-view-role";
+import { toUiStatus, SECTOR_UI_CFG, type SectorUiId } from "@/lib/tx-catalog";
+import { formatMoney, commissionAmount, type TxStatus } from "@/lib/tx";
 import {
   createFundingIntent,
   simulateFundingReceived,
@@ -13,6 +16,11 @@ import { openDispute } from "@/lib/disputes.functions";
 import { VerificationPanel } from "@/components/verification-panel";
 import { DocumentsPanel } from "@/components/documents-panel";
 import { FiscalPanel } from "@/components/fiscal-panel";
+import {
+  StatusBadge, SectorBadge, MoneyDisplay, ProgressBar, EntityCard,
+  InfoBox, EmptyState, MilestoneStatusBadge,
+} from "@/components/tx/ui";
+import { cn } from "@/lib/utils";
 
 type Tx = {
   id: string;
@@ -20,6 +28,8 @@ type Tx = {
   buyer_id: string;
   seller_id: string | null;
   counterparty_email: string | null;
+  beneficiario_nombre: string | null;
+  beneficiario_rfc: string | null;
   title: string;
   description: string | null;
   sector: string | null;
@@ -75,40 +85,15 @@ type Payout = {
   paid_at: string | null;
 };
 
-type TabKey = "resumen" | "hitos" | "documentos" | "fiscal" | "evidencia" | "pagos" | "disputa" | "auditoria";
+type TabKey = "resumen" | "hitos" | "documentos" | "evidencia" | "pagos" | "auditoria";
 const TABS: { key: TabKey; label: string }[] = [
   { key: "resumen", label: "Resumen" },
   { key: "hitos", label: "Hitos" },
   { key: "documentos", label: "Documentos" },
-  { key: "fiscal", label: "Fiscal" },
   { key: "evidencia", label: "Evidencia" },
   { key: "pagos", label: "Pagos" },
-  { key: "disputa", label: "Disputa" },
   { key: "auditoria", label: "Auditoría" },
 ];
-
-// Mini-timeline milestones (7 phases in order)
-const TIMELINE: { key: TxStatus; label: string }[] = [
-  { key: "draft", label: "Borrador" },
-  { key: "pending_signature", label: "Firma" },
-  { key: "awaiting_funding", label: "Fondeo" },
-  { key: "funded", label: "Fondos" },
-  { key: "in_progress", label: "En curso" },
-  { key: "conditions_met", label: "Cumplido" },
-  { key: "released", label: "Liberado" },
-];
-
-const TIMELINE_ORDER: TxStatus[] = TIMELINE.map((t) => t.key);
-
-function timelineProgress(status: TxStatus): number {
-  // Special states short-circuit
-  if (status === "disputed") return TIMELINE_ORDER.indexOf("in_progress");
-  if (status === "cancelled" || status === "refunded") return -1;
-  if (status === "en_verificacion") return TIMELINE_ORDER.indexOf("in_progress");
-  if (status === "partial_release") return TIMELINE_ORDER.indexOf("conditions_met");
-  const idx = TIMELINE_ORDER.indexOf(status);
-  return idx;
-}
 
 export const Route = createFileRoute("/_authenticated/transactions/$id")({
   head: () => ({ meta: [{ title: "Transacción — YOKTO" }, { name: "robots", content: "noindex" }] }),
@@ -118,6 +103,7 @@ export const Route = createFileRoute("/_authenticated/transactions/$id")({
 function TxDetail() {
   const { id } = Route.useParams();
   const { user } = Route.useRouteContext();
+  const { role } = useViewRole();
   const navigate = useNavigate();
   const [tx, setTx] = useState<Tx | null>(null);
   const [hitos, setHitos] = useState<Hito[]>([]);
@@ -130,14 +116,9 @@ function TxDetail() {
   const [tab, setTab] = useState<TabKey>("resumen");
   const [disputeOpen, setDisputeOpen] = useState(false);
   const [disputeReason, setDisputeReason] = useState<
-    | "incumplimiento_hito"
-    | "documentos_invalidos"
-    | "mercancia_incompleta"
-    | "calidad_insuficiente"
-    | "plazo_vencido"
-    | "fraude_sospechado"
-    | "condiciones_no_acordadas"
-    | "otro"
+    | "incumplimiento_hito" | "documentos_invalidos" | "mercancia_incompleta"
+    | "calidad_insuficiente" | "plazo_vencido" | "fraude_sospechado"
+    | "condiciones_no_acordadas" | "otro"
   >("incumplimiento_hito");
   const [disputeDesc, setDisputeDesc] = useState("");
 
@@ -164,7 +145,6 @@ function TxDetail() {
 
   useEffect(() => { load(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [id]);
 
-  // Realtime: react to changes on tx, hitos, events, payment_intents, payouts
   useEffect(() => {
     const ch = supabase
       .channel(`tx-${id}`)
@@ -193,14 +173,12 @@ function TxDetail() {
   async function toggleHito(h: Hito) {
     if (h.estado === "APROBADO") return;
     setBusy(true);
-    const next: Hito["estado"] = "APROBADO";
     await supabase
       .from("transaction_hitos")
-      .update({ estado: next, aprobado_at: new Date().toISOString(), aprobado_por: user.id })
+      .update({ estado: "APROBADO", aprobado_at: new Date().toISOString(), aprobado_por: user.id })
       .eq("id", h.id);
     await logEvent("hito.approved", { hito_id: h.id });
 
-    // Auto-release cascade: fetch latest hitos and evaluate
     const { data: fresh } = await supabase
       .from("transaction_hitos").select("estado,auto_release").eq("transaction_id", id);
     const allApproved = (fresh ?? []).length > 0 && (fresh ?? []).every((x) => x.estado === "APROBADO");
@@ -272,313 +250,398 @@ function TxDetail() {
   const commission = tx ? commissionAmount(tx.amount_cents, tx.commission_bps) : 0;
   const allMet = hitos.length > 0 && hitos.every((h) => h.estado === "APROBADO");
   const activeIntent = intents.find((i) => i.status === "requires_payment" || i.status === "processing");
-  const progress = tx ? timelineProgress(tx.status) : -1;
+  const approvedCount = hitos.filter((h) => h.estado === "APROBADO").length;
+  const progressPct = hitos.length > 0 ? Math.round((approvedCount / hitos.length) * 100) : 0;
 
-  const dot = useMemo(() => ({
-    inactive: "size-2 bg-yo-border rounded-full",
-    active: "size-2.5 bg-yo-ac rounded-full ring-2 ring-yo-ac/30",
-    done: "size-2 bg-yo-ac rounded-full",
-  }), []);
+  const sectorCfg = tx?.sector ? SECTOR_UI_CFG[tx.sector as SectorUiId] : null;
 
   if (loading) {
     return (
-      <div className="min-h-screen flex flex-col bg-background">
-        <AppHeader email={user.email} userId={user.id} section="Transacción" />
-        <div className="container-editorial py-16 text-sm text-muted-foreground">Cargando…</div>
-      </div>
+      <AppShell>
+        <main className="p-6 text-sm text-yo-txt-2">Cargando…</main>
+      </AppShell>
     );
   }
   if (!tx) {
     return (
-      <div className="min-h-screen flex flex-col bg-background">
-        <AppHeader email={user.email} userId={user.id} section="Transacción" />
-        <div className="container-editorial py-16">
-          <h1 className="font-display text-4xl">Transacción no encontrada</h1>
-          <Link to="/transactions" className="mt-4 inline-block underline underline-offset-4">Volver</Link>
-        </div>
-      </div>
+      <AppShell>
+        <main className="p-6">
+          <EmptyState
+            title="Transacción no encontrada"
+            description="El enlace puede haber expirado o ya no tienes acceso."
+            action={<Link to="/transactions" className="text-yo-ac hover:underline text-sm font-medium">← Volver</Link>}
+          />
+        </main>
+      </AppShell>
     );
   }
 
+  const uiStatus = toUiStatus(tx.status);
+
   return (
-    <div className="min-h-screen flex flex-col bg-background">
-      <AppHeader email={user.email} userId={user.id} section="Transacción" />
+    <AppShell>
+      <main className="flex-1 min-w-0">
+        <div className="max-w-[1400px] mx-auto p-4 md:p-6 flex flex-col gap-4">
+          {/* Breadcrumb + title */}
+          <div className="flex flex-col gap-3">
+            <Link
+              to="/transactions"
+              className="inline-flex items-center gap-1.5 text-xs text-yo-txt-2 hover:text-yo-txt w-fit"
+            >
+              <ArrowLeft className="h-3.5 w-3.5" /> Transacciones
+            </Link>
 
-      {/* STICKY HEADER */}
-      <div className="sticky top-0 z-30 bg-background/95 backdrop-blur border-b border-yo-border">
-        <div className="container-editorial max-w-6xl py-4">
-          <div className="flex items-start justify-between gap-4 flex-wrap">
-            <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-3 text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
-                <Link to="/transactions" className="underline underline-offset-4">← Transacciones</Link>
-                {tx.numero && <span className="font-mono">{tx.numero}</span>}
-                <span>{tx.sector ?? "Operación"}</span>
-              </div>
-              <h1 className="mt-1 font-display text-2xl md:text-3xl tracking-wide text-foreground truncate">{tx.title}</h1>
-            </div>
-            <div className="flex items-center gap-3">
-              <span className={`inline-block px-3 py-1.5 text-[11px] uppercase tracking-[0.14em] border ${STATUS_ACCENT[tx.status]}`}>
-                {STATUS_LABEL[tx.status]}
-              </span>
-              <span className="font-display text-xl">{formatMoney(tx.amount_cents, tx.currency)}</span>
-            </div>
-          </div>
-
-          {/* Mini-timeline */}
-          <div className="mt-4 flex items-center gap-2 overflow-x-auto pb-1">
-            {TIMELINE.map((step, i) => {
-              const state = progress < 0 ? "inactive" : i < progress ? "done" : i === progress ? "active" : "inactive";
-              return (
-                <div key={step.key} className="flex items-center gap-2 shrink-0">
-                  <span className={dot[state]} />
-                  <span className={`text-[10px] uppercase tracking-[0.14em] ${state === "active" ? "text-foreground font-semibold" : "text-muted-foreground"}`}>
-                    {step.label}
-                  </span>
-                  {i < TIMELINE.length - 1 && <span className="w-6 h-px bg-yo-border" />}
+            <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3">
+              <div className="min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  {tx.numero && <span className="font-mono text-[11px] text-yo-txt-3">{tx.numero}</span>}
+                  <StatusBadge status={tx.status} size="sm" />
+                  {sectorCfg && <SectorBadge sectorId={tx.sector as SectorUiId} size="sm" />}
                 </div>
-              );
-            })}
-            {tx.status === "disputed" && <span className="ml-3 text-[10px] uppercase tracking-[0.14em] text-[#FF3B3B]">● En disputa</span>}
-            {tx.status === "cancelled" && <span className="ml-3 text-[10px] uppercase tracking-[0.14em] text-muted-foreground">● Cancelada</span>}
+                <h1 className="mt-1.5 text-xl md:text-2xl font-semibold text-yo-txt truncate">{tx.title}</h1>
+                {tx.description && (
+                  <p className="mt-1 text-sm text-yo-txt-2 max-w-2xl line-clamp-2">{tx.description}</p>
+                )}
+              </div>
+              <div className="text-right shrink-0">
+                <div className="text-[10px] uppercase tracking-wider text-yo-txt-3 font-medium">Monto retenido</div>
+                <MoneyDisplay amount={tx.amount_cents / 100} size="xl" />
+              </div>
+            </div>
           </div>
 
-          {/* Tabs */}
-          <div className="mt-4 flex gap-1 overflow-x-auto -mb-px">
-            {TABS.map((t) => (
-              <button
-                key={t.key}
-                onClick={() => setTab(t.key)}
-                className={`px-4 py-2 text-[11px] uppercase tracking-[0.14em] border-b-2 -mb-px shrink-0 ${
-                  tab === t.key
-                    ? "border-yo-ac text-foreground font-semibold"
-                    : "border-transparent text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                {t.label}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      <main className="flex-1">
-        <div className="container-editorial py-8 max-w-6xl">
           {error && (
-            <div role="alert" className="mb-6 border border-[#FF3B3B] bg-[#FF3B3B]/10 text-[#FF3B3B] p-3 text-sm">
+            <div role="alert" className="rounded-md border border-red-300 bg-red-50 text-red-800 p-3 text-sm">
               {error}
             </div>
           )}
 
-          {/* ACTION BAR (always visible) */}
-          <div className="mb-6 border border-yo-border bg-yo-bg/40 p-4 flex flex-wrap gap-3">
-            {tx.status === "draft" && isBuyer && (
-              <>
-                <button disabled={busy} onClick={() => updateStatus("awaiting_funding")} className={btnPrimary}>Publicar y solicitar fondeo</button>
-                <button disabled={busy} onClick={() => updateStatus("cancelled", { cancelled_at: new Date().toISOString() })} className={btnGhost}>Cancelar borrador</button>
-              </>
-            )}
-            {tx.status === "awaiting_funding" && isBuyer && !activeIntent && (
-              <>
-                <button disabled={busy} onClick={() => handleCreateIntent("spei")} className={btnPrimary}>Generar CLABE SPEI</button>
-                <button disabled={busy} onClick={() => handleCreateIntent("card")} className={btnGhost}>Pagar con tarjeta (mock)</button>
-                <button disabled={busy} onClick={() => updateStatus("cancelled", { cancelled_at: new Date().toISOString() })} className={btnGhost}>Cancelar</button>
-              </>
-            )}
-            {tx.status === "funded" && (
-              <button disabled={busy} onClick={() => updateStatus("in_progress")} className={btnPrimary}>Iniciar operación</button>
-            )}
-            {(tx.status === "in_progress" || tx.status === "en_verificacion" || tx.status === "conditions_met") && (
-              <>
-                {allMet && tx.status !== "conditions_met" && (
-                  <button disabled={busy} onClick={() => updateStatus("conditions_met")} className={btnPrimary}>Marcar condiciones cumplidas</button>
-                )}
-                {isBuyer && tx.status === "conditions_met" && (
-                  <button disabled={busy} onClick={handleRelease} className={btnPrimary}>Liberar fondos al vendedor</button>
-                )}
-                <button disabled={busy} onClick={() => setDisputeOpen(true)} className={btnDanger}>Abrir disputa</button>
-              </>
-            )}
-            {tx.status === "disputed" && <Link to="/disputes" className={btnGhost}>Ir a la disputa</Link>}
-          </div>
-
-          {/* TAB CONTENT */}
-          {tab === "resumen" && (
-            <section className="space-y-6">
-              {tx.description && <p className="text-muted-foreground max-w-3xl">{tx.description}</p>}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <Cell label="Monto retenido" value={formatMoney(tx.amount_cents, tx.currency)} big />
-                <Cell label={`Comisión YOKTO (${(tx.commission_bps / 100).toFixed(2)}%)`} value={formatMoney(commission, tx.currency)} />
-                <Cell label="Método de fondeo" value={tx.payment_method.toUpperCase()} />
-                <Cell label="Rol" value={isBuyer ? "Comprador" : isSeller ? "Vendedor" : "Observador"} />
-                <Cell label="Contraparte" value={isBuyer ? tx.counterparty_email ?? "—" : "Comprador"} />
-                <Cell label="Fecha límite entrega" value={tx.delivery_deadline ? new Date(tx.delivery_deadline).toLocaleString("es-MX") : "—"} />
-              </div>
-            </section>
-          )}
-
-          {tab === "hitos" && (
-            <section>
-              <div className="border border-yo-border bg-background divide-y divide-yokto-black/20">
-                {hitos.length === 0 && <p className="p-5 text-sm text-muted-foreground">Sin hitos registrados.</p>}
-                {hitos.map((h) => (
-                  <div key={h.id} className="p-4 flex items-start gap-4">
+          {/* 70/30 grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_340px] gap-4">
+            {/* MAIN 70 */}
+            <div className="min-w-0 flex flex-col gap-4">
+              {/* Tabs */}
+              <div className="surface-card p-1 flex gap-0.5 overflow-x-auto">
+                {TABS.map((t) => {
+                  const active = tab === t.key;
+                  return (
                     <button
-                      disabled={busy || !(isBuyer || isSeller) || h.estado === "APROBADO" || ["released","cancelled","refunded"].includes(tx.status)}
-                      onClick={() => toggleHito(h)}
-                      className={`mt-0.5 size-6 border border-yo-border grid place-items-center ${h.estado === "APROBADO" ? "bg-yokto-yellow" : "bg-background"} disabled:opacity-50`}
-                      aria-label="Aprobar hito"
+                      key={t.key}
+                      onClick={() => setTab(t.key)}
+                      className={cn(
+                        "shrink-0 px-3 py-1.5 rounded-md text-xs font-medium transition-colors",
+                        active
+                          ? "bg-yo-ac-bg text-yo-ac-txt"
+                          : "text-yo-txt-2 hover:text-yo-txt hover:bg-yo-raised",
+                      )}
                     >
-                      {h.estado === "APROBADO" && <span className="font-mono text-sm">✓</span>}
+                      {t.label}
                     </button>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">Hito {h.orden}</span>
-                        <span className="text-[11px] uppercase tracking-[0.14em] border border-yo-border px-1.5 py-0.5">{h.tipo_verificacion}</span>
-                        <span className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">{h.responsable}</span>
-                        <span className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">{h.monto_porcentaje}%</span>
-                        <span className={`text-[11px] uppercase tracking-[0.14em] px-1.5 py-0.5 border ${
-                          h.estado === "APROBADO" ? "bg-yo-ac text-yokto-cream border-yo-ac" :
-                          h.estado === "RECHAZADO" ? "bg-[#FF3B3B]/10 text-[#FF3B3B] border-[#FF3B3B]" :
-                          "border-yo-border text-foreground"
-                        }`}>{h.estado}</span>
-                      </div>
-                      <p className={`mt-1 text-sm ${h.estado === "APROBADO" ? "text-muted-foreground line-through" : "text-foreground"}`}>{h.titulo}</p>
-                      {h.descripcion && <p className="mt-1 text-xs text-muted-foreground">{h.descripcion}</p>}
-                      {h.fecha_limite && <p className="mt-1 text-[11px] uppercase tracking-[0.14em] text-muted-foreground">Vence · {new Date(h.fecha_limite).toLocaleDateString("es-MX")}</p>}
-                      {h.aprobado_at && <p className="mt-1 text-[11px] uppercase tracking-[0.14em] text-muted-foreground">Aprobado · {new Date(h.aprobado_at).toLocaleString("es-MX")}</p>}
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
-            </section>
-          )}
 
-          {tab === "documentos" && (
-            <DocumentsPanel transactionId={id} canUpload={isBuyer || isSeller} userId={user.id} />
-          )}
-
-          {tab === "fiscal" && (
-            <FiscalPanel transactionId={id} canUpload={isBuyer || isSeller} userId={user.id} />
-          )}
-
-          {tab === "evidencia" && (
-            <VerificationPanel transactionId={id} canUpload={isBuyer || isSeller} />
-          )}
-
-          {tab === "pagos" && (
-            <section className="space-y-8">
-              {activeIntent && (
-                <div>
-                  <h3 className="font-display text-2xl tracking-wide mb-3">Instrucciones de fondeo</h3>
-                  <div className="border border-yo-border bg-background p-5 space-y-4">
-                    <div className="flex flex-wrap gap-2 items-center">
-                      <span className="text-[11px] uppercase tracking-[0.14em] bg-yokto-yellow border border-yo-border px-2 py-1">{activeIntent.method.toUpperCase()}</span>
-                      <span className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">Proveedor: {activeIntent.provider}</span>
-                      <span className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">Ref: {activeIntent.provider_ref}</span>
+              {tab === "resumen" && (
+                <section className="flex flex-col gap-4">
+                  <div className="surface-card p-4">
+                    <div className="text-[10px] uppercase tracking-wider text-yo-txt-3 font-medium mb-2">Progreso de hitos</div>
+                    <ProgressBar value={progressPct} />
+                    <div className="mt-2 text-xs text-yo-txt-2">
+                      {approvedCount} de {hitos.length} hitos aprobados
                     </div>
-                    {activeIntent.method === "spei" && (
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <Cell label="CLABE" value={activeIntent.clabe ?? "—"} />
-                        <Cell label="Referencia" value={activeIntent.reference_code ?? "—"} />
-                        <Cell label="Beneficiario" value={activeIntent.metadata?.beneficiary ?? "YOKTO"} />
-                        <Cell label="Banco" value={activeIntent.metadata?.bank ?? "STP"} />
-                        <Cell label="Monto" value={formatMoney(tx.amount_cents, tx.currency)} />
-                        <Cell label="Expira" value={activeIntent.expires_at ? new Date(activeIntent.expires_at).toLocaleString("es-MX") : "—"} />
-                      </div>
-                    )}
-                    {isBuyer && (
-                      <button disabled={busy} onClick={() => handleSimulateFunding(activeIntent.id)} className={btnPrimary}>
-                        Simular fondeo recibido
-                      </button>
-                    )}
-                    <p className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
-                      Modo simulación. Los datos son ficticios.
-                    </p>
                   </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <InfoBox label="Comisión YOKTO" value={`${formatMoney(commission, tx.currency)} (${(tx.commission_bps / 100).toFixed(2)}%)`} />
+                    <InfoBox label="Método de fondeo" value={tx.payment_method.toUpperCase()} />
+                    <InfoBox label="Comisión a cargo de" value={tx.commission_payer === "buyer" ? "Comprador" : tx.commission_payer === "seller" ? "Vendedor" : "Dividido"} />
+                    <InfoBox label="Fecha límite entrega" value={tx.delivery_deadline ? new Date(tx.delivery_deadline).toLocaleDateString("es-MX") : "—"} />
+                  </div>
+
+                  {tx.description && (
+                    <div className="surface-card p-4">
+                      <div className="text-[10px] uppercase tracking-wider text-yo-txt-3 font-medium mb-2">Descripción</div>
+                      <p className="text-sm text-yo-txt whitespace-pre-wrap">{tx.description}</p>
+                    </div>
+                  )}
+                </section>
+              )}
+
+              {tab === "hitos" && (
+                <section className="surface-card divide-y divide-yo-border">
+                  {hitos.length === 0 && <p className="p-5 text-sm text-yo-txt-2">Sin hitos registrados.</p>}
+                  {hitos.map((h) => (
+                    <div key={h.id} className="p-4 flex items-start gap-4">
+                      <button
+                        disabled={busy || !(isBuyer || isSeller) || h.estado === "APROBADO" || ["released","cancelled","refunded"].includes(tx.status)}
+                        onClick={() => toggleHito(h)}
+                        className={cn(
+                          "mt-0.5 size-6 rounded border border-yo-border grid place-items-center transition",
+                          h.estado === "APROBADO" ? "bg-yo-ac text-white border-yo-ac" : "bg-yo-surface hover:bg-yo-raised",
+                          "disabled:opacity-50 disabled:cursor-not-allowed",
+                        )}
+                        aria-label="Aprobar hito"
+                      >
+                        {h.estado === "APROBADO" && <CheckCircle2 className="h-4 w-4" />}
+                      </button>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-[10px] uppercase tracking-wider text-yo-txt-3 font-medium">Hito {h.orden}</span>
+                          <MilestoneStatusBadge status={h.estado} />
+                          <span className="text-[10px] uppercase tracking-wider text-yo-txt-3 font-medium">{h.responsable}</span>
+                          <span className="text-[10px] uppercase tracking-wider text-yo-txt-3 font-medium">{h.monto_porcentaje}%</span>
+                        </div>
+                        <p className={cn(
+                          "mt-1 text-sm font-medium",
+                          h.estado === "APROBADO" ? "text-yo-txt-2 line-through" : "text-yo-txt",
+                        )}>{h.titulo}</p>
+                        {h.descripcion && <p className="mt-1 text-xs text-yo-txt-2">{h.descripcion}</p>}
+                        {h.fecha_limite && (
+                          <p className="mt-1 inline-flex items-center gap-1 text-[11px] text-yo-txt-3">
+                            <Calendar className="h-3 w-3" /> Vence · {new Date(h.fecha_limite).toLocaleDateString("es-MX")}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </section>
+              )}
+
+              {tab === "documentos" && (
+                <div className="flex flex-col gap-4">
+                  <DocumentsPanel transactionId={id} canUpload={isBuyer || isSeller} userId={user.id} />
+                  <FiscalPanel transactionId={id} canUpload={isBuyer || isSeller} userId={user.id} />
                 </div>
               )}
-              <div>
-                <h3 className="font-display text-2xl tracking-wide mb-3">Liberaciones</h3>
-                <div className="border border-yo-border bg-background">
-                  {payouts.length === 0 && <p className="p-5 text-sm text-muted-foreground">Sin liberaciones.</p>}
-                  {payouts.map((p) => (
-                    <div key={p.id} className="p-4 grid grid-cols-2 md:grid-cols-5 gap-3 text-sm border-t border-yokto-black/20 first:border-t-0">
-                      <div><p className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">Bruto</p><p>{formatMoney(p.gross_cents, p.currency)}</p></div>
-                      <div><p className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">Comisión</p><p>{formatMoney(p.commission_cents, p.currency)}</p></div>
-                      <div><p className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">Neto</p><p className="font-semibold">{formatMoney(p.net_cents, p.currency)}</p></div>
-                      <div><p className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">Estado</p><p>{p.status}</p></div>
-                      <div><p className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">Ref</p><p className="font-mono text-[11px]">{p.provider_ref}</p></div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              <div>
-                <h3 className="font-display text-2xl tracking-wide mb-3">Intents históricos</h3>
-                <div className="border border-yo-border bg-background">
-                  {intents.length === 0 && <p className="p-5 text-sm text-muted-foreground">Sin intents.</p>}
-                  {intents.map((i) => (
-                    <div key={i.id} className="p-4 flex justify-between text-sm border-t border-yokto-black/20 first:border-t-0">
-                      <span className="font-mono text-xs">{i.provider_ref ?? i.id}</span>
-                      <span className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">{i.method} · {i.status}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </section>
-          )}
 
-          {tab === "disputa" && (
-            <section className="border border-yo-border bg-background p-6">
-              {tx.status === "disputed" ? (
-                <div className="space-y-3">
-                  <p className="text-sm">Esta transacción está en disputa.</p>
-                  <Link to="/disputes" className={btnPrimary}>Ver disputa</Link>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  <p className="text-sm text-muted-foreground">No hay disputas activas.</p>
+              {tab === "evidencia" && (
+                <VerificationPanel transactionId={id} canUpload={isBuyer || isSeller} />
+              )}
+
+              {tab === "pagos" && (
+                <section className="flex flex-col gap-4">
+                  {activeIntent && (
+                    <div className="surface-card p-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <h3 className="text-sm font-semibold text-yo-txt">Instrucciones de fondeo</h3>
+                        <span className="text-[10px] uppercase tracking-wider text-yo-txt-3 font-medium">
+                          {activeIntent.method.toUpperCase()} · {activeIntent.provider}
+                        </span>
+                      </div>
+                      {activeIntent.method === "spei" && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          <InfoBox label="CLABE" value={activeIntent.clabe ?? "—"} mono />
+                          <InfoBox label="Referencia" value={activeIntent.reference_code ?? "—"} mono />
+                          <InfoBox label="Beneficiario" value={activeIntent.metadata?.beneficiary ?? "YOKTO"} />
+                          <InfoBox label="Banco" value={activeIntent.metadata?.bank ?? "STP"} />
+                          <InfoBox label="Monto" value={formatMoney(tx.amount_cents, tx.currency)} />
+                          <InfoBox label="Expira" value={activeIntent.expires_at ? new Date(activeIntent.expires_at).toLocaleString("es-MX") : "—"} />
+                        </div>
+                      )}
+                      {isBuyer && (
+                        <button
+                          disabled={busy}
+                          onClick={() => handleSimulateFunding(activeIntent.id)}
+                          className="mt-3 px-4 py-2 bg-yo-ac text-white text-sm font-medium rounded-md hover:bg-yo-ac-h disabled:opacity-50"
+                        >
+                          Simular fondeo recibido
+                        </button>
+                      )}
+                      <p className="mt-2 text-[10px] uppercase tracking-wider text-yo-txt-3">Modo simulación. Datos ficticios.</p>
+                    </div>
+                  )}
+
+                  <div className="surface-card">
+                    <div className="p-4 border-b border-yo-border">
+                      <h3 className="text-sm font-semibold text-yo-txt">Liberaciones</h3>
+                    </div>
+                    {payouts.length === 0 ? (
+                      <p className="p-4 text-sm text-yo-txt-2">Sin liberaciones.</p>
+                    ) : (
+                      <div className="divide-y divide-yo-border">
+                        {payouts.map((p) => (
+                          <div key={p.id} className="p-4 grid grid-cols-2 md:grid-cols-5 gap-3 text-sm">
+                            <div><p className="text-[10px] uppercase tracking-wider text-yo-txt-3 font-medium">Bruto</p><p className="font-mono">{formatMoney(p.gross_cents, p.currency)}</p></div>
+                            <div><p className="text-[10px] uppercase tracking-wider text-yo-txt-3 font-medium">Comisión</p><p className="font-mono">{formatMoney(p.commission_cents, p.currency)}</p></div>
+                            <div><p className="text-[10px] uppercase tracking-wider text-yo-txt-3 font-medium">Neto</p><p className="font-mono font-semibold">{formatMoney(p.net_cents, p.currency)}</p></div>
+                            <div><p className="text-[10px] uppercase tracking-wider text-yo-txt-3 font-medium">Estado</p><p>{p.status}</p></div>
+                            <div><p className="text-[10px] uppercase tracking-wider text-yo-txt-3 font-medium">Ref</p><p className="font-mono text-[11px] truncate">{p.provider_ref}</p></div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="surface-card">
+                    <div className="p-4 border-b border-yo-border">
+                      <h3 className="text-sm font-semibold text-yo-txt">Intents históricos</h3>
+                    </div>
+                    {intents.length === 0 ? (
+                      <p className="p-4 text-sm text-yo-txt-2">Sin intents.</p>
+                    ) : (
+                      <div className="divide-y divide-yo-border">
+                        {intents.map((i) => (
+                          <div key={i.id} className="p-3 flex justify-between text-sm">
+                            <span className="font-mono text-xs text-yo-txt-2 truncate">{i.provider_ref ?? i.id}</span>
+                            <span className="text-[10px] uppercase tracking-wider text-yo-txt-3 font-medium">{i.method} · {i.status}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </section>
+              )}
+
+              {tab === "auditoria" && (
+                <section className="surface-card">
+                  <div className="p-4 border-b border-yo-border flex items-center justify-between">
+                    <h3 className="text-sm font-semibold text-yo-txt">Bitácora de eventos</h3>
+                    <button
+                      onClick={exportAuditCSV}
+                      disabled={events.length === 0}
+                      className="px-3 py-1.5 text-xs font-medium border border-yo-border rounded-md hover:bg-yo-raised disabled:opacity-50"
+                    >
+                      Exportar CSV
+                    </button>
+                  </div>
+                  {events.length === 0 ? (
+                    <p className="p-4 text-sm text-yo-txt-2">Sin eventos.</p>
+                  ) : (
+                    <ul className="divide-y divide-yo-border">
+                      {events.map((e) => (
+                        <li key={e.id} className="p-3 flex justify-between gap-4 text-sm">
+                          <span className="font-mono text-xs text-yo-txt">{e.event_type}</span>
+                          <span className="text-[11px] text-yo-txt-3">{new Date(e.created_at).toLocaleString("es-MX")}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </section>
+              )}
+            </div>
+
+            {/* SIDE 30 */}
+            <aside className="flex flex-col gap-4 lg:sticky lg:top-4 lg:self-start">
+              {/* Actions */}
+              <div className="surface-card p-4">
+                <div className="text-[10px] uppercase tracking-wider text-yo-txt-3 font-medium mb-3">Acciones</div>
+                <div className="flex flex-col gap-2">
+                  {tx.status === "draft" && isBuyer && (
+                    <>
+                      <button disabled={busy} onClick={() => updateStatus("awaiting_funding")} className={btnPrimary}>Publicar y solicitar fondeo</button>
+                      <button disabled={busy} onClick={() => updateStatus("cancelled", { cancelled_at: new Date().toISOString() })} className={btnGhost}>Cancelar borrador</button>
+                    </>
+                  )}
+                  {tx.status === "awaiting_funding" && isBuyer && !activeIntent && (
+                    <>
+                      <button disabled={busy} onClick={() => handleCreateIntent("spei")} className={btnPrimary}>Generar CLABE SPEI</button>
+                      <button disabled={busy} onClick={() => handleCreateIntent("card")} className={btnGhost}>Pagar con tarjeta</button>
+                    </>
+                  )}
+                  {tx.status === "funded" && (
+                    <button disabled={busy} onClick={() => updateStatus("in_progress")} className={btnPrimary}>Iniciar operación</button>
+                  )}
                   {(tx.status === "in_progress" || tx.status === "en_verificacion" || tx.status === "conditions_met") && (
-                    <button onClick={() => setDisputeOpen(true)} className={btnDanger}>Abrir disputa</button>
+                    <>
+                      {allMet && tx.status !== "conditions_met" && (
+                        <button disabled={busy} onClick={() => updateStatus("conditions_met")} className={btnPrimary}>Marcar cumplidas</button>
+                      )}
+                      {isBuyer && tx.status === "conditions_met" && (
+                        <button disabled={busy} onClick={handleRelease} className={btnPrimary}>
+                          <Wallet className="h-4 w-4 mr-1.5 inline" /> Liberar fondos
+                        </button>
+                      )}
+                      <button disabled={busy} onClick={() => setDisputeOpen(true)} className={btnDanger}>
+                        <ShieldAlert className="h-4 w-4 mr-1.5 inline" /> Abrir disputa
+                      </button>
+                    </>
+                  )}
+                  {tx.status === "disputed" && (
+                    <Link to="/disputes" className={btnGhost}>Ir a la disputa</Link>
+                  )}
+                  {["released", "cancelled", "refunded"].includes(tx.status) && (
+                    <p className="text-xs text-yo-txt-2">Sin acciones disponibles.</p>
                   )}
                 </div>
-              )}
-            </section>
-          )}
+              </div>
 
-          {tab === "auditoria" && (
-            <section>
-              <div className="mb-3 flex justify-end">
-                <button onClick={exportAuditCSV} disabled={events.length === 0} className={btnGhost}>
-                  Exportar CSV
-                </button>
+              {/* Parties */}
+              <div className="flex flex-col gap-2">
+                <div className="text-[10px] uppercase tracking-wider text-yo-txt-3 font-medium px-1">Partes</div>
+                <EntityCard
+                  title={isBuyer ? "Tú" : "Comprador"}
+                  role="COMPRADOR"
+                  subtitle={isBuyer ? user.email ?? undefined : undefined}
+                />
+                <EntityCard
+                  title={tx.beneficiario_nombre || tx.counterparty_email || "Vendedor"}
+                  role="VENDEDOR"
+                  rfc={tx.beneficiario_rfc ?? undefined}
+                  subtitle={!isBuyer ? "Tú" : tx.counterparty_email ?? undefined}
+                />
               </div>
-              <div className="border border-yo-border bg-background">
-                {events.length === 0 && <p className="p-5 text-sm text-muted-foreground">Sin eventos.</p>}
-                <ul className="divide-y divide-yokto-black/20">
-                  {events.map((e) => (
-                    <li key={e.id} className="p-4 flex justify-between gap-4 text-sm">
-                      <span className="font-mono text-foreground">{e.event_type}</span>
-                      <span className="text-muted-foreground text-[11px] uppercase tracking-[0.14em]">
-                        {new Date(e.created_at).toLocaleString("es-MX")}
-                      </span>
+
+              {/* Financial breakdown */}
+              <div className="surface-card p-4">
+                <div className="text-[10px] uppercase tracking-wider text-yo-txt-3 font-medium mb-3">Desglose</div>
+                <dl className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <dt className="text-yo-txt-2">Monto operación</dt>
+                    <dd className="font-mono text-yo-txt">{formatMoney(tx.amount_cents, tx.currency)}</dd>
+                  </div>
+                  <div className="flex justify-between">
+                    <dt className="text-yo-txt-2">Comisión YOKTO</dt>
+                    <dd className="font-mono text-yo-txt">{formatMoney(commission, tx.currency)}</dd>
+                  </div>
+                  <div className="flex justify-between border-t border-yo-border pt-2">
+                    <dt className="text-yo-txt-2 font-medium">Neto al vendedor</dt>
+                    <dd className="font-mono font-semibold text-yo-txt">{formatMoney(tx.amount_cents - (tx.commission_payer === "seller" ? commission : 0), tx.currency)}</dd>
+                  </div>
+                </dl>
+              </div>
+
+              {/* Deadlines */}
+              {(tx.funding_deadline || tx.delivery_deadline) && (
+                <div className="surface-card p-4">
+                  <div className="text-[10px] uppercase tracking-wider text-yo-txt-3 font-medium mb-3">Fechas clave</div>
+                  <ul className="space-y-2 text-xs">
+                    {tx.funding_deadline && (
+                      <li className="flex justify-between">
+                        <span className="text-yo-txt-2">Fondeo</span>
+                        <span className="text-yo-txt">{new Date(tx.funding_deadline).toLocaleDateString("es-MX")}</span>
+                      </li>
+                    )}
+                    {tx.delivery_deadline && (
+                      <li className="flex justify-between">
+                        <span className="text-yo-txt-2">Entrega</span>
+                        <span className="text-yo-txt">{new Date(tx.delivery_deadline).toLocaleDateString("es-MX")}</span>
+                      </li>
+                    )}
+                    <li className="flex justify-between">
+                      <span className="text-yo-txt-2">Creada</span>
+                      <span className="text-yo-txt">{new Date(tx.created_at).toLocaleDateString("es-MX")}</span>
                     </li>
-                  ))}
-                </ul>
+                  </ul>
+                </div>
+              )}
+
+              <div className="text-[10px] text-yo-txt-3 px-1">
+                Vista {role === "buyer" ? "de comprador" : "de vendedor"} · Estado: {uiStatus}
               </div>
-            </section>
-          )}
+            </aside>
+          </div>
         </div>
       </main>
 
       {disputeOpen && (
         <div className="fixed inset-0 z-50 bg-black/50 grid place-items-center p-4" onClick={() => setDisputeOpen(false)}>
-          <div className="w-full max-w-lg border border-yo-border bg-background p-6" onClick={(e) => e.stopPropagation()}>
-            <h3 className="font-display text-3xl tracking-wide">Abrir disputa</h3>
-            <p className="mt-1 text-sm text-muted-foreground">Detalla el problema con evidencia clara. Un mediador de YOKTO revisará el caso.</p>
+          <div className="w-full max-w-lg surface-card p-6" onClick={(e) => e.stopPropagation()}>
+            <h3 className="text-lg font-semibold text-yo-txt">Abrir disputa</h3>
+            <p className="mt-1 text-sm text-yo-txt-2">Detalla el problema con evidencia clara. Un mediador de YOKTO revisará el caso.</p>
             <div className="mt-5 space-y-4">
               <label className="block text-sm">
-                <span className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">Motivo</span>
-                <select value={disputeReason} onChange={(e) => setDisputeReason(e.target.value as never)} className="input-editorial w-full mt-1">
+                <span className="text-[10px] uppercase tracking-wider text-yo-txt-3 font-medium">Motivo</span>
+                <select value={disputeReason} onChange={(e) => setDisputeReason(e.target.value as never)} className="mt-1 w-full h-9 px-2 rounded-md border border-yo-border bg-yo-surface text-sm">
                   <option value="incumplimiento_hito">Incumplimiento de hito</option>
                   <option value="documentos_invalidos">Documentos inválidos</option>
                   <option value="mercancia_incompleta">Mercancía incompleta</option>
@@ -590,11 +653,11 @@ function TxDetail() {
                 </select>
               </label>
               <label className="block text-sm">
-                <span className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">Descripción (mín. 100 caracteres)</span>
-                <textarea rows={5} value={disputeDesc} onChange={(e) => setDisputeDesc(e.target.value)} className="input-editorial w-full mt-1" placeholder="Explica qué pasó, cuándo y qué esperas como resolución. Incluye fechas, montos y evidencia." />
-                <span className="text-[11px] text-muted-foreground mt-1 block">{disputeDesc.trim().length}/100</span>
+                <span className="text-[10px] uppercase tracking-wider text-yo-txt-3 font-medium">Descripción (mín. 100 caracteres)</span>
+                <textarea rows={5} value={disputeDesc} onChange={(e) => setDisputeDesc(e.target.value)} className="mt-1 w-full px-2 py-2 rounded-md border border-yo-border bg-yo-surface text-sm" placeholder="Explica qué pasó, cuándo y qué esperas como resolución." />
+                <span className="text-[11px] text-yo-txt-3 mt-1 block">{disputeDesc.trim().length}/100</span>
               </label>
-              {error && <div role="alert" className="border border-[#FF3B3B] bg-[#FF3B3B]/10 text-[#FF3B3B] p-3 text-sm">{error}</div>}
+              {error && <div role="alert" className="rounded-md border border-red-300 bg-red-50 text-red-800 p-2 text-xs">{error}</div>}
               <div className="flex justify-end gap-2">
                 <button onClick={() => setDisputeOpen(false)} className={btnGhost}>Cancelar</button>
                 <button disabled={busy || disputeDesc.trim().length < 100} onClick={submitDispute} className={btnDanger}>Continuar al depósito</button>
@@ -603,19 +666,10 @@ function TxDetail() {
           </div>
         </div>
       )}
-    </div>
+    </AppShell>
   );
 }
 
-const btnPrimary = "px-5 py-2.5 bg-yo-ac text-white text-[12px] uppercase tracking-[0.14em] font-semibold border border-yo-border hover:bg-yo-ac-h disabled:opacity-50";
-const btnGhost = "px-5 py-2.5 border border-yo-border text-[12px] uppercase tracking-[0.14em] font-semibold hover:bg-yo-ac-h hover:text-white disabled:opacity-50";
-const btnDanger = "px-5 py-2.5 border border-[#FF3B3B] text-[#FF3B3B] text-[12px] uppercase tracking-[0.14em] font-semibold hover:bg-[#FF3B3B] hover:text-white disabled:opacity-50";
-
-function Cell({ label, value, big }: { label: string; value: string; big?: boolean }) {
-  return (
-    <div className="border border-yo-border p-4 bg-background">
-      <p className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">{label}</p>
-      <p className={`mt-1 font-display tracking-wide text-foreground break-all ${big ? "text-3xl" : "text-xl"}`}>{value}</p>
-    </div>
-  );
-}
+const btnPrimary = "w-full inline-flex items-center justify-center px-3 py-2 bg-yo-ac text-white text-sm font-medium rounded-md hover:bg-yo-ac-h disabled:opacity-50 transition";
+const btnGhost = "w-full inline-flex items-center justify-center px-3 py-2 border border-yo-border text-yo-txt text-sm font-medium rounded-md hover:bg-yo-raised disabled:opacity-50 transition";
+const btnDanger = "w-full inline-flex items-center justify-center px-3 py-2 border border-red-300 text-red-700 text-sm font-medium rounded-md hover:bg-red-50 disabled:opacity-50 transition";
