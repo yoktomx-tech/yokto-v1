@@ -50,6 +50,56 @@ export type Database = {
         }
         Relationships: []
       }
+      audit_events: {
+        Row: {
+          action: string
+          actor_user_id: string | null
+          after: Json | null
+          before: Json | null
+          created_at: string
+          entity_id: string | null
+          entity_type: string
+          id: string
+          ip: string | null
+          org_id: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          action: string
+          actor_user_id?: string | null
+          after?: Json | null
+          before?: Json | null
+          created_at?: string
+          entity_id?: string | null
+          entity_type: string
+          id?: string
+          ip?: string | null
+          org_id?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          action?: string
+          actor_user_id?: string | null
+          after?: Json | null
+          before?: Json | null
+          created_at?: string
+          entity_id?: string | null
+          entity_type?: string
+          id?: string
+          ip?: string | null
+          org_id?: string | null
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "audit_events_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       audit_log: {
         Row: {
           action: string
@@ -816,6 +866,53 @@ export type Database = {
           },
         ]
       }
+      invitations: {
+        Row: {
+          accepted_at: string | null
+          accepted_by: string | null
+          created_at: string
+          email: string
+          expires_at: string
+          id: string
+          invited_by: string | null
+          org_id: string
+          org_role: Database["public"]["Enums"]["org_role"]
+          token: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          accepted_by?: string | null
+          created_at?: string
+          email: string
+          expires_at?: string
+          id?: string
+          invited_by?: string | null
+          org_id: string
+          org_role: Database["public"]["Enums"]["org_role"]
+          token: string
+        }
+        Update: {
+          accepted_at?: string | null
+          accepted_by?: string | null
+          created_at?: string
+          email?: string
+          expires_at?: string
+          id?: string
+          invited_by?: string | null
+          org_id?: string
+          org_role?: Database["public"]["Enums"]["org_role"]
+          token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invitations_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       kyc_documents: {
         Row: {
           created_at: string
@@ -861,6 +958,47 @@ export type Database = {
         }
         Relationships: []
       }
+      memberships: {
+        Row: {
+          created_at: string
+          invited_by: string | null
+          joined_at: string
+          org_id: string
+          org_role: Database["public"]["Enums"]["org_role"]
+          status: Database["public"]["Enums"]["membership_status"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          invited_by?: string | null
+          joined_at?: string
+          org_id: string
+          org_role: Database["public"]["Enums"]["org_role"]
+          status?: Database["public"]["Enums"]["membership_status"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          invited_by?: string | null
+          joined_at?: string
+          org_id?: string
+          org_role?: Database["public"]["Enums"]["org_role"]
+          status?: Database["public"]["Enums"]["membership_status"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "memberships_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           body: string | null
@@ -894,6 +1032,51 @@ export type Database = {
           title?: string
           type?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      organizations: {
+        Row: {
+          created_at: string
+          domicilio_fiscal: Json | null
+          id: string
+          kyb_status: Database["public"]["Enums"]["kyb_status"]
+          name: string
+          owner_user_id: string | null
+          razon_social: string | null
+          regimen_fiscal: string | null
+          rfc: string | null
+          slug: string | null
+          type: Database["public"]["Enums"]["org_type"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          domicilio_fiscal?: Json | null
+          id?: string
+          kyb_status?: Database["public"]["Enums"]["kyb_status"]
+          name: string
+          owner_user_id?: string | null
+          razon_social?: string | null
+          regimen_fiscal?: string | null
+          rfc?: string | null
+          slug?: string | null
+          type?: Database["public"]["Enums"]["org_type"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          domicilio_fiscal?: Json | null
+          id?: string
+          kyb_status?: Database["public"]["Enums"]["kyb_status"]
+          name?: string
+          owner_user_id?: string | null
+          razon_social?: string | null
+          regimen_fiscal?: string | null
+          rfc?: string | null
+          slug?: string | null
+          type?: Database["public"]["Enums"]["org_type"]
+          updated_at?: string
         }
         Relationships: []
       }
@@ -1017,6 +1200,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      platform_roles: {
+        Row: {
+          created_at: string
+          granted_by: string | null
+          id: string
+          role: Database["public"]["Enums"]["platform_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          granted_by?: string | null
+          id?: string
+          role: Database["public"]["Enums"]["platform_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          granted_by?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["platform_role"]
+          user_id?: string
+        }
+        Relationships: []
       }
       postal_code_lookups: {
         Row: {
@@ -1727,11 +1934,34 @@ export type Database = {
     }
     Functions: {
       cleanup_abandoned_onboarding: { Args: never; Returns: number }
+      has_org_role: {
+        Args: {
+          _org_id: string
+          _role: Database["public"]["Enums"]["org_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      has_platform_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["platform_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
+        Returns: boolean
+      }
+      is_org_member: {
+        Args: { _org_id: string; _user_id: string }
+        Returns: boolean
+      }
+      is_org_owner: {
+        Args: { _org_id: string; _user_id: string }
         Returns: boolean
       }
     }
@@ -1751,6 +1981,7 @@ export type Database = {
         | "comercio"
         | "manufactura"
         | "otro"
+      kyb_status: "not_started" | "in_review" | "approved" | "rejected"
       kyc_document_type:
         | "ine"
         | "passport"
@@ -1765,7 +1996,21 @@ export type Database = {
         | "cedula_fiscal"
       kyc_nivel: "basico" | "intermedio" | "avanzado"
       kyc_status: "pending" | "in_review" | "approved" | "rejected"
+      membership_status: "active" | "invited" | "suspended" | "removed"
+      org_role:
+        | "owner"
+        | "buyer_admin"
+        | "buyer_user"
+        | "seller_admin"
+        | "seller_user"
+        | "auditor"
+      org_type: "individual" | "business"
       payment_method: "spei" | "card"
+      platform_role:
+        | "compliance"
+        | "dispute_manager"
+        | "support"
+        | "platform_admin"
       transaction_status:
         | "draft"
         | "awaiting_funding"
@@ -1922,6 +2167,7 @@ export const Constants = {
         "manufactura",
         "otro",
       ],
+      kyb_status: ["not_started", "in_review", "approved", "rejected"],
       kyc_document_type: [
         "ine",
         "passport",
@@ -1937,7 +2183,23 @@ export const Constants = {
       ],
       kyc_nivel: ["basico", "intermedio", "avanzado"],
       kyc_status: ["pending", "in_review", "approved", "rejected"],
+      membership_status: ["active", "invited", "suspended", "removed"],
+      org_role: [
+        "owner",
+        "buyer_admin",
+        "buyer_user",
+        "seller_admin",
+        "seller_user",
+        "auditor",
+      ],
+      org_type: ["individual", "business"],
       payment_method: ["spei", "card"],
+      platform_role: [
+        "compliance",
+        "dispute_manager",
+        "support",
+        "platform_admin",
+      ],
       transaction_status: [
         "draft",
         "awaiting_funding",
