@@ -34,6 +34,8 @@ import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedTransactionsNewRouteImport } from './routes/_authenticated/transactions.new'
 import { Route as AuthenticatedTransactionsIdRouteImport } from './routes/_authenticated/transactions.$id'
 import { Route as AuthenticatedSettingsOrganizationRouteImport } from './routes/_authenticated/settings.organization'
+import { Route as AuthenticatedPaymentsLedgerRouteImport } from './routes/_authenticated/payments.ledger'
+import { Route as AuthenticatedPaymentsFiscalRouteImport } from './routes/_authenticated/payments.fiscal'
 import { Route as AuthenticatedPaymentsIdRouteImport } from './routes/_authenticated/payments.$id'
 import { Route as AuthenticatedOnboardingPendienteRouteImport } from './routes/_authenticated/onboarding.pendiente'
 import { Route as AuthenticatedDisputesIdRouteImport } from './routes/_authenticated/disputes.$id'
@@ -173,6 +175,18 @@ const AuthenticatedSettingsOrganizationRoute =
     path: '/settings/organization',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedPaymentsLedgerRoute =
+  AuthenticatedPaymentsLedgerRouteImport.update({
+    id: '/ledger',
+    path: '/ledger',
+    getParentRoute: () => AuthenticatedPaymentsRoute,
+  } as any)
+const AuthenticatedPaymentsFiscalRoute =
+  AuthenticatedPaymentsFiscalRouteImport.update({
+    id: '/fiscal',
+    path: '/fiscal',
+    getParentRoute: () => AuthenticatedPaymentsRoute,
+  } as any)
 const AuthenticatedPaymentsIdRoute = AuthenticatedPaymentsIdRouteImport.update({
   id: '/$id',
   path: '/$id',
@@ -250,6 +264,8 @@ export interface FileRoutesByFullPath {
   '/disputes/$id': typeof AuthenticatedDisputesIdRoute
   '/onboarding/pendiente': typeof AuthenticatedOnboardingPendienteRoute
   '/payments/$id': typeof AuthenticatedPaymentsIdRoute
+  '/payments/fiscal': typeof AuthenticatedPaymentsFiscalRoute
+  '/payments/ledger': typeof AuthenticatedPaymentsLedgerRoute
   '/settings/organization': typeof AuthenticatedSettingsOrganizationRouteWithChildren
   '/transactions/$id': typeof AuthenticatedTransactionsIdRoute
   '/transactions/new': typeof AuthenticatedTransactionsNewRoute
@@ -285,6 +301,8 @@ export interface FileRoutesByTo {
   '/disputes/$id': typeof AuthenticatedDisputesIdRoute
   '/onboarding/pendiente': typeof AuthenticatedOnboardingPendienteRoute
   '/payments/$id': typeof AuthenticatedPaymentsIdRoute
+  '/payments/fiscal': typeof AuthenticatedPaymentsFiscalRoute
+  '/payments/ledger': typeof AuthenticatedPaymentsLedgerRoute
   '/settings/organization': typeof AuthenticatedSettingsOrganizationRouteWithChildren
   '/transactions/$id': typeof AuthenticatedTransactionsIdRoute
   '/transactions/new': typeof AuthenticatedTransactionsNewRoute
@@ -322,6 +340,8 @@ export interface FileRoutesById {
   '/_authenticated/disputes/$id': typeof AuthenticatedDisputesIdRoute
   '/_authenticated/onboarding/pendiente': typeof AuthenticatedOnboardingPendienteRoute
   '/_authenticated/payments/$id': typeof AuthenticatedPaymentsIdRoute
+  '/_authenticated/payments/fiscal': typeof AuthenticatedPaymentsFiscalRoute
+  '/_authenticated/payments/ledger': typeof AuthenticatedPaymentsLedgerRoute
   '/_authenticated/settings/organization': typeof AuthenticatedSettingsOrganizationRouteWithChildren
   '/_authenticated/transactions/$id': typeof AuthenticatedTransactionsIdRoute
   '/_authenticated/transactions/new': typeof AuthenticatedTransactionsNewRoute
@@ -359,6 +379,8 @@ export interface FileRouteTypes {
     | '/disputes/$id'
     | '/onboarding/pendiente'
     | '/payments/$id'
+    | '/payments/fiscal'
+    | '/payments/ledger'
     | '/settings/organization'
     | '/transactions/$id'
     | '/transactions/new'
@@ -394,6 +416,8 @@ export interface FileRouteTypes {
     | '/disputes/$id'
     | '/onboarding/pendiente'
     | '/payments/$id'
+    | '/payments/fiscal'
+    | '/payments/ledger'
     | '/settings/organization'
     | '/transactions/$id'
     | '/transactions/new'
@@ -430,6 +454,8 @@ export interface FileRouteTypes {
     | '/_authenticated/disputes/$id'
     | '/_authenticated/onboarding/pendiente'
     | '/_authenticated/payments/$id'
+    | '/_authenticated/payments/fiscal'
+    | '/_authenticated/payments/ledger'
     | '/_authenticated/settings/organization'
     | '/_authenticated/transactions/$id'
     | '/_authenticated/transactions/new'
@@ -632,6 +658,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSettingsOrganizationRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/payments/ledger': {
+      id: '/_authenticated/payments/ledger'
+      path: '/ledger'
+      fullPath: '/payments/ledger'
+      preLoaderRoute: typeof AuthenticatedPaymentsLedgerRouteImport
+      parentRoute: typeof AuthenticatedPaymentsRoute
+    }
+    '/_authenticated/payments/fiscal': {
+      id: '/_authenticated/payments/fiscal'
+      path: '/fiscal'
+      fullPath: '/payments/fiscal'
+      preLoaderRoute: typeof AuthenticatedPaymentsFiscalRouteImport
+      parentRoute: typeof AuthenticatedPaymentsRoute
+    }
     '/_authenticated/payments/$id': {
       id: '/_authenticated/payments/$id'
       path: '/$id'
@@ -738,10 +778,14 @@ const AuthenticatedDisputesRouteWithChildren =
 
 interface AuthenticatedPaymentsRouteChildren {
   AuthenticatedPaymentsIdRoute: typeof AuthenticatedPaymentsIdRoute
+  AuthenticatedPaymentsFiscalRoute: typeof AuthenticatedPaymentsFiscalRoute
+  AuthenticatedPaymentsLedgerRoute: typeof AuthenticatedPaymentsLedgerRoute
 }
 
 const AuthenticatedPaymentsRouteChildren: AuthenticatedPaymentsRouteChildren = {
   AuthenticatedPaymentsIdRoute: AuthenticatedPaymentsIdRoute,
+  AuthenticatedPaymentsFiscalRoute: AuthenticatedPaymentsFiscalRoute,
+  AuthenticatedPaymentsLedgerRoute: AuthenticatedPaymentsLedgerRoute,
 }
 
 const AuthenticatedPaymentsRouteWithChildren =

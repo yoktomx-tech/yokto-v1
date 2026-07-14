@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
@@ -13,7 +13,7 @@ import { FundingWizard } from "@/components/payments/funding-wizard";
 import { ReleaseCalendar } from "@/components/payments/release-calendar";
 import { matchesTab, type TabId } from "@/lib/payments-catalog";
 import { PageHeader } from "@/components/page-header";
-import { Banknote, Plus, Download } from "lucide-react";
+import { Banknote, Plus, Download, BookOpen, FileText } from "lucide-react";
 import { exportPaymentsCsv } from "@/lib/payments-csv";
 import { usePaymentsRealtime } from "@/hooks/use-payments-realtime";
 
@@ -72,6 +72,18 @@ function PaymentsPage() {
           subtitle={`Vista ${role === "buyer" ? "de comprador" : "de vendedor"} — pagos, retenciones y liberaciones procesados por la pasarela.`}
           actions={
             <div className="flex items-center gap-2">
+              <Link
+                to="/payments/ledger"
+                className="inline-flex items-center gap-1.5 px-3 py-2 bg-yo-card border border-yo-border text-yo-t1 text-sm font-medium rounded-md hover:bg-yo-hover"
+              >
+                <BookOpen className="size-4" /> Ledger
+              </Link>
+              <Link
+                to="/payments/fiscal"
+                className="inline-flex items-center gap-1.5 px-3 py-2 bg-yo-card border border-yo-border text-yo-t1 text-sm font-medium rounded-md hover:bg-yo-hover"
+              >
+                <FileText className="size-4" /> Fiscales
+              </Link>
               <button
                 onClick={() => exportPaymentsCsv(filtered)}
                 disabled={filtered.length === 0}
