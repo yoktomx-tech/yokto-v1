@@ -101,7 +101,9 @@ export const getTransactionDraft = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { data: tx, error } = await context.supabase
       .from("transactions")
-      .select("*, transaction_hitos(*)")
+      .select(
+        "id, numero, sector, description, status, buyer_id, seller_id, counterparty_email, beneficiario_nombre, amount_cents, currency, payment_method, comision_cents, iva_comision_cents, total_a_depositar_cents, descuento_volumetrico, auto_release_global, repse_requerido, funding_deadline, delivery_deadline, contrato_pdf_url, created_at, updated_at, transaction_hitos(id, orden, titulo, descripcion, monto_porcentaje, monto_cents, fecha_limite, tipo_verificacion, documentos_requeridos, evidencia_requerida, responsable, auto_release, estado)",
+      )
       .eq("id", data.id)
       .maybeSingle();
     if (error) throw new Error(error.message);
