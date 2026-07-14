@@ -280,8 +280,9 @@ function NewTransactionWizard() {
               fechaFin={fechaFin} setFechaFin={setFechaFin}
             />
           )}
-          {step === 5 && (
+          {(step === 5 || step === 6) && (
             <Step5
+              mode={step === 5 ? "review" : "sign"}
               numero={numero}
               sector={sector}
               rol={rol}
@@ -312,18 +313,18 @@ function NewTransactionWizard() {
         <div className="mt-6 flex justify-between gap-3">
           <button
             onClick={() => (step === 1 ? handleCancel() : setStep((s) => s - 1))}
-            disabled={step === 5 && firmaResult?.activated === true}
+            disabled={step === 6 && (firmando || firmaResult?.activated === true)}
             className="px-5 py-2.5 border border-yo-border text-[12px] uppercase tracking-[0.14em] font-semibold hover:bg-yo-ac-h hover:text-white disabled:opacity-40"
           >
             {step === 1 ? "Cancelar" : "Atrás"}
           </button>
-          {step < 5 ? (
+          {step < 6 ? (
             <button
               onClick={goNext}
               disabled={saving}
               className="px-6 py-2.5 bg-yo-ac text-white text-[12px] uppercase tracking-[0.14em] font-semibold border border-yo-border hover:bg-yo-ac-h disabled:opacity-50"
             >
-              {saving ? "Guardando…" : "Continuar →"}
+              {saving ? "Guardando…" : step === 5 ? "Continuar a firma →" : "Continuar →"}
             </button>
           ) : firmaResult ? (
             <button
@@ -342,6 +343,7 @@ function NewTransactionWizard() {
             </button>
           )}
         </div>
+
 
 
         {sectorDef && step > 1 && (
