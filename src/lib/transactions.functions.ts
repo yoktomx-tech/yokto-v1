@@ -242,3 +242,95 @@ export const saveTransactionMonto = createServerFn({ method: "POST" })
     return { ok: true, fee };
   });
 
+// ─── Firmar y activar transacción (Step 5) ──────────────────────────────────
+export const signAndActivateTransaction = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) =>
+    z.object({
+      transaction_id: z.string().uuid(),
+      acepta_terminos: z.literal(true),
+      acepta_retencion: z.literal(true),
+    }).parse(i),
+  )
+  .handler(async ({ data, context }) => {
+    const { data: tx, error: txErr } = await context.supabase
+      .from("transactions")
+      .select("id, numero, status, buyer_id, seller_id, creado_por, fecha_firma_pagador, fecha_firma_beneficiario, counterparty_email, beneficiario_nombre, amount_cents, total_a_depositar_cents, description")
+      .eq("id", data.transaction_id)
+      .maybeSingle();
+    if (txErr) throw new Error(txErr.message);
+    if (!tx) throw new Error("Transacción no encontrada");
+    if (tx.creado_por !== context.userId && tx.buyer_id !== context.userId && tx.seller_id !== context.userId) {
+      throw new Error("No autorizado");
+    }
+    if (tx.status !== "draft" && tx.status !== "pending_signature") {
+      throw new Error("Esta transacción ya no admite firmas");
+    }
+
+    // Validar hitos existen y suman 100
+    const { data: hitos } = await context.supabase
+      .from("transaction_hitos")
+      .select("id, monto_porcentaje")
+      .eq("transaction_id", data.transaction_id);
+    const suma = (hitos ?? []).reduce((s, h) => s + Number(h.monto_porcentaje), 0);
+    if (!hitos || hitos.length === 0 || Math.abs(suma - 100) > 0.01) {
+      throw new Error("Los hitos deben estar definidos y sumar 100%");
+    }
+    if (!tx.amount_cents || tx.amount_cents < 10_000) {
+      throw new Error("Define un monto válido en el paso 4");
+    }
+
+    const now = new Date().toISOString();
+    const isBuyer = tx.buyer_id === context.userId;
+    const isSeller = tx.seller_id === context.userId;
+
+    const update: Record<string, unknown> = {};
+    if (isBuyer && !tx.fecha_firma_pagador) update.fecha_firma_pagador = now;
+    if (isSeller && !tx.fecha_firma_beneficiario) update.fecha_firma_beneficiario = now;
+
+    const firmaPagador = update.fecha_firma_pagador ?? tx.fecha_firma_pagador;
+    const firmaBenef = update.fecha_firma_beneficiario ?? tx.fecha_firma_beneficiario;
+
+    // Contraparte pendiente: si el seller_id es null (fue invitación), quedamos pending_signature
+    const contraparteConCuenta = Boolean(tx.buyer_id && tx.seller_id);
+    if (contraparteConCuenta && firmaPagador && firmaBenef) {
+      update.status = "awaiting_funding";
+      update.fecha_activacion = now;
+    } else {
+      update.status = "pending_signature";
+    }
+
+    const { error: upErr } = await context.supabase
+      .from("transactions")
+      .update(update)
+      .eq("id", data.transaction_id);
+    if (upErr) throw new Error(upErr.message);
+
+    // Notificar a contraparte (si tiene cuenta)
+    const contraparteId = isBuyer ? tx.seller_id : tx.buyer_id;
+    if (contraparteId) {
+      await context.supabase.from("notifications").insert({
+        user_id: contraparteId,
+        type: update.status === "awaiting_funding" ? "transaction_activated" : "transaction_signature_requested",
+        title: update.status === "awaiting_funding"
+          ? `Transacción ${tx.numero} activada`
+          : `Firma pendiente: ${tx.numero}`,
+        body: update.status === "awaiting_funding"
+          ? "Ambas partes firmaron. La transacción está lista para fondearse."
+          : "Tu contraparte firmó la transacción. Revisa y firma para activarla.",
+        link: `/transactions/${tx.id}`,
+      });
+    }
+
+    // Registrar evento
+    await context.supabase.from("transaction_events").insert({
+      transaction_id: tx.id,
+      event_type: isBuyer ? "signed_by_buyer" : "signed_by_seller",
+      actor_id: context.userId,
+      metadata: { status: update.status },
+    });
+
+    return { ok: true, status: update.status as string, activated: update.status === "awaiting_funding" };
+  });
+
+
