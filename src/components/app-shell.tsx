@@ -16,7 +16,8 @@ const NAV = [
   { to: "/reports",      icon: FileText,        label: "Fiscal" },
   { to: "/api-clients",  icon: Users,           label: "API" },
   { to: "/kyc",          icon: ShieldCheck,     label: "KYC" },
-  { to: "/admin",        icon: Settings,        label: "Admin" },
+  { to: "/settings/organization", icon: Settings, label: "Organización" },
+  { to: "/admin",        icon: Users,           label: "Admin" },
 ] as const;
 
 export function AppShell({
