@@ -41,14 +41,14 @@ function ApiClientsPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
-      <main className="flex-1 container-editorial py-8 max-w-4xl">
-        <h1 className="text-2xl font-bold tracking-tight text-yo-txt">API pública</h1>
-        <p className="text-sm text-yo-txt-3 mt-1">
-          Genera credenciales para integrar YOKTO con tu ERP, marketplace o backend. Cada request debe firmarse con HMAC-SHA256.
-        </p>
+    <div className="flex flex-col gap-6">
+      <PageHeader
+        icon={Key}
+        title="API pública"
+        subtitle="Genera credenciales para integrar YOKTO con tu ERP, marketplace o backend. Cada request debe firmarse con HMAC-SHA256."
+      />
 
-        <div className="rounded-lg border border-yo-border bg-yo-surface p-5 mt-6">
+        <div className="rounded-lg border border-yo-border bg-yo-surface p-5">
           <h2 className="font-semibold flex items-center gap-2"><Key className="size-4" /> Nueva credencial</h2>
           <div className="flex gap-2 mt-3">
             <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Nombre (p.ej. ERP Producción)"
