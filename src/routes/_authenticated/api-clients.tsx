@@ -109,7 +109,6 @@ Headers:
         </div>
     </div>
   );
-  );
 }
 
 function SecretRow({ label, value }: { label: string; value: string }) {
