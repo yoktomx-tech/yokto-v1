@@ -12,7 +12,7 @@ export function getStripe(): Stripe | null {
     cached = null;
     return null;
   }
-  cached = new Stripe(key, { apiVersion: "2024-06-20", typescript: true });
+  cached = new Stripe(key, { typescript: true });
   return cached;
 }
 
