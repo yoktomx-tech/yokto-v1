@@ -1,4 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { AppShell } from "@/components/app-shell";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
@@ -31,7 +32,7 @@ type Contraparte = {
   rfc?: string | null;
 };
 
-const TOTAL_STEPS = 5;
+const TOTAL_STEPS = 6;
 
 function NewTransactionWizard() {
   const { user } = Route.useRouteContext();
@@ -207,7 +208,7 @@ function NewTransactionWizard() {
 
   if (kycOk === false) {
     return (
-      <main className="flex-1">
+      <AppShell>
         <div className="container-editorial py-16 max-w-2xl">
           <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Requisito</p>
           <h1 className="mt-2 font-display text-5xl tracking-wide">Completa tu verificación</h1>
@@ -219,12 +220,12 @@ function NewTransactionWizard() {
             Ir a onboarding
           </button>
         </div>
-      </main>
+      </AppShell>
     );
   }
 
   return (
-    <main className="flex-1">
+    <AppShell>
       <div className="container-editorial py-10 max-w-4xl">
         <div className="flex items-baseline justify-between gap-4">
           <div>
@@ -236,7 +237,8 @@ function NewTransactionWizard() {
               {step === 2 && "Partes de la transacción"}
               {step === 3 && "Hitos y condiciones"}
               {step === 4 && "Monto y comisiones"}
-              {step === 5 && "Revisión y firma"}
+              {step === 5 && "Revisión final"}
+              {step === 6 && "Firma y activación"}
             </h1>
           </div>
           <button
@@ -247,7 +249,7 @@ function NewTransactionWizard() {
           </button>
         </div>
 
-        <WizardProgress current={step} total={TOTAL_STEPS} labels={["Sector","Partes","Hitos","Monto","Revisión"]} />
+        <WizardProgress current={step} total={TOTAL_STEPS} labels={["Sector","Partes","Hitos","Monto","Revisión","Firma"]} />
 
         {error && (
           <div className="mt-6 border border-[#FF3B3B] bg-[#FF3B3B]/10 p-3 text-sm text-[#FF3B3B]">{error}</div>
@@ -278,8 +280,9 @@ function NewTransactionWizard() {
               fechaFin={fechaFin} setFechaFin={setFechaFin}
             />
           )}
-          {step === 5 && (
+          {(step === 5 || step === 6) && (
             <Step5
+              mode={step === 5 ? "review" : "sign"}
               numero={numero}
               sector={sector}
               rol={rol}
@@ -310,18 +313,18 @@ function NewTransactionWizard() {
         <div className="mt-6 flex justify-between gap-3">
           <button
             onClick={() => (step === 1 ? handleCancel() : setStep((s) => s - 1))}
-            disabled={step === 5 && firmaResult?.activated === true}
+            disabled={step === 6 && (firmando || firmaResult?.activated === true)}
             className="px-5 py-2.5 border border-yo-border text-[12px] uppercase tracking-[0.14em] font-semibold hover:bg-yo-ac-h hover:text-white disabled:opacity-40"
           >
             {step === 1 ? "Cancelar" : "Atrás"}
           </button>
-          {step < 5 ? (
+          {step < 6 ? (
             <button
               onClick={goNext}
               disabled={saving}
               className="px-6 py-2.5 bg-yo-ac text-white text-[12px] uppercase tracking-[0.14em] font-semibold border border-yo-border hover:bg-yo-ac-h disabled:opacity-50"
             >
-              {saving ? "Guardando…" : "Continuar →"}
+              {saving ? "Guardando…" : step === 5 ? "Continuar a firma →" : "Continuar →"}
             </button>
           ) : firmaResult ? (
             <button
@@ -342,6 +345,7 @@ function NewTransactionWizard() {
         </div>
 
 
+
         {sectorDef && step > 1 && (
           <div className="mt-6 border border-yo-border/40 bg-yo-bg/30 p-4 text-xs text-muted-foreground">
             <span className="font-semibold text-foreground">{sectorDef.emoji} {sectorDef.titulo}</span>
@@ -350,7 +354,7 @@ function NewTransactionWizard() {
           </div>
         )}
       </div>
-    </main>
+    </AppShell>
   );
 }
 
@@ -866,11 +870,12 @@ function FEES_PCT(sector: SectorId): number {
 
 // ─── Paso 5: Revisión y firma ───────────────────────────────────────────────
 function Step5({
-  numero, sector, rol, descripcion, contraparte, hitos, monto, metodoPago,
+  mode, numero, sector, rol, descripcion, contraparte, hitos, monto, metodoPago,
   fechaInicio, fechaFin,
   aceptaTerminos, setAceptaTerminos, aceptaRetencion, setAceptaRetencion,
   firmando, firmaResult, onFirmar,
 }: {
+  mode: "review" | "sign";
   numero: string | null;
   sector: SectorId | null;
   rol: Rol;
@@ -982,47 +987,52 @@ function Step5({
         </section>
       )}
 
-      {/* Términos */}
-      <section className="space-y-3 border border-yo-border p-4 bg-background">
-        <label className="flex items-start gap-3 cursor-pointer">
-          <input
-            type="checkbox"
-            className="mt-1"
-            checked={aceptaTerminos}
-            onChange={(e) => setAceptaTerminos(e.target.checked)}
-          />
-          <span className="text-sm text-foreground">
-            Declaro que la información es veraz y acepto los <a href="/terminos" target="_blank" className="underline">Términos y Condiciones</a>, el <a href="/privacidad" target="_blank" className="underline">Aviso de Privacidad</a> y las reglas de disputa de YOKTO.
-          </span>
-        </label>
-        <label className="flex items-start gap-3 cursor-pointer">
-          <input
-            type="checkbox"
-            className="mt-1"
-            checked={aceptaRetencion}
-            onChange={(e) => setAceptaRetencion(e.target.checked)}
-          />
-          <span className="text-sm text-foreground">
-            Entiendo que los fondos serán retenidos en cuenta de garantía hasta el cumplimiento verificable de cada hito y que YOKTO no es entidad financiera.
-          </span>
-        </label>
-      </section>
+      {mode === "sign" && (
+        <>
+          {/* Términos */}
+          <section className="space-y-3 border border-yo-border p-4 bg-background">
+            <label className="flex items-start gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                className="mt-1"
+                checked={aceptaTerminos}
+                onChange={(e) => setAceptaTerminos(e.target.checked)}
+              />
+              <span className="text-sm text-foreground">
+                Declaro que la información es veraz y acepto los <a href="/terminos" target="_blank" className="underline">Términos y Condiciones</a>, el <a href="/privacidad" target="_blank" className="underline">Aviso de Privacidad</a> y las reglas de disputa de YOKTO.
+              </span>
+            </label>
+            <label className="flex items-start gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                className="mt-1"
+                checked={aceptaRetencion}
+                onChange={(e) => setAceptaRetencion(e.target.checked)}
+              />
+              <span className="text-sm text-foreground">
+                Entiendo que los fondos serán retenidos en cuenta de garantía hasta el cumplimiento verificable de cada hito y que YOKTO no es entidad financiera.
+              </span>
+            </label>
+          </section>
 
-      <p className="text-[11px] text-muted-foreground">
-        Al pulsar <strong>Firmar y activar</strong> se registra tu firma electrónica con fecha, hora e IP.
-        {contraparte?.user_id
-          ? " Se notificará a tu contraparte para que firme también."
-          : " Se enviará una invitación por correo a la contraparte."}
-      </p>
+          <p className="text-[11px] text-muted-foreground">
+            Al pulsar <strong>Firmar y activar</strong> se registra tu firma electrónica con fecha, hora e IP.
+            {contraparte?.user_id
+              ? " Se notificará a tu contraparte para que firme también."
+              : " Se enviará una invitación por correo a la contraparte."}
+          </p>
 
-      {/* Botón inline redundante para mobile */}
-      <button
-        onClick={onFirmar}
-        disabled={firmando || !aceptaTerminos || !aceptaRetencion}
-        className="w-full md:hidden px-6 py-3 bg-yokto-black text-yokto-yellow text-[12px] uppercase tracking-[0.14em] font-semibold border border-yokto-black hover:opacity-90 disabled:opacity-40"
-      >
-        {firmando ? "Firmando…" : "Firmar y activar ✓"}
-      </button>
+          {/* Botón inline redundante para mobile */}
+          <button
+            onClick={onFirmar}
+            disabled={firmando || !aceptaTerminos || !aceptaRetencion}
+            className="w-full md:hidden px-6 py-3 bg-yokto-black text-yokto-yellow text-[12px] uppercase tracking-[0.14em] font-semibold border border-yokto-black hover:opacity-90 disabled:opacity-40"
+          >
+            {firmando ? "Firmando…" : "Firmar y activar ✓"}
+          </button>
+        </>
+      )}
+
     </div>
   );
 }
