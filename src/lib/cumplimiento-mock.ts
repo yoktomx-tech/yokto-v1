@@ -186,6 +186,8 @@ export const MOCK_OPS: Operation[] = [
         requirementsTotal: 3,
         requirementsCompleted: 3,
         observationsOpen: 0,
+        priority: "ALTA",
+        hasPendingPayment: true,
         documents: [
           { id: "DOC-8801", name: "Contrato firmado", type: "Contrato", status: "VALIDADO", version: "v1", hash: "sha256:11ab...cd82", uploadedAt: "2026-06-20" },
           { id: "DOC-8802", name: "CFDI anticipo", type: "CFDI_INGRESO", status: "VALIDADO", version: "v1", hash: "sha256:22bc...ef91", uploadedAt: "2026-06-21" },
@@ -208,6 +210,8 @@ export const MOCK_OPS: Operation[] = [
         requirementsTotal: 6,
         requirementsCompleted: 4,
         observationsOpen: 1,
+        priority: "ALTA",
+        hasPendingPayment: true,
         documents: [
           { id: "DOC-8831", name: "CFDI entrega parcial", type: "CFDI_INGRESO", status: "RECHAZADO", version: "v2", hash: "sha256:9d7c...a24f", uploadedAt: "2026-07-14", observation: "El XML no corresponde al monto pactado del hito." },
           { id: "DOC-8832", name: "Checklist entrega", type: "Checklist", status: "EN_VALIDACION", version: "v1", hash: "sha256:5f2a...bb10", uploadedAt: "2026-07-14" },
@@ -238,6 +242,8 @@ export const MOCK_OPS: Operation[] = [
         requirementsTotal: 4,
         requirementsCompleted: 0,
         observationsOpen: 0,
+        priority: "MEDIA",
+        hasPendingPayment: true,
         documents: [],
         evidences: [],
         observations: [],
@@ -273,6 +279,8 @@ export const MOCK_OPS: Operation[] = [
         requirementsTotal: 4,
         requirementsCompleted: 2,
         observationsOpen: 0,
+        priority: "MEDIA",
+        hasPendingPayment: true,
         documents: [
           { id: "DOC-9001", name: "Reporte técnico", type: "Nota técnica", status: "CARGADO", version: "v1", hash: "sha256:aa11...ff22", uploadedAt: "2026-07-12" },
         ],
@@ -297,6 +305,8 @@ export const MOCK_OPS: Operation[] = [
         requirementsTotal: 5,
         requirementsCompleted: 0,
         observationsOpen: 0,
+        priority: "BAJA",
+        hasPendingPayment: false,
         documents: [],
         evidences: [],
         observations: [],
@@ -333,6 +343,8 @@ export const MOCK_OPS: Operation[] = [
         requirementsTotal: 2,
         requirementsCompleted: 2,
         observationsOpen: 0,
+        priority: "BAJA",
+        hasPendingPayment: false,
         documents: [
           { id: "DOC-9500", name: "Reporte final", type: "PDF", status: "EN_VALIDACION", version: "v3", hash: "sha256:beef...cafe", uploadedAt: "2026-07-15" },
           { id: "DOC-9501", name: "CFDI final", type: "CFDI_INGRESO", status: "EN_VALIDACION", version: "v1", hash: "sha256:1234...5678", uploadedAt: "2026-07-15" },
