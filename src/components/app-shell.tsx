@@ -1,8 +1,8 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import {
   LayoutDashboard, Briefcase, ShieldCheck, AlertTriangle, Banknote,
-  Users, Star, Menu, X, ClipboardCheck, ShoppingCart, Store,
+  Users, Star, Menu, X, ClipboardCheck, ShoppingCart, Store, ChevronDown, Check,
 } from "lucide-react";
 import { YoktoLogo } from "@/components/logo";
 import { useViewRole, type ViewRole } from "@/hooks/use-view-role";
@@ -30,7 +30,7 @@ const BUYER_NAV: NavItem[] = [
   { to: "/score",        icon: Star,            label: "Score de confianza" },
 ];
 
-export function AppShell({ children }: { children: React.ReactNode; sgyScore?: number; displayName?: string }) {
+export function AppShell({ children, sgyScore = 500 }: { children: React.ReactNode; sgyScore?: number; displayName?: string }) {
   const pathname = useRouterState({ select: (r) => r.location.pathname });
   const [mobileOpen, setMobileOpen] = useState(false);
   const { role, setRole } = useViewRole();
@@ -40,7 +40,7 @@ export function AppShell({ children }: { children: React.ReactNode; sgyScore?: n
   return (
     <div className="min-h-dvh flex bg-yo-bg">
       <aside className="hidden md:flex md:w-60 lg:w-64 shrink-0 flex-col border-r border-yo-border bg-yo-surface sticky top-0 h-dvh">
-        <SidebarContent pathname={pathname} nav={nav} role={role} setRole={setRole} />
+        <SidebarContent pathname={pathname} nav={nav} role={role} setRole={setRole} sgyScore={sgyScore} />
       </aside>
 
       {mobileOpen && (
@@ -61,6 +61,7 @@ export function AppShell({ children }: { children: React.ReactNode; sgyScore?: n
               nav={nav}
               role={role}
               setRole={(r) => { setRole(r); }}
+              sgyScore={sgyScore}
               onNavigate={() => setMobileOpen(false)}
             />
           </aside>
@@ -81,46 +82,91 @@ export function AppShell({ children }: { children: React.ReactNode; sgyScore?: n
   );
 }
 
+function scoreLevel(score: number): { label: string; color: string } {
+  if (score >= 850) return { label: "Élite", color: "text-emerald-500" };
+  if (score >= 700) return { label: "Premium", color: "text-yo-ac" };
+  if (score >= 500) return { label: "Confiable", color: "text-yo-ac" };
+  if (score >= 300) return { label: "Básico", color: "text-amber-500" };
+  return { label: "Nuevo", color: "text-yo-txt-3" };
+}
+
+function RoleSelect({ role, setRole }: { role: ViewRole; setRole: (r: ViewRole) => void }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function onClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    if (open) document.addEventListener("mousedown", onClick);
+    return () => document.removeEventListener("mousedown", onClick);
+  }, [open]);
+
+  const current = role === "seller"
+    ? { icon: Store, label: "Vendedor" }
+    : { icon: ShoppingCart, label: "Comprador" };
+  const CurrentIcon = current.icon;
+
+  return (
+    <div className="relative" ref={ref}>
+      <p className="px-1 text-[10px] uppercase tracking-[0.14em] font-semibold text-yo-txt-3 mb-1.5">Vista actual</p>
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="w-full flex items-center gap-2 px-2.5 py-2 rounded-md border border-yo-border bg-yo-bg hover:bg-yo-raised transition text-left"
+      >
+        <CurrentIcon className="size-3.5 text-yo-ac shrink-0" />
+        <span className="flex-1 text-[12.5px] font-semibold text-yo-txt truncate">{current.label}</span>
+        <ChevronDown className={cn("size-3.5 text-yo-txt-3 transition-transform", open && "rotate-180")} />
+      </button>
+
+      {open && (
+        <div className="absolute bottom-full mb-1 left-0 right-0 z-50 rounded-md border border-yo-border bg-yo-surface shadow-lg overflow-hidden">
+          {([
+            { key: "seller" as ViewRole, icon: Store, label: "Vendedor" },
+            { key: "buyer" as ViewRole, icon: ShoppingCart, label: "Comprador" },
+          ]).map((opt) => {
+            const Icon = opt.icon;
+            const active = role === opt.key;
+            return (
+              <button
+                key={opt.key}
+                onClick={() => { setRole(opt.key); setOpen(false); }}
+                className={cn(
+                  "w-full flex items-center gap-2 px-2.5 py-2 text-left hover:bg-yo-raised",
+                  active && "bg-yo-ac-bg/40"
+                )}
+              >
+                <Icon className="size-3.5 text-yo-txt-3 shrink-0" />
+                <span className="flex-1 text-[12.5px] font-medium text-yo-txt">{opt.label}</span>
+                {active && <Check className="size-3.5 text-yo-ac" />}
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function SidebarContent({
-  pathname, nav, role, setRole, onNavigate,
+  pathname, nav, role, setRole, sgyScore, onNavigate,
 }: {
   pathname: string;
   nav: NavItem[];
   role: ViewRole;
   setRole: (r: ViewRole) => void;
+  sgyScore: number;
   onNavigate?: () => void;
 }) {
+  const level = scoreLevel(sgyScore);
+  const pct = Math.min(100, (sgyScore / 1000) * 100);
+
   return (
     <>
       <div className="px-5 py-5 border-b border-yo-border">
         <Link to="/dashboard" onClick={onNavigate} className="flex items-center gap-2">
           <YoktoLogo variant="dark" className="h-6 w-auto" />
         </Link>
-      </div>
-
-      {/* Role selector */}
-      <div className="px-3 pt-3 pb-2">
-        <p className="px-2 text-[10px] uppercase tracking-[0.14em] font-semibold text-yo-txt-3 mb-1.5">Vista actual</p>
-        <div className="grid grid-cols-2 gap-1 p-1 rounded-md bg-yo-bg border border-yo-border">
-          <button
-            onClick={() => setRole("seller")}
-            className={cn(
-              "flex items-center justify-center gap-1.5 px-2 py-1.5 rounded text-[12px] font-semibold transition",
-              role === "seller" ? "bg-yo-ac text-white shadow-sm" : "text-yo-txt-2 hover:text-yo-txt"
-            )}
-          >
-            <Store className="size-3.5" /> Vendedor
-          </button>
-          <button
-            onClick={() => setRole("buyer")}
-            className={cn(
-              "flex items-center justify-center gap-1.5 px-2 py-1.5 rounded text-[12px] font-semibold transition",
-              role === "buyer" ? "bg-yo-ac text-white shadow-sm" : "text-yo-txt-2 hover:text-yo-txt"
-            )}
-          >
-            <ShoppingCart className="size-3.5" /> Comprador
-          </button>
-        </div>
       </div>
 
       <nav className="flex-1 overflow-y-auto p-3 space-y-0.5">
@@ -145,6 +191,31 @@ function SidebarContent({
           );
         })}
       </nav>
+
+      <div className="border-t border-yo-border p-3 space-y-3">
+        <Link
+          to="/score"
+          onClick={onNavigate}
+          className="block rounded-md border border-yo-border bg-yo-bg p-3 hover:bg-yo-raised transition"
+        >
+          <div className="flex items-center justify-between mb-1.5">
+            <div className="flex items-center gap-1.5">
+              <Star className="size-3.5 text-yo-ac" />
+              <span className="text-[10px] uppercase tracking-[0.14em] font-semibold text-yo-txt-3">Score SGY</span>
+            </div>
+            <span className={cn("text-[11px] font-semibold", level.color)}>{level.label}</span>
+          </div>
+          <div className="flex items-baseline gap-1 mb-1.5">
+            <span className="text-lg font-bold text-yo-txt tabular-nums">{sgyScore}</span>
+            <span className="text-[10px] text-yo-txt-3">/ 1000</span>
+          </div>
+          <div className="h-1 w-full rounded-full bg-yo-border overflow-hidden">
+            <div className="h-full bg-yo-ac rounded-full transition-all" style={{ width: `${pct}%` }} />
+          </div>
+        </Link>
+
+        <RoleSelect role={role} setRole={setRole} />
+      </div>
     </>
   );
 }
