@@ -1,6 +1,7 @@
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { AppShell } from "@/components/app-shell";
 import { OrgProvider } from "@/hooks/use-current-org";
 import { ViewRoleProvider } from "@/hooks/use-view-role";
 import { AuthUserProvider } from "@/hooks/use-auth-user";
