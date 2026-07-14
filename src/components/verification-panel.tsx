@@ -18,7 +18,21 @@ type Evidence = {
   analyzed_at: string | null;
   created_at: string;
   uploaded_by: string;
+  latitude: number | null;
+  longitude: number | null;
+  captured_at: string | null;
 };
+
+function getGeolocation(): Promise<{ lat: number; lng: number } | null> {
+  return new Promise((resolve) => {
+    if (typeof navigator === "undefined" || !navigator.geolocation) return resolve(null);
+    navigator.geolocation.getCurrentPosition(
+      (p) => resolve({ lat: p.coords.latitude, lng: p.coords.longitude }),
+      () => resolve(null),
+      { enableHighAccuracy: true, timeout: 4000, maximumAge: 30000 }
+    );
+  });
+}
 
 const VERDICT_META: Record<string, { label: string; cls: string; Icon: typeof ShieldCheck }> = {
   approve: { label: "Recomendado aprobar", cls: "bg-emerald-50 text-emerald-800 border-emerald-200", Icon: ShieldCheck },
