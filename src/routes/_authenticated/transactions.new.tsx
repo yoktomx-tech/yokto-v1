@@ -1,52 +1,52 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
-import { AppHeader } from "@/components/app-header";
-import { SECTORS, formatMoney, commissionAmount } from "@/lib/tx";
+import { SECTORES, getSector, type SectorId } from "@/lib/sectors";
+import {
+  searchCounterpart,
+  upsertTransactionDraft,
+  cancelTransactionDraft,
+} from "@/lib/transactions.functions";
+import { Step1Schema, Step2Schema } from "@/lib/validations/transaction";
 
 export const Route = createFileRoute("/_authenticated/transactions/new")({
   head: () => ({ meta: [{ title: "Nueva transacción — YOKTO" }, { name: "robots", content: "noindex" }] }),
-  component: NewTransaction,
+  component: NewTransactionWizard,
 });
 
-type Form = {
-  counterparty_email: string;
-  title: string;
-  description: string;
-  sector: string;
-  amount: string; // MXN input
-  currency: "MXN" | "USD";
-  payment_method: "spei" | "card";
-  commission_bps: number;
-  commission_payer: "buyer" | "seller" | "split";
-  funding_deadline: string;
-  delivery_deadline: string;
-  conditions: string[];
+type Rol = "PAGADOR" | "BENEFICIARIO";
+
+type Contraparte = {
+  user_id: string | null;
+  email: string;
+  nombre: string;
+  rfc?: string | null;
 };
 
-const initial: Form = {
-  counterparty_email: "",
-  title: "",
-  description: "",
-  sector: SECTORS[0],
-  amount: "",
-  currency: "MXN",
-  payment_method: "spei",
-  commission_bps: 250,
-  commission_payer: "split",
-  funding_deadline: "",
-  delivery_deadline: "",
-  conditions: [""],
-};
+const TOTAL_STEPS = 5;
 
-function NewTransaction() {
+function NewTransactionWizard() {
   const { user } = Route.useRouteContext();
   const navigate = useNavigate();
+
   const [step, setStep] = useState(1);
-  const [form, setForm] = useState<Form>(initial);
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [txId, setTxId] = useState<string | null>(null);
+  const [numero, setNumero] = useState<string | null>(null);
   const [kycOk, setKycOk] = useState<boolean | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Paso 1
+  const [sector, setSector] = useState<SectorId | null>(null);
+
+  // Paso 2
+  const [rol, setRol] = useState<Rol>("PAGADOR");
+  const [descripcion, setDescripcion] = useState("");
+  const [contraparte, setContraparte] = useState<Contraparte | null>(null);
+
+  const upsertDraft = useServerFn(upsertTransactionDraft);
+  const cancelDraft = useServerFn(cancelTransactionDraft);
 
   useEffect(() => {
     supabase.from("profiles").select("kyc_status").eq("id", user.id).maybeSingle().then(({ data }) => {
@@ -54,349 +54,416 @@ function NewTransaction() {
     });
   }, [user.id]);
 
-  function up<K extends keyof Form>(k: K, v: Form[K]) {
-    setForm((f) => ({ ...f, [k]: v }));
-  }
+  const sectorDef = useMemo(() => (sector ? getSector(sector) : undefined), [sector]);
 
-  const amountCents = Math.round(parseFloat(form.amount || "0") * 100);
-  const commission = commissionAmount(amountCents, form.commission_bps);
-
-  function validStep(n: number): string | null {
-    if (n === 1) {
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.counterparty_email)) return "Correo de contraparte inválido.";
-      if (form.title.trim().length < 4) return "Título muy corto.";
-    }
-    if (n === 2) {
-      if (!amountCents || amountCents < 10000) return "Monto mínimo: $100.00.";
-      if (!form.funding_deadline) return "Define fecha límite de fondeo.";
-      if (!form.delivery_deadline) return "Define fecha límite de entrega.";
-    }
-    if (n === 3) {
-      const list = form.conditions.map((c) => c.trim()).filter(Boolean);
-      if (list.length === 0) return "Agrega al menos una condición de liberación.";
-    }
-    return null;
-  }
-
-  function next() {
-    const err = validStep(step);
-    if (err) { setError(err); return; }
+  const goNext = useCallback(async () => {
     setError(null);
-    setStep((s) => Math.min(4, s + 1));
-  }
-
-  async function submit(publish: boolean) {
-    for (let s = 1; s <= 3; s++) {
-      const err = validStep(s);
-      if (err) { setError(`Paso ${s}: ${err}`); setStep(s); return; }
-    }
-    setSubmitting(true); setError(null);
-    const { data: tx, error: txErr } = await supabase
-      .from("transactions")
-      .insert({
-        buyer_id: user.id,
-        counterparty_email: form.counterparty_email.toLowerCase(),
-        title: form.title.trim(),
-        description: form.description.trim() || null,
-        sector: form.sector,
-        amount_cents: amountCents,
-        currency: form.currency,
-        payment_method: form.payment_method,
-        commission_bps: form.commission_bps,
-        commission_payer: form.commission_payer,
-        funding_deadline: new Date(form.funding_deadline).toISOString(),
-        delivery_deadline: new Date(form.delivery_deadline).toISOString(),
-        status: publish ? "awaiting_funding" : "draft",
-      })
-      .select("id")
-      .single();
-
-    if (txErr || !tx) {
-      setSubmitting(false);
-      setError(txErr?.message ?? "No se pudo crear la transacción.");
+    if (step === 1) {
+      const r = Step1Schema.safeParse({ sector });
+      if (!r.success) { setError(r.error.issues[0]?.message ?? "Selecciona un sector"); return; }
+      setStep(2);
       return;
     }
-
-    const conds = form.conditions.map((c) => c.trim()).filter(Boolean);
-    if (conds.length) {
-      await supabase.from("transaction_conditions").insert(
-        conds.map((description, i) => ({ transaction_id: tx.id, description, position: i }))
-      );
+    if (step === 2) {
+      const payload = {
+        rol,
+        descripcion,
+        contraparte_user_id: contraparte?.user_id ?? null,
+        contraparte_email: contraparte?.email ?? null,
+        contraparte_nombre: contraparte?.nombre ?? null,
+        contraparte_rfc: contraparte?.rfc ?? null,
+      };
+      const r = Step2Schema.safeParse(payload);
+      if (!r.success) { setError(r.error.issues[0]?.message ?? "Revisa los campos"); return; }
+      setSaving(true);
+      try {
+        const res = await upsertDraft({
+          data: { transaction_id: txId ?? undefined, step1: { sector: sector! }, step2: r.data },
+        });
+        setTxId(res.id);
+        setNumero(res.numero ?? null);
+        setStep(3);
+      } catch (e) {
+        setError((e as Error).message);
+      } finally {
+        setSaving(false);
+      }
+      return;
     }
+    // Pasos 3–5: en construcción en Fase 2/3
+    setStep((s) => Math.min(TOTAL_STEPS, s + 1));
+  }, [step, sector, rol, descripcion, contraparte, txId, upsertDraft]);
 
-    await supabase.from("transaction_events").insert({
-      transaction_id: tx.id,
-      actor_id: user.id,
-      event_type: publish ? "transaction.published" : "transaction.draft_created",
-      metadata: { amount_cents: amountCents, currency: form.currency },
-    });
-
-    navigate({ to: "/transactions/$id", params: { id: tx.id } });
+  async function handleCancel() {
+    if (txId) {
+      try { await cancelDraft({ data: { id: txId } }); } catch { /* ignore */ }
+    }
+    navigate({ to: "/transactions" });
   }
 
   if (kycOk === false) {
     return (
-      <div className="min-h-screen flex flex-col bg-background">
-        <AppHeader email={user.email} userId={user.id} section="Nueva transacción" />
-        <main className="flex-1">
-          <div className="container-editorial py-16 max-w-2xl">
-            <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Requisito</p>
-            <h1 className="mt-2 font-display text-5xl tracking-wide">Completa tu KYC</h1>
-            <p className="mt-3 text-muted-foreground">
-              Necesitas verificación aprobada para crear operaciones en YOKTO.
-            </p>
-            <Link
-              to="/kyc"
-              className="mt-6 inline-flex items-center px-5 py-2.5 bg-yo-ac text-white text-[12px] uppercase tracking-[0.14em] font-semibold border border-yo-border"
-            >
-              Ir a KYC
-            </Link>
-          </div>
-        </main>
-      </div>
+      <main className="flex-1">
+        <div className="container-editorial py-16 max-w-2xl">
+          <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Requisito</p>
+          <h1 className="mt-2 font-display text-5xl tracking-wide">Completa tu verificación</h1>
+          <p className="mt-3 text-muted-foreground">Necesitas KYC aprobado para crear transacciones.</p>
+          <button
+            onClick={() => navigate({ to: "/onboarding" })}
+            className="mt-6 inline-flex items-center px-5 py-2.5 bg-yo-ac text-white text-[12px] uppercase tracking-[0.14em] font-semibold border border-yo-border"
+          >
+            Ir a onboarding
+          </button>
+        </div>
+      </main>
     );
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
-      <AppHeader email={user.email} userId={user.id} section="Nueva transacción" />
-      <main className="flex-1">
-        <div className="container-editorial py-10 max-w-3xl">
-          <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Módulo C · Paso {step} de 4</p>
-          <h1 className="mt-1 font-display text-5xl tracking-wide text-foreground">
-            {step === 1 && "Contraparte y objeto"}
-            {step === 2 && "Monto y términos"}
-            {step === 3 && "Condiciones de liberación"}
-            {step === 4 && "Revisión"}
-          </h1>
-
-          <div className="mt-6 flex gap-1">
-            {[1, 2, 3, 4].map((n) => (
-              <div key={n} className={`h-1.5 flex-1 border border-yo-border ${n <= step ? "bg-yokto-yellow" : "bg-background"}`} />
-            ))}
+    <main className="flex-1">
+      <div className="container-editorial py-10 max-w-4xl">
+        <div className="flex items-baseline justify-between gap-4">
+          <div>
+            <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
+              Módulo C · Nueva transacción {numero && <span className="ml-2 font-mono text-foreground">{numero}</span>}
+            </p>
+            <h1 className="mt-1 font-display text-4xl md:text-5xl tracking-wide text-foreground">
+              {step === 1 && "¿Qué tipo de operación?"}
+              {step === 2 && "Partes de la transacción"}
+              {step === 3 && "Hitos y condiciones"}
+              {step === 4 && "Monto y comisiones"}
+              {step === 5 && "Revisión y firma"}
+            </h1>
           </div>
-
-          {error && (
-            <div className="mt-6 border border-[#FF3B3B] bg-[#FF3B3B]/10 p-3 text-sm text-[#FF3B3B]">{error}</div>
-          )}
-
-          <div className="mt-8 border border-yo-border bg-background p-6 md:p-8 space-y-5">
-            {step === 1 && (
-              <>
-                <Field label="Correo del vendedor / contraparte">
-                  <input
-                    type="email"
-                    value={form.counterparty_email}
-                    onChange={(e) => up("counterparty_email", e.target.value)}
-                    placeholder="vendedor@empresa.mx"
-                    className="input-editorial"
-                  />
-                </Field>
-                <Field label="Título de la operación">
-                  <input
-                    type="text"
-                    value={form.title}
-                    onChange={(e) => up("title", e.target.value)}
-                    placeholder="Ej. Desarrollo landing corporativa"
-                    maxLength={120}
-                    className="input-editorial"
-                  />
-                </Field>
-                <Field label="Descripción (opcional)">
-                  <textarea
-                    value={form.description}
-                    onChange={(e) => up("description", e.target.value)}
-                    rows={4}
-                    className="input-editorial resize-y"
-                  />
-                </Field>
-                <Field label="Sector">
-                  <select value={form.sector} onChange={(e) => up("sector", e.target.value)} className="input-editorial">
-                    {SECTORS.map((s) => <option key={s} value={s}>{s}</option>)}
-                  </select>
-                </Field>
-              </>
-            )}
-
-            {step === 2 && (
-              <>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <Field label="Monto">
-                    <input
-                      type="number"
-                      step="0.01"
-                      min="100"
-                      value={form.amount}
-                      onChange={(e) => up("amount", e.target.value)}
-                      placeholder="10000.00"
-                      className="input-editorial"
-                    />
-                  </Field>
-                  <Field label="Moneda">
-                    <select value={form.currency} onChange={(e) => up("currency", e.target.value as "MXN" | "USD")} className="input-editorial">
-                      <option value="MXN">MXN</option>
-                      <option value="USD">USD</option>
-                    </select>
-                  </Field>
-                  <Field label="Método de pago">
-                    <select value={form.payment_method} onChange={(e) => up("payment_method", e.target.value as "spei" | "card")} className="input-editorial">
-                      <option value="spei">SPEI</option>
-                      <option value="card">Tarjeta</option>
-                    </select>
-                  </Field>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <Field label="Comisión YOKTO (bps)">
-                    <input
-                      type="number"
-                      min={0}
-                      max={1000}
-                      value={form.commission_bps}
-                      onChange={(e) => up("commission_bps", parseInt(e.target.value || "0"))}
-                      className="input-editorial"
-                    />
-                    <p className="mt-1 text-[11px] text-muted-foreground">
-                      {(form.commission_bps / 100).toFixed(2)}% · {formatMoney(commission, form.currency)} sobre {formatMoney(amountCents, form.currency)}
-                    </p>
-                  </Field>
-                  <Field label="Quién paga la comisión">
-                    <select value={form.commission_payer} onChange={(e) => up("commission_payer", e.target.value as Form["commission_payer"])} className="input-editorial">
-                      <option value="split">Compartida 50/50</option>
-                      <option value="buyer">Comprador</option>
-                      <option value="seller">Vendedor</option>
-                    </select>
-                  </Field>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <Field label="Fecha límite de fondeo">
-                    <input type="datetime-local" value={form.funding_deadline} onChange={(e) => up("funding_deadline", e.target.value)} className="input-editorial" />
-                  </Field>
-                  <Field label="Fecha límite de entrega">
-                    <input type="datetime-local" value={form.delivery_deadline} onChange={(e) => up("delivery_deadline", e.target.value)} className="input-editorial" />
-                  </Field>
-                </div>
-              </>
-            )}
-
-            {step === 3 && (
-              <>
-                <p className="text-sm text-muted-foreground">
-                  Define condiciones verificables que deben cumplirse antes de liberar los fondos al vendedor.
-                </p>
-                <div className="space-y-3">
-                  {form.conditions.map((c, i) => (
-                    <div key={i} className="flex gap-2">
-                      <span className="w-8 h-10 grid place-items-center border border-yo-border bg-yo-bg font-mono text-sm">{i + 1}</span>
-                      <input
-                        type="text"
-                        value={c}
-                        onChange={(e) => {
-                          const next = [...form.conditions];
-                          next[i] = e.target.value;
-                          up("conditions", next);
-                        }}
-                        placeholder="Ej. Entrega de código fuente en repositorio Git"
-                        className="input-editorial flex-1"
-                      />
-                      {form.conditions.length > 1 && (
-                        <button
-                          onClick={() => up("conditions", form.conditions.filter((_, j) => j !== i))}
-                          className="px-3 border border-yo-border text-[11px] uppercase tracking-[0.14em] hover:bg-[#FF3B3B] hover:text-white"
-                        >
-                          Quitar
-                        </button>
-                      )}
-                    </div>
-                  ))}
-                </div>
-                <button
-                  onClick={() => up("conditions", [...form.conditions, ""])}
-                  className="text-[12px] uppercase tracking-[0.14em] font-semibold border border-yo-border px-3 py-2 hover:bg-yo-ac-h hover:text-white"
-                >
-                  + Agregar condición
-                </button>
-              </>
-            )}
-
-            {step === 4 && (
-              <div className="space-y-4 text-sm">
-                <Summary label="Contraparte" value={form.counterparty_email} />
-                <Summary label="Título" value={form.title} />
-                <Summary label="Sector" value={form.sector} />
-                <Summary label="Monto" value={`${formatMoney(amountCents, form.currency)} · ${form.payment_method.toUpperCase()}`} />
-                <Summary
-                  label="Comisión YOKTO"
-                  value={`${(form.commission_bps / 100).toFixed(2)}% (${formatMoney(commission, form.currency)}) · ${
-                    form.commission_payer === "split" ? "50/50" : form.commission_payer === "buyer" ? "Comprador" : "Vendedor"
-                  }`}
-                />
-                <Summary label="Fondeo hasta" value={new Date(form.funding_deadline).toLocaleString("es-MX")} />
-                <Summary label="Entrega hasta" value={new Date(form.delivery_deadline).toLocaleString("es-MX")} />
-                <div>
-                  <p className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">Condiciones</p>
-                  <ol className="mt-2 list-decimal list-inside space-y-1 text-foreground">
-                    {form.conditions.filter((c) => c.trim()).map((c, i) => <li key={i}>{c}</li>)}
-                  </ol>
-                </div>
-              </div>
-            )}
-          </div>
-
-          <div className="mt-6 flex justify-between gap-3">
-            <button
-              onClick={() => (step === 1 ? navigate({ to: "/transactions" }) : setStep((s) => s - 1))}
-              className="px-5 py-2.5 border border-yo-border text-[12px] uppercase tracking-[0.14em] font-semibold hover:bg-yo-ac-h hover:text-white"
-            >
-              {step === 1 ? "Cancelar" : "Atrás"}
-            </button>
-            {step < 4 ? (
-              <button
-                onClick={next}
-                className="px-6 py-2.5 bg-yo-ac text-white text-[12px] uppercase tracking-[0.14em] font-semibold border border-yo-border hover:bg-yo-ac-h"
-              >
-                Continuar
-              </button>
-            ) : (
-              <div className="flex gap-3">
-                <button
-                  onClick={() => submit(false)}
-                  disabled={submitting}
-                  className="px-5 py-2.5 border border-yo-border text-[12px] uppercase tracking-[0.14em] font-semibold hover:bg-yo-bg disabled:opacity-50"
-                >
-                  Guardar borrador
-                </button>
-                <button
-                  onClick={() => submit(true)}
-                  disabled={submitting}
-                  className="px-6 py-2.5 bg-yo-ac text-white text-[12px] uppercase tracking-[0.14em] font-semibold border border-yo-border hover:bg-yo-ac-h disabled:opacity-50"
-                >
-                  {submitting ? "Publicando…" : "Publicar y solicitar fondeo"}
-                </button>
-              </div>
-            )}
-          </div>
+          <button
+            onClick={handleCancel}
+            className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground hover:text-foreground"
+          >
+            Cancelar
+          </button>
         </div>
-      </main>
+
+        <WizardProgress current={step} total={TOTAL_STEPS} labels={["Sector","Partes","Hitos","Monto","Revisión"]} />
+
+        {error && (
+          <div className="mt-6 border border-[#FF3B3B] bg-[#FF3B3B]/10 p-3 text-sm text-[#FF3B3B]">{error}</div>
+        )}
+
+        <div className="mt-8 border border-yo-border bg-background p-6 md:p-8">
+          {step === 1 && <Step1 sector={sector} setSector={setSector} />}
+          {step === 2 && (
+            <Step2
+              sector={sector!}
+              rol={rol}
+              setRol={setRol}
+              descripcion={descripcion}
+              setDescripcion={setDescripcion}
+              contraparte={contraparte}
+              setContraparte={setContraparte}
+            />
+          )}
+          {step >= 3 && (
+            <div className="py-12 text-center space-y-3">
+              <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">En construcción</p>
+              <p className="text-foreground">
+                Los pasos <strong>Hitos, Monto</strong> y <strong>Revisión</strong> se activarán en la siguiente iteración.
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Tu borrador <span className="font-mono">{numero}</span> quedó guardado y puedes retomarlo desde <em>Transacciones</em>.
+              </p>
+            </div>
+          )}
+        </div>
+
+        <div className="mt-6 flex justify-between gap-3">
+          <button
+            onClick={() => (step === 1 ? handleCancel() : setStep((s) => s - 1))}
+            className="px-5 py-2.5 border border-yo-border text-[12px] uppercase tracking-[0.14em] font-semibold hover:bg-yo-ac-h hover:text-white"
+          >
+            {step === 1 ? "Cancelar" : "Atrás"}
+          </button>
+          {step < 3 ? (
+            <button
+              onClick={goNext}
+              disabled={saving}
+              className="px-6 py-2.5 bg-yo-ac text-white text-[12px] uppercase tracking-[0.14em] font-semibold border border-yo-border hover:bg-yo-ac-h disabled:opacity-50"
+            >
+              {saving ? "Guardando…" : "Continuar →"}
+            </button>
+          ) : (
+            <button
+              onClick={() => navigate({ to: "/transactions" })}
+              className="px-6 py-2.5 bg-yo-ac text-white text-[12px] uppercase tracking-[0.14em] font-semibold border border-yo-border hover:bg-yo-ac-h"
+            >
+              Ir a mis transacciones
+            </button>
+          )}
+        </div>
+
+        {sectorDef && step > 1 && (
+          <div className="mt-6 border border-yo-border/40 bg-yo-bg/30 p-4 text-xs text-muted-foreground">
+            <span className="font-semibold text-foreground">{sectorDef.emoji} {sectorDef.titulo}</span>
+            {" · "}Tiempo típico: {sectorDef.tiempo_tipico}
+            {" · "}Monto típico: {sectorDef.monto_tipico}
+          </div>
+        )}
+      </div>
+    </main>
+  );
+}
+
+// ─── Progreso ────────────────────────────────────────────────────────────────
+function WizardProgress({ current, total, labels }: { current: number; total: number; labels: string[] }) {
+  return (
+    <div className="mt-6">
+      <div className="flex gap-1">
+        {Array.from({ length: total }).map((_, i) => {
+          const n = i + 1;
+          return (
+            <div
+              key={n}
+              className={`h-1.5 flex-1 border border-yo-border ${n <= current ? "bg-yokto-yellow" : "bg-background"}`}
+            />
+          );
+        })}
+      </div>
+      <div className="mt-2 flex justify-between text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+        {labels.map((l, i) => (
+          <span key={l} className={i + 1 === current ? "text-foreground font-semibold" : ""}>{l}</span>
+        ))}
+      </div>
     </div>
   );
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+// ─── Paso 1: Sector ──────────────────────────────────────────────────────────
+function Step1({ sector, setSector }: { sector: SectorId | null; setSector: (s: SectorId) => void }) {
+  const selected = sector ? getSector(sector) : undefined;
   return (
-    <label className="block">
-      <span className="block text-[11px] uppercase tracking-[0.14em] font-semibold text-foreground mb-1.5">{label}</span>
-      {children}
-    </label>
+    <div className="space-y-6">
+      <p className="text-sm text-muted-foreground">
+        Elige la categoría que mejor describe tu operación. Esto define plantillas de hitos, documentos requeridos y comisiones aplicables.
+      </p>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {SECTORES.map((s) => {
+          const isActive = sector === s.id;
+          return (
+            <button
+              key={s.id}
+              type="button"
+              onClick={() => setSector(s.id)}
+              className={`text-left p-4 border transition ${
+                isActive
+                  ? "border-yokto-black bg-yo-bg ring-2 ring-yokto-black"
+                  : "border-yo-border hover:border-yokto-black hover:bg-yo-bg/40"
+              }`}
+            >
+              <div className="text-3xl">{s.emoji}</div>
+              <div className="mt-2 text-[11px] uppercase tracking-[0.14em] font-semibold">{s.titulo}</div>
+              <div className="mt-1 text-xs text-muted-foreground">{s.descripcion}</div>
+            </button>
+          );
+        })}
+      </div>
+      {selected && (
+        <div className="border border-yo-border bg-yo-bg/40 p-4 grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+          <div>
+            <div className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">Tiempo típico</div>
+            <div className="text-foreground">{selected.tiempo_tipico}</div>
+          </div>
+          <div>
+            <div className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">Monto típico</div>
+            <div className="text-foreground">{selected.monto_tipico}</div>
+          </div>
+          <div className="sm:col-span-2">
+            <div className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">Ejemplos</div>
+            <div className="text-foreground">{selected.ejemplos.join(" · ")}</div>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
 
-function Summary({ label, value }: { label: string; value: string }) {
+// ─── Paso 2: Partes ──────────────────────────────────────────────────────────
+type SearchResult = {
+  id: string;
+  first_name: string | null;
+  last_name: string | null;
+  business_name: string | null;
+  email: string | null;
+  rfc: string | null;
+  account_type: string | null;
+  kyc_status: string | null;
+};
+
+function Step2({
+  sector, rol, setRol, descripcion, setDescripcion, contraparte, setContraparte,
+}: {
+  sector: SectorId;
+  rol: Rol; setRol: (r: Rol) => void;
+  descripcion: string; setDescripcion: (d: string) => void;
+  contraparte: Contraparte | null; setContraparte: (c: Contraparte | null) => void;
+}) {
+  const [query, setQuery] = useState("");
+  const [results, setResults] = useState<SearchResult[] | null>(null);
+  const [searching, setSearching] = useState(false);
+  const [inviteMode, setInviteMode] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [inviteNombre, setInviteNombre] = useState("");
+  const search = useServerFn(searchCounterpart);
+  const sectorDef = getSector(sector)!;
+
+  useEffect(() => {
+    if (query.trim().length < 3) { setResults(null); return; }
+    const h = setTimeout(async () => {
+      setSearching(true);
+      try {
+        const res = await search({ data: { query: query.trim() } });
+        setResults(res.results);
+      } catch { setResults([]); }
+      finally { setSearching(false); }
+    }, 400);
+    return () => clearTimeout(h);
+  }, [query, search]);
+
+  function pickResult(r: SearchResult) {
+    const nombre = r.business_name || [r.first_name, r.last_name].filter(Boolean).join(" ") || r.email || "Contraparte";
+    setContraparte({ user_id: r.id, email: r.email ?? "", nombre, rfc: r.rfc });
+    setQuery(nombre);
+    setResults(null);
+    setInviteMode(false);
+  }
+
+  function applyInvite() {
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(inviteEmail)) return;
+    if (inviteNombre.trim().length < 2) return;
+    setContraparte({ user_id: null, email: inviteEmail.trim().toLowerCase(), nombre: inviteNombre.trim(), rfc: null });
+  }
+
   return (
-    <div className="flex justify-between gap-4 border-b border-yo-border/20 pb-2">
-      <span className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">{label}</span>
-      <span className="text-foreground text-right">{value}</span>
+    <div className="space-y-6">
+      {/* Selector de rol */}
+      <div>
+        <div className="text-[11px] uppercase tracking-[0.14em] font-semibold text-foreground mb-2">Tu rol en esta transacción</div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {(["PAGADOR", "BENEFICIARIO"] as const).map((r) => (
+            <button
+              key={r}
+              type="button"
+              onClick={() => setRol(r)}
+              className={`p-4 border text-left ${
+                rol === r ? "border-yokto-black bg-yo-bg ring-2 ring-yokto-black" : "border-yo-border hover:border-yokto-black"
+              }`}
+            >
+              <div className="text-[11px] uppercase tracking-[0.14em] font-semibold">
+                Soy {r === "PAGADOR" ? "el pagador" : "el beneficiario"}
+              </div>
+              <div className="text-xs text-muted-foreground mt-1">
+                {r === "PAGADOR" ? "Comprador / cliente que deposita los fondos" : "Vendedor / proveedor que recibe los fondos al cumplir"}
+              </div>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Búsqueda de contraparte */}
+      <div>
+        <div className="text-[11px] uppercase tracking-[0.14em] font-semibold text-foreground mb-2">
+          Buscar contraparte por RFC o email
+        </div>
+        <input
+          type="text"
+          value={query}
+          onChange={(e) => { setQuery(e.target.value); if (contraparte?.user_id) setContraparte(null); }}
+          placeholder="ABCD850101XYZ o contraparte@empresa.mx"
+          className="input-editorial"
+        />
+        {searching && <p className="mt-1 text-xs text-muted-foreground">Buscando…</p>}
+        {results && results.length > 0 && (
+          <div className="mt-2 border border-yo-border divide-y divide-yo-border/40">
+            {results.map((r) => {
+              const nombre = r.business_name || [r.first_name, r.last_name].filter(Boolean).join(" ") || r.email;
+              return (
+                <button
+                  key={r.id}
+                  type="button"
+                  onClick={() => pickResult(r)}
+                  className="w-full text-left px-3 py-2 hover:bg-yo-bg/40 flex items-center justify-between gap-3"
+                >
+                  <div>
+                    <div className="text-sm font-semibold text-foreground">{nombre}</div>
+                    <div className="text-xs text-muted-foreground">{r.rfc ?? "sin RFC"} · {r.email}</div>
+                  </div>
+                  <span className={`text-[10px] uppercase tracking-[0.14em] px-2 py-1 border ${
+                    r.kyc_status === "approved" ? "bg-yokto-yellow border-yo-border text-yokto-black" : "border-yo-border text-muted-foreground"
+                  }`}>KYC {r.kyc_status ?? "n/a"}</span>
+                </button>
+              );
+            })}
+          </div>
+        )}
+        {results && results.length === 0 && !inviteMode && (
+          <div className="mt-2 border border-yo-border/60 bg-yo-bg/40 p-3 text-sm text-muted-foreground">
+            No encontramos a esa contraparte en YOKTO.{" "}
+            <button
+              type="button"
+              onClick={() => { setInviteMode(true); setInviteEmail(query.includes("@") ? query : ""); }}
+              className="underline text-foreground"
+            >
+              Invitarla por email
+            </button>
+          </div>
+        )}
+
+        {inviteMode && (
+          <div className="mt-3 border border-yo-border bg-yo-bg/40 p-4 space-y-3">
+            <div className="text-[11px] uppercase tracking-[0.14em] font-semibold text-foreground">Invitar contraparte nueva</div>
+            <input type="email" value={inviteEmail} onChange={(e) => setInviteEmail(e.target.value)} placeholder="contraparte@empresa.mx" className="input-editorial" />
+            <input type="text" value={inviteNombre} onChange={(e) => setInviteNombre(e.target.value)} placeholder="Nombre o razón social" className="input-editorial" />
+            <div className="flex gap-2">
+              <button type="button" onClick={applyInvite} className="px-4 py-2 bg-yokto-yellow text-yokto-black text-[11px] uppercase tracking-[0.14em] font-semibold border border-yo-border">
+                Usar como contraparte
+              </button>
+              <button type="button" onClick={() => { setInviteMode(false); setContraparte(null); }} className="px-4 py-2 border border-yo-border text-[11px] uppercase tracking-[0.14em]">
+                Cancelar
+              </button>
+            </div>
+            <p className="text-[11px] text-muted-foreground">
+              Recibirá un correo con instrucciones para crear su cuenta YOKTO y firmar. La transacción queda en <strong>pendiente de firma</strong> hasta que complete su KYC básico.
+            </p>
+          </div>
+        )}
+
+        {contraparte && (
+          <div className="mt-3 border-2 border-yokto-black bg-background p-3 flex items-center justify-between gap-3">
+            <div>
+              <div className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">Contraparte seleccionada</div>
+              <div className="text-sm font-semibold text-foreground">{contraparte.nombre}</div>
+              <div className="text-xs text-muted-foreground">
+                {contraparte.email}{contraparte.rfc ? ` · ${contraparte.rfc}` : ""} · {contraparte.user_id ? "usuario YOKTO" : "por invitar"}
+              </div>
+            </div>
+            <button type="button" onClick={() => setContraparte(null)} className="text-[11px] uppercase tracking-[0.14em] underline text-muted-foreground">
+              Cambiar
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Descripción */}
+      <div>
+        <div className="text-[11px] uppercase tracking-[0.14em] font-semibold text-foreground mb-2">Descripción de la operación</div>
+        <textarea
+          value={descripcion}
+          onChange={(e) => setDescripcion(e.target.value)}
+          rows={4}
+          placeholder={sectorDef.placeholder_descripcion}
+          maxLength={1000}
+          className="input-editorial resize-y"
+        />
+        <div className="mt-1 text-[11px] text-muted-foreground text-right">{descripcion.length}/1000</div>
+      </div>
     </div>
   );
 }
