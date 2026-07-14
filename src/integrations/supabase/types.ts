@@ -983,6 +983,80 @@ export type Database = {
           },
         ]
       }
+      transaction_documents: {
+        Row: {
+          cfdi_fecha: string | null
+          cfdi_rfc_emisor: string | null
+          cfdi_rfc_receptor: string | null
+          cfdi_total_cents: number | null
+          cfdi_uuid: string | null
+          created_at: string
+          doc_type: string
+          file_name: string
+          file_path: string
+          id: string
+          mime_type: string | null
+          note: string | null
+          sat_message: string | null
+          sat_status: string | null
+          size_bytes: number | null
+          transaction_id: string
+          updated_at: string
+          uploaded_by: string
+          validated_at: string | null
+        }
+        Insert: {
+          cfdi_fecha?: string | null
+          cfdi_rfc_emisor?: string | null
+          cfdi_rfc_receptor?: string | null
+          cfdi_total_cents?: number | null
+          cfdi_uuid?: string | null
+          created_at?: string
+          doc_type: string
+          file_name: string
+          file_path: string
+          id?: string
+          mime_type?: string | null
+          note?: string | null
+          sat_message?: string | null
+          sat_status?: string | null
+          size_bytes?: number | null
+          transaction_id: string
+          updated_at?: string
+          uploaded_by: string
+          validated_at?: string | null
+        }
+        Update: {
+          cfdi_fecha?: string | null
+          cfdi_rfc_emisor?: string | null
+          cfdi_rfc_receptor?: string | null
+          cfdi_total_cents?: number | null
+          cfdi_uuid?: string | null
+          created_at?: string
+          doc_type?: string
+          file_name?: string
+          file_path?: string
+          id?: string
+          mime_type?: string | null
+          note?: string | null
+          sat_message?: string | null
+          sat_status?: string | null
+          size_bytes?: number | null
+          transaction_id?: string
+          updated_at?: string
+          uploaded_by?: string
+          validated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transaction_documents_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       transaction_events: {
         Row: {
           actor_id: string | null
@@ -1248,10 +1322,13 @@ export type Database = {
           ai_summary: string | null
           ai_verdict: string | null
           analyzed_at: string | null
+          captured_at: string | null
           created_at: string
           file_name: string
           file_path: string
           id: string
+          latitude: number | null
+          longitude: number | null
           mime_type: string | null
           note: string | null
           size_bytes: number | null
@@ -1266,10 +1343,13 @@ export type Database = {
           ai_summary?: string | null
           ai_verdict?: string | null
           analyzed_at?: string | null
+          captured_at?: string | null
           created_at?: string
           file_name: string
           file_path: string
           id?: string
+          latitude?: number | null
+          longitude?: number | null
           mime_type?: string | null
           note?: string | null
           size_bytes?: number | null
@@ -1284,10 +1364,13 @@ export type Database = {
           ai_summary?: string | null
           ai_verdict?: string | null
           analyzed_at?: string | null
+          captured_at?: string | null
           created_at?: string
           file_name?: string
           file_path?: string
           id?: string
+          latitude?: number | null
+          longitude?: number | null
           mime_type?: string | null
           note?: string | null
           size_bytes?: number | null
