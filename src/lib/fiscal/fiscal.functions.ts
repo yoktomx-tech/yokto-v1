@@ -120,7 +120,7 @@ export const uploadFiscalDocument = createServerFn({ method: "POST" })
       tipo_cambio: parsed.tipo_cambio ?? null,
       total_impuestos_trasladados: parsed.total_impuestos_trasladados ?? 0,
       total_impuestos_retenidos: parsed.total_impuestos_retenidos ?? 0,
-      rep_data: parsed.tipo === "REP" ? { pagos: parsed.pagos } : null,
+      rep_data: parsed.tipo === "REP" ? (JSON.parse(JSON.stringify({ pagos: parsed.pagos ?? [] })) as any) : null,
       parcialidad_numero: rep?.parcialidad_numero ?? null,
       imp_saldo_ant: rep?.imp_saldo_ant ?? null,
       imp_pagado: rep?.imp_pagado ?? null,
