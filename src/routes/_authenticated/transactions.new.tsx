@@ -50,8 +50,19 @@ function NewTransactionWizard() {
   const [descripcion, setDescripcion] = useState("");
   const [contraparte, setContraparte] = useState<Contraparte | null>(null);
 
+  // Paso 3
+  const [hitos, setHitos] = useState<HitoDraft[]>([]);
+
+  // Paso 4
+  const [monto, setMonto] = useState<number>(0);
+  const [metodoPago, setMetodoPago] = useState<"SPEI" | "TARJETA" | "OXXO">("SPEI");
+  const [fechaInicio, setFechaInicio] = useState<string>(new Date().toISOString().slice(0, 10));
+  const [fechaFin, setFechaFin] = useState<string>("");
+
   const upsertDraft = useServerFn(upsertTransactionDraft);
   const cancelDraft = useServerFn(cancelTransactionDraft);
+  const saveHitos = useServerFn(saveTransactionHitos);
+  const saveMonto = useServerFn(saveTransactionMonto);
 
   useEffect(() => {
     supabase.from("profiles").select("kyc_status").eq("id", user.id).maybeSingle().then(({ data }) => {
