@@ -56,8 +56,15 @@ function AdminPage() {
     <div className="min-h-screen flex flex-col bg-background">
       <AppHeader email={user.email} userId={user.id} section="Admin" />
       <main className="flex-1 container-editorial py-8 max-w-6xl">
-        <h1 className="text-2xl font-bold tracking-tight text-yo-txt">Panel de administración</h1>
-        <p className="text-sm text-yo-txt-3 mt-1">Acceso reservado. Todas las acciones quedan en el log de eventos.</p>
+        <div className="flex items-center justify-between gap-3 flex-wrap">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight text-yo-txt">Panel de administración</h1>
+            <p className="text-sm text-yo-txt-3 mt-1">Acceso reservado. Todas las acciones quedan en el log de eventos.</p>
+          </div>
+          <Link to="/admin/disputes" className="h-9 px-4 rounded-md bg-yo-txt text-yo-surface text-sm font-medium hover:opacity-90 inline-flex items-center">
+            Panel de disputas →
+          </Link>
+        </div>
 
         {data && (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-6">
