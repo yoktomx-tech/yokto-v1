@@ -122,7 +122,7 @@ function ReportsPage() {
             </ul>
           )}
         </div>
-      </main>
+      </div>
     </div>
   );
 }
