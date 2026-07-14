@@ -87,14 +87,18 @@ function Badge({ tone, children }: { tone: string; children: React.ReactNode }) 
 function ScorePage() {
   const { role } = useViewRole();
   const viewRole = role === "buyer" ? "buyer" : "seller";
-  const profile = useMemo(() => getMockProfile(viewRole), [viewRole]);
+  const [personType, setPersonType] = useState<PersonType>("PM");
+  const profile = useMemo(() => getMockProfile(viewRole, personType), [viewRole, personType]);
   const [tab, setTab] = useState<TabKey>("resumen");
   const [openDoc, setOpenDoc] = useState<ComplianceDoc | null>(null);
   const [openComponent, setOpenComponent] = useState<ScoreComponent | null>(null);
   const [uploadOpen, setUploadOpen] = useState(false);
   const [recalcOpen, setRecalcOpen] = useState(false);
+  const [completeOpen, setCompleteOpen] = useState(false);
 
   const levelCfg = LEVEL_CFG[profile.level];
+  const ptCfg = PERSON_TYPE_CFG[personType];
+  const tabs = useMemo(() => buildTabs(personType), [personType]);
 
   const subtitle =
     viewRole === "buyer"
@@ -109,6 +113,13 @@ function ScorePage() {
         subtitle={subtitle}
         actions={
           <>
+            <PersonTypeSelect value={personType} onChange={setPersonType} />
+            <button
+              onClick={() => setCompleteOpen(true)}
+              className="inline-flex items-center gap-2 rounded-lg bg-yo-ac hover:bg-yo-ac-h text-white px-3 py-2 text-sm font-medium transition"
+            >
+              <ClipboardList className="size-4" /> Completar perfil
+            </button>
             <button
               onClick={() => setRecalcOpen(true)}
               className="inline-flex items-center gap-2 rounded-lg border border-yo-border bg-yo-surface px-3 py-2 text-sm font-medium text-yo-txt hover:bg-yo-raised transition"
@@ -122,24 +133,41 @@ function ScorePage() {
         }
       />
 
-      {/* Subheader chips */}
-      <div className="flex flex-wrap items-center gap-2 text-xs text-yo-txt-2">
-        <Badge tone={levelCfg.tone}>{levelCfg.label}</Badge>
-        <Badge tone={KYC_CFG[profile.kyc].tone}>KYC {KYC_CFG[profile.kyc].label.toLowerCase()}</Badge>
-        <Badge tone={KYC_CFG[profile.kyb].tone}>KYB {KYC_CFG[profile.kyb].label.toLowerCase()}</Badge>
-        <span className="text-yo-txt-3">·</span>
-        <span>
-          Score <span className="font-mono font-semibold text-yo-txt">{profile.score}</span>/100
-        </span>
-        <span className="text-yo-txt-3">·</span>
-        <span>Última actualización: {fmtDateTime(profile.lastCalculatedAt)}</span>
+      {/* Identity card */}
+      <div className="rounded-lg border border-yo-border bg-yo-surface p-4 flex flex-wrap items-center gap-4">
+        <div className="size-11 rounded-lg bg-yo-ac-bg grid place-items-center text-yo-ac-txt font-semibold">
+          {personType === "PM" ? <Building2 className="size-5" /> : personType === "PFAE" ? <Briefcase className="size-5" /> : <User className="size-5" />}
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-semibold text-yo-txt truncate">{profile.displayName}</p>
+          <p className="text-xs text-yo-txt-2 mt-0.5 flex items-center gap-2 flex-wrap">
+            <span className={cn("inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[11px] font-medium", ptCfg.bg, ptCfg.text)}>
+              <span className="w-1.5 h-1.5 rounded-full bg-current opacity-70" />
+              {ptCfg.label}
+            </span>
+            <span className="text-yo-txt-3">·</span>
+            <span className="font-mono">RFC {profile.rfc}</span>
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2 text-xs text-yo-txt-2">
+          <Badge tone={levelCfg.tone}>{levelCfg.label}</Badge>
+          {personType === "PM" ? (
+            <Badge tone={KYC_CFG[profile.kyb].tone}>KYB {KYC_CFG[profile.kyb].label.toLowerCase()}</Badge>
+          ) : (
+            <Badge tone={KYC_CFG[profile.kyc].tone}>KYC {KYC_CFG[profile.kyc].label.toLowerCase()}</Badge>
+          )}
+          <span>
+            Score <span className="font-mono font-semibold text-yo-txt">{profile.score}</span>/100
+          </span>
+          <span className="text-yo-txt-3">· {fmtDateTime(profile.lastCalculatedAt)}</span>
+        </div>
       </div>
 
       {/* Metric cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <MetricCard label="Score de cumplimiento" value={`${profile.score}/100`} tone="accent" mono />
         <MetricCard label="Nivel actual" value={levelCfg.label} tone={levelCfg.tone} />
-        <MetricCard label="Documentos completos" value={`${profile.docCompletionPct}%`} tone="accent" mono />
+        <MetricCard label="Documentos requeridos" value={`${profile.docCompletionPct}%`} tone="accent" mono />
         <MetricCard
           label="Alertas activas"
           value={String(profile.activeAlertsCount)}
@@ -151,7 +179,7 @@ function ScorePage() {
       {/* Tabs */}
       <div className="border-b border-yo-border overflow-x-auto">
         <div className="flex gap-1 min-w-max">
-          {TABS.map((t) => {
+          {tabs.map((t) => {
             const Ico = t.icon;
             const active = tab === t.key;
             return (
@@ -177,21 +205,21 @@ function ScorePage() {
       <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_320px] gap-6">
         <div className="min-w-0 flex flex-col gap-6">
           {tab === "resumen" && <ResumenTab profile={profile} onOpenComp={setOpenComponent} />}
-          {tab === "kyc" && <KycTab role={viewRole} profile={profile} />}
+          {tab === "kyc" && <KycTab profile={profile} />}
           {tab === "docs" && (
             <DocsTab profile={profile} onOpen={setOpenDoc} onUpload={() => setUploadOpen(true)} />
           )}
           {tab === "score" && <ScoreTab profile={profile} onOpen={setOpenComponent} />}
           {tab === "alerts" && <AlertsTab profile={profile} />}
           {tab === "history" && <HistoryTab profile={profile} />}
-          {tab === "visibility" && <VisibilityTab />}
+          {tab === "visibility" && <VisibilityTab profile={profile} />}
         </div>
 
         {/* Sidebar 30% */}
         <aside className="flex flex-col gap-4">
           <ChecklistCard profile={profile} />
           <SidebarAlerts profile={profile} />
-          <NextActionsCard viewRole={viewRole} onUpload={() => setUploadOpen(true)} />
+          <NextActionsCard personType={personType} onUpload={() => setUploadOpen(true)} onComplete={() => setCompleteOpen(true)} />
           <DisclaimerCard />
         </aside>
       </div>
@@ -201,11 +229,26 @@ function ScorePage() {
       {openComponent && <ScoreExplainDrawer comp={openComponent} onClose={() => setOpenComponent(null)} />}
       {uploadOpen && <UploadModal onClose={() => setUploadOpen(false)} />}
       {recalcOpen && <RecalcModal onClose={() => setRecalcOpen(false)} />}
+      {completeOpen && <CompleteProfileDrawer profile={profile} onClose={() => setCompleteOpen(false)} onUpload={() => { setCompleteOpen(false); setUploadOpen(true); }} />}
     </div>
   );
 }
 
-/* ---------- Metric ---------- */
+function PersonTypeSelect({ value, onChange }: { value: PersonType; onChange: (v: PersonType) => void }) {
+  return (
+    <select
+      value={value}
+      onChange={(e) => onChange(e.target.value as PersonType)}
+      className="rounded-lg border border-yo-border bg-yo-surface px-3 py-2 text-sm font-medium text-yo-txt hover:bg-yo-raised transition"
+      title="Tipo de perfil de cumplimiento"
+    >
+      <option value="PF">Persona Física</option>
+      <option value="PFAE">Persona Física con Actividad Empresarial</option>
+      <option value="PM">Persona Moral</option>
+    </select>
+  );
+}
+
 
 function MetricCard({
   label,
