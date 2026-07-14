@@ -532,6 +532,11 @@ function TxDetail() {
 
           {tab === "auditoria" && (
             <section>
+              <div className="mb-3 flex justify-end">
+                <button onClick={exportAuditCSV} disabled={events.length === 0} className={btnGhost}>
+                  Exportar CSV
+                </button>
+              </div>
               <div className="border border-yo-border bg-background">
                 {events.length === 0 && <p className="p-5 text-sm text-muted-foreground">Sin eventos.</p>}
                 <ul className="divide-y divide-yokto-black/20">
