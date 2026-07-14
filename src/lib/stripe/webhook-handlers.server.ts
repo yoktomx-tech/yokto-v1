@@ -71,7 +71,8 @@ export async function handleStripeEvent(event: StripeEvent): Promise<void> {
   }
 }
 
-type Admin = Awaited<ReturnType<typeof import("@/integrations/supabase/client.server").supabaseAdmin extends infer T ? () => T : never>>;
+import type { SupabaseClient } from "@supabase/supabase-js";
+type Admin = SupabaseClient;
 type Obj = Record<string, unknown> & { id?: string; metadata?: Record<string, string> };
 
 async function onPaymentSucceeded(sb: Admin, obj: Obj) {
