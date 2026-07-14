@@ -295,7 +295,7 @@ function TxDetail() {
                 <div className="flex items-center gap-2 flex-wrap">
                   {tx.numero && <span className="font-mono text-[11px] text-yo-txt-3">{tx.numero}</span>}
                   <StatusBadge status={tx.status} size="sm" />
-                  {sectorCfg && <SectorBadge sectorId={tx.sector as SectorUiId} size="sm" />}
+                  {sectorCfg && <SectorBadge sector={tx.sector} size="sm" />}
                 </div>
                 <h1 className="mt-1.5 text-xl md:text-2xl font-semibold text-yo-txt truncate">{tx.title}</h1>
                 {tx.description && (
@@ -575,7 +575,7 @@ function TxDetail() {
                 <EntityCard
                   title={tx.beneficiario_nombre || tx.counterparty_email || "Vendedor"}
                   role="VENDEDOR"
-                  rfc={tx.beneficiario_rfc ?? undefined}
+                 
                   subtitle={!isBuyer ? "Tú" : tx.counterparty_email ?? undefined}
                 />
               </div>
