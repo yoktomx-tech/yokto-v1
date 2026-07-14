@@ -42,15 +42,17 @@ export function NotificationsBell({ userId }: { userId: string }) {
       <button
         onClick={() => setOpen((o) => !o)}
         aria-label="Notificaciones"
-        className="relative inline-flex items-center justify-center size-8 rounded-md border border-yo-border hover:border-yo-border-s bg-yo-surface hover:bg-yo-raised text-yo-txt"
+        title="Notificaciones"
+        className="relative size-8 grid place-items-center rounded-md text-yo-txt-2 hover:text-yo-txt hover:bg-yo-raised transition"
       >
         <Bell className="size-4" aria-hidden />
         {unread > 0 && (
-          <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-yo-err text-white text-[10px] font-bold grid place-items-center">
+          <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-[16px] px-1 rounded-full bg-yo-err text-white text-[9px] font-bold grid place-items-center">
             {unread > 9 ? "9+" : unread}
           </span>
         )}
       </button>
+
       {open && (
         <div className="absolute right-0 mt-2 w-80 max-h-[70vh] overflow-auto border border-yo-border bg-yo-surface rounded-lg shadow-lg z-50">
           <div className="flex items-center justify-between p-3 border-b border-yo-border">
@@ -78,7 +80,11 @@ export function NotificationsBell({ userId }: { userId: string }) {
               </li>
             ))}
           </ul>
+          <a href="/notifications" onClick={() => setOpen(false)} className="block p-3 text-center text-[12px] font-semibold text-yo-ac hover:bg-yo-raised border-t border-yo-border">
+            Ver todas las notificaciones
+          </a>
         </div>
+
       )}
     </div>
   );
