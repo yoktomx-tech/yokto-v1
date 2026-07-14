@@ -26,8 +26,8 @@ import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authen
 import { Route as AuthenticatedKycRouteImport } from './routes/_authenticated/kyc'
 import { Route as AuthenticatedDisputesRouteImport } from './routes/_authenticated/disputes'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedCumplimientoRouteImport } from './routes/_authenticated/cumplimiento'
 import { Route as AuthenticatedCrmRouteImport } from './routes/_authenticated/crm'
-import { Route as AuthenticatedComplianceRouteImport } from './routes/_authenticated/compliance'
 import { Route as AuthenticatedApprovalsRouteImport } from './routes/_authenticated/approvals'
 import { Route as AuthenticatedApiClientsRouteImport } from './routes/_authenticated/api-clients'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
@@ -132,14 +132,15 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedCumplimientoRoute =
+  AuthenticatedCumplimientoRouteImport.update({
+    id: '/cumplimiento',
+    path: '/cumplimiento',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedCrmRoute = AuthenticatedCrmRouteImport.update({
   id: '/crm',
   path: '/crm',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedComplianceRoute = AuthenticatedComplianceRouteImport.update({
-  id: '/compliance',
-  path: '/compliance',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedApprovalsRoute = AuthenticatedApprovalsRouteImport.update({
@@ -248,8 +249,8 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/api-clients': typeof AuthenticatedApiClientsRoute
   '/approvals': typeof AuthenticatedApprovalsRoute
-  '/compliance': typeof AuthenticatedComplianceRoute
   '/crm': typeof AuthenticatedCrmRoute
+  '/cumplimiento': typeof AuthenticatedCumplimientoRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/disputes': typeof AuthenticatedDisputesRouteWithChildren
   '/kyc': typeof AuthenticatedKycRoute
@@ -285,8 +286,8 @@ export interface FileRoutesByTo {
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/api-clients': typeof AuthenticatedApiClientsRoute
   '/approvals': typeof AuthenticatedApprovalsRoute
-  '/compliance': typeof AuthenticatedComplianceRoute
   '/crm': typeof AuthenticatedCrmRoute
+  '/cumplimiento': typeof AuthenticatedCumplimientoRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/disputes': typeof AuthenticatedDisputesRouteWithChildren
   '/kyc': typeof AuthenticatedKycRoute
@@ -324,8 +325,8 @@ export interface FileRoutesById {
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/api-clients': typeof AuthenticatedApiClientsRoute
   '/_authenticated/approvals': typeof AuthenticatedApprovalsRoute
-  '/_authenticated/compliance': typeof AuthenticatedComplianceRoute
   '/_authenticated/crm': typeof AuthenticatedCrmRoute
+  '/_authenticated/cumplimiento': typeof AuthenticatedCumplimientoRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/disputes': typeof AuthenticatedDisputesRouteWithChildren
   '/_authenticated/kyc': typeof AuthenticatedKycRoute
@@ -363,8 +364,8 @@ export interface FileRouteTypes {
     | '/admin'
     | '/api-clients'
     | '/approvals'
-    | '/compliance'
     | '/crm'
+    | '/cumplimiento'
     | '/dashboard'
     | '/disputes'
     | '/kyc'
@@ -400,8 +401,8 @@ export interface FileRouteTypes {
     | '/admin'
     | '/api-clients'
     | '/approvals'
-    | '/compliance'
     | '/crm'
+    | '/cumplimiento'
     | '/dashboard'
     | '/disputes'
     | '/kyc'
@@ -438,8 +439,8 @@ export interface FileRouteTypes {
     | '/_authenticated/admin'
     | '/_authenticated/api-clients'
     | '/_authenticated/approvals'
-    | '/_authenticated/compliance'
     | '/_authenticated/crm'
+    | '/_authenticated/cumplimiento'
     | '/_authenticated/dashboard'
     | '/_authenticated/disputes'
     | '/_authenticated/kyc'
@@ -602,18 +603,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/cumplimiento': {
+      id: '/_authenticated/cumplimiento'
+      path: '/cumplimiento'
+      fullPath: '/cumplimiento'
+      preLoaderRoute: typeof AuthenticatedCumplimientoRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/crm': {
       id: '/_authenticated/crm'
       path: '/crm'
       fullPath: '/crm'
       preLoaderRoute: typeof AuthenticatedCrmRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/compliance': {
-      id: '/_authenticated/compliance'
-      path: '/compliance'
-      fullPath: '/compliance'
-      preLoaderRoute: typeof AuthenticatedComplianceRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/approvals': {
@@ -828,8 +829,8 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
   AuthenticatedApiClientsRoute: typeof AuthenticatedApiClientsRoute
   AuthenticatedApprovalsRoute: typeof AuthenticatedApprovalsRoute
-  AuthenticatedComplianceRoute: typeof AuthenticatedComplianceRoute
   AuthenticatedCrmRoute: typeof AuthenticatedCrmRoute
+  AuthenticatedCumplimientoRoute: typeof AuthenticatedCumplimientoRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedDisputesRoute: typeof AuthenticatedDisputesRouteWithChildren
   AuthenticatedKycRoute: typeof AuthenticatedKycRoute
@@ -846,8 +847,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
   AuthenticatedApiClientsRoute: AuthenticatedApiClientsRoute,
   AuthenticatedApprovalsRoute: AuthenticatedApprovalsRoute,
-  AuthenticatedComplianceRoute: AuthenticatedComplianceRoute,
   AuthenticatedCrmRoute: AuthenticatedCrmRoute,
+  AuthenticatedCumplimientoRoute: AuthenticatedCumplimientoRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedDisputesRoute: AuthenticatedDisputesRouteWithChildren,
   AuthenticatedKycRoute: AuthenticatedKycRoute,

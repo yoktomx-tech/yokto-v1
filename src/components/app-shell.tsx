@@ -1,7 +1,7 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { useRef, useState, useEffect } from "react";
 import {
-  LayoutDashboard, Briefcase, ShieldCheck, AlertTriangle, Banknote,
+  LayoutDashboard, Briefcase, PackageCheck, AlertTriangle, Banknote,
   Users, Star, Menu, X, ClipboardCheck, ShoppingCart, Store, ChevronDown, Check,
 } from "lucide-react";
 import { YoktoLogo } from "@/components/logo";
@@ -15,7 +15,7 @@ type NavItem = { to: string; icon: typeof LayoutDashboard; label: string };
 const SELLER_NAV: NavItem[] = [
   { to: "/dashboard",    icon: LayoutDashboard, label: "Dashboard" },
   { to: "/transactions", icon: Briefcase,       label: "Mis Operaciones" },
-  { to: "/compliance",   icon: ShieldCheck,     label: "Cumplimiento" },
+  { to: "/cumplimiento", icon: PackageCheck,     label: "Cumplimiento operativo" },
   { to: "/disputes",     icon: AlertTriangle,   label: "Disputas" },
   { to: "/payments",     icon: Banknote,        label: "Pagos y retenciones" },
   { to: "/crm",          icon: Users,           label: "CRM" },
