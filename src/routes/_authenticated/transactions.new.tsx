@@ -249,7 +249,7 @@ function NewTransactionWizard() {
           </button>
         </div>
 
-        <WizardProgress current={step} total={TOTAL_STEPS} labels={["Sector","Partes","Hitos","Monto","Revisión"]} />
+        <WizardProgress current={step} total={TOTAL_STEPS} labels={["Sector","Partes","Hitos","Monto","Revisión","Firma"]} />
 
         {error && (
           <div className="mt-6 border border-[#FF3B3B] bg-[#FF3B3B]/10 p-3 text-sm text-[#FF3B3B]">{error}</div>
