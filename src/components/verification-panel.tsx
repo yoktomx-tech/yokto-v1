@@ -76,10 +76,13 @@ export function VerificationPanel({ transactionId, canUpload }: { transactionId:
         .from("verification-evidence")
         .upload(path, file, { contentType: file.type, upsert: false });
       if (upErr) throw upErr;
+      const geo = await getGeolocation();
       const { error: insErr } = await supabase.from("verification_evidence").insert({
         transaction_id: transactionId, uploaded_by: uid, file_path: path,
         file_name: file.name, mime_type: file.type, size_bytes: file.size,
         note: note.trim() || null,
+        latitude: geo?.lat ?? null, longitude: geo?.lng ?? null,
+        captured_at: new Date().toISOString(),
       });
       if (insErr) throw insErr;
       setNote("");
