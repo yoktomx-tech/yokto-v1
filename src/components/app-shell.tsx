@@ -9,6 +9,7 @@ import { useViewRole, type ViewRole } from "@/hooks/use-view-role";
 import { useAuthUser } from "@/hooks/use-auth-user";
 import { AppHeader } from "@/components/app-header";
 import { cn } from "@/lib/utils";
+import { getMockProfile, LEVEL_CFG, TONE_CLASSES } from "@/lib/score-mock";
 
 type NavItem = { to: string; icon: typeof LayoutDashboard; label: string };
 
@@ -32,19 +33,22 @@ const BUYER_NAV: NavItem[] = [
   { to: "/score",        icon: Star,            label: "Score de confianza" },
 ];
 
-export function AppShell({ children, sgyScore = 500 }: { children: React.ReactNode; sgyScore?: number; displayName?: string }) {
+export function AppShell({ children }: { children: React.ReactNode; sgyScore?: number; displayName?: string }) {
   const pathname = useRouterState({ select: (r) => r.location.pathname });
   const [mobileOpen, setMobileOpen] = useState(false);
   const { role, setRole } = useViewRole();
   const { userId, email } = useAuthUser();
 
   const nav = role === "seller" ? SELLER_NAV : BUYER_NAV;
+  const profile = getMockProfile(role);
 
+  const nav_ = nav;
   return (
     <div className="min-h-dvh flex bg-yo-bg">
       <aside className="hidden md:flex md:w-60 lg:w-64 shrink-0 flex-col border-r border-yo-border bg-yo-surface sticky top-0 h-dvh">
-        <SidebarContent pathname={pathname} nav={nav} role={role} setRole={setRole} sgyScore={sgyScore} />
+        <SidebarContent pathname={pathname} nav={nav_} role={role} setRole={setRole} score={profile.score} level={profile.level} />
       </aside>
+
 
       {mobileOpen && (
         <>
@@ -64,7 +68,8 @@ export function AppShell({ children, sgyScore = 500 }: { children: React.ReactNo
               nav={nav}
               role={role}
               setRole={(r) => { setRole(r); }}
-              sgyScore={sgyScore}
+              score={profile.score}
+              level={profile.level}
               onNavigate={() => setMobileOpen(false)}
             />
           </aside>
@@ -86,13 +91,11 @@ export function AppShell({ children, sgyScore = 500 }: { children: React.ReactNo
   );
 }
 
-function scoreLevel(score: number): { label: string; color: string } {
-  if (score >= 850) return { label: "Élite", color: "text-emerald-500" };
-  if (score >= 700) return { label: "Premium", color: "text-yo-ac" };
-  if (score >= 500) return { label: "Confiable", color: "text-yo-ac" };
-  if (score >= 300) return { label: "Básico", color: "text-amber-500" };
-  return { label: "Nuevo", color: "text-yo-txt-3" };
-}
+const ROLE_DESC: Record<ViewRole, string> = {
+  seller: "Envías hitos y evidencia para liberar pagos.",
+  buyer: "Fondeas operaciones y apruebas hitos entregados.",
+};
+
 
 function RoleSelect({ role, setRole }: { role: ViewRole; setRole: (r: ViewRole) => void }) {
   const [open, setOpen] = useState(false);
@@ -136,13 +139,18 @@ function RoleSelect({ role, setRole }: { role: ViewRole; setRole: (r: ViewRole) 
                 key={opt.key}
                 onClick={() => { setRole(opt.key); setOpen(false); }}
                 className={cn(
-                  "w-full flex items-center gap-2 px-2.5 py-2 text-left hover:bg-yo-raised",
+                  "w-full flex items-start gap-2 px-2.5 py-2 text-left hover:bg-yo-raised",
                   active && "bg-yo-ac-bg/40"
                 )}
               >
-                <Icon className="size-3.5 text-yo-txt-3 shrink-0" />
-                <span className="flex-1 text-[12.5px] font-medium text-yo-txt">{opt.label}</span>
-                {active && <Check className="size-3.5 text-yo-ac" />}
+                <Icon className="size-3.5 text-yo-txt-3 shrink-0 mt-0.5" />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[12.5px] font-medium text-yo-txt">{opt.label}</span>
+                    {active && <Check className="size-3 text-yo-ac" />}
+                  </div>
+                  <p className="text-[10.5px] leading-tight text-yo-txt-3 mt-0.5">{ROLE_DESC[opt.key]}</p>
+                </div>
               </button>
             );
           })}
@@ -153,17 +161,19 @@ function RoleSelect({ role, setRole }: { role: ViewRole; setRole: (r: ViewRole) 
 }
 
 function SidebarContent({
-  pathname, nav, role, setRole, sgyScore, onNavigate,
+  pathname, nav, role, setRole, score, level, onNavigate,
 }: {
   pathname: string;
   nav: NavItem[];
   role: ViewRole;
   setRole: (r: ViewRole) => void;
-  sgyScore: number;
+  score: number;
+  level: import("@/lib/score-mock").ComplianceLevel;
   onNavigate?: () => void;
 }) {
-  const level = scoreLevel(sgyScore);
-  const pct = Math.min(100, (sgyScore / 1000) * 100);
+  const cfg = LEVEL_CFG[level];
+  const tone = TONE_CLASSES[cfg.tone];
+  const pct = Math.min(100, Math.max(0, score));
 
   return (
     <>
@@ -206,16 +216,16 @@ function SidebarContent({
           <div className="flex items-center justify-between mb-1.5">
             <div className="flex items-center gap-1.5">
               <Star className="size-3.5 text-yo-ac" />
-              <span className="text-[10px] uppercase tracking-[0.14em] font-semibold text-yo-txt-3">Score SGY</span>
+              <span className="text-[10px] uppercase tracking-[0.14em] font-semibold text-yo-txt-3">Perfil de cumplimiento</span>
             </div>
-            <span className={cn("text-[11px] font-semibold", level.color)}>{level.label}</span>
+            <span className={cn("text-[10px] font-semibold px-1.5 py-0.5 rounded", tone.bg, tone.text)}>{cfg.label}</span>
           </div>
           <div className="flex items-baseline gap-1 mb-1.5">
-            <span className="text-lg font-bold text-yo-txt tabular-nums">{sgyScore}</span>
-            <span className="text-[10px] text-yo-txt-3">/ 1000</span>
+            <span className="text-lg font-bold text-yo-txt tabular-nums">{score}</span>
+            <span className="text-[10px] text-yo-txt-3">/ 100</span>
           </div>
           <div className="h-1 w-full rounded-full bg-yo-border overflow-hidden">
-            <div className="h-full bg-yo-ac rounded-full transition-all" style={{ width: `${pct}%` }} />
+            <div className={cn("h-full rounded-full transition-all", tone.dot)} style={{ width: `${pct}%` }} />
           </div>
         </Link>
 
