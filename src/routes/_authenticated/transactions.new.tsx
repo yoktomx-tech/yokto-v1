@@ -2,13 +2,18 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
-import { SECTORES, getSector, type SectorId } from "@/lib/sectors";
+import {
+  SECTORES, getSector, calcularFee, PLANTILLAS_HITOS, plantillaToDraft,
+  type SectorId, type HitoDraft,
+} from "@/lib/sectors";
 import {
   searchCounterpart,
   upsertTransactionDraft,
   cancelTransactionDraft,
+  saveTransactionHitos,
+  saveTransactionMonto,
 } from "@/lib/transactions.functions";
-import { Step1Schema, Step2Schema } from "@/lib/validations/transaction";
+import { Step1Schema, Step2Schema, Step3Schema, Step4Schema } from "@/lib/validations/transaction";
 
 export const Route = createFileRoute("/_authenticated/transactions/new")({
   head: () => ({ meta: [{ title: "Nueva transacción — YOKTO" }, { name: "robots", content: "noindex" }] }),
