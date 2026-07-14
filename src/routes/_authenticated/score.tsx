@@ -393,43 +393,87 @@ function ScoreBreakdown({
   );
 }
 
-function KycTab({ role, profile }: { role: "buyer" | "seller"; profile: ReturnType<typeof getMockProfile> }) {
-  const kycFields = [
-    { label: "Nombre completo", value: "Luis Hernández Barrera" },
-    { label: "CURP", value: "HEBL850214HDFRNS03", mono: true },
-    { label: "RFC", value: "HEBL850214XX9", mono: true },
-    { label: "Teléfono", value: "+52 55 1234 5678" },
-    { label: "Correo", value: "luis@ejemplo.com" },
-    { label: "Domicilio", value: "CDMX, México" },
-  ];
-  const kybFields = [
-    { label: "Razón social", value: "Constructora Ejemplo S.A. de C.V." },
-    { label: "RFC", value: "CEJ200101ABC", mono: true },
-    { label: "Régimen fiscal", value: "601 — General de Ley PM" },
-    { label: "Representante legal", value: "Luis Hernández Barrera" },
-    { label: "Domicilio fiscal", value: "Av. Insurgentes Sur 1234, CDMX" },
-  ];
-  const fields = role === "buyer" ? kycFields : kybFields;
+function KycTab({ profile }: { profile: ComplianceProfile }) {
+  const isPM = profile.personType === "PM";
+  const title = isPM ? "Verificación de Empresa" : "Verificación de Identidad";
+  const status = isPM ? profile.kyb : profile.kyc;
+  return (
+    <>
+      <div className="rounded-lg border border-yo-border bg-yo-surface">
+        <div className="px-5 py-4 border-b border-yo-border flex items-center justify-between">
+          <div>
+            <h3 className="text-sm font-semibold text-yo-txt">{title}</h3>
+            <p className="text-xs text-yo-txt-2 mt-0.5 inline-flex items-center gap-2">
+              Estado: <Badge tone={KYC_CFG[status].tone}>{KYC_CFG[status].label}</Badge>
+            </p>
+          </div>
+          <button className="text-sm text-yo-ac hover:text-yo-ac-h font-medium">Ver detalle</button>
+        </div>
+        <dl className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 p-5">
+          {profile.identityFields.map((f) => (
+            <div key={f.label}>
+              <dt className="text-[11px] uppercase tracking-wider text-yo-txt-3 flex items-center gap-1">
+                {f.label}
+                {f.sensitive && <Lock className="size-3 text-yo-txt-3" />}
+              </dt>
+              <dd className={cn("mt-1 text-sm", f.sensitive ? "text-yo-txt-2" : "text-yo-txt", f.mono && "font-mono")}>{f.value}</dd>
+            </div>
+          ))}
+        </dl>
+      </div>
+
+      {isPM && <RepresentativesCard reps={profile.representatives} />}
+    </>
+  );
+}
+
+function RepresentativesCard({ reps }: { reps: Representative[] }) {
+  const statusTone = (s: Representative["status"]) => (s === "APPROVED" ? "ok" : s === "PENDING" ? "warn" : "err");
+  const statusLabel = (s: Representative["status"]) => (s === "APPROVED" ? "Verificado" : s === "PENDING" ? "Pendiente" : "Rechazado");
   return (
     <div className="rounded-lg border border-yo-border bg-yo-surface">
-      <div className="px-5 py-4 border-b border-yo-border flex items-center justify-between">
+      <div className="px-5 py-4 border-b border-yo-border flex items-center justify-between gap-2">
         <div>
-          <h3 className="text-sm font-semibold text-yo-txt">Verificación {role === "seller" ? "KYB" : "KYC"}</h3>
-          <p className="text-xs text-yo-txt-2 mt-0.5">Estado: <Badge tone={KYC_CFG[profile.kyc].tone}>{KYC_CFG[profile.kyc].label}</Badge></p>
+          <h3 className="text-sm font-semibold text-yo-txt">Representantes y autorizados</h3>
+          <p className="text-xs text-yo-txt-2 mt-0.5">
+            Los autorizados no sustituyen al representante legal; sus permisos dependen de su rol operativo y facultades documentadas.
+          </p>
         </div>
-        <button className="text-sm text-yo-ac hover:text-yo-ac-h font-medium">Ver detalle</button>
+        <button className="inline-flex items-center gap-2 rounded-lg bg-yo-ac hover:bg-yo-ac-h text-white px-3 py-2 text-sm font-medium">
+          <UserPlus className="size-4" /> Agregar representante
+        </button>
       </div>
-      <dl className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 p-5">
-        {fields.map((f) => (
-          <div key={f.label}>
-            <dt className="text-[11px] uppercase tracking-wider text-yo-txt-3">{f.label}</dt>
-            <dd className={cn("mt-1 text-sm text-yo-txt", f.mono && "font-mono")}>{f.value}</dd>
-          </div>
-        ))}
-      </dl>
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead className="bg-yo-raised text-yo-txt-2 text-[11px] uppercase tracking-wider">
+            <tr>
+              <th className="text-left px-5 py-2.5 font-medium">Nombre</th>
+              <th className="text-left px-4 py-2.5 font-medium">Rol</th>
+              <th className="text-left px-4 py-2.5 font-medium">Documento</th>
+              <th className="text-left px-4 py-2.5 font-medium">Estado</th>
+              <th className="px-4 py-2.5" />
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-yo-border">
+            {reps.map((r) => (
+              <tr key={r.id} className="hover:bg-yo-raised/60">
+                <td className="px-5 py-3 text-yo-txt font-medium flex items-center gap-2">
+                  {r.isLegal && <ShieldCheck className="size-4 text-[#059669]" />}
+                  {r.name}
+                </td>
+                <td className="px-4 py-3 text-yo-txt-2">{r.role}</td>
+                <td className="px-4 py-3 text-yo-txt-2">{r.document}</td>
+                <td className="px-4 py-3"><Badge tone={statusTone(r.status)}>{statusLabel(r.status)}</Badge></td>
+                <td className="px-4 py-3 text-right"><button className="text-xs font-medium text-yo-ac hover:text-yo-ac-h">Ver detalle</button></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
+
 
 function DocsTab({
   profile,
