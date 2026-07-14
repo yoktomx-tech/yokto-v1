@@ -12,8 +12,10 @@ import {
   cancelTransactionDraft,
   saveTransactionHitos,
   saveTransactionMonto,
+  signAndActivateTransaction,
 } from "@/lib/transactions.functions";
-import { Step1Schema, Step2Schema, Step3Schema, Step4Schema } from "@/lib/validations/transaction";
+import { Step1Schema, Step2Schema, Step3Schema, Step4Schema, Step5Schema } from "@/lib/validations/transaction";
+
 
 export const Route = createFileRoute("/_authenticated/transactions/new")({
   head: () => ({ meta: [{ title: "Nueva transacción — YOKTO" }, { name: "robots", content: "noindex" }] }),
