@@ -66,6 +66,16 @@ function PaymentsPage() {
           icon={Banknote}
           title="Centro de Pagos"
           subtitle={`Vista ${role === "buyer" ? "de comprador" : "de vendedor"} — pagos, retenciones y liberaciones procesados por la pasarela.`}
+          actions={
+            role === "buyer" ? (
+              <button
+                onClick={() => setFundingOpen(true)}
+                className="inline-flex items-center gap-1.5 px-3 py-2 bg-yo-ac text-white text-sm font-medium rounded-md hover:bg-yo-ac-h"
+              >
+                <Plus className="size-4" /> Fondear transacción
+              </button>
+            ) : null
+          }
         />
 
 
