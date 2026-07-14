@@ -1,11 +1,13 @@
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
+import { Shield } from "lucide-react";
 import {
   adminOverview, adminSetKycStatus, adminGrantRole,
   adminForceResolveDispute, isCurrentUserAdmin,
 } from "@/lib/admin.functions";
 import { formatMoney, STATUS_LABEL, type TxStatus } from "@/lib/tx";
+import { PageHeader } from "@/components/page-header";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   head: () => ({ meta: [{ title: "Admin — YOKTO" }, { name: "robots", content: "noindex" }] }),
@@ -52,20 +54,20 @@ function AdminPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
-      <main className="flex-1 container-editorial py-8 max-w-6xl">
-        <div className="flex items-center justify-between gap-3 flex-wrap">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight text-yo-txt">Panel de administración</h1>
-            <p className="text-sm text-yo-txt-3 mt-1">Acceso reservado. Todas las acciones quedan en el log de eventos.</p>
-          </div>
+    <div className="flex flex-col gap-6">
+      <PageHeader
+        icon={Shield}
+        title="Panel de administración"
+        subtitle="Acceso reservado. Todas las acciones quedan en el log de eventos."
+        actions={
           <Link to="/admin/disputes" className="h-9 px-4 rounded-md bg-yo-txt text-yo-surface text-sm font-medium hover:opacity-90 inline-flex items-center">
             Panel de disputas →
           </Link>
-        </div>
+        }
+      />
 
         {data && (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             <Kpi label="Usuarios (recientes)" value={data.counts.users} />
             <Kpi label="KYC pendiente" value={data.counts.pendingKyc} accent />
             <Kpi label="Transacciones activas" value={data.counts.activeTx} />
@@ -149,7 +151,6 @@ function AdminPage() {
             </>
           )}
         </div>
-      </main>
     </div>
   );
 }

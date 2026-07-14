@@ -1,8 +1,10 @@
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useState } from "react";
+import { AlertTriangle } from "lucide-react";
 import { listMediatorDisputes, isCurrentUserMediator } from "@/lib/mediation.functions";
 import { formatMoney } from "@/lib/tx";
+import { PageHeader } from "@/components/page-header";
 
 export const Route = createFileRoute("/_authenticated/admin/disputes")({
   head: () => ({ meta: [{ title: "Panel de disputas — YOKTO" }, { name: "robots", content: "noindex" }] }),
@@ -74,21 +76,19 @@ function AdminDisputesList() {
   }, [rows, statusFilter]);
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
-      <main className="flex-1 container-editorial py-8 max-w-6xl">
-        <div className="flex items-center justify-between gap-3 flex-wrap">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight text-yo-txt">Panel de disputas</h1>
-            <p className="text-sm text-yo-txt-3 mt-1">
-              Mediación, resolución y escalado. Solo mediadores y administradores.
-            </p>
-          </div>
+    <div className="flex flex-col gap-6">
+      <PageHeader
+        icon={AlertTriangle}
+        title="Panel de disputas"
+        subtitle="Mediación, resolución y escalado. Solo mediadores y administradores."
+        actions={
           <Link to="/admin" className="text-sm text-yo-txt-3 hover:text-yo-txt underline">
             ← Panel general
           </Link>
-        </div>
+        }
+      />
 
-        <div className="mt-6 flex items-center gap-2 flex-wrap">
+        <div className="flex items-center gap-2 flex-wrap">
           {[
             ["open_group", "Activas"],
             ["awaiting_response", "Esperando contraparte"],
@@ -121,7 +121,7 @@ function AdminDisputesList() {
           </label>
         </div>
 
-        <div className="mt-4 rounded-lg border border-yo-border bg-yo-surface overflow-x-auto">
+        <div className="rounded-lg border border-yo-border bg-yo-surface overflow-x-auto">
           <table className="w-full text-left">
             <thead className="bg-background/50">
               <tr>
@@ -191,7 +191,6 @@ function AdminDisputesList() {
             </tbody>
           </table>
         </div>
-      </main>
     </div>
   );
 }

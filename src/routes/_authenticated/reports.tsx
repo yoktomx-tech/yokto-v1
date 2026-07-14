@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Download, FileText, Loader2 } from "lucide-react";
 import { exportTransactionsCsv, listRecentReports, generateCfdiStub } from "@/lib/reports.functions";
 import { supabase } from "@/integrations/supabase/client";
+import { PageHeader } from "@/components/page-header";
 
 export const Route = createFileRoute("/_authenticated/reports")({
   head: () => ({ meta: [{ title: "Reportes — YOKTO" }, { name: "robots", content: "noindex" }] }),
@@ -64,14 +65,17 @@ function ReportsPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
-      <main className="flex-1 container-editorial py-8 max-w-4xl">
-        <h1 className="text-2xl font-bold tracking-tight text-yo-txt">Reportes y CFDI</h1>
-        <p className="text-sm text-yo-txt-3 mt-1">Exporta tu operación en CSV y genera CFDI stub para pruebas de integración.</p>
+    <div className="flex flex-col gap-6">
+      <PageHeader
+        icon={FileText}
+        title="Reportes y CFDI"
+        subtitle="Exporta tu operación en CSV y genera CFDI stub para pruebas de integración."
+      />
 
-        {msg && <div className="mt-4 rounded-md border border-yo-border bg-yo-surface px-3 py-2 text-sm">{msg}</div>}
+      {msg && <div className="rounded-md border border-yo-border bg-yo-surface px-3 py-2 text-sm">{msg}</div>}
 
-        <div className="grid md:grid-cols-2 gap-4 mt-6">
+      <div>
+        <div className="grid md:grid-cols-2 gap-4">
           <div className="rounded-lg border border-yo-border bg-yo-surface p-5">
             <h2 className="font-semibold flex items-center gap-2"><Download className="size-4" /> Exportar transacciones (CSV)</h2>
             <p className="text-xs text-yo-txt-3 mt-1">Todas tus operaciones como comprador o vendedor.</p>
@@ -118,7 +122,7 @@ function ReportsPage() {
             </ul>
           )}
         </div>
-      </main>
+      </div>
     </div>
   );
 }
