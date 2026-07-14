@@ -107,8 +107,8 @@ Headers:
   x-yokto-signature: <sig hex>`}
           </pre>
         </div>
-      </main>
     </div>
+  );
   );
 }
 
