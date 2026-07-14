@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Plus, LayoutGrid, List as ListIcon } from "lucide-react";
+import { Plus, LayoutGrid, List as ListIcon, Download } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/app-shell";
 import { useViewRole } from "@/hooks/use-view-role";
