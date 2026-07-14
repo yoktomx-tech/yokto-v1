@@ -154,7 +154,7 @@ export const listPaymentsForCenter = createServerFn({ method: "GET" })
         hasDispute,
         hitoLabel: hito ? `Hito 1/${hito.total}` : null,
         createdAt: tx.created_at,
-        updatedAt: tx.updated_at ?? tx.created_at,
+        updatedAt: tx.created_at,
         paidAt: null,
         reference: null,
         clabe: null,
