@@ -85,6 +85,45 @@ function NewTransactionWizard() {
 
   const sectorDef = useMemo(() => (sector ? getSector(sector) : undefined), [sector]);
 
+  // Auto-save cada 30s si hay borrador y estamos en pasos 2-4
+  useEffect(() => {
+    if (!txId || step < 2 || step > 4 || !sector) return;
+    const interval = setInterval(async () => {
+      const payload = Step2Schema.safeParse({
+        rol, descripcion,
+        contraparte_user_id: contraparte?.user_id ?? null,
+        contraparte_email: contraparte?.email ?? null,
+        contraparte_nombre: contraparte?.nombre ?? null,
+        contraparte_rfc: contraparte?.rfc ?? null,
+      });
+      if (!payload.success) return;
+      try {
+        await upsertDraft({ data: { transaction_id: txId, step1: { sector }, step2: payload.data } });
+        setLastSavedAt(new Date());
+      } catch { /* silencio */ }
+    }, 30_000);
+    return () => clearInterval(interval);
+  }, [txId, step, sector, rol, descripcion, contraparte, upsertDraft]);
+
+  const handleFirmar = useCallback(async () => {
+    setError(null);
+    const parsed = Step5Schema.safeParse({ acepta_terminos: aceptaTerminos, acepta_retencion: aceptaRetencion });
+    if (!parsed.success) { setError(parsed.error.issues[0]?.message ?? "Acepta los términos"); return; }
+    if (!txId) { setError("Falta el borrador"); return; }
+    setFirmando(true);
+    try {
+      const res = await signAndActivate({
+        data: { transaction_id: txId, acepta_terminos: true, acepta_retencion: true },
+      });
+      setFirmaResult({ status: res.status ?? "pending_signature", activated: res.activated });
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setFirmando(false);
+    }
+  }, [txId, aceptaTerminos, aceptaRetencion, signAndActivate]);
+
+
   const goNext = useCallback(async () => {
     setError(null);
     if (step === 1) {
