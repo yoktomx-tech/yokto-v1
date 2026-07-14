@@ -121,7 +121,7 @@ function AdminDisputesList() {
           </label>
         </div>
 
-        <div className="mt-4 rounded-lg border border-yo-border bg-yo-surface overflow-x-auto">
+        <div className="rounded-lg border border-yo-border bg-yo-surface overflow-x-auto">
           <table className="w-full text-left">
             <thead className="bg-background/50">
               <tr>
