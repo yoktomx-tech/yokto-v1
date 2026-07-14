@@ -12,6 +12,7 @@ import {
 import { openDispute } from "@/lib/disputes.functions";
 import { VerificationPanel } from "@/components/verification-panel";
 import { DocumentsPanel } from "@/components/documents-panel";
+import { FiscalPanel } from "@/components/fiscal-panel";
 
 type Tx = {
   id: string;
