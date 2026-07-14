@@ -1,0 +1,466 @@
+import { createFileRoute, useParams } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
+import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  Camera, CheckCircle2, XCircle, Loader2, ShieldCheck, IdCard,
+  ScanFace, FileText, ArrowRight, RefreshCw, Video, AlertTriangle, Check,
+} from "lucide-react";
+import {
+  getEnrollmentByToken, submitBiometricId, submitBiometricSelfie,
+  submitBiometricAddressDoc, confirmBiometricEnrollment, cancelBiometricEnrollment,
+} from "@/lib/biometric.functions";
+import { YoktoLogo } from "@/components/logo";
+
+export const Route = createFileRoute("/biometrico/$token")({
+  head: () => ({ meta: [{ title: "Enrolamiento biométrico — YOKTO" }, { name: "robots", content: "noindex" }] }),
+  component: BiometricMobile,
+});
+
+type Enrollment = Awaited<ReturnType<typeof getEnrollmentByToken>>;
+type Phase = "intro" | "id-choose" | "id-capture" | "selfie" | "address" | "review" | "done" | "error";
+
+function fileToBase64(file: File | Blob): Promise<{ base64: string; mime: string }> {
+  return new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => {
+      const s = String(r.result ?? "");
+      const [meta, b64] = s.split(",");
+      resolve({ base64: b64 ?? "", mime: meta?.match(/data:(.+);/)?.[1] ?? file.type ?? "image/jpeg" });
+    };
+    r.onerror = reject;
+    r.readAsDataURL(file);
+  });
+}
+
+function BiometricMobile() {
+  const { token } = useParams({ from: "/biometrico/$token" });
+  const get = useServerFn(getEnrollmentByToken);
+  const cancel = useServerFn(cancelBiometricEnrollment);
+  const [enroll, setEnroll] = useState<Enrollment | null>(null);
+  const [phase, setPhase] = useState<Phase>("intro");
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const refresh = useCallback(async () => {
+    try {
+      const e = await get({ data: { token } });
+      setEnroll(e);
+      setError(null);
+      if (e.status === "completed") setPhase("done");
+      else if (phase === "intro" && e.status !== "pending") {
+        // reanudar
+        if (e.status === "id_captured" || e.status === "id_verified") setPhase(e.status === "id_verified" ? "selfie" : "id-choose");
+        else if (e.status === "face_verified") setPhase("address");
+        else if (e.status === "address_verified") setPhase("review");
+      }
+    } catch (err) {
+      setError((err as Error).message);
+      setPhase("error");
+    } finally { setLoading(false); }
+  }, [get, token, phase]);
+
+  useEffect(() => { void refresh(); /* eslint-disable-next-line */ }, []);
+
+  if (loading) return <MobileShell><Center><Loader2 className="size-6 animate-spin" /></Center></MobileShell>;
+  if (phase === "error" || !enroll) return <MobileShell><ErrorCard msg={error ?? "Sesión no válida"} /></MobileShell>;
+
+  return (
+    <MobileShell>
+      <Progress phase={phase} enroll={enroll} />
+      {phase === "intro" && <Intro onStart={() => setPhase("id-choose")} enroll={enroll} />}
+      {phase === "id-choose" && <IdChoose onChoose={() => setPhase("id-capture")} enroll={enroll} setEnroll={setEnroll} />}
+      {phase === "id-capture" && <IdCapture token={token} enroll={enroll} onDone={() => { void refresh(); setPhase("selfie"); }} onError={setError} />}
+      {phase === "selfie" && <SelfieCapture token={token} onDone={() => { void refresh(); setPhase("address"); }} onError={setError} />}
+      {phase === "address" && <AddressCapture token={token} onDone={() => { void refresh(); setPhase("review"); }} onError={setError} />}
+      {phase === "review" && <Review token={token} enroll={enroll} onDone={() => { void refresh(); setPhase("done"); }} onError={setError} />}
+      {phase === "done" && <Done />}
+      {error && phase !== "error" && (
+        <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800 flex gap-2">
+          <AlertTriangle className="size-4 shrink-0 mt-0.5" /> <span>{error}</span>
+        </div>
+      )}
+      {phase !== "done" && phase !== "intro" && (
+        <button onClick={async () => { await cancel({ data: { token } }); setPhase("error"); setError("Enrolamiento cancelado"); }}
+          className="text-xs text-yo-txt-3 underline mt-2">Cancelar biométrico</button>
+      )}
+    </MobileShell>
+  );
+}
+
+// ─── shells ──────────────────────────────────────────────────────────────────
+function MobileShell({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="min-h-dvh bg-yo-bg text-yo-txt">
+      <header className="px-5 py-4 border-b border-yo-border bg-yo-surface">
+        <YoktoLogo variant="dark" className="h-6" />
+      </header>
+      <main className="max-w-md mx-auto px-4 py-5 flex flex-col gap-4">{children}</main>
+    </div>
+  );
+}
+function Center({ children }: { children: React.ReactNode }) { return <div className="min-h-[40vh] grid place-items-center">{children}</div>; }
+function ErrorCard({ msg }: { msg: string }) {
+  return <div className="rounded-xl border border-red-200 bg-red-50 p-5 text-center">
+    <XCircle className="size-8 mx-auto text-red-600 mb-2" />
+    <p className="text-sm text-red-800">{msg}</p>
+  </div>;
+}
+function Progress({ phase, enroll }: { phase: Phase; enroll: Enrollment }) {
+  const steps = [
+    { k: "id", label: "ID", ok: !!enroll?.curp_match, active: phase === "id-choose" || phase === "id-capture" },
+    { k: "face", label: "Rostro", ok: !!enroll?.face_match_ok, active: phase === "selfie" },
+    { k: "addr", label: "Domicilio", ok: !!enroll?.address_doc_ok, active: phase === "address" },
+    { k: "done", label: "Confirmar", ok: phase === "done", active: phase === "review" },
+  ];
+  return (
+    <ol className="grid grid-cols-4 gap-1 text-[11px]">
+      {steps.map((s, i) => (
+        <li key={s.k} className={"flex flex-col items-center gap-1 " + (s.ok ? "text-yo-ok" : s.active ? "text-yo-ac" : "text-yo-txt-3")}>
+          <span className={"grid place-items-center size-7 rounded-full border text-[11px] font-semibold " +
+            (s.ok ? "bg-yo-ok text-white border-yo-ok" : s.active ? "bg-yo-ac text-white border-yo-ac" : "bg-yo-surface border-yo-border")}>
+            {s.ok ? <Check className="size-3.5" /> : i + 1}
+          </span>
+          {s.label}
+        </li>
+      ))}
+    </ol>
+  );
+}
+
+// ─── Intro ───────────────────────────────────────────────────────────────────
+function Intro({ onStart, enroll }: { onStart: () => void; enroll: Enrollment }) {
+  const name = enroll?.profile ? `${enroll.profile.first_name ?? ""} ${enroll.profile.last_name ?? ""}`.trim() : "";
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="rounded-xl bg-yo-surface border border-yo-border p-5">
+        <ShieldCheck className="size-8 text-yo-ac mb-2" />
+        <h1 className="text-lg font-bold">Verificación biométrica</h1>
+        {name && <p className="text-sm text-yo-txt-2 mt-1">Hola, <b>{name}</b>. Vamos a confirmar tu identidad.</p>}
+      </div>
+      <ol className="text-sm text-yo-txt-2 flex flex-col gap-3">
+        <li className="flex gap-3"><IdCard className="size-5 text-yo-ac shrink-0" /> <span>Toma una foto clara de tu <b>INE o pasaporte</b>.</span></li>
+        <li className="flex gap-3"><ScanFace className="size-5 text-yo-ac shrink-0" /> <span>Graba un <b>selfie corto</b> moviendo la cara.</span></li>
+        <li className="flex gap-3"><FileText className="size-5 text-yo-ac shrink-0" /> <span>Sube tu <b>comprobante de domicilio</b> (max 3 meses).</span></li>
+      </ol>
+      <p className="text-[11px] text-yo-txt-3">
+        Al continuar aceptas el tratamiento de tus datos biométricos con el fin exclusivo de verificar tu identidad.
+      </p>
+      <button onClick={onStart} className="h-11 rounded-md bg-yo-ac hover:bg-yo-ac-h text-white text-sm font-semibold">
+        Comenzar
+      </button>
+    </div>
+  );
+}
+
+// ─── ID choose ───────────────────────────────────────────────────────────────
+function IdChoose({ onChoose, enroll, setEnroll }: { onChoose: () => void; enroll: Enrollment; setEnroll: (e: Enrollment) => void }) {
+  return (
+    <div className="flex flex-col gap-3">
+      <h2 className="text-lg font-bold">¿Qué identificación usarás?</h2>
+      <button onClick={() => { setEnroll({ ...enroll!, id_type: "ine" }); onChoose(); }}
+        className="rounded-xl border border-yo-border bg-yo-surface p-4 text-left hover:border-yo-ac">
+        <div className="font-semibold">Credencial para votar (INE)</div>
+        <div className="text-xs text-yo-txt-3 mt-1">Capturaremos el anverso y el reverso.</div>
+      </button>
+      <button onClick={() => { setEnroll({ ...enroll!, id_type: "passport" }); onChoose(); }}
+        className="rounded-xl border border-yo-border bg-yo-surface p-4 text-left hover:border-yo-ac">
+        <div className="font-semibold">Pasaporte mexicano</div>
+        <div className="text-xs text-yo-txt-3 mt-1">Sólo página con foto.</div>
+      </button>
+    </div>
+  );
+}
+
+// ─── Camera capture (front-facing or environment) ────────────────────────────
+function useCamera(facing: "user" | "environment") {
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const [ready, setReady] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      try {
+        const s = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: { ideal: facing }, width: { ideal: 1280 }, height: { ideal: 720 } },
+          audio: false,
+        });
+        if (!active) { s.getTracks().forEach((t) => t.stop()); return; }
+        streamRef.current = s;
+        if (videoRef.current) { videoRef.current.srcObject = s; await videoRef.current.play(); setReady(true); }
+      } catch (e) {
+        setErr("No se pudo acceder a la cámara: " + (e as Error).message);
+      }
+    })();
+    return () => { active = false; streamRef.current?.getTracks().forEach((t) => t.stop()); };
+  }, [facing]);
+  const snap = useCallback(async (): Promise<{ base64: string; mime: string } | null> => {
+    const v = videoRef.current;
+    if (!v || !ready) return null;
+    const canvas = document.createElement("canvas");
+    canvas.width = v.videoWidth; canvas.height = v.videoHeight;
+    canvas.getContext("2d")?.drawImage(v, 0, 0);
+    const blob: Blob | null = await new Promise((r) => canvas.toBlob(r, "image/jpeg", 0.85));
+    if (!blob) return null;
+    return fileToBase64(blob);
+  }, [ready]);
+  return { videoRef, ready, err, snap, streamRef };
+}
+
+// ─── ID capture with framing guide ───────────────────────────────────────────
+function IdCapture({ token, enroll, onDone, onError }: { token: string; enroll: Enrollment; onDone: () => void; onError: (m: string | null) => void }) {
+  const cam = useCamera("environment");
+  const submit = useServerFn(submitBiometricId);
+  const [side, setSide] = useState<"front" | "back">("front");
+  const [front, setFront] = useState<{ base64: string; mime: string } | null>(null);
+  const [back, setBack] = useState<{ base64: string; mime: string } | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  async function capture() {
+    const shot = await cam.snap();
+    if (!shot) return;
+    if (side === "front") { setFront(shot); if (enroll?.id_type === "ine") setSide("back"); }
+    else setBack(shot);
+  }
+
+  async function send() {
+    if (!front) return;
+    setBusy(true); onError(null);
+    try {
+      await submit({ data: {
+        token, id_type: (enroll?.id_type ?? "ine") as "ine" | "passport",
+        front_base64: front.base64, front_mime: front.mime,
+        back_base64: back?.base64, back_mime: back?.mime,
+      } });
+      onDone();
+    } catch (e) { onError((e as Error).message); }
+    finally { setBusy(false); }
+  }
+
+  const shot = side === "front" ? front : back;
+  return (
+    <div className="flex flex-col gap-3">
+      <h2 className="text-lg font-bold">
+        {enroll?.id_type === "passport" ? "Pasaporte" : side === "front" ? "INE — Frente" : "INE — Reverso"}
+      </h2>
+      <p className="text-xs text-yo-txt-3">Coloca la identificación dentro del recuadro. Evita reflejos.</p>
+
+      <div className="relative aspect-[85/54] rounded-xl overflow-hidden bg-black">
+        {shot ? (
+          <img src={`data:${shot.mime};base64,${shot.base64}`} alt="Captura" className="absolute inset-0 w-full h-full object-cover" />
+        ) : (
+          <video ref={cam.videoRef} className="absolute inset-0 w-full h-full object-cover" muted playsInline />
+        )}
+        <div className="absolute inset-3 border-2 border-yo-ac/80 rounded-lg pointer-events-none" />
+      </div>
+      {cam.err && <p className="text-xs text-red-600">{cam.err}</p>}
+
+      <div className="flex gap-2">
+        {shot ? (
+          <>
+            <button onClick={() => (side === "front" ? setFront(null) : setBack(null))}
+              className="flex-1 h-11 rounded-md border border-yo-border text-sm">Repetir</button>
+            {enroll?.id_type === "ine" && side === "front" && (
+              <button onClick={() => setSide("back")} className="flex-1 h-11 rounded-md bg-yo-txt text-white text-sm font-semibold">
+                Siguiente: reverso
+              </button>
+            )}
+            {(enroll?.id_type === "passport" || side === "back") && (
+              <button onClick={send} disabled={busy}
+                className="flex-1 h-11 rounded-md bg-yo-ac hover:bg-yo-ac-h text-white text-sm font-semibold inline-flex items-center justify-center gap-1.5">
+                {busy ? <Loader2 className="size-4 animate-spin" /> : <ArrowRight className="size-4" />}
+                Enviar y validar
+              </button>
+            )}
+          </>
+        ) : (
+          <button onClick={capture} disabled={!cam.ready}
+            className="flex-1 h-11 rounded-md bg-yo-ac hover:bg-yo-ac-h text-white text-sm font-semibold inline-flex items-center justify-center gap-1.5">
+            <Camera className="size-4" /> Capturar foto
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─── Selfie + short video ────────────────────────────────────────────────────
+function SelfieCapture({ token, onDone, onError }: { token: string; onDone: () => void; onError: (m: string | null) => void }) {
+  const cam = useCamera("user");
+  const submit = useServerFn(submitBiometricSelfie);
+  const [recording, setRecording] = useState(false);
+  const [videoB64, setVideoB64] = useState<{ base64: string; mime: string } | null>(null);
+  const [selfie, setSelfie] = useState<{ base64: string; mime: string } | null>(null);
+  const [busy, setBusy] = useState(false);
+  const chunks = useRef<Blob[]>([]);
+  const recRef = useRef<MediaRecorder | null>(null);
+
+  async function record() {
+    if (!cam.streamRef.current) return;
+    chunks.current = [];
+    const rec = new MediaRecorder(cam.streamRef.current, { mimeType: "video/webm" });
+    recRef.current = rec;
+    rec.ondataavailable = (e) => e.data.size && chunks.current.push(e.data);
+    rec.onstop = async () => {
+      const blob = new Blob(chunks.current, { type: "video/webm" });
+      setVideoB64(await fileToBase64(blob));
+      const shot = await cam.snap();
+      if (shot) setSelfie(shot);
+    };
+    rec.start();
+    setRecording(true);
+    setTimeout(() => { rec.stop(); setRecording(false); }, 3000);
+  }
+
+  async function send() {
+    if (!selfie) return;
+    setBusy(true); onError(null);
+    try {
+      await submit({ data: {
+        token, selfie_base64: selfie.base64, selfie_mime: selfie.mime,
+        video_base64: videoB64?.base64, video_mime: videoB64?.mime,
+      } });
+      onDone();
+    } catch (e) { onError((e as Error).message); }
+    finally { setBusy(false); }
+  }
+
+  return (
+    <div className="flex flex-col gap-3">
+      <h2 className="text-lg font-bold">Selfie y prueba de vida</h2>
+      <p className="text-xs text-yo-txt-3">Al grabar, mueve suavemente la cabeza de un lado a otro durante 3 segundos.</p>
+      <div className="relative aspect-square rounded-xl overflow-hidden bg-black">
+        {selfie ? (
+          <img src={`data:${selfie.mime};base64,${selfie.base64}`} alt="Selfie" className="absolute inset-0 w-full h-full object-cover" />
+        ) : (
+          <video ref={cam.videoRef} className="absolute inset-0 w-full h-full object-cover scale-x-[-1]" muted playsInline />
+        )}
+        <div className="absolute inset-6 rounded-full border-2 border-yo-ac/80 pointer-events-none" />
+        {recording && <span className="absolute top-3 left-3 bg-red-600 text-white text-[11px] px-2 py-0.5 rounded-full animate-pulse">REC</span>}
+      </div>
+      {cam.err && <p className="text-xs text-red-600">{cam.err}</p>}
+      <div className="flex gap-2">
+        {selfie ? (
+          <>
+            <button onClick={() => { setSelfie(null); setVideoB64(null); }} className="flex-1 h-11 rounded-md border border-yo-border text-sm">Repetir</button>
+            <button onClick={send} disabled={busy} className="flex-1 h-11 rounded-md bg-yo-ac hover:bg-yo-ac-h text-white text-sm font-semibold inline-flex items-center justify-center gap-1.5">
+              {busy ? <Loader2 className="size-4 animate-spin" /> : <ArrowRight className="size-4" />} Enviar
+            </button>
+          </>
+        ) : (
+          <button onClick={record} disabled={!cam.ready || recording} className="flex-1 h-11 rounded-md bg-yo-ac hover:bg-yo-ac-h text-white text-sm font-semibold inline-flex items-center justify-center gap-1.5">
+            <Video className="size-4" /> {recording ? "Grabando…" : "Grabar 3 segundos"}
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─── Address doc ─────────────────────────────────────────────────────────────
+const DOC_OPTS: Array<{ v: "cfe" | "telmex" | "izzi" | "totalplay" | "megacable" | "agua" | "gas" | "predial" | "banco" | "otro"; label: string }> = [
+  { v: "cfe", label: "CFE (luz)" },
+  { v: "telmex", label: "Telmex" },
+  { v: "izzi", label: "izzi" },
+  { v: "totalplay", label: "Totalplay" },
+  { v: "megacable", label: "Megacable" },
+  { v: "agua", label: "Agua" },
+  { v: "gas", label: "Gas natural" },
+  { v: "predial", label: "Predial" },
+  { v: "banco", label: "Estado de cuenta bancario" },
+  { v: "otro", label: "Otro" },
+];
+
+function AddressCapture({ token, onDone, onError }: { token: string; onDone: () => void; onError: (m: string | null) => void }) {
+  const submit = useServerFn(submitBiometricAddressDoc);
+  const [type, setType] = useState<typeof DOC_OPTS[number]["v"]>("cfe");
+  const [file, setFile] = useState<{ base64: string; mime: string; name: string } | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  async function pick(f: File) {
+    if (f.size > 8 * 1024 * 1024) { onError("Archivo mayor a 8 MB"); return; }
+    const { base64, mime } = await fileToBase64(f);
+    setFile({ base64, mime, name: f.name });
+  }
+
+  async function send() {
+    if (!file) return;
+    setBusy(true); onError(null);
+    try {
+      await submit({ data: { token, doc_type: type, file_base64: file.base64, file_mime: file.mime } });
+      onDone();
+    } catch (e) { onError((e as Error).message); }
+    finally { setBusy(false); }
+  }
+
+  return (
+    <div className="flex flex-col gap-3">
+      <h2 className="text-lg font-bold">Comprobante de domicilio</h2>
+      <p className="text-xs text-yo-txt-3">Vigencia máxima 3 meses. JPG, PNG o PDF.</p>
+      <label className="text-xs font-semibold">Tipo de documento</label>
+      <select value={type} onChange={(e) => setType(e.target.value as typeof type)} className="h-11 rounded-md border border-yo-border bg-background px-3 text-sm">
+        {DOC_OPTS.map((o) => <option key={o.v} value={o.v}>{o.label}</option>)}
+      </select>
+      <label className="inline-flex items-center justify-center gap-2 h-11 rounded-md border border-dashed border-yo-border text-sm cursor-pointer">
+        <Camera className="size-4" /> {file ? file.name : "Tomar foto o subir archivo"}
+        <input type="file" accept="image/*,application/pdf" capture="environment" className="hidden"
+          onChange={(e) => { const f = e.target.files?.[0]; if (f) void pick(f); }} />
+      </label>
+      <button onClick={send} disabled={!file || busy}
+        className="h-11 rounded-md bg-yo-ac hover:bg-yo-ac-h text-white text-sm font-semibold inline-flex items-center justify-center gap-1.5 disabled:opacity-50">
+        {busy ? <Loader2 className="size-4 animate-spin" /> : <ArrowRight className="size-4" />} Enviar y validar
+      </button>
+    </div>
+  );
+}
+
+// ─── Review ──────────────────────────────────────────────────────────────────
+function Review({ token, enroll, onDone, onError }: { token: string; enroll: Enrollment; onDone: () => void; onError: (m: string | null) => void }) {
+  const confirm = useServerFn(confirmBiometricEnrollment);
+  const [busy, setBusy] = useState(false);
+  const ocr = (enroll?.ocr_data ?? {}) as Record<string, unknown>;
+  const name = String(ocr.nombre ?? [ocr.nombres, ocr.apellidoPaterno, ocr.apellidoMaterno].filter(Boolean).join(" ")).trim();
+  const curp = enroll?.profile?.curp;
+  const rows: Array<[string, string | number | null | undefined]> = [
+    ["Documento", enroll?.id_type === "ine" ? "INE" : "Pasaporte"],
+    ["Nombre (OCR)", name || "—"],
+    ["CURP en perfil", curp ?? "—"],
+    ["CURP coincide", enroll?.curp_match ? "Sí" : "No"],
+    ["Match facial", enroll?.face_score != null ? `${Number(enroll.face_score).toFixed(2)} %` : "—"],
+    ["Comprobante", enroll?.address_doc_ok ? "Aprobado" : "—"],
+  ];
+  async function send() {
+    setBusy(true); onError(null);
+    try { await confirm({ data: { token } }); onDone(); }
+    catch (e) { onError((e as Error).message); }
+    finally { setBusy(false); }
+  }
+  return (
+    <div className="flex flex-col gap-3">
+      <h2 className="text-lg font-bold">Confirma tu información</h2>
+      <div className="rounded-xl border border-yo-border bg-yo-surface divide-y divide-yo-border text-sm">
+        {rows.map(([k, v]) => (
+          <div key={k} className="flex justify-between gap-3 px-3 py-2">
+            <span className="text-yo-txt-3">{k}</span>
+            <span className="font-medium text-right">{String(v ?? "—")}</span>
+          </div>
+        ))}
+      </div>
+      <button onClick={send} disabled={busy}
+        className="h-11 rounded-md bg-yo-ac hover:bg-yo-ac-h text-white text-sm font-semibold inline-flex items-center justify-center gap-1.5">
+        {busy ? <Loader2 className="size-4 animate-spin" /> : <CheckCircle2 className="size-4" />} Confirmar enrolamiento
+      </button>
+    </div>
+  );
+}
+
+function Done() {
+  return (
+    <div className="rounded-xl border border-yo-ok/40 bg-yo-ok-bg p-6 text-center">
+      <CheckCircle2 className="size-10 mx-auto text-yo-ok mb-2" />
+      <h2 className="text-lg font-bold">¡Listo!</h2>
+      <p className="text-sm text-yo-txt-2 mt-1">Regresa a tu computadora para continuar con el onboarding.</p>
+      <RefreshCw className="size-4 inline mt-3 text-yo-txt-3" />
+    </div>
+  );
+}
