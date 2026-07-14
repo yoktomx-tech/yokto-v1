@@ -5,6 +5,7 @@ import {
   Users, User, Settings, Menu, X, ShieldCheck, Star,
 } from "lucide-react";
 import { YoktoLogo } from "@/components/logo";
+import { OrgSwitcher } from "@/components/org-switcher";
 import { cn } from "@/lib/utils";
 
 const NAV = [
@@ -15,7 +16,8 @@ const NAV = [
   { to: "/reports",      icon: FileText,        label: "Fiscal" },
   { to: "/api-clients",  icon: Users,           label: "API" },
   { to: "/kyc",          icon: ShieldCheck,     label: "KYC" },
-  { to: "/admin",        icon: Settings,        label: "Admin" },
+  { to: "/settings/organization", icon: Settings, label: "Organización" },
+  { to: "/admin",        icon: Users,           label: "Admin" },
 ] as const;
 
 export function AppShell({
@@ -90,10 +92,11 @@ function SidebarContent({
 }) {
   return (
     <>
-      <div className="px-5 py-5 border-b border-yo-border">
+      <div className="px-5 py-5 border-b border-yo-border space-y-3">
         <Link to="/dashboard" onClick={onNavigate} className="flex items-center gap-2">
           <YoktoLogo variant="dark" className="h-6 w-auto" />
         </Link>
+        <OrgSwitcher />
       </div>
 
       <nav className="flex-1 overflow-y-auto p-3 space-y-0.5">

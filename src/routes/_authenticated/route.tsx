@@ -2,6 +2,7 @@ import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/app-shell";
+import { OrgProvider } from "@/hooks/use-current-org";
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
@@ -27,8 +28,10 @@ function AuthedLayout() {
   }, [user.id]);
 
   return (
-    <AppShell displayName={name} sgyScore={500}>
-      <Outlet />
-    </AppShell>
+    <OrgProvider>
+      <AppShell displayName={name} sgyScore={500}>
+        <Outlet />
+      </AppShell>
+    </OrgProvider>
   );
 }
