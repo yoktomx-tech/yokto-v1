@@ -1,6 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Plus, LayoutGrid, List as ListIcon, Download } from "lucide-react";
+import { Plus, LayoutGrid, List as ListIcon, Download, Briefcase } from "lucide-react";
+import { PageHeader } from "@/components/page-header";
 import { supabase } from "@/integrations/supabase/client";
 import { useViewRole } from "@/hooks/use-view-role";
 import { toUiStatus, type UiStatus, type SectorUiId } from "@/lib/tx-catalog";
