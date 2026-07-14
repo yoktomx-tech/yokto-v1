@@ -494,6 +494,9 @@ export type Database = {
           deposit_paid_at: string | null
           deposit_provider_ref: string | null
           deposit_returned_to: string | null
+          escalated_at: string | null
+          escalation_reason: string | null
+          evidence_closed_at: string | null
           evidence_due_at: string | null
           hito_id: string | null
           id: string
@@ -530,6 +533,9 @@ export type Database = {
           deposit_paid_at?: string | null
           deposit_provider_ref?: string | null
           deposit_returned_to?: string | null
+          escalated_at?: string | null
+          escalation_reason?: string | null
+          evidence_closed_at?: string | null
           evidence_due_at?: string | null
           hito_id?: string | null
           id?: string
@@ -566,6 +572,9 @@ export type Database = {
           deposit_paid_at?: string | null
           deposit_provider_ref?: string | null
           deposit_returned_to?: string | null
+          escalated_at?: string | null
+          escalation_reason?: string | null
+          evidence_closed_at?: string | null
           evidence_due_at?: string | null
           hito_id?: string | null
           id?: string
