@@ -168,6 +168,15 @@ export function VerificationPanel({ transactionId, canUpload }: { transactionId:
                       {new Date(it.created_at).toLocaleString("es-MX")}
                     </div>
                     {it.note && <div className="text-xs mt-1 text-yo-txt-2">"{it.note}"</div>}
+                    {it.latitude != null && it.longitude != null && (
+                      <a
+                        href={`https://www.google.com/maps?q=${it.latitude},${it.longitude}`}
+                        target="_blank" rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 mt-1 text-xs text-yo-ac underline underline-offset-2"
+                      >
+                        📍 {it.latitude.toFixed(5)}, {it.longitude.toFixed(5)} — ver en mapa
+                      </a>
+                    )}
                   </div>
                   <button
                     onClick={() => analyze(it.id)}
