@@ -139,13 +139,18 @@ function RoleSelect({ role, setRole }: { role: ViewRole; setRole: (r: ViewRole) 
                 key={opt.key}
                 onClick={() => { setRole(opt.key); setOpen(false); }}
                 className={cn(
-                  "w-full flex items-center gap-2 px-2.5 py-2 text-left hover:bg-yo-raised",
+                  "w-full flex items-start gap-2 px-2.5 py-2 text-left hover:bg-yo-raised",
                   active && "bg-yo-ac-bg/40"
                 )}
               >
-                <Icon className="size-3.5 text-yo-txt-3 shrink-0" />
-                <span className="flex-1 text-[12.5px] font-medium text-yo-txt">{opt.label}</span>
-                {active && <Check className="size-3.5 text-yo-ac" />}
+                <Icon className="size-3.5 text-yo-txt-3 shrink-0 mt-0.5" />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[12.5px] font-medium text-yo-txt">{opt.label}</span>
+                    {active && <Check className="size-3 text-yo-ac" />}
+                  </div>
+                  <p className="text-[10.5px] leading-tight text-yo-txt-3 mt-0.5">{ROLE_DESC[opt.key]}</p>
+                </div>
               </button>
             );
           })}
