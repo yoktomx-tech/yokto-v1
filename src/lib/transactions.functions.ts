@@ -130,7 +130,7 @@ export const cancelTransactionDraft = createServerFn({ method: "POST" })
 export const saveTransactionHitos = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((i: unknown) =>
-    z.object({ transaction_id: z.string().uuid(), hitos: Step3Schema.shape.hitos }).parse(i),
+    z.object({ transaction_id: z.string().uuid(), hitos: z.array(HitoSchema).min(1) }).parse(i),
   )
   .handler(async ({ data, context }) => {
     // Verificar ownership del borrador
