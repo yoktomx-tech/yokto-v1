@@ -74,7 +74,7 @@ function BiometricMobile() {
       {phase === "address" && <AddressCapture token={token} onDone={() => { void refresh(); setPhase("review"); }} onError={setError} />}
       {phase === "review" && <Review token={token} enroll={enroll} onDone={() => { void refresh(); setPhase("done"); }} onError={setError} />}
       {phase === "done" && <Done />}
-      {error && phase !== "error" && (
+      {error && (
         <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800 flex gap-2">
           <AlertTriangle className="size-4 shrink-0 mt-0.5" /> <span>{error}</span>
         </div>
