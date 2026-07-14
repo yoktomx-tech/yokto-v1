@@ -220,7 +220,7 @@ function DisputesModule() {
       {/* Drawer */}
       {active && <QuickDrawer d={active} isBuyer={isBuyer} onClose={() => setDrawerId(null)} />}
       {openModal && <OpenDisputeModal onClose={() => setOpenModal(false)} />}
-    </div>
+    </>
   );
 }
 
