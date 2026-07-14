@@ -75,7 +75,7 @@ function TransactionsList() {
 
   const setFilters = useCallback((v: TxFiltersState) => {
     navigate({
-      search: (s) => ({
+      search: (s: SearchParams) => ({
         ...s,
         q: v.q || undefined,
         status: v.status === "ALL" ? undefined : v.status,
@@ -86,10 +86,10 @@ function TransactionsList() {
     });
   }, [navigate]);
   const setTab = useCallback((t: TabId) => {
-    navigate({ search: (s) => ({ ...s, tab: t === "ALL" ? undefined : t }), replace: true });
+    navigate({ search: (s: SearchParams) => ({ ...s, tab: t === "ALL" ? undefined : t }), replace: true });
   }, [navigate]);
   const setView = useCallback((v: "cards" | "table") => {
-    navigate({ search: (s) => ({ ...s, view: v === "table" ? undefined : v }), replace: true });
+    navigate({ search: (s: SearchParams) => ({ ...s, view: v === "table" ? undefined : v }), replace: true });
   }, [navigate]);
 
   const fetchAll = useCallback(async () => {
