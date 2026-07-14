@@ -197,7 +197,7 @@ function NotificationsPage() {
             </ul>
           )}
         </div>
-      </main>
-    </>
+      </div>
+    </div>
   );
 }
