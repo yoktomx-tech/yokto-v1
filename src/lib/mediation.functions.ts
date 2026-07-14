@@ -302,7 +302,7 @@ export const generateDisputeAiSummary = createServerFn({ method: "POST" })
       .slice(0, 6000);
 
     const evidenceList = (evidence ?? [])
-      .map((e) => `- [${e.uploader_role}] ${e.file_name} — ${e.description ?? "sin descripción"}`)
+      .map((e) => `- [${e.uploader_role}] ${e.kind}: ${e.storage_path.split("/").pop()} — ${e.description ?? "sin descripción"}`)
       .join("\n")
       .slice(0, 2000);
 
