@@ -714,22 +714,13 @@ function HistoryTab({ profile }: { profile: ReturnType<typeof getMockProfile> })
   );
 }
 
-function VisibilityTab() {
-  const rows = [
-    { field: "Nivel de cumplimiento", cp: "Sí", bo: "Sí", edit: "No" },
-    { field: "Score global", cp: "Sí, parcial", bo: "Sí", edit: "No" },
-    { field: "Documentos completos", cp: "Parcial", bo: "Sí", edit: "Sí" },
-    { field: "Archivos completos", cp: "No, salvo permisos", bo: "Sí", edit: "Sí" },
-    { field: "Historial de disputas", cp: "Resumen", bo: "Sí", edit: "No" },
-    { field: "Observaciones internas", cp: "No", bo: "Sí", edit: "No" },
-  ];
+function VisibilityTab({ profile }: { profile: ComplianceProfile }) {
   return (
     <>
       <div className="rounded-lg border border-[#EBEBF0] bg-[#F0F9FF] p-4 flex gap-3">
         <Info className="size-5 text-[#0284C7] shrink-0" />
         <p className="text-sm text-[#0C4A6E]">
-          Tu contraparte no puede ver archivos sensibles completos salvo que estén vinculados a una operación compartida
-          o hayas autorizado su uso dentro del flujo de cumplimiento.
+          Visibilidad ante contrapartes para <strong>{PERSON_TYPE_CFG[profile.personType].label}</strong>. Los archivos sensibles no se comparten completos salvo que estén vinculados a una operación o autorización explícita.
         </p>
       </div>
       <div className="rounded-lg border border-yo-border bg-yo-surface overflow-hidden">
@@ -743,12 +734,12 @@ function VisibilityTab() {
             </tr>
           </thead>
           <tbody className="divide-y divide-yo-border">
-            {rows.map((r) => (
+            {profile.visibility.map((r) => (
               <tr key={r.field}>
                 <td className="px-5 py-3 text-yo-txt font-medium">{r.field}</td>
-                <td className="px-4 py-3 text-yo-txt-2">{r.cp}</td>
-                <td className="px-4 py-3 text-yo-txt-2">{r.bo}</td>
-                <td className="px-5 py-3 text-yo-txt-2">{r.edit}</td>
+                <td className="px-4 py-3 text-yo-txt-2">{r.visibleForCounterparty}</td>
+                <td className="px-4 py-3 text-yo-txt-2">{r.visibleForBackoffice}</td>
+                <td className="px-5 py-3 text-yo-txt-2">{r.editable}</td>
               </tr>
             ))}
           </tbody>
@@ -757,6 +748,7 @@ function VisibilityTab() {
     </>
   );
 }
+
 
 /* ---------- Sidebar ---------- */
 
