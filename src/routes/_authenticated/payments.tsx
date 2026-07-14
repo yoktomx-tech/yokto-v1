@@ -96,6 +96,11 @@ function PaymentsPage() {
           <PaymentsTable rows={filtered} role={role} onOpen={(r) => { if (!r.id.startsWith("tx-")) navigate({ to: "/payments/$id", params: { id: r.id } }); else navigate({ to: "/transactions/$id", params: { id: r.transactionId } }); }} />
         )}
       </div>
+      <FundingWizard
+        open={fundingOpen}
+        onClose={() => setFundingOpen(false)}
+        onSuccess={() => qc.invalidateQueries({ queryKey: ["payments-center"] })}
+      />
     </>
   );
 }
