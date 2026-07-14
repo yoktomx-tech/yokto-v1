@@ -163,11 +163,12 @@ function SidebarContent({
 
   return (
     <>
-      <div className="px-5 py-5 border-b border-yo-border">
-        <Link to="/dashboard" onClick={onNavigate} className="flex items-center gap-2">
+      <div className="px-5 py-5 border-b border-yo-border flex justify-center">
+        <Link to="/dashboard" onClick={onNavigate} className="inline-flex items-center justify-center">
           <YoktoLogo variant="dark" className="h-6 w-auto" />
         </Link>
       </div>
+
 
       <nav className="flex-1 overflow-y-auto p-3 space-y-0.5">
         {nav.map((item) => {
