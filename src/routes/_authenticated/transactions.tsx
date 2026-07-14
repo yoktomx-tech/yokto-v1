@@ -27,6 +27,7 @@ function TransactionsList() {
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<"all" | "as_buyer" | "as_seller">("all");
+  const [view, setView] = useState<"cards" | "table">("cards");
   const [kycOk, setKycOk] = useState<boolean | null>(null);
 
   useEffect(() => {
@@ -82,31 +83,76 @@ function TransactionsList() {
             </div>
           </div>
 
-          <div className="mt-8 flex gap-2 text-[11px] uppercase tracking-[0.14em] font-semibold">
-            {(["all", "as_buyer", "as_seller"] as const).map((f) => (
-              <button
-                key={f}
-                onClick={() => setFilter(f)}
-                className={`px-3 py-2 border border-yo-border ${
-                  filter === f ? "bg-yo-ac text-white" : "bg-background hover:bg-yo-bg"
-                }`}
-              >
-                {f === "all" ? "Todas" : f === "as_buyer" ? "Como comprador" : "Como vendedor"}
-              </button>
-            ))}
+          <div className="mt-8 flex flex-wrap gap-2 text-[11px] uppercase tracking-[0.14em] font-semibold justify-between">
+            <div className="flex gap-2">
+              {(["all", "as_buyer", "as_seller"] as const).map((f) => (
+                <button
+                  key={f}
+                  onClick={() => setFilter(f)}
+                  className={`px-3 py-2 border border-yo-border ${
+                    filter === f ? "bg-yo-ac text-white" : "bg-background hover:bg-yo-bg"
+                  }`}
+                >
+                  {f === "all" ? "Todas" : f === "as_buyer" ? "Como comprador" : "Como vendedor"}
+                </button>
+              ))}
+            </div>
+            <div className="flex gap-2">
+              {(["cards", "table"] as const).map((v) => (
+                <button
+                  key={v}
+                  onClick={() => setView(v)}
+                  className={`px-3 py-2 border border-yo-border ${
+                    view === v ? "bg-yo-ac text-white" : "bg-background hover:bg-yo-bg"
+                  }`}
+                >
+                  {v === "cards" ? "Tarjetas" : "Tabla"}
+                </button>
+              ))}
+            </div>
           </div>
 
-          <div className="mt-6 border border-yo-border bg-background">
-            {loading ? (
-              <div className="p-8 text-sm text-muted-foreground">Cargando…</div>
-            ) : filtered.length === 0 ? (
-              <div className="p-10 text-center">
-                <p className="font-display text-3xl text-foreground">Sin transacciones</p>
-                <p className="mt-2 text-sm text-muted-foreground">
-                  Aún no has creado ni participado en una operación YOKTO.
-                </p>
-              </div>
-            ) : (
+          {loading ? (
+            <div className="mt-6 border border-yo-border bg-background p-8 text-sm text-muted-foreground">Cargando…</div>
+          ) : filtered.length === 0 ? (
+            <div className="mt-6 border border-yo-border bg-background p-10 text-center">
+              <p className="font-display text-3xl text-foreground">Sin transacciones</p>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Aún no has creado ni participado en una operación YOKTO.
+              </p>
+            </div>
+          ) : view === "cards" ? (
+            <div className="mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filtered.map((r) => {
+                const role = r.buyer_id === user.id ? "Comprador" : "Vendedor";
+                const cp = r.buyer_id === user.id ? r.counterparty_email ?? "—" : "Comprador";
+                return (
+                  <Link
+                    key={r.id}
+                    to="/transactions/$id"
+                    params={{ id: r.id }}
+                    className="group border border-yo-border bg-background p-5 hover:border-yo-ac transition-colors flex flex-col gap-3"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <span className={`inline-block px-2 py-1 text-[10px] uppercase tracking-[0.14em] border ${STATUS_ACCENT[r.status]}`}>
+                        {STATUS_LABEL[r.status]}
+                      </span>
+                      <span className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">{role}</span>
+                    </div>
+                    <h3 className="font-display text-xl tracking-wide text-foreground line-clamp-2 group-hover:text-yo-ac">{r.title}</h3>
+                    <p className="text-xs text-muted-foreground truncate">↔ {cp}</p>
+                    <div className="mt-auto flex items-end justify-between pt-2 border-t border-yo-border/40">
+                      <span className="font-mono text-lg">{formatMoney(r.amount_cents, r.currency)}</span>
+                      <span className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+                        {new Date(r.created_at).toLocaleDateString("es-MX")}
+                      </span>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="mt-6 border border-yo-border bg-background overflow-x-auto">
               <table className="w-full text-sm">
                 <thead className="bg-yo-bg border-b border-yo-border text-left text-[11px] uppercase tracking-[0.14em]">
                   <tr>
@@ -123,9 +169,7 @@ function TransactionsList() {
                     <tr key={r.id} className="border-b border-yo-border/20 hover:bg-yo-bg/40">
                       <td className="px-4 py-3 font-medium text-foreground">{r.title}</td>
                       <td className="px-4 py-3 text-muted-foreground">
-                        {r.buyer_id === user.id
-                          ? r.counterparty_email ?? "—"
-                          : "Comprador"}
+                        {r.buyer_id === user.id ? r.counterparty_email ?? "—" : "Comprador"}
                       </td>
                       <td className="px-4 py-3 text-[11px] uppercase tracking-[0.14em]">
                         {r.buyer_id === user.id ? "Comprador" : "Vendedor"}
@@ -149,8 +193,8 @@ function TransactionsList() {
                   ))}
                 </tbody>
               </table>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       </main>
       <SiteFooter />

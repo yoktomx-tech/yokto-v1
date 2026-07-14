@@ -188,7 +188,41 @@ function TxDetail() {
       .update({ estado: next, aprobado_at: new Date().toISOString(), aprobado_por: user.id })
       .eq("id", h.id);
     await logEvent("hito.approved", { hito_id: h.id });
+
+    // Auto-release cascade: fetch latest hitos and evaluate
+    const { data: fresh } = await supabase
+      .from("transaction_hitos").select("estado,auto_release").eq("transaction_id", id);
+    const allApproved = (fresh ?? []).length > 0 && (fresh ?? []).every((x) => x.estado === "APROBADO");
+    const allAuto = (fresh ?? []).every((x) => x.auto_release);
+    if (allApproved && tx && ["funded", "in_progress", "en_verificacion"].includes(tx.status)) {
+      await supabase.from("transactions").update({ status: "conditions_met" }).eq("id", id);
+      await logEvent("transaction.conditions_met", { auto: true });
+      if (allAuto && isBuyer) {
+        try { await releaseFundsFn({ data: { transactionId: id } }); await logEvent("transaction.released", { auto: true }); }
+        catch (e) { setError((e as Error).message); }
+      }
+    }
     setBusy(false);
+  }
+
+  function exportAuditCSV() {
+    const rows = [["timestamp", "event_type", "actor_id", "metadata"]];
+    for (const ev of events) {
+      rows.push([
+        new Date(ev.created_at).toISOString(),
+        ev.event_type,
+        ev.actor_id ?? "",
+        JSON.stringify(ev.metadata ?? {}),
+      ]);
+    }
+    const csv = rows.map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(",")).join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `auditoria-${tx?.numero ?? id}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
   }
 
   async function handleCreateIntent(method: "spei" | "card") {
@@ -498,6 +532,11 @@ function TxDetail() {
 
           {tab === "auditoria" && (
             <section>
+              <div className="mb-3 flex justify-end">
+                <button onClick={exportAuditCSV} disabled={events.length === 0} className={btnGhost}>
+                  Exportar CSV
+                </button>
+              </div>
               <div className="border border-yo-border bg-background">
                 {events.length === 0 && <p className="p-5 text-sm text-muted-foreground">Sin eventos.</p>}
                 <ul className="divide-y divide-yokto-black/20">
