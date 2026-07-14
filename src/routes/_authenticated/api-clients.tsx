@@ -3,6 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
 import { Copy, Key, Loader2, Trash2 } from "lucide-react";
 import { listApiClients, createApiClient, revokeApiClient } from "@/lib/api-clients.functions";
+import { PageHeader } from "@/components/page-header";
 
 export const Route = createFileRoute("/_authenticated/api-clients")({
   head: () => ({ meta: [{ title: "API — YOKTO" }, { name: "robots", content: "noindex" }] }),
