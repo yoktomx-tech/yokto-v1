@@ -1,11 +1,13 @@
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
+import { Shield } from "lucide-react";
 import {
   adminOverview, adminSetKycStatus, adminGrantRole,
   adminForceResolveDispute, isCurrentUserAdmin,
 } from "@/lib/admin.functions";
 import { formatMoney, STATUS_LABEL, type TxStatus } from "@/lib/tx";
+import { PageHeader } from "@/components/page-header";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   head: () => ({ meta: [{ title: "Admin — YOKTO" }, { name: "robots", content: "noindex" }] }),
