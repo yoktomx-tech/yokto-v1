@@ -151,7 +151,6 @@ function AdminPage() {
             </>
           )}
         </div>
-      </main>
     </div>
   );
 }
