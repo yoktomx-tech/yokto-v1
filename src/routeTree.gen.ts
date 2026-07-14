@@ -32,6 +32,7 @@ import { Route as AuthenticatedDisputesIdRouteImport } from './routes/_authentic
 import { Route as AuthenticatedAdminDisputesRouteImport } from './routes/_authenticated/admin.disputes'
 import { Route as ApiPublicV1TransactionsRouteImport } from './routes/api/public/v1.transactions'
 import { Route as ApiPublicStripeWebhookRouteImport } from './routes/api/public/stripe.webhook'
+import { Route as AuthenticatedAdminDisputesIdRouteImport } from './routes/_authenticated/admin.disputes.$id'
 
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
@@ -152,6 +153,12 @@ const ApiPublicStripeWebhookRoute = ApiPublicStripeWebhookRouteImport.update({
   path: '/api/public/stripe/webhook',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedAdminDisputesIdRoute =
+  AuthenticatedAdminDisputesIdRouteImport.update({
+    id: '/$id',
+    path: '/$id',
+    getParentRoute: () => AuthenticatedAdminDisputesRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -169,11 +176,12 @@ export interface FileRoutesByFullPath {
   '/reports': typeof AuthenticatedReportsRoute
   '/transactions': typeof AuthenticatedTransactionsRouteWithChildren
   '/biometrico/$token': typeof BiometricoTokenRoute
-  '/admin/disputes': typeof AuthenticatedAdminDisputesRoute
+  '/admin/disputes': typeof AuthenticatedAdminDisputesRouteWithChildren
   '/disputes/$id': typeof AuthenticatedDisputesIdRoute
   '/onboarding/pendiente': typeof AuthenticatedOnboardingPendienteRoute
   '/transactions/$id': typeof AuthenticatedTransactionsIdRoute
   '/transactions/new': typeof AuthenticatedTransactionsNewRoute
+  '/admin/disputes/$id': typeof AuthenticatedAdminDisputesIdRoute
   '/api/public/stripe/webhook': typeof ApiPublicStripeWebhookRoute
   '/api/public/v1/transactions': typeof ApiPublicV1TransactionsRoute
 }
@@ -193,11 +201,12 @@ export interface FileRoutesByTo {
   '/reports': typeof AuthenticatedReportsRoute
   '/transactions': typeof AuthenticatedTransactionsRouteWithChildren
   '/biometrico/$token': typeof BiometricoTokenRoute
-  '/admin/disputes': typeof AuthenticatedAdminDisputesRoute
+  '/admin/disputes': typeof AuthenticatedAdminDisputesRouteWithChildren
   '/disputes/$id': typeof AuthenticatedDisputesIdRoute
   '/onboarding/pendiente': typeof AuthenticatedOnboardingPendienteRoute
   '/transactions/$id': typeof AuthenticatedTransactionsIdRoute
   '/transactions/new': typeof AuthenticatedTransactionsNewRoute
+  '/admin/disputes/$id': typeof AuthenticatedAdminDisputesIdRoute
   '/api/public/stripe/webhook': typeof ApiPublicStripeWebhookRoute
   '/api/public/v1/transactions': typeof ApiPublicV1TransactionsRoute
 }
@@ -219,11 +228,12 @@ export interface FileRoutesById {
   '/_authenticated/reports': typeof AuthenticatedReportsRoute
   '/_authenticated/transactions': typeof AuthenticatedTransactionsRouteWithChildren
   '/biometrico/$token': typeof BiometricoTokenRoute
-  '/_authenticated/admin/disputes': typeof AuthenticatedAdminDisputesRoute
+  '/_authenticated/admin/disputes': typeof AuthenticatedAdminDisputesRouteWithChildren
   '/_authenticated/disputes/$id': typeof AuthenticatedDisputesIdRoute
   '/_authenticated/onboarding/pendiente': typeof AuthenticatedOnboardingPendienteRoute
   '/_authenticated/transactions/$id': typeof AuthenticatedTransactionsIdRoute
   '/_authenticated/transactions/new': typeof AuthenticatedTransactionsNewRoute
+  '/_authenticated/admin/disputes/$id': typeof AuthenticatedAdminDisputesIdRoute
   '/api/public/stripe/webhook': typeof ApiPublicStripeWebhookRoute
   '/api/public/v1/transactions': typeof ApiPublicV1TransactionsRoute
 }
@@ -250,6 +260,7 @@ export interface FileRouteTypes {
     | '/onboarding/pendiente'
     | '/transactions/$id'
     | '/transactions/new'
+    | '/admin/disputes/$id'
     | '/api/public/stripe/webhook'
     | '/api/public/v1/transactions'
   fileRoutesByTo: FileRoutesByTo
@@ -274,6 +285,7 @@ export interface FileRouteTypes {
     | '/onboarding/pendiente'
     | '/transactions/$id'
     | '/transactions/new'
+    | '/admin/disputes/$id'
     | '/api/public/stripe/webhook'
     | '/api/public/v1/transactions'
   id:
@@ -299,6 +311,7 @@ export interface FileRouteTypes {
     | '/_authenticated/onboarding/pendiente'
     | '/_authenticated/transactions/$id'
     | '/_authenticated/transactions/new'
+    | '/_authenticated/admin/disputes/$id'
     | '/api/public/stripe/webhook'
     | '/api/public/v1/transactions'
   fileRoutesById: FileRoutesById
@@ -479,15 +492,36 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicStripeWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/admin/disputes/$id': {
+      id: '/_authenticated/admin/disputes/$id'
+      path: '/$id'
+      fullPath: '/admin/disputes/$id'
+      preLoaderRoute: typeof AuthenticatedAdminDisputesIdRouteImport
+      parentRoute: typeof AuthenticatedAdminDisputesRoute
+    }
   }
 }
 
+interface AuthenticatedAdminDisputesRouteChildren {
+  AuthenticatedAdminDisputesIdRoute: typeof AuthenticatedAdminDisputesIdRoute
+}
+
+const AuthenticatedAdminDisputesRouteChildren: AuthenticatedAdminDisputesRouteChildren =
+  {
+    AuthenticatedAdminDisputesIdRoute: AuthenticatedAdminDisputesIdRoute,
+  }
+
+const AuthenticatedAdminDisputesRouteWithChildren =
+  AuthenticatedAdminDisputesRoute._addFileChildren(
+    AuthenticatedAdminDisputesRouteChildren,
+  )
+
 interface AuthenticatedAdminRouteChildren {
-  AuthenticatedAdminDisputesRoute: typeof AuthenticatedAdminDisputesRoute
+  AuthenticatedAdminDisputesRoute: typeof AuthenticatedAdminDisputesRouteWithChildren
 }
 
 const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
-  AuthenticatedAdminDisputesRoute: AuthenticatedAdminDisputesRoute,
+  AuthenticatedAdminDisputesRoute: AuthenticatedAdminDisputesRouteWithChildren,
 }
 
 const AuthenticatedAdminRouteWithChildren =
