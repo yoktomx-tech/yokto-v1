@@ -614,6 +614,208 @@ export type Database = {
           },
         ]
       }
+      fiscal_documents: {
+        Row: {
+          aceptado_at: string | null
+          aceptado_por: string | null
+          ai_analysis: Json | null
+          coherence_checks: Json | null
+          coherence_score: number | null
+          created_at: string
+          descuento: number | null
+          domicilio_fiscal_receptor: string | null
+          estado: string
+          estado_sat: string | null
+          fecha_consulta_sat: string | null
+          fecha_emision: string | null
+          fecha_pago: string | null
+          fecha_timbrado: string | null
+          folio: string | null
+          forma_pago: string | null
+          hito_id: string | null
+          id: string
+          imp_pagado: number | null
+          imp_saldo_ant: number | null
+          imp_saldo_insoluto: number | null
+          metodo_pago: string | null
+          moneda: string | null
+          motivo_rechazo: string | null
+          no_certificado_emisor: string | null
+          no_certificado_sat: string | null
+          nombre_emisor: string | null
+          nombre_receptor: string | null
+          parcialidad_numero: number | null
+          parent_cfdi_id: string | null
+          pdf_url: string | null
+          raw_xml_data: Json | null
+          rechazado_at: string | null
+          rechazado_por: string | null
+          regimen_fiscal_emisor: string | null
+          regimen_fiscal_receptor: string | null
+          rep_data: Json | null
+          rfc_emisor: string | null
+          rfc_receptor: string | null
+          sello_cfd: string | null
+          sello_sat: string | null
+          serie: string | null
+          subtotal: number | null
+          tipo: string
+          tipo_cambio: number | null
+          total: number | null
+          total_impuestos_retenidos: number | null
+          total_impuestos_trasladados: number | null
+          transaction_id: string
+          updated_at: string
+          uploaded_by: string
+          uso_cfdi: string | null
+          uuid_fiscal: string | null
+          validation_errors: Json | null
+          validation_warnings: Json | null
+          xml_hash: string | null
+          xml_url: string
+        }
+        Insert: {
+          aceptado_at?: string | null
+          aceptado_por?: string | null
+          ai_analysis?: Json | null
+          coherence_checks?: Json | null
+          coherence_score?: number | null
+          created_at?: string
+          descuento?: number | null
+          domicilio_fiscal_receptor?: string | null
+          estado?: string
+          estado_sat?: string | null
+          fecha_consulta_sat?: string | null
+          fecha_emision?: string | null
+          fecha_pago?: string | null
+          fecha_timbrado?: string | null
+          folio?: string | null
+          forma_pago?: string | null
+          hito_id?: string | null
+          id?: string
+          imp_pagado?: number | null
+          imp_saldo_ant?: number | null
+          imp_saldo_insoluto?: number | null
+          metodo_pago?: string | null
+          moneda?: string | null
+          motivo_rechazo?: string | null
+          no_certificado_emisor?: string | null
+          no_certificado_sat?: string | null
+          nombre_emisor?: string | null
+          nombre_receptor?: string | null
+          parcialidad_numero?: number | null
+          parent_cfdi_id?: string | null
+          pdf_url?: string | null
+          raw_xml_data?: Json | null
+          rechazado_at?: string | null
+          rechazado_por?: string | null
+          regimen_fiscal_emisor?: string | null
+          regimen_fiscal_receptor?: string | null
+          rep_data?: Json | null
+          rfc_emisor?: string | null
+          rfc_receptor?: string | null
+          sello_cfd?: string | null
+          sello_sat?: string | null
+          serie?: string | null
+          subtotal?: number | null
+          tipo: string
+          tipo_cambio?: number | null
+          total?: number | null
+          total_impuestos_retenidos?: number | null
+          total_impuestos_trasladados?: number | null
+          transaction_id: string
+          updated_at?: string
+          uploaded_by: string
+          uso_cfdi?: string | null
+          uuid_fiscal?: string | null
+          validation_errors?: Json | null
+          validation_warnings?: Json | null
+          xml_hash?: string | null
+          xml_url: string
+        }
+        Update: {
+          aceptado_at?: string | null
+          aceptado_por?: string | null
+          ai_analysis?: Json | null
+          coherence_checks?: Json | null
+          coherence_score?: number | null
+          created_at?: string
+          descuento?: number | null
+          domicilio_fiscal_receptor?: string | null
+          estado?: string
+          estado_sat?: string | null
+          fecha_consulta_sat?: string | null
+          fecha_emision?: string | null
+          fecha_pago?: string | null
+          fecha_timbrado?: string | null
+          folio?: string | null
+          forma_pago?: string | null
+          hito_id?: string | null
+          id?: string
+          imp_pagado?: number | null
+          imp_saldo_ant?: number | null
+          imp_saldo_insoluto?: number | null
+          metodo_pago?: string | null
+          moneda?: string | null
+          motivo_rechazo?: string | null
+          no_certificado_emisor?: string | null
+          no_certificado_sat?: string | null
+          nombre_emisor?: string | null
+          nombre_receptor?: string | null
+          parcialidad_numero?: number | null
+          parent_cfdi_id?: string | null
+          pdf_url?: string | null
+          raw_xml_data?: Json | null
+          rechazado_at?: string | null
+          rechazado_por?: string | null
+          regimen_fiscal_emisor?: string | null
+          regimen_fiscal_receptor?: string | null
+          rep_data?: Json | null
+          rfc_emisor?: string | null
+          rfc_receptor?: string | null
+          sello_cfd?: string | null
+          sello_sat?: string | null
+          serie?: string | null
+          subtotal?: number | null
+          tipo?: string
+          tipo_cambio?: number | null
+          total?: number | null
+          total_impuestos_retenidos?: number | null
+          total_impuestos_trasladados?: number | null
+          transaction_id?: string
+          updated_at?: string
+          uploaded_by?: string
+          uso_cfdi?: string | null
+          uuid_fiscal?: string | null
+          validation_errors?: Json | null
+          validation_warnings?: Json | null
+          xml_hash?: string | null
+          xml_url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fiscal_documents_hito_id_fkey"
+            columns: ["hito_id"]
+            isOneToOne: false
+            referencedRelation: "transaction_hitos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fiscal_documents_parent_cfdi_id_fkey"
+            columns: ["parent_cfdi_id"]
+            isOneToOne: false
+            referencedRelation: "fiscal_documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fiscal_documents_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       kyc_documents: {
         Row: {
           created_at: string
