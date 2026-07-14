@@ -109,8 +109,6 @@ function PaymentsPage() {
         </div>
 
         <div className="space-y-3">
-          <PaymentsFilters value={filters} onChange={setFilters} />
-          <PaymentsTabs role={role} rows={rows} active={tab} onChange={setTab} />
         </div>
 
         {isLoading ? (
