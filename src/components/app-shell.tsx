@@ -68,7 +68,8 @@ export function AppShell({ children }: { children: React.ReactNode; sgyScore?: n
               nav={nav}
               role={role}
               setRole={(r) => { setRole(r); }}
-              sgyScore={sgyScore}
+              score={profile.score}
+              level={profile.level}
               onNavigate={() => setMobileOpen(false)}
             />
           </aside>
