@@ -32,7 +32,7 @@ type Contraparte = {
   rfc?: string | null;
 };
 
-const TOTAL_STEPS = 5;
+const TOTAL_STEPS = 6;
 
 function NewTransactionWizard() {
   const { user } = Route.useRouteContext();
