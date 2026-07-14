@@ -288,7 +288,7 @@ export const generateDisputeAiSummary = createServerFn({ method: "POST" })
 
     const { data: evidence } = await supabaseAdmin
       .from("dispute_evidence")
-      .select("uploader_role, description, file_name, mime_type, created_at")
+      .select("uploader_role, description, storage_path, kind, mime_type, created_at")
       .eq("dispute_id", data.disputeId)
       .order("created_at", { ascending: true })
       .limit(50);
