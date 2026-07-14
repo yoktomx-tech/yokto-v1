@@ -5,7 +5,10 @@ import {
   Mail, Lock, Eye, EyeOff, ArrowRight, ArrowLeft, Loader2, Check,
   User as UserIcon, Building2, Upload, Trash2, FileText, ShieldCheck,
   Landmark, AlertCircle, X, FileCheck2, KeyRound, PencilLine,
+  Smartphone, QrCode as QrIcon, RefreshCw, CheckCircle2,
 } from "lucide-react";
+import QRCode from "qrcode";
+import { startBiometricEnrollment, getMyBiometricEnrollment, cancelBiometricEnrollment } from "@/lib/biometric.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { useServerFn } from "@tanstack/react-start";
 import {
