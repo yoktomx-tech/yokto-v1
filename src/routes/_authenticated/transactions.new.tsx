@@ -214,11 +214,23 @@ function NewTransactionWizard() {
               setContraparte={setContraparte}
             />
           )}
-          {step >= 3 && (
+          {step === 3 && sector && (
+            <Step3 sector={sector} hitos={hitos} setHitos={setHitos} fechaBase={fechaInicio} />
+          )}
+          {step === 4 && sector && (
+            <Step4
+              sector={sector}
+              monto={monto} setMonto={setMonto}
+              metodoPago={metodoPago} setMetodoPago={setMetodoPago}
+              fechaInicio={fechaInicio} setFechaInicio={setFechaInicio}
+              fechaFin={fechaFin} setFechaFin={setFechaFin}
+            />
+          )}
+          {step === 5 && (
             <div className="py-12 text-center space-y-3">
-              <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">En construcción</p>
+              <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">En construcción — Fase 3</p>
               <p className="text-foreground">
-                Los pasos <strong>Hitos, Monto</strong> y <strong>Revisión</strong> se activarán en la siguiente iteración.
+                <strong>Revisión y firma</strong> se activará en la siguiente iteración (contrato PDF, firmas y activación).
               </p>
               <p className="text-sm text-muted-foreground">
                 Tu borrador <span className="font-mono">{numero}</span> quedó guardado y puedes retomarlo desde <em>Transacciones</em>.
@@ -234,7 +246,7 @@ function NewTransactionWizard() {
           >
             {step === 1 ? "Cancelar" : "Atrás"}
           </button>
-          {step < 3 ? (
+          {step < 5 ? (
             <button
               onClick={goNext}
               disabled={saving}
