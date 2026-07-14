@@ -69,6 +69,15 @@ export const TONE_ACCENT: Record<Tone, string> = {
   ac:      "#4F46E5",
 };
 
+export type DocVersion = {
+  version: string;
+  hash: string;
+  uploadedAt: string;
+  uploadedBy: string;
+  status: DocStatus;
+  note?: string;
+};
+
 export type Document = {
   id: string;
   name: string;
@@ -79,6 +88,7 @@ export type Document = {
   uploadedAt?: string;
   dueDate?: string;
   observation?: string;
+  history?: DocVersion[];
 };
 
 export type Evidence = {
@@ -108,9 +118,11 @@ export type Hito = {
   status: HitoStatus;
   dueDate: string;
   amountLinked: number;
+  priority: "BAJA" | "MEDIA" | "ALTA";
   requirementsTotal: number;
   requirementsCompleted: number;
   observationsOpen: number;
+  hasPendingPayment: boolean;
   documents: Document[];
   evidences: Evidence[];
   observations: Observation[];
@@ -131,6 +143,24 @@ export type Operation = {
   risk: "BAJO" | "MEDIO" | "ALTO";
   hitos: Hito[];
 };
+
+/** Compute VENCIDO client-side (72h alerts + overdue). */
+export function withComputedDueStatus(op: Operation): Operation {
+  const now = Date.now();
+  const hitos = op.hitos.map((h) => {
+    const isOverdue = new Date(h.dueDate).getTime() < now;
+    if (isOverdue && !["APROBADO", "CANCELADO", "EN_DISPUTA"].includes(h.status)) {
+      return { ...h, status: "VENCIDO" as HitoStatus };
+    }
+    return h;
+  });
+  return { ...op, hitos };
+}
+
+export function daysUntil(dateStr: string): number {
+  const ms = new Date(dateStr).getTime() - Date.now();
+  return Math.ceil(ms / (24 * 3600 * 1000));
+}
 
 export const MOCK_OPS: Operation[] = [
   {
