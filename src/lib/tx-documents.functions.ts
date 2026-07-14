@@ -79,5 +79,5 @@ export const validateCfdiDocument = createServerFn({ method: "POST" })
     const { error: upErr } = await supabase
       .from("transaction_documents").update(patch).eq("id", doc.id);
     if (upErr) throw upErr;
-    return { ok: parsed.ok, ...parsed };
+    return { ...parsed, ok: parsed.ok };
   });
