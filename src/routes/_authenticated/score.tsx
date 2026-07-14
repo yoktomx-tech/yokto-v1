@@ -480,13 +480,21 @@ function DocsTab({
   onOpen,
   onUpload,
 }: {
-  profile: ReturnType<typeof getMockProfile>;
+  profile: ComplianceProfile;
   onOpen: (d: ComplianceDoc) => void;
   onUpload: () => void;
 }) {
+  const [filter, setFilter] = useState<"ALL" | DocCategory>("ALL");
+  const cats = useMemo(() => {
+    const set = new Set<DocCategory>();
+    profile.docs.forEach((d) => set.add(d.category));
+    return Array.from(set);
+  }, [profile.docs]);
+  const filtered = filter === "ALL" ? profile.docs : profile.docs.filter((d) => d.category === filter);
+
   return (
     <div className="rounded-lg border border-yo-border bg-yo-surface">
-      <div className="px-5 py-4 border-b border-yo-border flex items-center justify-between gap-2">
+      <div className="px-5 py-4 border-b border-yo-border flex items-center justify-between gap-2 flex-wrap">
         <div>
           <h3 className="text-sm font-semibold text-yo-txt">Documentos del Perfil</h3>
           <p className="text-xs text-yo-txt-2 mt-0.5">
@@ -499,6 +507,14 @@ function DocsTab({
         >
           <Upload className="size-4" /> Subir documento
         </button>
+      </div>
+      <div className="px-5 py-3 border-b border-yo-border flex flex-wrap gap-1.5">
+        <FilterChip active={filter === "ALL"} onClick={() => setFilter("ALL")}>Todos</FilterChip>
+        {cats.map((c) => (
+          <FilterChip key={c} active={filter === c} onClick={() => setFilter(c)}>
+            {DOC_CATEGORY_LABEL[c]}
+          </FilterChip>
+        ))}
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
@@ -514,10 +530,13 @@ function DocsTab({
             </tr>
           </thead>
           <tbody className="divide-y divide-yo-border">
-            {profile.docs.map((d) => (
+            {filtered.map((d) => (
               <tr key={d.id} className="hover:bg-yo-raised/60 cursor-pointer" onClick={() => onOpen(d)}>
-                <td className="px-5 py-3 text-yo-txt font-medium">{d.name}</td>
-                <td className="px-4 py-3 text-yo-txt-2">{d.category}</td>
+                <td className="px-5 py-3 text-yo-txt font-medium">
+                  {d.name}
+                  {d.required && <span className="ml-2 text-[10px] uppercase tracking-wider text-yo-txt-3">Requerido</span>}
+                </td>
+                <td className="px-4 py-3 text-yo-txt-2">{DOC_CATEGORY_LABEL[d.category]}</td>
                 <td className="px-4 py-3"><Badge tone={DOC_STATUS_CFG[d.status].tone}>{DOC_STATUS_CFG[d.status].label}</Badge></td>
                 <td className="px-4 py-3 text-yo-txt-2 font-mono text-xs">{d.expiresAt ? fmtDate(d.expiresAt) : "—"}</td>
                 <td className="px-4 py-3 text-yo-txt-2 font-mono text-xs">{fmtDate(d.updatedAt)}</td>
@@ -525,12 +544,30 @@ function DocsTab({
                 <td className="px-4 py-3 text-right"><ChevronRight className="size-4 text-yo-txt-3 inline" /></td>
               </tr>
             ))}
+            {filtered.length === 0 && (
+              <tr><td colSpan={7} className="px-5 py-8 text-center text-sm text-yo-txt-3">Sin documentos en esta categoría.</td></tr>
+            )}
           </tbody>
         </table>
       </div>
     </div>
   );
 }
+
+function FilterChip({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
+  return (
+    <button
+      onClick={onClick}
+      className={cn(
+        "px-3 py-1 rounded-full text-xs font-medium border transition",
+        active ? "bg-yo-ac text-white border-yo-ac" : "bg-yo-surface text-yo-txt-2 border-yo-border hover:bg-yo-raised",
+      )}
+    >
+      {children}
+    </button>
+  );
+}
+
 
 function ScoreTab({
   profile,
