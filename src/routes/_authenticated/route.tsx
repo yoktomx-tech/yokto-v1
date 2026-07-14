@@ -33,7 +33,9 @@ function AuthedLayout() {
     <AuthUserProvider value={{ userId: user.id, email: user.email ?? null, displayName: name }}>
       <OrgProvider>
         <ViewRoleProvider>
-          <Outlet />
+          <AppShell displayName={name} sgyScore={500}>
+            <Outlet />
+          </AppShell>
         </ViewRoleProvider>
       </OrgProvider>
     </AuthUserProvider>
