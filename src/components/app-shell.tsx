@@ -33,19 +33,22 @@ const BUYER_NAV: NavItem[] = [
   { to: "/score",        icon: Star,            label: "Score de confianza" },
 ];
 
-export function AppShell({ children, sgyScore = 500 }: { children: React.ReactNode; sgyScore?: number; displayName?: string }) {
+export function AppShell({ children }: { children: React.ReactNode; sgyScore?: number; displayName?: string }) {
   const pathname = useRouterState({ select: (r) => r.location.pathname });
   const [mobileOpen, setMobileOpen] = useState(false);
   const { role, setRole } = useViewRole();
   const { userId, email } = useAuthUser();
 
   const nav = role === "seller" ? SELLER_NAV : BUYER_NAV;
+  const profile = getMockProfile(role);
 
+  const nav_ = nav;
   return (
     <div className="min-h-dvh flex bg-yo-bg">
       <aside className="hidden md:flex md:w-60 lg:w-64 shrink-0 flex-col border-r border-yo-border bg-yo-surface sticky top-0 h-dvh">
-        <SidebarContent pathname={pathname} nav={nav} role={role} setRole={setRole} sgyScore={sgyScore} />
+        <SidebarContent pathname={pathname} nav={nav_} role={role} setRole={setRole} score={profile.score} level={profile.level} />
       </aside>
+
 
       {mobileOpen && (
         <>
