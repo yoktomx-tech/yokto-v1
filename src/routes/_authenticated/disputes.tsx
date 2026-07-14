@@ -1,7 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { AppHeader } from "@/components/app-header";
 import { formatMoney } from "@/lib/tx";
 
 type Row = {
@@ -55,7 +54,6 @@ function DisputesList() {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <AppHeader email={user.email} userId={user.id} section="Disputas" />
       <main className="flex-1">
         <div className="container-editorial py-10">
           <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Módulo G</p>

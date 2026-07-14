@@ -4,7 +4,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, Calendar, ShieldAlert, Wallet, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { AppShell } from "@/components/app-shell";
 import { useViewRole } from "@/hooks/use-view-role";
 import { toUiStatus, SECTOR_UI_CFG, STATUS_CFG, type SectorUiId } from "@/lib/tx-catalog";
 import { formatMoney, commissionAmount, type TxStatus } from "@/lib/tx";
@@ -273,14 +272,14 @@ function TxDetail() {
 
   if (loading) {
     return (
-      <AppShell>
+      <>
         <main className="p-6 text-sm text-yo-txt-2">Cargando…</main>
-      </AppShell>
+      </>
     );
   }
   if (!tx) {
     return (
-      <AppShell>
+      <>
         <main className="p-6">
           <EmptyState
             title="Transacción no encontrada"
@@ -288,14 +287,14 @@ function TxDetail() {
             action={<Link to="/transactions" className="text-yo-ac hover:underline text-sm font-medium">← Volver</Link>}
           />
         </main>
-      </AppShell>
+      </>
     );
   }
 
   const uiStatus = toUiStatus(tx.status);
 
   return (
-    <AppShell>
+    <>
       <main className="flex-1 min-w-0">
         <div className="max-w-[1400px] mx-auto p-4 md:p-6 flex flex-col gap-4">
           {/* Breadcrumb + title */}
@@ -682,7 +681,7 @@ function TxDetail() {
           </div>
         </div>
       )}
-    </AppShell>
+    </>
   );
 }
 

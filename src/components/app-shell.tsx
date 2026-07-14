@@ -6,6 +6,8 @@ import {
 } from "lucide-react";
 import { YoktoLogo } from "@/components/logo";
 import { useViewRole, type ViewRole } from "@/hooks/use-view-role";
+import { useAuthUser } from "@/hooks/use-auth-user";
+import { AppHeader } from "@/components/app-header";
 import { cn } from "@/lib/utils";
 
 type NavItem = { to: string; icon: typeof LayoutDashboard; label: string };
@@ -34,6 +36,7 @@ export function AppShell({ children, sgyScore = 500 }: { children: React.ReactNo
   const pathname = useRouterState({ select: (r) => r.location.pathname });
   const [mobileOpen, setMobileOpen] = useState(false);
   const { role, setRole } = useViewRole();
+  const { userId, email } = useAuthUser();
 
   const nav = role === "seller" ? SELLER_NAV : BUYER_NAV;
 
@@ -76,7 +79,8 @@ export function AppShell({ children, sgyScore = 500 }: { children: React.ReactNo
         >
           <Menu className="size-4" />
         </button>
-        {children}
+        <AppHeader email={email} userId={userId} />
+        <main className="flex-1 p-4 md:p-6">{children}</main>
       </div>
     </div>
   );

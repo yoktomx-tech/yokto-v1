@@ -1,7 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Users } from "lucide-react";
-import { AppHeader } from "@/components/app-header";
-
 export const Route = createFileRoute("/_authenticated/crm")({
   head: () => ({ meta: [{ title: "CRM — YOKTO" }, { name: "robots", content: "noindex" }] }),
   component: CrmPage,
@@ -11,7 +9,6 @@ function CrmPage() {
   const { user } = Route.useRouteContext();
   return (
     <>
-      <AppHeader email={user.email} userId={user.id} />
       <main className="p-6 md:p-8 max-w-6xl mx-auto w-full">
         <div className="flex items-center gap-3 mb-6">
           <div className="size-10 rounded-md bg-yo-ac-bg grid place-items-center">

@@ -1,8 +1,8 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Plus, LayoutGrid, List as ListIcon, Download } from "lucide-react";
+import { Plus, LayoutGrid, List as ListIcon, Download, Briefcase } from "lucide-react";
+import { PageHeader } from "@/components/page-header";
 import { supabase } from "@/integrations/supabase/client";
-import { AppShell } from "@/components/app-shell";
 import { useViewRole } from "@/hooks/use-view-role";
 import { toUiStatus, type UiStatus, type SectorUiId } from "@/lib/tx-catalog";
 import { TransactionsMetricsGrid, type TxMetricsData } from "@/components/tx/transactions-metrics-grid";
@@ -256,63 +256,59 @@ function TransactionsList() {
 
 
   return (
-    <AppShell>
+    <>
       <div className="flex flex-col gap-6">
-        {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
-          <div>
-            <p className="text-[11px] uppercase tracking-wider text-yo-txt-3 font-medium">Transacciones</p>
-            <h1 className="mt-1 text-2xl font-semibold text-yo-txt">
-              {role === "buyer" ? "Mis compras" : "Mis ventas"}
-            </h1>
-            <p className="mt-1 text-sm text-yo-txt-2">
-              Vista {role === "buyer" ? "de comprador" : "de vendedor"} — {rows.length} operaciones en total.
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="hidden md:inline-flex border border-yo-border rounded-md p-0.5 bg-yo-surface">
+        <PageHeader
+          icon={Briefcase}
+          title={role === "buyer" ? "Mis compras" : "Mis ventas"}
+          subtitle={`Vista ${role === "buyer" ? "de comprador" : "de vendedor"} — ${rows.length} operaciones en total.`}
+          actions={
+            <>
+              <div className="hidden md:inline-flex border border-yo-border rounded-md p-0.5 bg-yo-surface">
+                <button
+                  onClick={() => setView("table")}
+                  className={`px-2 py-1.5 rounded ${view === "table" ? "bg-yo-raised text-yo-txt" : "text-yo-txt-2 hover:text-yo-txt"}`}
+                  aria-label="Vista tabla"
+                >
+                  <ListIcon className="h-4 w-4" />
+                </button>
+                <button
+                  onClick={() => setView("cards")}
+                  className={`px-2 py-1.5 rounded ${view === "cards" ? "bg-yo-raised text-yo-txt" : "text-yo-txt-2 hover:text-yo-txt"}`}
+                  aria-label="Vista tarjetas"
+                >
+                  <LayoutGrid className="h-4 w-4" />
+                </button>
+              </div>
               <button
-                onClick={() => setView("table")}
-                className={`px-2 py-1.5 rounded ${view === "table" ? "bg-yo-raised text-yo-txt" : "text-yo-txt-2 hover:text-yo-txt"}`}
-                aria-label="Vista tabla"
+                onClick={exportCsv}
+                disabled={filtered.length === 0}
+                className="inline-flex items-center gap-1.5 px-3 py-2 border border-yo-border text-sm font-medium rounded-md text-yo-txt-2 hover:bg-yo-raised hover:text-yo-txt disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                title="Exportar filtrados a CSV"
               >
-                <ListIcon className="h-4 w-4" />
+                <Download className="h-4 w-4" />
+                <span className="hidden lg:inline">CSV</span>
               </button>
-              <button
-                onClick={() => setView("cards")}
-                className={`px-2 py-1.5 rounded ${view === "cards" ? "bg-yo-raised text-yo-txt" : "text-yo-txt-2 hover:text-yo-txt"}`}
-                aria-label="Vista tarjetas"
-              >
-                <LayoutGrid className="h-4 w-4" />
-              </button>
-            </div>
-            <button
-              onClick={exportCsv}
-              disabled={filtered.length === 0}
-              className="inline-flex items-center gap-1.5 px-3 py-2 border border-yo-border text-sm font-medium rounded-md text-yo-txt-2 hover:bg-yo-raised hover:text-yo-txt disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-              title="Exportar filtrados a CSV"
-            >
-              <Download className="h-4 w-4" />
-              <span className="hidden lg:inline">CSV</span>
-            </button>
-            {kycOk ? (
-              <Link
-                to="/transactions/new"
-                className="inline-flex items-center gap-2 px-4 py-2 bg-yo-ac text-white text-sm font-medium rounded-md hover:bg-yo-ac-h transition-colors"
-              >
-                <Plus className="h-4 w-4" />
-                Nueva transacción
-              </Link>
-            ) : (
-              <Link
-                to="/kyc"
-                className="inline-flex items-center px-4 py-2 border border-yo-border text-sm font-medium rounded-md hover:bg-yo-raised"
-              >
-                Completar KYC
-              </Link>
-            )}
-          </div>
-        </div>
+              {kycOk ? (
+                <Link
+                  to="/transactions/new"
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-yo-ac text-white text-sm font-medium rounded-md hover:bg-yo-ac-h transition-colors"
+                >
+                  <Plus className="h-4 w-4" />
+                  Nueva transacción
+                </Link>
+              ) : (
+                <Link
+                  to="/kyc"
+                  className="inline-flex items-center px-4 py-2 border border-yo-border text-sm font-medium rounded-md hover:bg-yo-raised"
+                >
+                  Completar KYC
+                </Link>
+              )}
+            </>
+          }
+        />
+
 
         {/* Metrics */}
         <TransactionsMetricsGrid role={role} data={metrics} />
@@ -356,6 +352,6 @@ function TransactionsList() {
           </>
         )}
       </div>
-    </AppShell>
+    </>
   );
 }

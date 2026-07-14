@@ -1,8 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
-import { AppShell } from "@/components/app-shell";
 import { useViewRole } from "@/hooks/use-view-role";
 import { listPaymentsForCenter } from "@/lib/payments-list.functions";
 import { PaymentsMetricsGrid } from "@/components/payments/payments-metrics-grid";
@@ -11,6 +10,8 @@ import { PaymentsTabs } from "@/components/payments/payments-tabs";
 import { PaymentsTable } from "@/components/payments/payments-table";
 import { NoCustodyBanner } from "@/components/payments/ui/no-custody-banner";
 import { matchesTab, type TabId } from "@/lib/payments-catalog";
+import { PageHeader } from "@/components/page-header";
+import { Banknote } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/payments")({
   head: () => ({ meta: [{ title: "Centro de Pagos — YOKTO" }, { name: "robots", content: "noindex" }] }),
@@ -26,6 +27,7 @@ function withinRange(iso: string, range: string): boolean {
 
 function PaymentsPage() {
   const { role } = useViewRole();
+  const navigate = useNavigate();
   const listFn = useServerFn(listPaymentsForCenter);
 
   const { data: rows = [], isLoading } = useQuery({
@@ -55,16 +57,14 @@ function PaymentsPage() {
   }, [rows, tab, filters]);
 
   return (
-    <AppShell>
-      <div className="mx-auto max-w-[1400px] p-6 space-y-6">
-        <header className="flex flex-col md:flex-row md:items-end md:justify-between gap-3">
-          <div>
-            <h1 className="text-2xl font-bold text-yo-t1">Centro de Pagos</h1>
-            <p className="text-sm text-yo-t2 mt-1">
-              Vista {role === "buyer" ? "de comprador" : "de vendedor"} — pagos, retenciones y liberaciones procesados por la pasarela.
-            </p>
-          </div>
-        </header>
+    <>
+      <div className="space-y-6">
+        <PageHeader
+          icon={Banknote}
+          title="Centro de Pagos"
+          subtitle={`Vista ${role === "buyer" ? "de comprador" : "de vendedor"} — pagos, retenciones y liberaciones procesados por la pasarela.`}
+        />
+
 
         <NoCustodyBanner />
 
@@ -80,9 +80,9 @@ function PaymentsPage() {
             Cargando pagos…
           </div>
         ) : (
-          <PaymentsTable rows={filtered} role={role} />
+          <PaymentsTable rows={filtered} role={role} onOpen={(r) => { if (!r.id.startsWith("tx-")) navigate({ to: "/payments/$id", params: { id: r.id } }); else navigate({ to: "/transactions/$id", params: { id: r.transactionId } }); }} />
         )}
       </div>
-    </AppShell>
+    </>
   );
 }
