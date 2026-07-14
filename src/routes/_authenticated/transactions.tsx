@@ -6,7 +6,7 @@ import { AppShell } from "@/components/app-shell";
 import { useViewRole } from "@/hooks/use-view-role";
 import { toUiStatus, type UiStatus, type SectorUiId } from "@/lib/tx-catalog";
 import { TransactionsMetricsGrid, type TxMetricsData } from "@/components/tx/transactions-metrics-grid";
-import { TransactionsFilters, EMPTY_FILTERS, type TxFiltersState } from "@/components/tx/transactions-filters";
+import { TransactionsFilters, type TxFiltersState } from "@/components/tx/transactions-filters";
 import { TransactionsTabs, getTabs, countByTab, type TabId } from "@/components/tx/transactions-tabs";
 import { TransactionsTable, type TxRow } from "@/components/tx/transactions-table";
 import { TransactionCardMobile } from "@/components/tx/transaction-card-mobile";
