@@ -290,7 +290,7 @@ type SearchResult = {
   id: string;
   first_name: string | null;
   last_name: string | null;
-  business_name: string | null;
+  legal_name: string | null;
   email: string | null;
   rfc: string | null;
   account_type: string | null;
@@ -328,7 +328,7 @@ function Step2({
   }, [query, search]);
 
   function pickResult(r: SearchResult) {
-    const nombre = r.business_name || [r.first_name, r.last_name].filter(Boolean).join(" ") || r.email || "Contraparte";
+    const nombre = r.legal_name || [r.first_name, r.last_name].filter(Boolean).join(" ") || r.email || "Contraparte";
     setContraparte({ user_id: r.id, email: r.email ?? "", nombre, rfc: r.rfc });
     setQuery(nombre);
     setResults(null);
@@ -383,7 +383,7 @@ function Step2({
         {results && results.length > 0 && (
           <div className="mt-2 border border-yo-border divide-y divide-yo-border/40">
             {results.map((r) => {
-              const nombre = r.business_name || [r.first_name, r.last_name].filter(Boolean).join(" ") || r.email;
+              const nombre = r.legal_name || [r.first_name, r.last_name].filter(Boolean).join(" ") || r.email;
               return (
                 <button
                   key={r.id}

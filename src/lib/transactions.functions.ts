@@ -17,13 +17,13 @@ export const searchCounterpart = createServerFn({ method: "POST" })
 
     let query = context.supabase
       .from("profiles")
-      .select("id, first_name, last_name, business_name, email, rfc, account_type, kyc_status")
+      .select("id, first_name, last_name, legal_name, email, rfc, account_type, kyc_status")
       .neq("id", context.userId)
       .limit(5);
 
     if (isEmail) query = query.ilike("email", q);
     else if (isRfc) query = query.ilike("rfc", q.toUpperCase());
-    else query = query.or(`email.ilike.%${q}%,rfc.ilike.%${q.toUpperCase()}%,business_name.ilike.%${q}%`);
+    else query = query.or(`email.ilike.%${q}%,rfc.ilike.%${q.toUpperCase()}%,legal_name.ilike.%${q}%`);
 
     const { data: rows, error } = await query;
     if (error) throw new Error(error.message);
