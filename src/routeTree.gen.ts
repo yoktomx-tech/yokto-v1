@@ -16,6 +16,7 @@ import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as BiometricoTokenRouteImport } from './routes/biometrico.$token'
 import { Route as AuthenticatedTransactionsRouteImport } from './routes/_authenticated/transactions'
 import { Route as AuthenticatedReportsRouteImport } from './routes/_authenticated/reports'
 import { Route as AuthenticatedPaymentsRouteImport } from './routes/_authenticated/payments'
@@ -62,6 +63,11 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BiometricoTokenRoute = BiometricoTokenRouteImport.update({
+  id: '/biometrico/$token',
+  path: '/biometrico/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedTransactionsRoute =
@@ -149,6 +155,7 @@ export interface FileRoutesByFullPath {
   '/payments': typeof AuthenticatedPaymentsRoute
   '/reports': typeof AuthenticatedReportsRoute
   '/transactions': typeof AuthenticatedTransactionsRouteWithChildren
+  '/biometrico/$token': typeof BiometricoTokenRoute
   '/disputes/$id': typeof AuthenticatedDisputesIdRoute
   '/onboarding/pendiente': typeof AuthenticatedOnboardingPendienteRoute
   '/transactions/$id': typeof AuthenticatedTransactionsIdRoute
@@ -170,6 +177,7 @@ export interface FileRoutesByTo {
   '/payments': typeof AuthenticatedPaymentsRoute
   '/reports': typeof AuthenticatedReportsRoute
   '/transactions': typeof AuthenticatedTransactionsRouteWithChildren
+  '/biometrico/$token': typeof BiometricoTokenRoute
   '/disputes/$id': typeof AuthenticatedDisputesIdRoute
   '/onboarding/pendiente': typeof AuthenticatedOnboardingPendienteRoute
   '/transactions/$id': typeof AuthenticatedTransactionsIdRoute
@@ -193,6 +201,7 @@ export interface FileRoutesById {
   '/_authenticated/payments': typeof AuthenticatedPaymentsRoute
   '/_authenticated/reports': typeof AuthenticatedReportsRoute
   '/_authenticated/transactions': typeof AuthenticatedTransactionsRouteWithChildren
+  '/biometrico/$token': typeof BiometricoTokenRoute
   '/_authenticated/disputes/$id': typeof AuthenticatedDisputesIdRoute
   '/_authenticated/onboarding/pendiente': typeof AuthenticatedOnboardingPendienteRoute
   '/_authenticated/transactions/$id': typeof AuthenticatedTransactionsIdRoute
@@ -216,6 +225,7 @@ export interface FileRouteTypes {
     | '/payments'
     | '/reports'
     | '/transactions'
+    | '/biometrico/$token'
     | '/disputes/$id'
     | '/onboarding/pendiente'
     | '/transactions/$id'
@@ -237,6 +247,7 @@ export interface FileRouteTypes {
     | '/payments'
     | '/reports'
     | '/transactions'
+    | '/biometrico/$token'
     | '/disputes/$id'
     | '/onboarding/pendiente'
     | '/transactions/$id'
@@ -259,6 +270,7 @@ export interface FileRouteTypes {
     | '/_authenticated/payments'
     | '/_authenticated/reports'
     | '/_authenticated/transactions'
+    | '/biometrico/$token'
     | '/_authenticated/disputes/$id'
     | '/_authenticated/onboarding/pendiente'
     | '/_authenticated/transactions/$id'
@@ -274,6 +286,7 @@ export interface RootRouteChildren {
   OnboardingRoute: typeof OnboardingRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  BiometricoTokenRoute: typeof BiometricoTokenRoute
   ApiPublicV1TransactionsRoute: typeof ApiPublicV1TransactionsRoute
 }
 
@@ -326,6 +339,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/biometrico/$token': {
+      id: '/biometrico/$token'
+      path: '/biometrico/$token'
+      fullPath: '/biometrico/$token'
+      preLoaderRoute: typeof BiometricoTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/transactions': {
@@ -486,6 +506,7 @@ const rootRouteChildren: RootRouteChildren = {
   OnboardingRoute: OnboardingRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  BiometricoTokenRoute: BiometricoTokenRoute,
   ApiPublicV1TransactionsRoute: ApiPublicV1TransactionsRoute,
 }
 export const routeTree = rootRouteImport

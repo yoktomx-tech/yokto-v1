@@ -5,7 +5,10 @@ import {
   Mail, Lock, Eye, EyeOff, ArrowRight, ArrowLeft, Loader2, Check,
   User as UserIcon, Building2, Upload, Trash2, FileText, ShieldCheck,
   Landmark, AlertCircle, X, FileCheck2, KeyRound, PencilLine,
+  Smartphone, QrCode as QrIcon, RefreshCw, CheckCircle2,
 } from "lucide-react";
+import QRCode from "qrcode";
+import { startBiometricEnrollment, getMyBiometricEnrollment, cancelBiometricEnrollment } from "@/lib/biometric.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { useServerFn } from "@tanstack/react-start";
 import {
@@ -130,9 +133,9 @@ function OnboardingWizard() {
             />
           )}
           {step === 4 && session && (
-            <Step4Identity
+            <Step4Biometric
               onDone={() => goNext(5)} onBack={goPrev}
-              setError={setError} loading={loading} setLoading={setLoading}
+              setError={setError}
             />
           )}
           {step === 5 && session && (
@@ -1424,5 +1427,167 @@ function Step5Bank({ onFinished, onBack, setError, loading, setLoading }: {
         </button>
       </div>
     </div>
+  );
+}
+
+// ─── STEP 4 (nuevo) — Enrolamiento biométrico vía QR ─────────────────────────
+function Step4Biometric({ onDone, onBack, setError }: {
+  onDone: () => void; onBack: () => void; setError: (s: string | null) => void;
+}) {
+  const start = useServerFn(startBiometricEnrollment);
+  const poll = useServerFn(getMyBiometricEnrollment);
+  const cancel = useServerFn(cancelBiometricEnrollment);
+  const [session, setSession] = useState<Awaited<ReturnType<typeof start>> | null>(null);
+  const [status, setStatus] = useState<Awaited<ReturnType<typeof poll>> | null>(null);
+  const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
+  const [remaining, setRemaining] = useState<number>(0);
+  const [starting, setStarting] = useState(false);
+
+  const finished = status?.status === "completed";
+
+  async function beginSession() {
+    setStarting(true); setError(null);
+    try {
+      const s = await start({});
+      setSession(s);
+      const url = `${window.location.origin}/biometrico/${s.token}`;
+      const dataUrl = await QRCode.toDataURL(url, { margin: 1, width: 320, color: { dark: "#0A0A0A", light: "#FFFFFF" } });
+      setQrDataUrl(dataUrl);
+    } catch (e) { setError((e as Error).message); }
+    finally { setStarting(false); }
+  }
+
+  useEffect(() => { void beginSession(); /* eslint-disable-next-line */ }, []);
+
+  // Polling cada 3s hasta completar/expirar
+  useEffect(() => {
+    if (!session || finished) return;
+    const t = setInterval(async () => {
+      try {
+        const s = await poll({});
+        setStatus(s);
+        if (s?.expires_at) {
+          const ms = new Date(s.expires_at).getTime() - Date.now();
+          setRemaining(Math.max(0, Math.floor(ms / 1000)));
+        }
+        if (s?.status === "completed") clearInterval(t);
+      } catch { /* silencioso */ }
+    }, 3000);
+    return () => clearInterval(t);
+  }, [session, finished, poll]);
+
+  // Countdown local
+  useEffect(() => {
+    if (!session?.expires_at || finished) return;
+    const t = setInterval(() => {
+      const ms = new Date(session.expires_at).getTime() - Date.now();
+      setRemaining(Math.max(0, Math.floor(ms / 1000)));
+    }, 1000);
+    return () => clearInterval(t);
+  }, [session, finished]);
+
+  const expired = remaining <= 0 && !!session && !finished;
+  const mm = String(Math.floor(remaining / 60)).padStart(2, "0");
+  const ss = String(remaining % 60).padStart(2, "0");
+
+  const statusLabel: Record<string, string> = {
+    pending: "Esperando escaneo del QR…",
+    id_captured: "Validando identificación…",
+    id_verified: "Identificación validada. Continúa con selfie.",
+    face_verified: "Rostro verificado. Continúa con comprobante.",
+    address_verified: "Comprobante validado. Confirmando enrolamiento.",
+    completed: "Enrolamiento completado.",
+  };
+
+  return (
+    <div className="flex flex-col gap-5">
+      <div>
+        <h2 className="text-2xl font-bold tracking-tight">Verificación biométrica</h2>
+        <p className="mt-1 text-sm text-yo-txt-2">
+          Escanea el código con la cámara de tu teléfono y sigue las instrucciones. La sesión expira en 15 minutos.
+        </p>
+      </div>
+
+      <div className="grid md:grid-cols-2 gap-5">
+        <div className="rounded-xl border border-yo-border bg-yo-surface p-5 flex flex-col items-center justify-center gap-3">
+          {starting || !qrDataUrl ? (
+            <div className="aspect-square w-full max-w-[280px] grid place-items-center bg-yo-raised rounded-lg">
+              <Loader2 className="size-6 animate-spin text-yo-txt-3" />
+            </div>
+          ) : expired ? (
+            <div className="aspect-square w-full max-w-[280px] grid place-items-center bg-yo-raised rounded-lg text-center px-4">
+              <div>
+                <AlertCircle className="size-8 mx-auto text-yo-err mb-2" />
+                <p className="text-sm font-semibold">Código expirado</p>
+              </div>
+            </div>
+          ) : finished ? (
+            <div className="aspect-square w-full max-w-[280px] grid place-items-center bg-yo-ok-bg rounded-lg text-center px-4">
+              <div>
+                <CheckCircle2 className="size-10 mx-auto text-yo-ok mb-2" />
+                <p className="text-sm font-semibold">¡Biométrico completado!</p>
+              </div>
+            </div>
+          ) : (
+            <img src={qrDataUrl} alt="Código QR" className="w-full max-w-[280px] aspect-square" />
+          )}
+          <div className="flex items-center gap-2 text-xs text-yo-txt-3">
+            <QrIcon className="size-3.5" />
+            <span>Vigencia: <b className="text-yo-txt tabular-nums">{mm}:{ss}</b></span>
+          </div>
+          {(expired || (session && !finished && remaining < 60)) && (
+            <button onClick={async () => { if (session) await cancel({}).catch(() => {}); setSession(null); setStatus(null); setQrDataUrl(null); await beginSession(); }}
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-yo-ac hover:text-yo-ac-h">
+              <RefreshCw className="size-3.5" /> Generar nuevo código
+            </button>
+          )}
+        </div>
+
+        <div className="rounded-xl border border-yo-border bg-yo-surface p-5 flex flex-col gap-4">
+          <div className="flex items-start gap-3">
+            <Smartphone className="size-5 text-yo-ac mt-0.5" />
+            <div>
+              <p className="text-sm font-semibold">Continúa en tu teléfono</p>
+              <p className="text-xs text-yo-txt-3 mt-1">Abre la cámara, apunta al QR y toca el enlace. No cierres esta pestaña.</p>
+            </div>
+          </div>
+
+          <ol className="text-sm text-yo-txt-2 flex flex-col gap-2">
+            <StepLine ok={!!status?.curp_match} active={!status?.curp_match}>Captura de identificación (INE/Pasaporte) + CURP</StepLine>
+            <StepLine ok={!!status?.face_match_ok} active={!!status?.curp_match && !status?.face_match_ok}>Selfie y prueba de vida (match ≥ 99.9%)</StepLine>
+            <StepLine ok={!!status?.address_doc_ok} active={!!status?.face_match_ok && !status?.address_doc_ok}>Comprobante de domicilio (≤ 3 meses)</StepLine>
+            <StepLine ok={finished} active={!!status?.address_doc_ok && !finished}>Lista nominal + confirmación</StepLine>
+          </ol>
+
+          {status && (
+            <div className="rounded-md bg-yo-raised px-3 py-2 text-xs text-yo-txt-2">
+              {statusLabel[status.status] ?? "En proceso…"}
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="flex items-center justify-between pt-2">
+        <button type="button" onClick={onBack} className="inline-flex items-center gap-1.5 text-sm text-yo-txt-2 hover:text-yo-txt">
+          <ArrowLeft className="size-4" /> Regresar
+        </button>
+        <button onClick={onDone} disabled={!finished}
+          className="inline-flex items-center gap-2 min-h-10 px-5 rounded-md bg-yo-ac hover:bg-yo-ac-h text-white text-sm font-semibold disabled:opacity-50">
+          Continuar <ArrowRight className="size-4" />
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function StepLine({ ok, active, children }: { ok: boolean; active: boolean; children: React.ReactNode }) {
+  return (
+    <li className="flex items-center gap-2">
+      <span className={"grid place-items-center size-5 rounded-full border text-[10px] " +
+        (ok ? "bg-yo-ok border-yo-ok text-white" : active ? "border-yo-ac text-yo-ac" : "border-yo-border text-yo-txt-3")}>
+        {ok ? <Check className="size-3" /> : active ? <Loader2 className="size-3 animate-spin" /> : "•"}
+      </span>
+      <span className={ok ? "text-yo-txt" : active ? "text-yo-txt" : "text-yo-txt-3"}>{children}</span>
+    </li>
   );
 }
