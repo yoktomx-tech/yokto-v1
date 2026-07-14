@@ -212,7 +212,11 @@ export const setDisputeStatus = createServerFn({ method: "POST" })
       .maybeSingle();
     if (!dispute) throw new Error("Disputa no encontrada");
 
-    const patch: Record<string, unknown> = { status: data.status };
+    const patch: {
+      status: "in_review" | "in_mediation" | "escalated";
+      arbitration_entity?: string;
+      arbitration_case_number?: string;
+    } = { status: data.status };
     if (data.status === "escalated") {
       if (data.arbitrationEntity) patch.arbitration_entity = data.arbitrationEntity;
       if (data.arbitrationCaseNumber) patch.arbitration_case_number = data.arbitrationCaseNumber;
