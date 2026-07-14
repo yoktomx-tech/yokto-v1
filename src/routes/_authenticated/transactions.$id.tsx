@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/app-shell";
 import { useViewRole } from "@/hooks/use-view-role";
-import { toUiStatus, SECTOR_UI_CFG, type SectorUiId } from "@/lib/tx-catalog";
+import { toUiStatus, SECTOR_UI_CFG, STATUS_CFG, type SectorUiId } from "@/lib/tx-catalog";
 import { formatMoney, commissionAmount, type TxStatus } from "@/lib/tx";
 import {
   createFundingIntent,
