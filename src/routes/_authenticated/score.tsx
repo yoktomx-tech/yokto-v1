@@ -18,6 +18,12 @@ import {
   UserCheck,
   ChevronRight,
   X,
+  Lock,
+  UserPlus,
+  Building2,
+  User,
+  Briefcase,
+  ClipboardList,
 } from "lucide-react";
 import { PageHeader } from "@/components/page-header";
 import { useViewRole } from "@/hooks/use-view-role";
@@ -27,11 +33,17 @@ import {
   TONE_CLASSES,
   KYC_CFG,
   DOC_STATUS_CFG,
+  DOC_CATEGORY_LABEL,
   ALERT_TONE,
+  PERSON_TYPE_CFG,
   fmtDate,
   fmtDateTime,
   type ComplianceDoc,
   type ScoreComponent,
+  type PersonType,
+  type DocCategory,
+  type Representative,
+  type ComplianceProfile,
 } from "@/lib/score-mock";
 import { cn } from "@/lib/utils";
 
@@ -47,15 +59,20 @@ export const Route = createFileRoute("/_authenticated/score")({
 
 type TabKey = "resumen" | "kyc" | "docs" | "score" | "alerts" | "history" | "visibility";
 
-const TABS: { key: TabKey; label: string; icon: typeof ShieldCheck }[] = [
-  { key: "resumen", label: "Resumen", icon: BarChart3 },
-  { key: "kyc", label: "Verificación KYC/KYB", icon: UserCheck },
-  { key: "docs", label: "Documentos del Perfil", icon: FileText },
-  { key: "score", label: "Score y Métricas", icon: ShieldCheck },
-  { key: "alerts", label: "Alertas", icon: Bell },
-  { key: "history", label: "Historial", icon: History },
-  { key: "visibility", label: "Visibilidad", icon: Eye },
-];
+function buildTabs(personType: PersonType): { key: TabKey; label: string; icon: typeof ShieldCheck }[] {
+  const kycLabel = personType === "PM" ? "Verificación de Empresa" : "Verificación de Identidad";
+  const kycIcon = personType === "PM" ? Building2 : UserCheck;
+  return [
+    { key: "resumen", label: "Resumen", icon: BarChart3 },
+    { key: "kyc", label: kycLabel, icon: kycIcon },
+    { key: "docs", label: "Documentos del Perfil", icon: FileText },
+    { key: "score", label: "Indicadores", icon: ShieldCheck },
+    { key: "alerts", label: "Alertas", icon: Bell },
+    { key: "history", label: "Historial", icon: History },
+    { key: "visibility", label: "Visibilidad", icon: Eye },
+  ];
+}
+
 
 function Badge({ tone, children }: { tone: string; children: React.ReactNode }) {
   const c = TONE_CLASSES[tone] ?? TONE_CLASSES.neutral;
@@ -70,14 +87,18 @@ function Badge({ tone, children }: { tone: string; children: React.ReactNode }) 
 function ScorePage() {
   const { role } = useViewRole();
   const viewRole = role === "buyer" ? "buyer" : "seller";
-  const profile = useMemo(() => getMockProfile(viewRole), [viewRole]);
+  const [personType, setPersonType] = useState<PersonType>("PM");
+  const profile = useMemo(() => getMockProfile(viewRole, personType), [viewRole, personType]);
   const [tab, setTab] = useState<TabKey>("resumen");
   const [openDoc, setOpenDoc] = useState<ComplianceDoc | null>(null);
   const [openComponent, setOpenComponent] = useState<ScoreComponent | null>(null);
   const [uploadOpen, setUploadOpen] = useState(false);
   const [recalcOpen, setRecalcOpen] = useState(false);
+  const [completeOpen, setCompleteOpen] = useState(false);
 
   const levelCfg = LEVEL_CFG[profile.level];
+  const ptCfg = PERSON_TYPE_CFG[personType];
+  const tabs = useMemo(() => buildTabs(personType), [personType]);
 
   const subtitle =
     viewRole === "buyer"
@@ -92,6 +113,13 @@ function ScorePage() {
         subtitle={subtitle}
         actions={
           <>
+            <PersonTypeSelect value={personType} onChange={setPersonType} />
+            <button
+              onClick={() => setCompleteOpen(true)}
+              className="inline-flex items-center gap-2 rounded-lg bg-yo-ac hover:bg-yo-ac-h text-white px-3 py-2 text-sm font-medium transition"
+            >
+              <ClipboardList className="size-4" /> Completar perfil
+            </button>
             <button
               onClick={() => setRecalcOpen(true)}
               className="inline-flex items-center gap-2 rounded-lg border border-yo-border bg-yo-surface px-3 py-2 text-sm font-medium text-yo-txt hover:bg-yo-raised transition"
@@ -105,24 +133,41 @@ function ScorePage() {
         }
       />
 
-      {/* Subheader chips */}
-      <div className="flex flex-wrap items-center gap-2 text-xs text-yo-txt-2">
-        <Badge tone={levelCfg.tone}>{levelCfg.label}</Badge>
-        <Badge tone={KYC_CFG[profile.kyc].tone}>KYC {KYC_CFG[profile.kyc].label.toLowerCase()}</Badge>
-        <Badge tone={KYC_CFG[profile.kyb].tone}>KYB {KYC_CFG[profile.kyb].label.toLowerCase()}</Badge>
-        <span className="text-yo-txt-3">·</span>
-        <span>
-          Score <span className="font-mono font-semibold text-yo-txt">{profile.score}</span>/100
-        </span>
-        <span className="text-yo-txt-3">·</span>
-        <span>Última actualización: {fmtDateTime(profile.lastCalculatedAt)}</span>
+      {/* Identity card */}
+      <div className="rounded-lg border border-yo-border bg-yo-surface p-4 flex flex-wrap items-center gap-4">
+        <div className="size-11 rounded-lg bg-yo-ac-bg grid place-items-center text-yo-ac-txt font-semibold">
+          {personType === "PM" ? <Building2 className="size-5" /> : personType === "PFAE" ? <Briefcase className="size-5" /> : <User className="size-5" />}
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-semibold text-yo-txt truncate">{profile.displayName}</p>
+          <p className="text-xs text-yo-txt-2 mt-0.5 flex items-center gap-2 flex-wrap">
+            <span className={cn("inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[11px] font-medium", ptCfg.bg, ptCfg.text)}>
+              <span className="w-1.5 h-1.5 rounded-full bg-current opacity-70" />
+              {ptCfg.label}
+            </span>
+            <span className="text-yo-txt-3">·</span>
+            <span className="font-mono">RFC {profile.rfc}</span>
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2 text-xs text-yo-txt-2">
+          <Badge tone={levelCfg.tone}>{levelCfg.label}</Badge>
+          {personType === "PM" ? (
+            <Badge tone={KYC_CFG[profile.kyb].tone}>KYB {KYC_CFG[profile.kyb].label.toLowerCase()}</Badge>
+          ) : (
+            <Badge tone={KYC_CFG[profile.kyc].tone}>KYC {KYC_CFG[profile.kyc].label.toLowerCase()}</Badge>
+          )}
+          <span>
+            Score <span className="font-mono font-semibold text-yo-txt">{profile.score}</span>/100
+          </span>
+          <span className="text-yo-txt-3">· {fmtDateTime(profile.lastCalculatedAt)}</span>
+        </div>
       </div>
 
       {/* Metric cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <MetricCard label="Score de cumplimiento" value={`${profile.score}/100`} tone="accent" mono />
         <MetricCard label="Nivel actual" value={levelCfg.label} tone={levelCfg.tone} />
-        <MetricCard label="Documentos completos" value={`${profile.docCompletionPct}%`} tone="accent" mono />
+        <MetricCard label="Documentos requeridos" value={`${profile.docCompletionPct}%`} tone="accent" mono />
         <MetricCard
           label="Alertas activas"
           value={String(profile.activeAlertsCount)}
@@ -134,7 +179,7 @@ function ScorePage() {
       {/* Tabs */}
       <div className="border-b border-yo-border overflow-x-auto">
         <div className="flex gap-1 min-w-max">
-          {TABS.map((t) => {
+          {tabs.map((t) => {
             const Ico = t.icon;
             const active = tab === t.key;
             return (
@@ -160,21 +205,21 @@ function ScorePage() {
       <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_320px] gap-6">
         <div className="min-w-0 flex flex-col gap-6">
           {tab === "resumen" && <ResumenTab profile={profile} onOpenComp={setOpenComponent} />}
-          {tab === "kyc" && <KycTab role={viewRole} profile={profile} />}
+          {tab === "kyc" && <KycTab profile={profile} />}
           {tab === "docs" && (
             <DocsTab profile={profile} onOpen={setOpenDoc} onUpload={() => setUploadOpen(true)} />
           )}
           {tab === "score" && <ScoreTab profile={profile} onOpen={setOpenComponent} />}
           {tab === "alerts" && <AlertsTab profile={profile} />}
           {tab === "history" && <HistoryTab profile={profile} />}
-          {tab === "visibility" && <VisibilityTab />}
+          {tab === "visibility" && <VisibilityTab profile={profile} />}
         </div>
 
         {/* Sidebar 30% */}
         <aside className="flex flex-col gap-4">
           <ChecklistCard profile={profile} />
           <SidebarAlerts profile={profile} />
-          <NextActionsCard viewRole={viewRole} onUpload={() => setUploadOpen(true)} />
+          <NextActionsCard personType={personType} onUpload={() => setUploadOpen(true)} onComplete={() => setCompleteOpen(true)} />
           <DisclaimerCard />
         </aside>
       </div>
@@ -184,11 +229,26 @@ function ScorePage() {
       {openComponent && <ScoreExplainDrawer comp={openComponent} onClose={() => setOpenComponent(null)} />}
       {uploadOpen && <UploadModal onClose={() => setUploadOpen(false)} />}
       {recalcOpen && <RecalcModal onClose={() => setRecalcOpen(false)} />}
+      {completeOpen && <CompleteProfileDrawer profile={profile} onClose={() => setCompleteOpen(false)} onUpload={() => { setCompleteOpen(false); setUploadOpen(true); }} />}
     </div>
   );
 }
 
-/* ---------- Metric ---------- */
+function PersonTypeSelect({ value, onChange }: { value: PersonType; onChange: (v: PersonType) => void }) {
+  return (
+    <select
+      value={value}
+      onChange={(e) => onChange(e.target.value as PersonType)}
+      className="rounded-lg border border-yo-border bg-yo-surface px-3 py-2 text-sm font-medium text-yo-txt hover:bg-yo-raised transition"
+      title="Tipo de perfil de cumplimiento"
+    >
+      <option value="PF">Persona Física</option>
+      <option value="PFAE">Persona Física con Actividad Empresarial</option>
+      <option value="PM">Persona Moral</option>
+    </select>
+  );
+}
+
 
 function MetricCard({
   label,
@@ -333,56 +393,108 @@ function ScoreBreakdown({
   );
 }
 
-function KycTab({ role, profile }: { role: "buyer" | "seller"; profile: ReturnType<typeof getMockProfile> }) {
-  const kycFields = [
-    { label: "Nombre completo", value: "Luis Hernández Barrera" },
-    { label: "CURP", value: "HEBL850214HDFRNS03", mono: true },
-    { label: "RFC", value: "HEBL850214XX9", mono: true },
-    { label: "Teléfono", value: "+52 55 1234 5678" },
-    { label: "Correo", value: "luis@ejemplo.com" },
-    { label: "Domicilio", value: "CDMX, México" },
-  ];
-  const kybFields = [
-    { label: "Razón social", value: "Constructora Ejemplo S.A. de C.V." },
-    { label: "RFC", value: "CEJ200101ABC", mono: true },
-    { label: "Régimen fiscal", value: "601 — General de Ley PM" },
-    { label: "Representante legal", value: "Luis Hernández Barrera" },
-    { label: "Domicilio fiscal", value: "Av. Insurgentes Sur 1234, CDMX" },
-  ];
-  const fields = role === "buyer" ? kycFields : kybFields;
+function KycTab({ profile }: { profile: ComplianceProfile }) {
+  const isPM = profile.personType === "PM";
+  const title = isPM ? "Verificación de Empresa" : "Verificación de Identidad";
+  const status = isPM ? profile.kyb : profile.kyc;
+  return (
+    <>
+      <div className="rounded-lg border border-yo-border bg-yo-surface">
+        <div className="px-5 py-4 border-b border-yo-border flex items-center justify-between">
+          <div>
+            <h3 className="text-sm font-semibold text-yo-txt">{title}</h3>
+            <p className="text-xs text-yo-txt-2 mt-0.5 inline-flex items-center gap-2">
+              Estado: <Badge tone={KYC_CFG[status].tone}>{KYC_CFG[status].label}</Badge>
+            </p>
+          </div>
+          <button className="text-sm text-yo-ac hover:text-yo-ac-h font-medium">Ver detalle</button>
+        </div>
+        <dl className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 p-5">
+          {profile.identityFields.map((f) => (
+            <div key={f.label}>
+              <dt className="text-[11px] uppercase tracking-wider text-yo-txt-3 flex items-center gap-1">
+                {f.label}
+                {f.sensitive && <Lock className="size-3 text-yo-txt-3" />}
+              </dt>
+              <dd className={cn("mt-1 text-sm", f.sensitive ? "text-yo-txt-2" : "text-yo-txt", f.mono && "font-mono")}>{f.value}</dd>
+            </div>
+          ))}
+        </dl>
+      </div>
+
+      {isPM && <RepresentativesCard reps={profile.representatives} />}
+    </>
+  );
+}
+
+function RepresentativesCard({ reps }: { reps: Representative[] }) {
+  const statusTone = (s: Representative["status"]) => (s === "APPROVED" ? "ok" : s === "PENDING" ? "warn" : "err");
+  const statusLabel = (s: Representative["status"]) => (s === "APPROVED" ? "Verificado" : s === "PENDING" ? "Pendiente" : "Rechazado");
   return (
     <div className="rounded-lg border border-yo-border bg-yo-surface">
-      <div className="px-5 py-4 border-b border-yo-border flex items-center justify-between">
+      <div className="px-5 py-4 border-b border-yo-border flex items-center justify-between gap-2">
         <div>
-          <h3 className="text-sm font-semibold text-yo-txt">Verificación {role === "seller" ? "KYB" : "KYC"}</h3>
-          <p className="text-xs text-yo-txt-2 mt-0.5">Estado: <Badge tone={KYC_CFG[profile.kyc].tone}>{KYC_CFG[profile.kyc].label}</Badge></p>
+          <h3 className="text-sm font-semibold text-yo-txt">Representantes y autorizados</h3>
+          <p className="text-xs text-yo-txt-2 mt-0.5">
+            Los autorizados no sustituyen al representante legal; sus permisos dependen de su rol operativo y facultades documentadas.
+          </p>
         </div>
-        <button className="text-sm text-yo-ac hover:text-yo-ac-h font-medium">Ver detalle</button>
+        <button className="inline-flex items-center gap-2 rounded-lg bg-yo-ac hover:bg-yo-ac-h text-white px-3 py-2 text-sm font-medium">
+          <UserPlus className="size-4" /> Agregar representante
+        </button>
       </div>
-      <dl className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 p-5">
-        {fields.map((f) => (
-          <div key={f.label}>
-            <dt className="text-[11px] uppercase tracking-wider text-yo-txt-3">{f.label}</dt>
-            <dd className={cn("mt-1 text-sm text-yo-txt", f.mono && "font-mono")}>{f.value}</dd>
-          </div>
-        ))}
-      </dl>
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead className="bg-yo-raised text-yo-txt-2 text-[11px] uppercase tracking-wider">
+            <tr>
+              <th className="text-left px-5 py-2.5 font-medium">Nombre</th>
+              <th className="text-left px-4 py-2.5 font-medium">Rol</th>
+              <th className="text-left px-4 py-2.5 font-medium">Documento</th>
+              <th className="text-left px-4 py-2.5 font-medium">Estado</th>
+              <th className="px-4 py-2.5" />
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-yo-border">
+            {reps.map((r) => (
+              <tr key={r.id} className="hover:bg-yo-raised/60">
+                <td className="px-5 py-3 text-yo-txt font-medium flex items-center gap-2">
+                  {r.isLegal && <ShieldCheck className="size-4 text-[#059669]" />}
+                  {r.name}
+                </td>
+                <td className="px-4 py-3 text-yo-txt-2">{r.role}</td>
+                <td className="px-4 py-3 text-yo-txt-2">{r.document}</td>
+                <td className="px-4 py-3"><Badge tone={statusTone(r.status)}>{statusLabel(r.status)}</Badge></td>
+                <td className="px-4 py-3 text-right"><button className="text-xs font-medium text-yo-ac hover:text-yo-ac-h">Ver detalle</button></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
+
 
 function DocsTab({
   profile,
   onOpen,
   onUpload,
 }: {
-  profile: ReturnType<typeof getMockProfile>;
+  profile: ComplianceProfile;
   onOpen: (d: ComplianceDoc) => void;
   onUpload: () => void;
 }) {
+  const [filter, setFilter] = useState<"ALL" | DocCategory>("ALL");
+  const cats = useMemo(() => {
+    const set = new Set<DocCategory>();
+    profile.docs.forEach((d) => set.add(d.category));
+    return Array.from(set);
+  }, [profile.docs]);
+  const filtered = filter === "ALL" ? profile.docs : profile.docs.filter((d) => d.category === filter);
+
   return (
     <div className="rounded-lg border border-yo-border bg-yo-surface">
-      <div className="px-5 py-4 border-b border-yo-border flex items-center justify-between gap-2">
+      <div className="px-5 py-4 border-b border-yo-border flex items-center justify-between gap-2 flex-wrap">
         <div>
           <h3 className="text-sm font-semibold text-yo-txt">Documentos del Perfil</h3>
           <p className="text-xs text-yo-txt-2 mt-0.5">
@@ -395,6 +507,14 @@ function DocsTab({
         >
           <Upload className="size-4" /> Subir documento
         </button>
+      </div>
+      <div className="px-5 py-3 border-b border-yo-border flex flex-wrap gap-1.5">
+        <FilterChip active={filter === "ALL"} onClick={() => setFilter("ALL")}>Todos</FilterChip>
+        {cats.map((c) => (
+          <FilterChip key={c} active={filter === c} onClick={() => setFilter(c)}>
+            {DOC_CATEGORY_LABEL[c]}
+          </FilterChip>
+        ))}
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
@@ -410,10 +530,13 @@ function DocsTab({
             </tr>
           </thead>
           <tbody className="divide-y divide-yo-border">
-            {profile.docs.map((d) => (
+            {filtered.map((d) => (
               <tr key={d.id} className="hover:bg-yo-raised/60 cursor-pointer" onClick={() => onOpen(d)}>
-                <td className="px-5 py-3 text-yo-txt font-medium">{d.name}</td>
-                <td className="px-4 py-3 text-yo-txt-2">{d.category}</td>
+                <td className="px-5 py-3 text-yo-txt font-medium">
+                  {d.name}
+                  {d.required && <span className="ml-2 text-[10px] uppercase tracking-wider text-yo-txt-3">Requerido</span>}
+                </td>
+                <td className="px-4 py-3 text-yo-txt-2">{DOC_CATEGORY_LABEL[d.category]}</td>
                 <td className="px-4 py-3"><Badge tone={DOC_STATUS_CFG[d.status].tone}>{DOC_STATUS_CFG[d.status].label}</Badge></td>
                 <td className="px-4 py-3 text-yo-txt-2 font-mono text-xs">{d.expiresAt ? fmtDate(d.expiresAt) : "—"}</td>
                 <td className="px-4 py-3 text-yo-txt-2 font-mono text-xs">{fmtDate(d.updatedAt)}</td>
@@ -421,12 +544,30 @@ function DocsTab({
                 <td className="px-4 py-3 text-right"><ChevronRight className="size-4 text-yo-txt-3 inline" /></td>
               </tr>
             ))}
+            {filtered.length === 0 && (
+              <tr><td colSpan={7} className="px-5 py-8 text-center text-sm text-yo-txt-3">Sin documentos en esta categoría.</td></tr>
+            )}
           </tbody>
         </table>
       </div>
     </div>
   );
 }
+
+function FilterChip({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
+  return (
+    <button
+      onClick={onClick}
+      className={cn(
+        "px-3 py-1 rounded-full text-xs font-medium border transition",
+        active ? "bg-yo-ac text-white border-yo-ac" : "bg-yo-surface text-yo-txt-2 border-yo-border hover:bg-yo-raised",
+      )}
+    >
+      {children}
+    </button>
+  );
+}
+
 
 function ScoreTab({
   profile,
@@ -573,22 +714,13 @@ function HistoryTab({ profile }: { profile: ReturnType<typeof getMockProfile> })
   );
 }
 
-function VisibilityTab() {
-  const rows = [
-    { field: "Nivel de cumplimiento", cp: "Sí", bo: "Sí", edit: "No" },
-    { field: "Score global", cp: "Sí, parcial", bo: "Sí", edit: "No" },
-    { field: "Documentos completos", cp: "Parcial", bo: "Sí", edit: "Sí" },
-    { field: "Archivos completos", cp: "No, salvo permisos", bo: "Sí", edit: "Sí" },
-    { field: "Historial de disputas", cp: "Resumen", bo: "Sí", edit: "No" },
-    { field: "Observaciones internas", cp: "No", bo: "Sí", edit: "No" },
-  ];
+function VisibilityTab({ profile }: { profile: ComplianceProfile }) {
   return (
     <>
       <div className="rounded-lg border border-[#EBEBF0] bg-[#F0F9FF] p-4 flex gap-3">
         <Info className="size-5 text-[#0284C7] shrink-0" />
         <p className="text-sm text-[#0C4A6E]">
-          Tu contraparte no puede ver archivos sensibles completos salvo que estén vinculados a una operación compartida
-          o hayas autorizado su uso dentro del flujo de cumplimiento.
+          Visibilidad ante contrapartes para <strong>{PERSON_TYPE_CFG[profile.personType].label}</strong>. Los archivos sensibles no se comparten completos salvo que estén vinculados a una operación o autorización explícita.
         </p>
       </div>
       <div className="rounded-lg border border-yo-border bg-yo-surface overflow-hidden">
@@ -602,12 +734,12 @@ function VisibilityTab() {
             </tr>
           </thead>
           <tbody className="divide-y divide-yo-border">
-            {rows.map((r) => (
+            {profile.visibility.map((r) => (
               <tr key={r.field}>
                 <td className="px-5 py-3 text-yo-txt font-medium">{r.field}</td>
-                <td className="px-4 py-3 text-yo-txt-2">{r.cp}</td>
-                <td className="px-4 py-3 text-yo-txt-2">{r.bo}</td>
-                <td className="px-5 py-3 text-yo-txt-2">{r.edit}</td>
+                <td className="px-4 py-3 text-yo-txt-2">{r.visibleForCounterparty}</td>
+                <td className="px-4 py-3 text-yo-txt-2">{r.visibleForBackoffice}</td>
+                <td className="px-5 py-3 text-yo-txt-2">{r.editable}</td>
               </tr>
             ))}
           </tbody>
@@ -616,6 +748,7 @@ function VisibilityTab() {
     </>
   );
 }
+
 
 /* ---------- Sidebar ---------- */
 
@@ -675,22 +808,42 @@ function SidebarAlerts({ profile }: { profile: ReturnType<typeof getMockProfile>
   );
 }
 
-function NextActionsCard({ viewRole, onUpload }: { viewRole: "buyer" | "seller"; onUpload: () => void }) {
-  const actions =
-    viewRole === "buyer"
-      ? ["Completar verificación", "Subir documento", "Ver recomendaciones"]
-      : ["Subir documento", "Corregir observaciones", "Ver checklist de mejora"];
+function NextActionsCard({ personType, onUpload, onComplete }: { personType: PersonType; onUpload: () => void; onComplete: () => void }) {
+  const actions: { label: string; onClick: () => void }[] =
+    personType === "PF"
+      ? [
+          { label: "Actualizar identidad", onClick: onComplete },
+          { label: "Subir constancia fiscal", onClick: onUpload },
+          { label: "Validar teléfono", onClick: onComplete },
+          { label: "Validar CURP", onClick: onComplete },
+          { label: "Actualizar domicilio", onClick: onUpload },
+        ]
+      : personType === "PFAE"
+      ? [
+          { label: "Subir constancia fiscal", onClick: onUpload },
+          { label: "Actualizar actividad económica", onClick: onComplete },
+          { label: "Validar opinión SAT", onClick: onUpload },
+          { label: "Ver información visible", onClick: onComplete },
+        ]
+      : [
+          { label: "Actualizar empresa", onClick: onComplete },
+          { label: "Subir acta constitutiva", onClick: onUpload },
+          { label: "Agregar representante", onClick: onComplete },
+          { label: "Subir poder legal", onClick: onUpload },
+          { label: "Invitar contacto fiscal", onClick: onComplete },
+        ];
+
   return (
     <div className="rounded-lg border border-yo-border bg-yo-surface p-5">
       <h3 className="text-sm font-semibold text-yo-txt mb-3">Próximas acciones</h3>
       <div className="flex flex-col gap-2">
-        {actions.map((a, i) => (
+        {actions.map((a) => (
           <button
-            key={a}
-            onClick={i === 1 || (viewRole === "seller" && i === 0) ? onUpload : undefined}
+            key={a.label}
+            onClick={a.onClick}
             className="w-full text-left px-3 py-2 rounded-md bg-yo-raised hover:bg-yo-border text-sm text-yo-txt transition flex items-center justify-between"
           >
-            {a}
+            {a.label}
             <ChevronRight className="size-4 text-yo-txt-3" />
           </button>
         ))}
@@ -698,6 +851,78 @@ function NextActionsCard({ viewRole, onUpload }: { viewRole: "buyer" | "seller";
     </div>
   );
 }
+
+function CompleteProfileDrawer({ profile, onClose, onUpload }: { profile: ComplianceProfile; onClose: () => void; onUpload: () => void }) {
+  const pt = profile.personType;
+  const title = pt === "PM" ? "Completa tu perfil empresarial" : "Completa tu perfil personal";
+  const intro =
+    pt === "PM"
+      ? "Agrega documentación corporativa, representación legal y contactos autorizados para habilitar operaciones con mayor nivel de confianza."
+      : pt === "PFAE"
+      ? "Confirma tu régimen fiscal, actividad económica y documentación operativa para fortalecer tu perfil."
+      : "Sube tu identificación oficial, constancia fiscal y comprobante de domicilio para fortalecer tu Perfil de Cumplimiento.";
+  const pending = profile.checklist.filter((c) => !c.done);
+  const done = profile.checklist.filter((c) => c.done);
+  return (
+    <Drawer title={title} onClose={onClose}>
+      <div className="flex flex-col gap-4">
+        <p className="text-sm text-yo-txt-2">{intro}</p>
+
+        <div>
+          <h4 className="text-xs uppercase tracking-wider text-yo-txt-3 mb-2">Pendientes</h4>
+          <ul className="flex flex-col gap-2">
+            {pending.length === 0 && (
+              <li className="text-sm text-yo-txt-2 flex items-center gap-2">
+                <CheckCircle2 className="size-4 text-[#059669]" /> Sin pendientes en este perfil.
+              </li>
+            )}
+            {pending.map((c) => (
+              <li key={c.id} className="flex items-center gap-2 text-sm text-yo-txt">
+                <Circle className="size-4 text-yo-txt-3" /> {c.label}
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        {done.length > 0 && (
+          <div>
+            <h4 className="text-xs uppercase tracking-wider text-yo-txt-3 mb-2">Completos</h4>
+            <ul className="flex flex-col gap-2">
+              {done.map((c) => (
+                <li key={c.id} className="flex items-center gap-2 text-sm text-yo-txt-2 line-through">
+                  <CheckCircle2 className="size-4 text-[#059669]" /> {c.label}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        <div className="rounded-lg border border-[#EBEBF0] bg-[#F0F9FF] p-3 flex gap-2">
+          <Info className="size-4 text-[#0284C7] shrink-0 mt-0.5" />
+          <p className="text-xs text-[#0C4A6E]">
+            El tipo de perfil modifica los requisitos mínimos para crear, aceptar o participar en una operación dentro de YOKTO.
+          </p>
+        </div>
+
+        <div className="flex gap-2 pt-2">
+          <button onClick={onUpload} className="flex-1 rounded-lg bg-yo-ac hover:bg-yo-ac-h text-white px-3 py-2 text-sm font-medium">
+            Subir documentos
+          </button>
+          {pt === "PM" ? (
+            <button className="flex-1 rounded-lg border border-yo-border bg-yo-surface px-3 py-2 text-sm font-medium text-yo-txt hover:bg-yo-raised inline-flex items-center justify-center gap-2">
+              <UserPlus className="size-4" /> Agregar representante
+            </button>
+          ) : (
+            <button className="flex-1 rounded-lg border border-yo-border bg-yo-surface px-3 py-2 text-sm font-medium text-yo-txt hover:bg-yo-raised">
+              Validar ahora
+            </button>
+          )}
+        </div>
+      </div>
+    </Drawer>
+  );
+}
+
 
 function DisclaimerCard() {
   return (
