@@ -16,6 +16,7 @@ import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as InvitationsTokenRouteImport } from './routes/invitations.$token'
 import { Route as BiometricoTokenRouteImport } from './routes/biometrico.$token'
 import { Route as AuthenticatedTransactionsRouteImport } from './routes/_authenticated/transactions'
 import { Route as AuthenticatedReportsRouteImport } from './routes/_authenticated/reports'
@@ -27,12 +28,14 @@ import { Route as AuthenticatedApiClientsRouteImport } from './routes/_authentic
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedTransactionsNewRouteImport } from './routes/_authenticated/transactions.new'
 import { Route as AuthenticatedTransactionsIdRouteImport } from './routes/_authenticated/transactions.$id'
+import { Route as AuthenticatedSettingsOrganizationRouteImport } from './routes/_authenticated/settings.organization'
 import { Route as AuthenticatedOnboardingPendienteRouteImport } from './routes/_authenticated/onboarding.pendiente'
 import { Route as AuthenticatedDisputesIdRouteImport } from './routes/_authenticated/disputes.$id'
 import { Route as AuthenticatedAdminDisputesRouteImport } from './routes/_authenticated/admin.disputes'
 import { Route as ApiPublicV1TransactionsRouteImport } from './routes/api/public/v1.transactions'
 import { Route as ApiPublicStripeWebhookRouteImport } from './routes/api/public/stripe.webhook'
 import { Route as ApiPublicHooksDisputeDeadlinesRouteImport } from './routes/api/public/hooks/dispute-deadlines'
+import { Route as AuthenticatedSettingsOrganizationNewRouteImport } from './routes/_authenticated/settings.organization.new'
 import { Route as AuthenticatedAdminDisputesIdRouteImport } from './routes/_authenticated/admin.disputes.$id'
 
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
@@ -67,6 +70,11 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InvitationsTokenRoute = InvitationsTokenRouteImport.update({
+  id: '/invitations/$token',
+  path: '/invitations/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BiometricoTokenRoute = BiometricoTokenRouteImport.update({
@@ -127,6 +135,12 @@ const AuthenticatedTransactionsIdRoute =
     path: '/$id',
     getParentRoute: () => AuthenticatedTransactionsRoute,
   } as any)
+const AuthenticatedSettingsOrganizationRoute =
+  AuthenticatedSettingsOrganizationRouteImport.update({
+    id: '/settings/organization',
+    path: '/settings/organization',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedOnboardingPendienteRoute =
   AuthenticatedOnboardingPendienteRouteImport.update({
     id: '/onboarding/pendiente',
@@ -160,6 +174,12 @@ const ApiPublicHooksDisputeDeadlinesRoute =
     path: '/api/public/hooks/dispute-deadlines',
     getParentRoute: () => rootRouteImport,
   } as any)
+const AuthenticatedSettingsOrganizationNewRoute =
+  AuthenticatedSettingsOrganizationNewRouteImport.update({
+    id: '/new',
+    path: '/new',
+    getParentRoute: () => AuthenticatedSettingsOrganizationRoute,
+  } as any)
 const AuthenticatedAdminDisputesIdRoute =
   AuthenticatedAdminDisputesIdRouteImport.update({
     id: '/$id',
@@ -183,12 +203,15 @@ export interface FileRoutesByFullPath {
   '/reports': typeof AuthenticatedReportsRoute
   '/transactions': typeof AuthenticatedTransactionsRouteWithChildren
   '/biometrico/$token': typeof BiometricoTokenRoute
+  '/invitations/$token': typeof InvitationsTokenRoute
   '/admin/disputes': typeof AuthenticatedAdminDisputesRouteWithChildren
   '/disputes/$id': typeof AuthenticatedDisputesIdRoute
   '/onboarding/pendiente': typeof AuthenticatedOnboardingPendienteRoute
+  '/settings/organization': typeof AuthenticatedSettingsOrganizationRouteWithChildren
   '/transactions/$id': typeof AuthenticatedTransactionsIdRoute
   '/transactions/new': typeof AuthenticatedTransactionsNewRoute
   '/admin/disputes/$id': typeof AuthenticatedAdminDisputesIdRoute
+  '/settings/organization/new': typeof AuthenticatedSettingsOrganizationNewRoute
   '/api/public/hooks/dispute-deadlines': typeof ApiPublicHooksDisputeDeadlinesRoute
   '/api/public/stripe/webhook': typeof ApiPublicStripeWebhookRoute
   '/api/public/v1/transactions': typeof ApiPublicV1TransactionsRoute
@@ -209,12 +232,15 @@ export interface FileRoutesByTo {
   '/reports': typeof AuthenticatedReportsRoute
   '/transactions': typeof AuthenticatedTransactionsRouteWithChildren
   '/biometrico/$token': typeof BiometricoTokenRoute
+  '/invitations/$token': typeof InvitationsTokenRoute
   '/admin/disputes': typeof AuthenticatedAdminDisputesRouteWithChildren
   '/disputes/$id': typeof AuthenticatedDisputesIdRoute
   '/onboarding/pendiente': typeof AuthenticatedOnboardingPendienteRoute
+  '/settings/organization': typeof AuthenticatedSettingsOrganizationRouteWithChildren
   '/transactions/$id': typeof AuthenticatedTransactionsIdRoute
   '/transactions/new': typeof AuthenticatedTransactionsNewRoute
   '/admin/disputes/$id': typeof AuthenticatedAdminDisputesIdRoute
+  '/settings/organization/new': typeof AuthenticatedSettingsOrganizationNewRoute
   '/api/public/hooks/dispute-deadlines': typeof ApiPublicHooksDisputeDeadlinesRoute
   '/api/public/stripe/webhook': typeof ApiPublicStripeWebhookRoute
   '/api/public/v1/transactions': typeof ApiPublicV1TransactionsRoute
@@ -237,12 +263,15 @@ export interface FileRoutesById {
   '/_authenticated/reports': typeof AuthenticatedReportsRoute
   '/_authenticated/transactions': typeof AuthenticatedTransactionsRouteWithChildren
   '/biometrico/$token': typeof BiometricoTokenRoute
+  '/invitations/$token': typeof InvitationsTokenRoute
   '/_authenticated/admin/disputes': typeof AuthenticatedAdminDisputesRouteWithChildren
   '/_authenticated/disputes/$id': typeof AuthenticatedDisputesIdRoute
   '/_authenticated/onboarding/pendiente': typeof AuthenticatedOnboardingPendienteRoute
+  '/_authenticated/settings/organization': typeof AuthenticatedSettingsOrganizationRouteWithChildren
   '/_authenticated/transactions/$id': typeof AuthenticatedTransactionsIdRoute
   '/_authenticated/transactions/new': typeof AuthenticatedTransactionsNewRoute
   '/_authenticated/admin/disputes/$id': typeof AuthenticatedAdminDisputesIdRoute
+  '/_authenticated/settings/organization/new': typeof AuthenticatedSettingsOrganizationNewRoute
   '/api/public/hooks/dispute-deadlines': typeof ApiPublicHooksDisputeDeadlinesRoute
   '/api/public/stripe/webhook': typeof ApiPublicStripeWebhookRoute
   '/api/public/v1/transactions': typeof ApiPublicV1TransactionsRoute
@@ -265,12 +294,15 @@ export interface FileRouteTypes {
     | '/reports'
     | '/transactions'
     | '/biometrico/$token'
+    | '/invitations/$token'
     | '/admin/disputes'
     | '/disputes/$id'
     | '/onboarding/pendiente'
+    | '/settings/organization'
     | '/transactions/$id'
     | '/transactions/new'
     | '/admin/disputes/$id'
+    | '/settings/organization/new'
     | '/api/public/hooks/dispute-deadlines'
     | '/api/public/stripe/webhook'
     | '/api/public/v1/transactions'
@@ -291,12 +323,15 @@ export interface FileRouteTypes {
     | '/reports'
     | '/transactions'
     | '/biometrico/$token'
+    | '/invitations/$token'
     | '/admin/disputes'
     | '/disputes/$id'
     | '/onboarding/pendiente'
+    | '/settings/organization'
     | '/transactions/$id'
     | '/transactions/new'
     | '/admin/disputes/$id'
+    | '/settings/organization/new'
     | '/api/public/hooks/dispute-deadlines'
     | '/api/public/stripe/webhook'
     | '/api/public/v1/transactions'
@@ -318,12 +353,15 @@ export interface FileRouteTypes {
     | '/_authenticated/reports'
     | '/_authenticated/transactions'
     | '/biometrico/$token'
+    | '/invitations/$token'
     | '/_authenticated/admin/disputes'
     | '/_authenticated/disputes/$id'
     | '/_authenticated/onboarding/pendiente'
+    | '/_authenticated/settings/organization'
     | '/_authenticated/transactions/$id'
     | '/_authenticated/transactions/new'
     | '/_authenticated/admin/disputes/$id'
+    | '/_authenticated/settings/organization/new'
     | '/api/public/hooks/dispute-deadlines'
     | '/api/public/stripe/webhook'
     | '/api/public/v1/transactions'
@@ -338,6 +376,7 @@ export interface RootRouteChildren {
   ResetPasswordRoute: typeof ResetPasswordRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   BiometricoTokenRoute: typeof BiometricoTokenRoute
+  InvitationsTokenRoute: typeof InvitationsTokenRoute
   ApiPublicHooksDisputeDeadlinesRoute: typeof ApiPublicHooksDisputeDeadlinesRoute
   ApiPublicStripeWebhookRoute: typeof ApiPublicStripeWebhookRoute
   ApiPublicV1TransactionsRoute: typeof ApiPublicV1TransactionsRoute
@@ -392,6 +431,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/invitations/$token': {
+      id: '/invitations/$token'
+      path: '/invitations/$token'
+      fullPath: '/invitations/$token'
+      preLoaderRoute: typeof InvitationsTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/biometrico/$token': {
@@ -471,6 +517,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedTransactionsIdRouteImport
       parentRoute: typeof AuthenticatedTransactionsRoute
     }
+    '/_authenticated/settings/organization': {
+      id: '/_authenticated/settings/organization'
+      path: '/settings/organization'
+      fullPath: '/settings/organization'
+      preLoaderRoute: typeof AuthenticatedSettingsOrganizationRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/onboarding/pendiente': {
       id: '/_authenticated/onboarding/pendiente'
       path: '/onboarding/pendiente'
@@ -512,6 +565,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/public/hooks/dispute-deadlines'
       preLoaderRoute: typeof ApiPublicHooksDisputeDeadlinesRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/settings/organization/new': {
+      id: '/_authenticated/settings/organization/new'
+      path: '/new'
+      fullPath: '/settings/organization/new'
+      preLoaderRoute: typeof AuthenticatedSettingsOrganizationNewRouteImport
+      parentRoute: typeof AuthenticatedSettingsOrganizationRoute
     }
     '/_authenticated/admin/disputes/$id': {
       id: '/_authenticated/admin/disputes/$id'
@@ -577,6 +637,21 @@ const AuthenticatedTransactionsRouteWithChildren =
     AuthenticatedTransactionsRouteChildren,
   )
 
+interface AuthenticatedSettingsOrganizationRouteChildren {
+  AuthenticatedSettingsOrganizationNewRoute: typeof AuthenticatedSettingsOrganizationNewRoute
+}
+
+const AuthenticatedSettingsOrganizationRouteChildren: AuthenticatedSettingsOrganizationRouteChildren =
+  {
+    AuthenticatedSettingsOrganizationNewRoute:
+      AuthenticatedSettingsOrganizationNewRoute,
+  }
+
+const AuthenticatedSettingsOrganizationRouteWithChildren =
+  AuthenticatedSettingsOrganizationRoute._addFileChildren(
+    AuthenticatedSettingsOrganizationRouteChildren,
+  )
+
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
   AuthenticatedApiClientsRoute: typeof AuthenticatedApiClientsRoute
@@ -587,6 +662,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedReportsRoute: typeof AuthenticatedReportsRoute
   AuthenticatedTransactionsRoute: typeof AuthenticatedTransactionsRouteWithChildren
   AuthenticatedOnboardingPendienteRoute: typeof AuthenticatedOnboardingPendienteRoute
+  AuthenticatedSettingsOrganizationRoute: typeof AuthenticatedSettingsOrganizationRouteWithChildren
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -599,6 +675,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedReportsRoute: AuthenticatedReportsRoute,
   AuthenticatedTransactionsRoute: AuthenticatedTransactionsRouteWithChildren,
   AuthenticatedOnboardingPendienteRoute: AuthenticatedOnboardingPendienteRoute,
+  AuthenticatedSettingsOrganizationRoute:
+    AuthenticatedSettingsOrganizationRouteWithChildren,
 }
 
 const AuthenticatedRouteRouteWithChildren =
@@ -613,6 +691,7 @@ const rootRouteChildren: RootRouteChildren = {
   ResetPasswordRoute: ResetPasswordRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   BiometricoTokenRoute: BiometricoTokenRoute,
+  InvitationsTokenRoute: InvitationsTokenRoute,
   ApiPublicHooksDisputeDeadlinesRoute: ApiPublicHooksDisputeDeadlinesRoute,
   ApiPublicStripeWebhookRoute: ApiPublicStripeWebhookRoute,
   ApiPublicV1TransactionsRoute: ApiPublicV1TransactionsRoute,
