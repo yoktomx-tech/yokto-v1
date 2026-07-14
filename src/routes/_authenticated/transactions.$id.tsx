@@ -18,7 +18,7 @@ import { DocumentsPanel } from "@/components/documents-panel";
 import { FiscalPanel } from "@/components/fiscal-panel";
 import {
   StatusBadge, SectorBadge, MoneyDisplay, ProgressBar, EntityCard,
-  InfoBox, EmptyState, MilestoneStatusBadge,
+  EmptyState, MilestoneStatusBadge,
 } from "@/components/tx/ui";
 import { cn } from "@/lib/utils";
 
@@ -351,10 +351,10 @@ function TxDetail() {
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <InfoBox label="Comisión YOKTO" value={`${formatMoney(commission, tx.currency)} (${(tx.commission_bps / 100).toFixed(2)}%)`} />
-                    <InfoBox label="Método de fondeo" value={tx.payment_method.toUpperCase()} />
-                    <InfoBox label="Comisión a cargo de" value={tx.commission_payer === "buyer" ? "Comprador" : tx.commission_payer === "seller" ? "Vendedor" : "Dividido"} />
-                    <InfoBox label="Fecha límite entrega" value={tx.delivery_deadline ? new Date(tx.delivery_deadline).toLocaleDateString("es-MX") : "—"} />
+                    <Fact label="Comisión YOKTO" value={`${formatMoney(commission, tx.currency)} (${(tx.commission_bps / 100).toFixed(2)}%)`} />
+                    <Fact label="Método de fondeo" value={tx.payment_method.toUpperCase()} />
+                    <Fact label="Comisión a cargo de" value={tx.commission_payer === "buyer" ? "Comprador" : tx.commission_payer === "seller" ? "Vendedor" : "Dividido"} />
+                    <Fact label="Fecha límite entrega" value={tx.delivery_deadline ? new Date(tx.delivery_deadline).toLocaleDateString("es-MX") : "—"} />
                   </div>
 
                   {tx.description && (
@@ -429,12 +429,12 @@ function TxDetail() {
                       </div>
                       {activeIntent.method === "spei" && (
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                          <InfoBox label="CLABE" value={activeIntent.clabe ?? "—"} mono />
-                          <InfoBox label="Referencia" value={activeIntent.reference_code ?? "—"} mono />
-                          <InfoBox label="Beneficiario" value={activeIntent.metadata?.beneficiary ?? "YOKTO"} />
-                          <InfoBox label="Banco" value={activeIntent.metadata?.bank ?? "STP"} />
-                          <InfoBox label="Monto" value={formatMoney(tx.amount_cents, tx.currency)} />
-                          <InfoBox label="Expira" value={activeIntent.expires_at ? new Date(activeIntent.expires_at).toLocaleString("es-MX") : "—"} />
+                          <Fact label="CLABE" value={activeIntent.clabe ?? "—"} mono />
+                          <Fact label="Referencia" value={activeIntent.reference_code ?? "—"} mono />
+                          <Fact label="Beneficiario" value={activeIntent.metadata?.beneficiary ?? "YOKTO"} />
+                          <Fact label="Banco" value={activeIntent.metadata?.bank ?? "STP"} />
+                          <Fact label="Monto" value={formatMoney(tx.amount_cents, tx.currency)} />
+                          <Fact label="Expira" value={activeIntent.expires_at ? new Date(activeIntent.expires_at).toLocaleString("es-MX") : "—"} />
                         </div>
                       )}
                       {isBuyer && (
@@ -672,3 +672,12 @@ function TxDetail() {
 const btnPrimary = "w-full inline-flex items-center justify-center px-3 py-2 bg-yo-ac text-white text-sm font-medium rounded-md hover:bg-yo-ac-h disabled:opacity-50 transition";
 const btnGhost = "w-full inline-flex items-center justify-center px-3 py-2 border border-yo-border text-yo-txt text-sm font-medium rounded-md hover:bg-yo-raised disabled:opacity-50 transition";
 const btnDanger = "w-full inline-flex items-center justify-center px-3 py-2 border border-red-300 text-red-700 text-sm font-medium rounded-md hover:bg-red-50 disabled:opacity-50 transition";
+
+function Fact({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
+  return (
+    <div className="surface-card p-3">
+      <p className="text-[10px] uppercase tracking-wider text-yo-txt-3 font-medium">{label}</p>
+      <p className={"mt-1 text-sm text-yo-txt break-all " + (mono ? "font-mono" : "font-medium")}>{value}</p>
+    </div>
+  );
+}
