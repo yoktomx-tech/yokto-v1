@@ -119,12 +119,16 @@ function RoleSelect({ role, setRole }: { role: ViewRole; setRole: (r: ViewRole) 
       <p className="px-1 text-[10px] uppercase tracking-[0.14em] font-semibold text-yo-txt-3 mb-1.5">Vista actual</p>
       <button
         onClick={() => setOpen((v) => !v)}
-        className="w-full flex items-center gap-2 px-2.5 py-2 rounded-md border border-yo-border bg-yo-bg hover:bg-yo-raised transition text-left"
+        className="w-full flex flex-col gap-1 px-2.5 py-2 rounded-md border border-yo-border bg-yo-bg hover:bg-yo-raised transition text-left"
       >
-        <CurrentIcon className="size-3.5 text-yo-ac shrink-0" />
-        <span className="flex-1 text-[12.5px] font-semibold text-yo-txt truncate">{current.label}</span>
-        <ChevronDown className={cn("size-3.5 text-yo-txt-3 transition-transform", open && "rotate-180")} />
+        <div className="flex items-center gap-2">
+          <CurrentIcon className="size-3.5 text-yo-ac shrink-0" />
+          <span className="flex-1 text-[12.5px] font-semibold text-yo-txt truncate">{current.label}</span>
+          <ChevronDown className={cn("size-3.5 text-yo-txt-3 transition-transform", open && "rotate-180")} />
+        </div>
+        <p className="text-[10.5px] leading-tight text-yo-txt-3">{ROLE_DESC[role]}</p>
       </button>
+
 
       {open && (
         <div className="absolute bottom-full mb-1 left-0 right-0 z-50 rounded-md border border-yo-border bg-yo-surface shadow-lg overflow-hidden">
