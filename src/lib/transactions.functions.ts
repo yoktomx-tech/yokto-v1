@@ -1,8 +1,10 @@
-// Server functions para el wizard de transacciones (Módulo C – Fase 1)
+// Server functions para el wizard de transacciones (Módulo C – Fase 1-2)
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { Step1Schema, Step2Schema, RFC_REGEX } from "@/lib/validations/transaction";
+import { Step1Schema, Step2Schema, Step4Schema, HitoSchema, RFC_REGEX } from "@/lib/validations/transaction";
+import { calcularFee, type SectorId } from "@/lib/sectors";
+
 
 // ─── Buscar contraparte por RFC o email ──────────────────────────────────────
 export const searchCounterpart = createServerFn({ method: "POST" })
@@ -123,3 +125,120 @@ export const cancelTransactionDraft = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true };
   });
+
+// ─── Guardar hitos (Step 3) ─────────────────────────────────────────────────
+export const saveTransactionHitos = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) =>
+    z.object({ transaction_id: z.string().uuid(), hitos: z.array(HitoSchema).min(1) }).parse(i),
+  )
+  .handler(async ({ data, context }) => {
+    // Verificar ownership del borrador
+    const { data: tx, error: txErr } = await context.supabase
+      .from("transactions")
+      .select("id, status, creado_por, amount_cents")
+      .eq("id", data.transaction_id)
+      .maybeSingle();
+    if (txErr) throw new Error(txErr.message);
+    if (!tx || tx.creado_por !== context.userId) throw new Error("Borrador no encontrado");
+    if (tx.status !== "draft") throw new Error("Solo se pueden editar borradores");
+
+    // Validar 100%
+    const suma = data.hitos.reduce((s, h) => s + Number(h.monto_porcentaje), 0);
+    if (Math.abs(suma - 100) > 0.01) throw new Error("La suma debe ser 100%");
+
+    // Reemplazar hitos
+    const { error: delErr } = await context.supabase
+      .from("transaction_hitos")
+      .delete()
+      .eq("transaction_id", data.transaction_id);
+    if (delErr) throw new Error(delErr.message);
+
+    const rows = data.hitos.map((h) => ({
+      transaction_id: data.transaction_id,
+      orden: h.orden,
+      titulo: h.titulo,
+      descripcion: h.descripcion ?? null,
+      monto_porcentaje: h.monto_porcentaje,
+      monto_cents: Math.round((tx.amount_cents ?? 0) * (h.monto_porcentaje / 100)),
+      fecha_limite: h.fecha_limite,
+      tipo_verificacion: h.tipo_verificacion,
+      documentos_requeridos: h.documentos_requeridos,
+      evidencia_requerida: h.evidencia_requerida,
+      responsable: h.responsable,
+      auto_release: h.auto_release,
+      estado: "pendiente" as const,
+    }));
+
+    const { error: insErr } = await context.supabase.from("transaction_hitos").insert(rows);
+    if (insErr) throw new Error(insErr.message);
+    return { ok: true, count: rows.length };
+  });
+
+// ─── Guardar monto y calcular comisiones (Step 4) ───────────────────────────
+export const saveTransactionMonto = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) =>
+    z.object({
+      transaction_id: z.string().uuid(),
+      sector: Step1Schema.shape.sector,
+      step4: Step4Schema,
+    }).parse(i),
+  )
+  .handler(async ({ data, context }) => {
+    const { data: tx, error: txErr } = await context.supabase
+      .from("transactions")
+      .select("id, status, creado_por, buyer_id")
+      .eq("id", data.transaction_id)
+      .maybeSingle();
+    if (txErr) throw new Error(txErr.message);
+    if (!tx || tx.creado_por !== context.userId) throw new Error("Borrador no encontrado");
+    if (tx.status !== "draft") throw new Error("Solo se pueden editar borradores");
+
+    // Volumen histórico del pagador (últimos 12m) para descuento
+    const desde = new Date();
+    desde.setMonth(desde.getMonth() - 12);
+    const { data: hist } = await context.supabase
+      .from("transactions")
+      .select("amount_cents")
+      .eq("buyer_id", tx.buyer_id)
+      .in("status", ["funded", "released", "in_progress", "conditions_met"])
+      .gte("created_at", desde.toISOString());
+    const volumen = (hist ?? []).reduce((s, r) => s + (r.amount_cents ?? 0), 0) / 100;
+
+    const fee = calcularFee(data.sector as SectorId, data.step4.monto, volumen);
+    const amount_cents = Math.round(data.step4.monto * 100);
+    const comision_cents = Math.round(fee.comision_final * 100);
+    const iva_comision_cents = Math.round(fee.iva_comision * 100);
+    const total_a_depositar_cents = Math.round(fee.total_a_depositar * 100);
+
+    const { error: upErr } = await context.supabase
+      .from("transactions")
+      .update({
+        amount_cents,
+        payment_method: (data.step4.metodo_pago === "TARJETA" ? "card" : "spei") as "card" | "spei",
+        comision_cents,
+        iva_comision_cents,
+        total_a_depositar_cents,
+        descuento_volumetrico: fee.descuento_aplicado,
+        funding_deadline: data.step4.fecha_inicio_estimada ?? null,
+        delivery_deadline: data.step4.fecha_fin_estimada ?? null,
+      })
+      .eq("id", data.transaction_id);
+    if (upErr) throw new Error(upErr.message);
+
+    // Recalcular monto_cents en hitos
+    const { data: hitos } = await context.supabase
+      .from("transaction_hitos")
+      .select("id, monto_porcentaje")
+      .eq("transaction_id", data.transaction_id);
+    if (hitos && hitos.length) {
+      await Promise.all(hitos.map((h) =>
+        context.supabase.from("transaction_hitos")
+          .update({ monto_cents: Math.round(amount_cents * (Number(h.monto_porcentaje) / 100)) })
+          .eq("id", h.id),
+      ));
+    }
+    return { ok: true, fee };
+  });
+

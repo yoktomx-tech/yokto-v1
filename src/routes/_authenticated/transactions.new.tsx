@@ -2,13 +2,18 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
-import { SECTORES, getSector, type SectorId } from "@/lib/sectors";
+import {
+  SECTORES, getSector, calcularFee, PLANTILLAS_HITOS, plantillaToDraft,
+  type SectorId, type HitoDraft,
+} from "@/lib/sectors";
 import {
   searchCounterpart,
   upsertTransactionDraft,
   cancelTransactionDraft,
+  saveTransactionHitos,
+  saveTransactionMonto,
 } from "@/lib/transactions.functions";
-import { Step1Schema, Step2Schema } from "@/lib/validations/transaction";
+import { Step1Schema, Step2Schema, Step3Schema, Step4Schema } from "@/lib/validations/transaction";
 
 export const Route = createFileRoute("/_authenticated/transactions/new")({
   head: () => ({ meta: [{ title: "Nueva transacción — YOKTO" }, { name: "robots", content: "noindex" }] }),
@@ -45,8 +50,19 @@ function NewTransactionWizard() {
   const [descripcion, setDescripcion] = useState("");
   const [contraparte, setContraparte] = useState<Contraparte | null>(null);
 
+  // Paso 3
+  const [hitos, setHitos] = useState<HitoDraft[]>([]);
+
+  // Paso 4
+  const [monto, setMonto] = useState<number>(0);
+  const [metodoPago, setMetodoPago] = useState<"SPEI" | "TARJETA" | "OXXO">("SPEI");
+  const [fechaInicio, setFechaInicio] = useState<string>(new Date().toISOString().slice(0, 10));
+  const [fechaFin, setFechaFin] = useState<string>("");
+
   const upsertDraft = useServerFn(upsertTransactionDraft);
   const cancelDraft = useServerFn(cancelTransactionDraft);
+  const saveHitos = useServerFn(saveTransactionHitos);
+  const saveMonto = useServerFn(saveTransactionMonto);
 
   useEffect(() => {
     supabase.from("profiles").select("kyc_status").eq("id", user.id).maybeSingle().then(({ data }) => {
@@ -82,6 +98,11 @@ function NewTransactionWizard() {
         });
         setTxId(res.id);
         setNumero(res.numero ?? null);
+        // Pre-cargar plantilla de hitos si aún no hay
+        if (hitos.length === 0 && sector) {
+          const plantillas = PLANTILLAS_HITOS[sector];
+          setHitos(plantillas.map((p, i) => plantillaToDraft(p, i + 1, fechaInicio)));
+        }
         setStep(3);
       } catch (e) {
         setError((e as Error).message);
@@ -90,9 +111,40 @@ function NewTransactionWizard() {
       }
       return;
     }
-    // Pasos 3–5: en construcción en Fase 2/3
+    if (step === 3) {
+      const r = Step3Schema.safeParse({ hitos });
+      if (!r.success) { setError(r.error.issues[0]?.message ?? "Revisa los hitos"); return; }
+      if (!txId) { setError("Falta guardar los pasos anteriores"); return; }
+      setSaving(true);
+      try {
+        await saveHitos({ data: { transaction_id: txId, hitos: r.data.hitos } });
+        setStep(4);
+      } catch (e) {
+        setError((e as Error).message);
+      } finally { setSaving(false); }
+      return;
+    }
+    if (step === 4) {
+      const r = Step4Schema.safeParse({
+        monto,
+        metodo_pago: metodoPago,
+        fecha_inicio_estimada: fechaInicio || null,
+        fecha_fin_estimada: fechaFin || null,
+      });
+      if (!r.success) { setError(r.error.issues[0]?.message ?? "Revisa el monto"); return; }
+      if (!txId || !sector) { setError("Falta información previa"); return; }
+      setSaving(true);
+      try {
+        await saveMonto({ data: { transaction_id: txId, sector, step4: r.data } });
+        setStep(5);
+      } catch (e) {
+        setError((e as Error).message);
+      } finally { setSaving(false); }
+      return;
+    }
+    // Paso 5: Fase 3
     setStep((s) => Math.min(TOTAL_STEPS, s + 1));
-  }, [step, sector, rol, descripcion, contraparte, txId, upsertDraft]);
+  }, [step, sector, rol, descripcion, contraparte, txId, hitos, monto, metodoPago, fechaInicio, fechaFin, upsertDraft, saveHitos, saveMonto]);
 
   async function handleCancel() {
     if (txId) {
@@ -162,11 +214,23 @@ function NewTransactionWizard() {
               setContraparte={setContraparte}
             />
           )}
-          {step >= 3 && (
+          {step === 3 && sector && (
+            <Step3 sector={sector} hitos={hitos} setHitos={setHitos} fechaBase={fechaInicio} />
+          )}
+          {step === 4 && sector && (
+            <Step4
+              sector={sector}
+              monto={monto} setMonto={setMonto}
+              metodoPago={metodoPago} setMetodoPago={setMetodoPago}
+              fechaInicio={fechaInicio} setFechaInicio={setFechaInicio}
+              fechaFin={fechaFin} setFechaFin={setFechaFin}
+            />
+          )}
+          {step === 5 && (
             <div className="py-12 text-center space-y-3">
-              <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">En construcción</p>
+              <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">En construcción — Fase 3</p>
               <p className="text-foreground">
-                Los pasos <strong>Hitos, Monto</strong> y <strong>Revisión</strong> se activarán en la siguiente iteración.
+                <strong>Revisión y firma</strong> se activará en la siguiente iteración (contrato PDF, firmas y activación).
               </p>
               <p className="text-sm text-muted-foreground">
                 Tu borrador <span className="font-mono">{numero}</span> quedó guardado y puedes retomarlo desde <em>Transacciones</em>.
@@ -182,7 +246,7 @@ function NewTransactionWizard() {
           >
             {step === 1 ? "Cancelar" : "Atrás"}
           </button>
-          {step < 3 ? (
+          {step < 5 ? (
             <button
               onClick={goNext}
               disabled={saving}
@@ -467,3 +531,258 @@ function Step2({
     </div>
   );
 }
+
+// ─── Paso 3: Hitos ──────────────────────────────────────────────────────────
+const TIPOS_VERIF: Array<{ id: HitoDraft["tipo_verificacion"]; label: string }> = [
+  { id: "DOCUMENTAL", label: "Documental" },
+  { id: "EVIDENCIA_FISICA", label: "Evidencia física" },
+  { id: "GPS", label: "GPS / tracking" },
+  { id: "CHECKLIST", label: "Checklist" },
+  { id: "AUTOMATICO", label: "Automático" },
+  { id: "MANUAL_YOKTO", label: "Verificado por YOKTO" },
+];
+
+function Step3({
+  sector, hitos, setHitos, fechaBase,
+}: {
+  sector: SectorId;
+  hitos: HitoDraft[];
+  setHitos: (h: HitoDraft[]) => void;
+  fechaBase: string;
+}) {
+  const suma = hitos.reduce((s, h) => s + Number(h.monto_porcentaje || 0), 0);
+  const ok = Math.abs(suma - 100) < 0.01;
+
+  function update(idx: number, patch: Partial<HitoDraft>) {
+    setHitos(hitos.map((h, i) => (i === idx ? { ...h, ...patch } : h)));
+  }
+  function remove(idx: number) {
+    setHitos(hitos.filter((_, i) => i !== idx).map((h, i) => ({ ...h, orden: i + 1 })));
+  }
+  function move(idx: number, dir: -1 | 1) {
+    const j = idx + dir;
+    if (j < 0 || j >= hitos.length) return;
+    const copy = [...hitos];
+    [copy[idx], copy[j]] = [copy[j], copy[idx]];
+    setHitos(copy.map((h, i) => ({ ...h, orden: i + 1 })));
+  }
+  function addBlank() {
+    setHitos([
+      ...hitos,
+      {
+        orden: hitos.length + 1,
+        titulo: "Nuevo hito",
+        descripcion: "",
+        monto_porcentaje: 0,
+        fecha_limite: fechaBase,
+        tipo_verificacion: "DOCUMENTAL",
+        documentos_requeridos: [],
+        evidencia_requerida: [],
+        responsable: "PAGADOR",
+        auto_release: false,
+      },
+    ]);
+  }
+  function resetPlantilla() {
+    const p = PLANTILLAS_HITOS[sector];
+    setHitos(p.map((pl, i) => plantillaToDraft(pl, i + 1, fechaBase)));
+  }
+  function distribuirIgual() {
+    if (hitos.length === 0) return;
+    const each = Math.floor((100 / hitos.length) * 100) / 100;
+    const resto = 100 - each * hitos.length;
+    setHitos(hitos.map((h, i) => ({ ...h, monto_porcentaje: i === 0 ? each + resto : each })));
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <p className="text-sm text-muted-foreground max-w-2xl">
+          Divide la operación en hitos verificables. Los fondos se liberan hito por hito conforme se aprueban.
+        </p>
+        <div className="flex gap-2">
+          <button type="button" onClick={resetPlantilla} className="px-3 py-1.5 border border-yo-border text-[11px] uppercase tracking-[0.14em]">
+            Usar plantilla del sector
+          </button>
+          <button type="button" onClick={distribuirIgual} className="px-3 py-1.5 border border-yo-border text-[11px] uppercase tracking-[0.14em]">
+            Distribuir 100% igual
+          </button>
+        </div>
+      </div>
+
+      <div className={`border p-3 text-sm flex items-center justify-between ${ok ? "border-yo-border bg-yokto-yellow/30 text-yokto-black" : "border-[#FF3B3B] bg-[#FF3B3B]/10 text-[#FF3B3B]"}`}>
+        <span>Suma actual: <strong>{suma.toFixed(2)}%</strong> {ok ? "✓ correcto" : "· debe sumar exactamente 100%"}</span>
+        <span className="text-xs">{hitos.length} hito{hitos.length === 1 ? "" : "s"}</span>
+      </div>
+
+      <div className="space-y-4">
+        {hitos.map((h, idx) => (
+          <div key={idx} className="border border-yo-border p-4 bg-background space-y-3">
+            <div className="flex items-center justify-between gap-2">
+              <div className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground font-semibold">
+                Hito {h.orden}
+              </div>
+              <div className="flex gap-1">
+                <button type="button" onClick={() => move(idx, -1)} disabled={idx === 0} className="px-2 py-1 border border-yo-border text-xs disabled:opacity-30">↑</button>
+                <button type="button" onClick={() => move(idx, 1)} disabled={idx === hitos.length - 1} className="px-2 py-1 border border-yo-border text-xs disabled:opacity-30">↓</button>
+                <button type="button" onClick={() => remove(idx)} className="px-2 py-1 border border-[#FF3B3B] text-[#FF3B3B] text-xs">Eliminar</button>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <label className="block">
+                <span className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">Título</span>
+                <input type="text" value={h.titulo} onChange={(e) => update(idx, { titulo: e.target.value })} className="input-editorial mt-1" />
+              </label>
+              <label className="block">
+                <span className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">% del monto</span>
+                <input type="number" min={0} max={100} step={0.01} value={h.monto_porcentaje} onChange={(e) => update(idx, { monto_porcentaje: Number(e.target.value) })} className="input-editorial mt-1" />
+              </label>
+              <label className="block sm:col-span-2">
+                <span className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">Descripción</span>
+                <textarea rows={2} value={h.descripcion} onChange={(e) => update(idx, { descripcion: e.target.value })} className="input-editorial mt-1 resize-y" />
+              </label>
+              <label className="block">
+                <span className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">Fecha límite</span>
+                <input type="date" value={h.fecha_limite} onChange={(e) => update(idx, { fecha_limite: e.target.value })} className="input-editorial mt-1" />
+              </label>
+              <label className="block">
+                <span className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">Tipo de verificación</span>
+                <select value={h.tipo_verificacion} onChange={(e) => update(idx, { tipo_verificacion: e.target.value as HitoDraft["tipo_verificacion"] })} className="input-editorial mt-1">
+                  {TIPOS_VERIF.map((t) => <option key={t.id} value={t.id}>{t.label}</option>)}
+                </select>
+              </label>
+              <label className="block">
+                <span className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">Aprueba</span>
+                <select value={h.responsable} onChange={(e) => update(idx, { responsable: e.target.value as "PAGADOR" | "BENEFICIARIO" })} className="input-editorial mt-1">
+                  <option value="PAGADOR">Pagador</option>
+                  <option value="BENEFICIARIO">Beneficiario</option>
+                </select>
+              </label>
+              <label className="flex items-center gap-2 sm:mt-6">
+                <input type="checkbox" checked={h.auto_release} onChange={(e) => update(idx, { auto_release: e.target.checked })} />
+                <span className="text-xs text-foreground">Liberación automática al aprobar</span>
+              </label>
+              <label className="block sm:col-span-2">
+                <span className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">Documentos requeridos (separa por coma)</span>
+                <input
+                  type="text"
+                  value={h.documentos_requeridos.join(", ")}
+                  onChange={(e) => update(idx, { documentos_requeridos: e.target.value.split(",").map((s) => s.trim()).filter(Boolean) })}
+                  className="input-editorial mt-1"
+                />
+              </label>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <button type="button" onClick={addBlank} className="w-full px-4 py-3 border-2 border-dashed border-yo-border text-[12px] uppercase tracking-[0.14em] font-semibold hover:bg-yo-bg">
+        + Agregar hito
+      </button>
+    </div>
+  );
+}
+
+// ─── Paso 4: Monto y comisiones ─────────────────────────────────────────────
+function Step4({
+  sector, monto, setMonto, metodoPago, setMetodoPago, fechaInicio, setFechaInicio, fechaFin, setFechaFin,
+}: {
+  sector: SectorId;
+  monto: number; setMonto: (n: number) => void;
+  metodoPago: "SPEI" | "TARJETA" | "OXXO"; setMetodoPago: (m: "SPEI" | "TARJETA" | "OXXO") => void;
+  fechaInicio: string; setFechaInicio: (s: string) => void;
+  fechaFin: string; setFechaFin: (s: string) => void;
+}) {
+  const sectorDef = getSector(sector)!;
+  const fee = useMemo(() => calcularFee(sector, monto || 0, 0), [sector, monto]);
+  const fmt = (n: number) => new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN" }).format(n);
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <div className="text-[11px] uppercase tracking-[0.14em] font-semibold text-foreground mb-2">Monto de la operación (MXN)</div>
+        <input
+          type="number"
+          min={100}
+          step={100}
+          value={monto || ""}
+          onChange={(e) => setMonto(Number(e.target.value))}
+          placeholder="Ej: 150000"
+          className="input-editorial text-2xl font-display tracking-wide"
+        />
+        <p className="mt-1 text-xs text-muted-foreground">Rango típico para {sectorDef.titulo}: {sectorDef.monto_tipico}</p>
+      </div>
+
+      <div>
+        <div className="text-[11px] uppercase tracking-[0.14em] font-semibold text-foreground mb-2">Método de pago</div>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          {sectorDef.metodos_pago.map((m) => (
+            <button
+              key={m}
+              type="button"
+              onClick={() => setMetodoPago(m)}
+              className={`p-3 border text-left ${metodoPago === m ? "border-yokto-black bg-yo-bg ring-2 ring-yokto-black" : "border-yo-border hover:border-yokto-black"}`}
+            >
+              <div className="text-[11px] uppercase tracking-[0.14em] font-semibold">{m}</div>
+              <div className="text-xs text-muted-foreground mt-1">
+                {m === "SPEI" ? "Transferencia interbancaria" : m === "TARJETA" ? "Débito o crédito" : "Pago en efectivo"}
+              </div>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <label className="block">
+          <span className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">Fecha estimada de inicio</span>
+          <input type="date" value={fechaInicio} onChange={(e) => setFechaInicio(e.target.value)} className="input-editorial mt-1" />
+        </label>
+        <label className="block">
+          <span className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">Fecha estimada de fin</span>
+          <input type="date" value={fechaFin} onChange={(e) => setFechaFin(e.target.value)} className="input-editorial mt-1" />
+        </label>
+      </div>
+
+      {/* Fee breakdown */}
+      <div className="border-2 border-yokto-black bg-yo-bg/40 p-5 space-y-2">
+        <div className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground font-semibold">Desglose de comisiones</div>
+        <Row label="Monto de la operación" value={fmt(monto || 0)} />
+        <Row
+          label={`Comisión YOKTO ${fee.fee_tipo === "FIJO" ? "(tarifa fija)" : `(${(FEES_PCT(sector) * 100).toFixed(2)}%)`}`}
+          value={fmt(fee.comision_final)}
+        />
+        <Row label="IVA (16%) sobre comisión" value={fmt(fee.iva_comision)} />
+        <div className="border-t border-yo-border pt-2 mt-2">
+          <Row
+            label={<span className="font-semibold text-foreground">Total a depositar por el pagador</span>}
+            value={<span className="font-display text-2xl">{fmt(fee.total_a_depositar)}</span>}
+          />
+        </div>
+        <p className="text-[11px] text-muted-foreground pt-2">
+          Comisión efectiva: <strong>{fee.porcentaje_efectivo.toFixed(2)}%</strong> del monto de la operación.
+          {fee.descuento_aplicado > 0 && ` · Descuento por volumen aplicado: ${(fee.descuento_aplicado * 100).toFixed(0)}%.`}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function Row({ label, value }: { label: React.ReactNode; value: React.ReactNode }) {
+  return (
+    <div className="flex items-baseline justify-between gap-3 text-sm">
+      <span className="text-muted-foreground">{label}</span>
+      <span className="text-foreground tabular-nums">{value}</span>
+    </div>
+  );
+}
+
+function FEES_PCT(sector: SectorId): number {
+  // Espejo simple del FEES.porcentaje_base sin re-exportar
+  const map: Record<SectorId, number> = {
+    AUTOTRANSPORTE: 0.018, CONSTRUCCION: 0.022, COMERCIO_EXTERIOR: 0.015,
+    INMOBILIARIO: 0.012, VEHICULOS: 0.025, SERVICIOS: 0.030,
+  };
+  return map[sector];
+}
+
