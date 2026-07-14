@@ -1,16 +1,13 @@
-// Factory: elige Stripe real si STRIPE_SECRET_KEY existe, si no cae a mock.
+// Factory: Stripe real si STRIPE_SECRET_KEY existe, si no cae a mock.
+// Server-only: se importa vía `await import("@/lib/payments")` desde server fns.
 import type { PaymentProvider } from "./adapter";
 import { mockProvider } from "./mock";
+import { stripeProvider } from "./stripe";
 
 export function getPaymentProvider(): PaymentProvider {
   const forced = (process.env.PAYMENT_PROVIDER ?? "").toLowerCase();
   if (forced === "mock") return mockProvider;
-  if (forced === "stripe" || process.env.STRIPE_SECRET_KEY) {
-    // Import perezoso para no cargar el SDK de Stripe cuando no aplica.
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { stripeProvider } = require("./stripe") as typeof import("./stripe");
-    return stripeProvider;
-  }
+  if (forced === "stripe" || process.env.STRIPE_SECRET_KEY) return stripeProvider;
   return mockProvider;
 }
 
