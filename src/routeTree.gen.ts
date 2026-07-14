@@ -30,6 +30,7 @@ import { Route as AuthenticatedTransactionsIdRouteImport } from './routes/_authe
 import { Route as AuthenticatedOnboardingPendienteRouteImport } from './routes/_authenticated/onboarding.pendiente'
 import { Route as AuthenticatedDisputesIdRouteImport } from './routes/_authenticated/disputes.$id'
 import { Route as ApiPublicV1TransactionsRouteImport } from './routes/api/public/v1.transactions'
+import { Route as ApiPublicStripeWebhookRouteImport } from './routes/api/public/stripe.webhook'
 
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
@@ -139,6 +140,11 @@ const ApiPublicV1TransactionsRoute = ApiPublicV1TransactionsRouteImport.update({
   path: '/api/public/v1/transactions',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicStripeWebhookRoute = ApiPublicStripeWebhookRouteImport.update({
+  id: '/api/public/stripe/webhook',
+  path: '/api/public/stripe/webhook',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -160,6 +166,7 @@ export interface FileRoutesByFullPath {
   '/onboarding/pendiente': typeof AuthenticatedOnboardingPendienteRoute
   '/transactions/$id': typeof AuthenticatedTransactionsIdRoute
   '/transactions/new': typeof AuthenticatedTransactionsNewRoute
+  '/api/public/stripe/webhook': typeof ApiPublicStripeWebhookRoute
   '/api/public/v1/transactions': typeof ApiPublicV1TransactionsRoute
 }
 export interface FileRoutesByTo {
@@ -182,6 +189,7 @@ export interface FileRoutesByTo {
   '/onboarding/pendiente': typeof AuthenticatedOnboardingPendienteRoute
   '/transactions/$id': typeof AuthenticatedTransactionsIdRoute
   '/transactions/new': typeof AuthenticatedTransactionsNewRoute
+  '/api/public/stripe/webhook': typeof ApiPublicStripeWebhookRoute
   '/api/public/v1/transactions': typeof ApiPublicV1TransactionsRoute
 }
 export interface FileRoutesById {
@@ -206,6 +214,7 @@ export interface FileRoutesById {
   '/_authenticated/onboarding/pendiente': typeof AuthenticatedOnboardingPendienteRoute
   '/_authenticated/transactions/$id': typeof AuthenticatedTransactionsIdRoute
   '/_authenticated/transactions/new': typeof AuthenticatedTransactionsNewRoute
+  '/api/public/stripe/webhook': typeof ApiPublicStripeWebhookRoute
   '/api/public/v1/transactions': typeof ApiPublicV1TransactionsRoute
 }
 export interface FileRouteTypes {
@@ -230,6 +239,7 @@ export interface FileRouteTypes {
     | '/onboarding/pendiente'
     | '/transactions/$id'
     | '/transactions/new'
+    | '/api/public/stripe/webhook'
     | '/api/public/v1/transactions'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -252,6 +262,7 @@ export interface FileRouteTypes {
     | '/onboarding/pendiente'
     | '/transactions/$id'
     | '/transactions/new'
+    | '/api/public/stripe/webhook'
     | '/api/public/v1/transactions'
   id:
     | '__root__'
@@ -275,6 +286,7 @@ export interface FileRouteTypes {
     | '/_authenticated/onboarding/pendiente'
     | '/_authenticated/transactions/$id'
     | '/_authenticated/transactions/new'
+    | '/api/public/stripe/webhook'
     | '/api/public/v1/transactions'
   fileRoutesById: FileRoutesById
 }
@@ -287,6 +299,7 @@ export interface RootRouteChildren {
   ResetPasswordRoute: typeof ResetPasswordRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   BiometricoTokenRoute: typeof BiometricoTokenRoute
+  ApiPublicStripeWebhookRoute: typeof ApiPublicStripeWebhookRoute
   ApiPublicV1TransactionsRoute: typeof ApiPublicV1TransactionsRoute
 }
 
@@ -439,6 +452,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicV1TransactionsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/stripe/webhook': {
+      id: '/api/public/stripe/webhook'
+      path: '/api/public/stripe/webhook'
+      fullPath: '/api/public/stripe/webhook'
+      preLoaderRoute: typeof ApiPublicStripeWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -507,6 +527,7 @@ const rootRouteChildren: RootRouteChildren = {
   ResetPasswordRoute: ResetPasswordRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   BiometricoTokenRoute: BiometricoTokenRoute,
+  ApiPublicStripeWebhookRoute: ApiPublicStripeWebhookRoute,
   ApiPublicV1TransactionsRoute: ApiPublicV1TransactionsRoute,
 }
 export const routeTree = rootRouteImport
