@@ -987,47 +987,52 @@ function Step5({
         </section>
       )}
 
-      {/* Términos */}
-      <section className="space-y-3 border border-yo-border p-4 bg-background">
-        <label className="flex items-start gap-3 cursor-pointer">
-          <input
-            type="checkbox"
-            className="mt-1"
-            checked={aceptaTerminos}
-            onChange={(e) => setAceptaTerminos(e.target.checked)}
-          />
-          <span className="text-sm text-foreground">
-            Declaro que la información es veraz y acepto los <a href="/terminos" target="_blank" className="underline">Términos y Condiciones</a>, el <a href="/privacidad" target="_blank" className="underline">Aviso de Privacidad</a> y las reglas de disputa de YOKTO.
-          </span>
-        </label>
-        <label className="flex items-start gap-3 cursor-pointer">
-          <input
-            type="checkbox"
-            className="mt-1"
-            checked={aceptaRetencion}
-            onChange={(e) => setAceptaRetencion(e.target.checked)}
-          />
-          <span className="text-sm text-foreground">
-            Entiendo que los fondos serán retenidos en cuenta de garantía hasta el cumplimiento verificable de cada hito y que YOKTO no es entidad financiera.
-          </span>
-        </label>
-      </section>
+      {mode === "sign" && (
+        <>
+          {/* Términos */}
+          <section className="space-y-3 border border-yo-border p-4 bg-background">
+            <label className="flex items-start gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                className="mt-1"
+                checked={aceptaTerminos}
+                onChange={(e) => setAceptaTerminos(e.target.checked)}
+              />
+              <span className="text-sm text-foreground">
+                Declaro que la información es veraz y acepto los <a href="/terminos" target="_blank" className="underline">Términos y Condiciones</a>, el <a href="/privacidad" target="_blank" className="underline">Aviso de Privacidad</a> y las reglas de disputa de YOKTO.
+              </span>
+            </label>
+            <label className="flex items-start gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                className="mt-1"
+                checked={aceptaRetencion}
+                onChange={(e) => setAceptaRetencion(e.target.checked)}
+              />
+              <span className="text-sm text-foreground">
+                Entiendo que los fondos serán retenidos en cuenta de garantía hasta el cumplimiento verificable de cada hito y que YOKTO no es entidad financiera.
+              </span>
+            </label>
+          </section>
 
-      <p className="text-[11px] text-muted-foreground">
-        Al pulsar <strong>Firmar y activar</strong> se registra tu firma electrónica con fecha, hora e IP.
-        {contraparte?.user_id
-          ? " Se notificará a tu contraparte para que firme también."
-          : " Se enviará una invitación por correo a la contraparte."}
-      </p>
+          <p className="text-[11px] text-muted-foreground">
+            Al pulsar <strong>Firmar y activar</strong> se registra tu firma electrónica con fecha, hora e IP.
+            {contraparte?.user_id
+              ? " Se notificará a tu contraparte para que firme también."
+              : " Se enviará una invitación por correo a la contraparte."}
+          </p>
 
-      {/* Botón inline redundante para mobile */}
-      <button
-        onClick={onFirmar}
-        disabled={firmando || !aceptaTerminos || !aceptaRetencion}
-        className="w-full md:hidden px-6 py-3 bg-yokto-black text-yokto-yellow text-[12px] uppercase tracking-[0.14em] font-semibold border border-yokto-black hover:opacity-90 disabled:opacity-40"
-      >
-        {firmando ? "Firmando…" : "Firmar y activar ✓"}
-      </button>
+          {/* Botón inline redundante para mobile */}
+          <button
+            onClick={onFirmar}
+            disabled={firmando || !aceptaTerminos || !aceptaRetencion}
+            className="w-full md:hidden px-6 py-3 bg-yokto-black text-yokto-yellow text-[12px] uppercase tracking-[0.14em] font-semibold border border-yokto-black hover:opacity-90 disabled:opacity-40"
+          >
+            {firmando ? "Firmando…" : "Firmar y activar ✓"}
+          </button>
+        </>
+      )}
+
     </div>
   );
 }
