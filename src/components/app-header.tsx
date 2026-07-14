@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Maximize2, Minimize2, Moon, Sun } from "lucide-react";
+import { Maximize2, Minimize2, Moon, Search, Sun } from "lucide-react";
 import { NotificationsBell } from "@/components/notifications-bell";
 import { OrgSwitcher } from "@/components/org-switcher";
 import { UserMenu } from "@/components/user-menu";
