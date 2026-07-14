@@ -900,6 +900,42 @@ export type Database = {
           },
         ]
       }
+      stripe_webhook_events: {
+        Row: {
+          created_at: string
+          error: string | null
+          event_id: string
+          event_type: string
+          id: string
+          payload: Json
+          processed: boolean
+          processed_at: string | null
+          received_at: string
+        }
+        Insert: {
+          created_at?: string
+          error?: string | null
+          event_id: string
+          event_type: string
+          id?: string
+          payload: Json
+          processed?: boolean
+          processed_at?: string | null
+          received_at?: string
+        }
+        Update: {
+          created_at?: string
+          error?: string | null
+          event_id?: string
+          event_type?: string
+          id?: string
+          payload?: Json
+          processed?: boolean
+          processed_at?: string | null
+          received_at?: string
+        }
+        Relationships: []
+      }
       transaction_conditions: {
         Row: {
           created_at: string
