@@ -2,6 +2,10 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { parseCFDI, flattenFirstPago } from "./cfdi-parser";
+import { checkCFDICoherence, checkREPCoherence, scoreChecks, type CheckResult, type TxContext } from "./coherence";
+import { consultarEstadoSAT } from "./sat-lookup";
+import { aiJsonCall } from "../ai-gateway.server";
+
 
 const UploadInput = z.object({
   transaction_id: z.string().uuid(),
