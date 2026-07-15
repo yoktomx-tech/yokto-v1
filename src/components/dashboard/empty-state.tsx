@@ -1,3 +1,4 @@
+import { Link } from "@tanstack/react-router";
 import { ArrowRight, UserPlus, ListChecks, ShieldCheck } from "lucide-react";
 
 export function EmptyStateDashboard({ name }: { name: string }) {
