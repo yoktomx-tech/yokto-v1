@@ -261,10 +261,10 @@ function NewOperationWizard() {
   const stepValidNow = !validateStep(step);
 
   return (
-    <div className="min-h-screen bg-yo-bg">
+    <div className="space-y-4">
       {/* Header */}
-      <header className="bg-yo-surface border-b border-yo-border px-4 md:px-6 py-4 sticky top-0 z-20">
-        <div className="max-w-[1400px] mx-auto flex items-start justify-between gap-4">
+      <header className="bg-yo-surface border border-yo-border rounded-lg px-4 md:px-5 py-4">
+        <div className="flex items-start justify-between gap-4">
           <div className="min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
               <h1 className="text-xl md:text-2xl font-semibold text-yo-txt">Crear operación protegida</h1>
