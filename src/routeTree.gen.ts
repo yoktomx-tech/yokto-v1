@@ -25,7 +25,6 @@ import { Route as AuthenticatedReportsRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedPaymentsRouteImport } from './routes/_authenticated/payments'
 import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authenticated/notifications'
 import { Route as AuthenticatedKycRouteImport } from './routes/_authenticated/kyc'
-import { Route as AuthenticatedDisputesRouteImport } from './routes/_authenticated/disputes'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedCumplimientoRouteImport } from './routes/_authenticated/cumplimiento'
 import { Route as AuthenticatedCrmRouteImport } from './routes/_authenticated/crm'
@@ -35,6 +34,7 @@ import { Route as AuthenticatedAnalyticsRouteImport } from './routes/_authentica
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedTransactionsIndexRouteImport } from './routes/_authenticated/transactions.index'
 import { Route as AuthenticatedTeamsIndexRouteImport } from './routes/_authenticated/teams.index'
+import { Route as AuthenticatedDisputesIndexRouteImport } from './routes/_authenticated/disputes.index'
 import { Route as AuthenticatedAnalyticsIndexRouteImport } from './routes/_authenticated/analytics.index'
 import { Route as AuthenticatedTransactionsNewRouteImport } from './routes/_authenticated/transactions.new'
 import { Route as AuthenticatedTransactionsIdRouteImport } from './routes/_authenticated/transactions.$id'
@@ -155,11 +155,6 @@ const AuthenticatedKycRoute = AuthenticatedKycRouteImport.update({
   path: '/kyc',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedDisputesRoute = AuthenticatedDisputesRouteImport.update({
-  id: '/disputes',
-  path: '/disputes',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -207,6 +202,12 @@ const AuthenticatedTeamsIndexRoute = AuthenticatedTeamsIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthenticatedTeamsRoute,
 } as any)
+const AuthenticatedDisputesIndexRoute =
+  AuthenticatedDisputesIndexRouteImport.update({
+    id: '/disputes/',
+    path: '/disputes/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedAnalyticsIndexRoute =
   AuthenticatedAnalyticsIndexRouteImport.update({
     id: '/',
@@ -303,14 +304,14 @@ const AuthenticatedOnboardingPendienteRoute =
   } as any)
 const AuthenticatedDisputesNewRoute =
   AuthenticatedDisputesNewRouteImport.update({
-    id: '/new',
-    path: '/new',
-    getParentRoute: () => AuthenticatedDisputesRoute,
+    id: '/disputes/new',
+    path: '/disputes/new',
+    getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedDisputesIdRoute = AuthenticatedDisputesIdRouteImport.update({
-  id: '/$id',
-  path: '/$id',
-  getParentRoute: () => AuthenticatedDisputesRoute,
+  id: '/disputes/$id',
+  path: '/disputes/$id',
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedAnalyticsSectoresRoute =
   AuthenticatedAnalyticsSectoresRouteImport.update({
@@ -445,7 +446,6 @@ export interface FileRoutesByFullPath {
   '/crm': typeof AuthenticatedCrmRoute
   '/cumplimiento': typeof AuthenticatedCumplimientoRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
-  '/disputes': typeof AuthenticatedDisputesRouteWithChildren
   '/kyc': typeof AuthenticatedKycRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
   '/payments': typeof AuthenticatedPaymentsRouteWithChildren
@@ -487,6 +487,7 @@ export interface FileRoutesByFullPath {
   '/transactions/$id': typeof AuthenticatedTransactionsIdRouteWithChildren
   '/transactions/new': typeof AuthenticatedTransactionsNewRoute
   '/analytics/': typeof AuthenticatedAnalyticsIndexRoute
+  '/disputes/': typeof AuthenticatedDisputesIndexRoute
   '/teams/': typeof AuthenticatedTeamsIndexRoute
   '/transactions/': typeof AuthenticatedTransactionsIndexRoute
   '/admin/disputes/$id': typeof AuthenticatedAdminDisputesIdRoute
@@ -509,7 +510,6 @@ export interface FileRoutesByTo {
   '/crm': typeof AuthenticatedCrmRoute
   '/cumplimiento': typeof AuthenticatedCumplimientoRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
-  '/disputes': typeof AuthenticatedDisputesRouteWithChildren
   '/kyc': typeof AuthenticatedKycRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
   '/payments': typeof AuthenticatedPaymentsRouteWithChildren
@@ -549,6 +549,7 @@ export interface FileRoutesByTo {
   '/transactions/$id': typeof AuthenticatedTransactionsIdRouteWithChildren
   '/transactions/new': typeof AuthenticatedTransactionsNewRoute
   '/analytics': typeof AuthenticatedAnalyticsIndexRoute
+  '/disputes': typeof AuthenticatedDisputesIndexRoute
   '/teams': typeof AuthenticatedTeamsIndexRoute
   '/transactions': typeof AuthenticatedTransactionsIndexRoute
   '/admin/disputes/$id': typeof AuthenticatedAdminDisputesIdRoute
@@ -574,7 +575,6 @@ export interface FileRoutesById {
   '/_authenticated/crm': typeof AuthenticatedCrmRoute
   '/_authenticated/cumplimiento': typeof AuthenticatedCumplimientoRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
-  '/_authenticated/disputes': typeof AuthenticatedDisputesRouteWithChildren
   '/_authenticated/kyc': typeof AuthenticatedKycRoute
   '/_authenticated/notifications': typeof AuthenticatedNotificationsRoute
   '/_authenticated/payments': typeof AuthenticatedPaymentsRouteWithChildren
@@ -616,6 +616,7 @@ export interface FileRoutesById {
   '/_authenticated/transactions/$id': typeof AuthenticatedTransactionsIdRouteWithChildren
   '/_authenticated/transactions/new': typeof AuthenticatedTransactionsNewRoute
   '/_authenticated/analytics/': typeof AuthenticatedAnalyticsIndexRoute
+  '/_authenticated/disputes/': typeof AuthenticatedDisputesIndexRoute
   '/_authenticated/teams/': typeof AuthenticatedTeamsIndexRoute
   '/_authenticated/transactions/': typeof AuthenticatedTransactionsIndexRoute
   '/_authenticated/admin/disputes/$id': typeof AuthenticatedAdminDisputesIdRoute
@@ -641,7 +642,6 @@ export interface FileRouteTypes {
     | '/crm'
     | '/cumplimiento'
     | '/dashboard'
-    | '/disputes'
     | '/kyc'
     | '/notifications'
     | '/payments'
@@ -683,6 +683,7 @@ export interface FileRouteTypes {
     | '/transactions/$id'
     | '/transactions/new'
     | '/analytics/'
+    | '/disputes/'
     | '/teams/'
     | '/transactions/'
     | '/admin/disputes/$id'
@@ -705,7 +706,6 @@ export interface FileRouteTypes {
     | '/crm'
     | '/cumplimiento'
     | '/dashboard'
-    | '/disputes'
     | '/kyc'
     | '/notifications'
     | '/payments'
@@ -745,6 +745,7 @@ export interface FileRouteTypes {
     | '/transactions/$id'
     | '/transactions/new'
     | '/analytics'
+    | '/disputes'
     | '/teams'
     | '/transactions'
     | '/admin/disputes/$id'
@@ -769,7 +770,6 @@ export interface FileRouteTypes {
     | '/_authenticated/crm'
     | '/_authenticated/cumplimiento'
     | '/_authenticated/dashboard'
-    | '/_authenticated/disputes'
     | '/_authenticated/kyc'
     | '/_authenticated/notifications'
     | '/_authenticated/payments'
@@ -811,6 +811,7 @@ export interface FileRouteTypes {
     | '/_authenticated/transactions/$id'
     | '/_authenticated/transactions/new'
     | '/_authenticated/analytics/'
+    | '/_authenticated/disputes/'
     | '/_authenticated/teams/'
     | '/_authenticated/transactions/'
     | '/_authenticated/admin/disputes/$id'
@@ -950,13 +951,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedKycRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/disputes': {
-      id: '/_authenticated/disputes'
-      path: '/disputes'
-      fullPath: '/disputes'
-      preLoaderRoute: typeof AuthenticatedDisputesRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/_authenticated/dashboard': {
       id: '/_authenticated/dashboard'
       path: '/dashboard'
@@ -1019,6 +1013,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/teams/'
       preLoaderRoute: typeof AuthenticatedTeamsIndexRouteImport
       parentRoute: typeof AuthenticatedTeamsRoute
+    }
+    '/_authenticated/disputes/': {
+      id: '/_authenticated/disputes/'
+      path: '/disputes'
+      fullPath: '/disputes/'
+      preLoaderRoute: typeof AuthenticatedDisputesIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/analytics/': {
       id: '/_authenticated/analytics/'
@@ -1134,17 +1135,17 @@ declare module '@tanstack/react-router' {
     }
     '/_authenticated/disputes/new': {
       id: '/_authenticated/disputes/new'
-      path: '/new'
+      path: '/disputes/new'
       fullPath: '/disputes/new'
       preLoaderRoute: typeof AuthenticatedDisputesNewRouteImport
-      parentRoute: typeof AuthenticatedDisputesRoute
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/disputes/$id': {
       id: '/_authenticated/disputes/$id'
-      path: '/$id'
+      path: '/disputes/$id'
       fullPath: '/disputes/$id'
       preLoaderRoute: typeof AuthenticatedDisputesIdRouteImport
-      parentRoute: typeof AuthenticatedDisputesRoute
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/analytics/sectores': {
       id: '/_authenticated/analytics/sectores'
@@ -1359,21 +1360,6 @@ const AuthenticatedAnalyticsRouteWithChildren =
     AuthenticatedAnalyticsRouteChildren,
   )
 
-interface AuthenticatedDisputesRouteChildren {
-  AuthenticatedDisputesIdRoute: typeof AuthenticatedDisputesIdRoute
-  AuthenticatedDisputesNewRoute: typeof AuthenticatedDisputesNewRoute
-}
-
-const AuthenticatedDisputesRouteChildren: AuthenticatedDisputesRouteChildren = {
-  AuthenticatedDisputesIdRoute: AuthenticatedDisputesIdRoute,
-  AuthenticatedDisputesNewRoute: AuthenticatedDisputesNewRoute,
-}
-
-const AuthenticatedDisputesRouteWithChildren =
-  AuthenticatedDisputesRoute._addFileChildren(
-    AuthenticatedDisputesRouteChildren,
-  )
-
 interface AuthenticatedPaymentsRouteChildren {
   AuthenticatedPaymentsIdRoute: typeof AuthenticatedPaymentsIdRoute
   AuthenticatedPaymentsFiscalRoute: typeof AuthenticatedPaymentsFiscalRoute
@@ -1475,7 +1461,6 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedCrmRoute: typeof AuthenticatedCrmRoute
   AuthenticatedCumplimientoRoute: typeof AuthenticatedCumplimientoRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
-  AuthenticatedDisputesRoute: typeof AuthenticatedDisputesRouteWithChildren
   AuthenticatedKycRoute: typeof AuthenticatedKycRoute
   AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
   AuthenticatedPaymentsRoute: typeof AuthenticatedPaymentsRouteWithChildren
@@ -1483,8 +1468,11 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedScoreRoute: typeof AuthenticatedScoreRoute
   AuthenticatedTeamsRoute: typeof AuthenticatedTeamsRouteWithChildren
   AuthenticatedTransactionsRoute: typeof AuthenticatedTransactionsRouteWithChildren
+  AuthenticatedDisputesIdRoute: typeof AuthenticatedDisputesIdRoute
+  AuthenticatedDisputesNewRoute: typeof AuthenticatedDisputesNewRoute
   AuthenticatedOnboardingPendienteRoute: typeof AuthenticatedOnboardingPendienteRoute
   AuthenticatedSettingsOrganizationRoute: typeof AuthenticatedSettingsOrganizationRouteWithChildren
+  AuthenticatedDisputesIndexRoute: typeof AuthenticatedDisputesIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -1495,7 +1483,6 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCrmRoute: AuthenticatedCrmRoute,
   AuthenticatedCumplimientoRoute: AuthenticatedCumplimientoRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
-  AuthenticatedDisputesRoute: AuthenticatedDisputesRouteWithChildren,
   AuthenticatedKycRoute: AuthenticatedKycRoute,
   AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,
   AuthenticatedPaymentsRoute: AuthenticatedPaymentsRouteWithChildren,
@@ -1503,9 +1490,12 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedScoreRoute: AuthenticatedScoreRoute,
   AuthenticatedTeamsRoute: AuthenticatedTeamsRouteWithChildren,
   AuthenticatedTransactionsRoute: AuthenticatedTransactionsRouteWithChildren,
+  AuthenticatedDisputesIdRoute: AuthenticatedDisputesIdRoute,
+  AuthenticatedDisputesNewRoute: AuthenticatedDisputesNewRoute,
   AuthenticatedOnboardingPendienteRoute: AuthenticatedOnboardingPendienteRoute,
   AuthenticatedSettingsOrganizationRoute:
     AuthenticatedSettingsOrganizationRouteWithChildren,
+  AuthenticatedDisputesIndexRoute: AuthenticatedDisputesIndexRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
