@@ -1131,10 +1131,11 @@ function Step3Hitos({
 
 // ─── Paso 4: Cumplimiento y evidencia ───────────────────────────────────────
 function Step4Cumplimiento({
-  sector, hitos, setHitos, checklist, setChecklist,
+  sector, hitos, setHitos, checklist, setChecklist, fiscal, setFiscal,
 }: {
   sector: SectorId; hitos: HitoDraft[]; setHitos: (h: HitoDraft[]) => void;
   checklist: Record<number, string[]>; setChecklist: (v: Record<number, string[]>) => void;
+  fiscal: FiscalConfig; setFiscal: (v: FiscalConfig) => void;
 }) {
   const [openIdx, setOpenIdx] = useState<number>(0);
   const docCatalog = useMemo(() => [...DOC_BASE, ...DOC_BY_SECTOR[sector]], [sector]);
