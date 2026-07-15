@@ -207,6 +207,16 @@ function CumplimientoPage() {
         }
       />
 
+      <NoCustodyBanner
+        message="Este panel es tu bandeja operativa como vendedor. YOKTO valida las evidencias que subas y, cuando el comprador aprueba, ordena la liberación a la pasarela. YOKTO no custodia fondos."
+      />
+
+      <InfoBox tone="info" title="Cómo funciona el cumplimiento">
+        Cada operación tiene hitos, documentos, contratos y comprobantes fiscales requeridos. Un candado activo
+        (contrato sin firma, CFDI faltante, requisito sectorial) bloquea la aprobación y la liberación del pago
+        hasta que quede subsanado.
+      </InfoBox>
+
       {profileMissing.length > 0 && (
         <div className="rounded-lg border border-[#FEF3C7] bg-[#FFFBEB] px-4 py-3 flex items-start gap-3">
           <BellRing className="size-4 mt-0.5 text-[#D97706]" />
