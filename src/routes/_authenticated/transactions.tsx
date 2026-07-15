@@ -161,7 +161,7 @@ function TransactionsList() {
         searchInputRef.current?.focus();
       } else if (e.key.toLowerCase() === "n") {
         e.preventDefault();
-        navigate({ to: "/transactions/new" });
+        window.open("/transactions/new", "_blank", "noopener,noreferrer");
       }
     };
     window.addEventListener("keydown", onKey);
