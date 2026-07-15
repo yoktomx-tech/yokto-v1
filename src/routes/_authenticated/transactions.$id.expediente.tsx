@@ -435,17 +435,15 @@ function ExpedienteView() {
           <div className="surface-card p-4">
             <div className="text-[10px] uppercase tracking-wider text-yo-txt-3 mb-2">Partes</div>
             <EntityCard
-              icon={<User className="h-3.5 w-3.5" />}
-              label="Comprador"
-              value={isBuyer ? "Tú" : "Contraparte"}
-              hint={isBuyer ? undefined : tx.counterparty_email ?? undefined}
+              role="COMPRADOR"
+              title={isBuyer ? "Tú" : "Contraparte"}
+              subtitle={isBuyer ? undefined : tx.counterparty_email ?? undefined}
             />
             <div className="h-2" />
             <EntityCard
-              icon={<Building2 className="h-3.5 w-3.5" />}
-              label="Vendedor"
-              value={isSeller ? "Tú" : tx.beneficiario_nombre ?? "Contraparte"}
-              hint={isSeller ? undefined : tx.counterparty_email ?? undefined}
+              role="VENDEDOR"
+              title={isSeller ? "Tú" : tx.beneficiario_nombre ?? "Contraparte"}
+              subtitle={isSeller ? undefined : tx.counterparty_email ?? undefined}
             />
           </div>
 
