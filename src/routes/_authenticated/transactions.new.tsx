@@ -317,6 +317,42 @@ function NewOperationWizard() {
           </div>
           <div className="flex items-center gap-2 shrink-0">
             <SaveIndicator state={saveState} at={lastSavedAt} />
+            <div className="relative">
+              <button
+                onClick={() => setShowExamples((v) => !v)}
+                className="inline-flex items-center gap-1.5 px-3 py-2 border border-yo-border text-sm font-medium rounded-md text-yo-txt-2 hover:bg-yo-raised"
+                title="Prellenar el formulario con un ejemplo por sector"
+              >
+                <Sparkles className="h-4 w-4" />
+                <span className="hidden sm:inline">Cargar ejemplo</span>
+                <ChevronDown className="h-3.5 w-3.5" />
+              </button>
+              {showExamples && (
+                <>
+                  <div className="fixed inset-0 z-10" onClick={() => setShowExamples(false)} />
+                  <div className="absolute right-0 mt-1 w-80 max-h-96 overflow-auto z-20 bg-yo-surface border border-yo-border rounded-lg shadow-lg py-1">
+                    <div className="px-3 py-2 text-[11px] uppercase tracking-wide text-yo-txt-3 border-b border-yo-border">
+                      Ejemplos por sector
+                    </div>
+                    {OPERATION_EXAMPLES.map((ex) => (
+                      <button
+                        key={ex.id}
+                        onClick={() => loadExample(ex)}
+                        className="w-full text-left px-3 py-2 hover:bg-yo-raised flex items-start gap-2.5"
+                      >
+                        <span className="text-lg leading-none mt-0.5">{ex.emoji}</span>
+                        <span className="min-w-0 flex-1">
+                          <span className="block text-sm font-medium text-yo-txt truncate">{ex.label}</span>
+                          <span className="block text-xs text-yo-txt-3 truncate">
+                            {ex.subtipo} · {fmtMoney(ex.monto)}
+                          </span>
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
             <button
               onClick={handleGuardarYSalir}
               className="hidden sm:inline-flex items-center px-3 py-2 border border-yo-border text-sm font-medium rounded-md text-yo-txt-2 hover:bg-yo-raised"
