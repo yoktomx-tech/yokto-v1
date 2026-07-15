@@ -1448,16 +1448,20 @@ function Step6Revision(props: {
   contraparte: Contraparte | null; hitos: HitoDraft[]; monto: number;
   metodoPago: string; comisionPagadaPor: string;
   fee: ReturnType<typeof calcularFee> | null;
+  fiscal: FiscalConfig; contract: ContractState;
   aceptaTerminos: boolean; setAceptaTerminos: (v: boolean) => void;
   aceptaRetencion: boolean; setAceptaRetencion: (v: boolean) => void;
   aceptaCumplimiento: boolean; setAceptaCumplimiento: (v: boolean) => void;
   aceptaTraza: boolean; setAceptaTraza: (v: boolean) => void;
+  aceptaContrato: boolean; setAceptaContrato: (v: boolean) => void;
 }) {
   const {
     numero, rol, sectorDef, sectorCfg, subtipo, descripcion, fechaInicio, fechaFin,
     contraparte, hitos, monto, metodoPago, comisionPagadaPor, fee,
+    fiscal, contract,
     aceptaTerminos, setAceptaTerminos, aceptaRetencion, setAceptaRetencion,
     aceptaCumplimiento, setAceptaCumplimiento, aceptaTraza, setAceptaTraza,
+    aceptaContrato, setAceptaContrato,
   } = props;
 
   return (
