@@ -17,6 +17,8 @@ import {
   type Operation, type Hito, type HitoStatus, type Document as HitoDoc, type Observation,
   type ContractInfo, type FiscalInfo, type SectorRequirement, type ComplianceLock, type REPInfo,
 } from "@/lib/cumplimiento-mock";
+import { NoCustodyBanner } from "@/components/payments/ui/no-custody-banner";
+import { InfoBox } from "@/components/tx/ui/info-box";
 
 export const Route = createFileRoute("/_authenticated/cumplimiento")({
   head: () => ({ meta: [
