@@ -13,8 +13,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import {
   MOCK_OPS, HITO_STATUS_CFG, DOC_STATUS_CFG, TONE_BADGE, TONE_ACCENT, formatMXN,
-  withComputedDueStatus, daysUntil,
+  withComputedDueStatus, daysUntil, CONTRACT_STATUS_LABEL, FISCAL_STATUS_LABEL,
   type Operation, type Hito, type HitoStatus, type Document as HitoDoc, type Observation,
+  type ContractInfo, type FiscalInfo, type SectorRequirement, type ComplianceLock, type REPInfo,
 } from "@/lib/cumplimiento-mock";
 
 export const Route = createFileRoute("/_authenticated/cumplimiento")({
