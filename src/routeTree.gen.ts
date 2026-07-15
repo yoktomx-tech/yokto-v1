@@ -44,6 +44,7 @@ import { Route as AuthenticatedAdminDisputesRouteImport } from './routes/_authen
 import { Route as ApiPublicV1TransactionsRouteImport } from './routes/api/public/v1.transactions'
 import { Route as ApiPublicStripeWebhookRouteImport } from './routes/api/public/stripe.webhook'
 import { Route as ApiPublicHooksDisputeDeadlinesRouteImport } from './routes/api/public/hooks/dispute-deadlines'
+import { Route as AuthenticatedTransactionsIdExpedienteRouteImport } from './routes/_authenticated/transactions.$id.expediente'
 import { Route as AuthenticatedSettingsOrganizationNewRouteImport } from './routes/_authenticated/settings.organization.new'
 import { Route as AuthenticatedAdminDisputesIdRouteImport } from './routes/_authenticated/admin.disputes.$id'
 
@@ -233,6 +234,12 @@ const ApiPublicHooksDisputeDeadlinesRoute =
     path: '/api/public/hooks/dispute-deadlines',
     getParentRoute: () => rootRouteImport,
   } as any)
+const AuthenticatedTransactionsIdExpedienteRoute =
+  AuthenticatedTransactionsIdExpedienteRouteImport.update({
+    id: '/expediente',
+    path: '/expediente',
+    getParentRoute: () => AuthenticatedTransactionsIdRoute,
+  } as any)
 const AuthenticatedSettingsOrganizationNewRoute =
   AuthenticatedSettingsOrganizationNewRouteImport.update({
     id: '/new',
@@ -275,11 +282,12 @@ export interface FileRoutesByFullPath {
   '/payments/fiscal': typeof AuthenticatedPaymentsFiscalRoute
   '/payments/ledger': typeof AuthenticatedPaymentsLedgerRoute
   '/settings/organization': typeof AuthenticatedSettingsOrganizationRouteWithChildren
-  '/transactions/$id': typeof AuthenticatedTransactionsIdRoute
+  '/transactions/$id': typeof AuthenticatedTransactionsIdRouteWithChildren
   '/transactions/new': typeof AuthenticatedTransactionsNewRoute
   '/transactions/': typeof AuthenticatedTransactionsIndexRoute
   '/admin/disputes/$id': typeof AuthenticatedAdminDisputesIdRoute
   '/settings/organization/new': typeof AuthenticatedSettingsOrganizationNewRoute
+  '/transactions/$id/expediente': typeof AuthenticatedTransactionsIdExpedienteRoute
   '/api/public/hooks/dispute-deadlines': typeof ApiPublicHooksDisputeDeadlinesRoute
   '/api/public/stripe/webhook': typeof ApiPublicStripeWebhookRoute
   '/api/public/v1/transactions': typeof ApiPublicV1TransactionsRoute
@@ -312,11 +320,12 @@ export interface FileRoutesByTo {
   '/payments/fiscal': typeof AuthenticatedPaymentsFiscalRoute
   '/payments/ledger': typeof AuthenticatedPaymentsLedgerRoute
   '/settings/organization': typeof AuthenticatedSettingsOrganizationRouteWithChildren
-  '/transactions/$id': typeof AuthenticatedTransactionsIdRoute
+  '/transactions/$id': typeof AuthenticatedTransactionsIdRouteWithChildren
   '/transactions/new': typeof AuthenticatedTransactionsNewRoute
   '/transactions': typeof AuthenticatedTransactionsIndexRoute
   '/admin/disputes/$id': typeof AuthenticatedAdminDisputesIdRoute
   '/settings/organization/new': typeof AuthenticatedSettingsOrganizationNewRoute
+  '/transactions/$id/expediente': typeof AuthenticatedTransactionsIdExpedienteRoute
   '/api/public/hooks/dispute-deadlines': typeof ApiPublicHooksDisputeDeadlinesRoute
   '/api/public/stripe/webhook': typeof ApiPublicStripeWebhookRoute
   '/api/public/v1/transactions': typeof ApiPublicV1TransactionsRoute
@@ -352,11 +361,12 @@ export interface FileRoutesById {
   '/_authenticated/payments/fiscal': typeof AuthenticatedPaymentsFiscalRoute
   '/_authenticated/payments/ledger': typeof AuthenticatedPaymentsLedgerRoute
   '/_authenticated/settings/organization': typeof AuthenticatedSettingsOrganizationRouteWithChildren
-  '/_authenticated/transactions/$id': typeof AuthenticatedTransactionsIdRoute
+  '/_authenticated/transactions/$id': typeof AuthenticatedTransactionsIdRouteWithChildren
   '/_authenticated/transactions/new': typeof AuthenticatedTransactionsNewRoute
   '/_authenticated/transactions/': typeof AuthenticatedTransactionsIndexRoute
   '/_authenticated/admin/disputes/$id': typeof AuthenticatedAdminDisputesIdRoute
   '/_authenticated/settings/organization/new': typeof AuthenticatedSettingsOrganizationNewRoute
+  '/_authenticated/transactions/$id/expediente': typeof AuthenticatedTransactionsIdExpedienteRoute
   '/api/public/hooks/dispute-deadlines': typeof ApiPublicHooksDisputeDeadlinesRoute
   '/api/public/stripe/webhook': typeof ApiPublicStripeWebhookRoute
   '/api/public/v1/transactions': typeof ApiPublicV1TransactionsRoute
@@ -397,6 +407,7 @@ export interface FileRouteTypes {
     | '/transactions/'
     | '/admin/disputes/$id'
     | '/settings/organization/new'
+    | '/transactions/$id/expediente'
     | '/api/public/hooks/dispute-deadlines'
     | '/api/public/stripe/webhook'
     | '/api/public/v1/transactions'
@@ -434,6 +445,7 @@ export interface FileRouteTypes {
     | '/transactions'
     | '/admin/disputes/$id'
     | '/settings/organization/new'
+    | '/transactions/$id/expediente'
     | '/api/public/hooks/dispute-deadlines'
     | '/api/public/stripe/webhook'
     | '/api/public/v1/transactions'
@@ -473,6 +485,7 @@ export interface FileRouteTypes {
     | '/_authenticated/transactions/'
     | '/_authenticated/admin/disputes/$id'
     | '/_authenticated/settings/organization/new'
+    | '/_authenticated/transactions/$id/expediente'
     | '/api/public/hooks/dispute-deadlines'
     | '/api/public/stripe/webhook'
     | '/api/public/v1/transactions'
@@ -740,6 +753,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksDisputeDeadlinesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/transactions/$id/expediente': {
+      id: '/_authenticated/transactions/$id/expediente'
+      path: '/expediente'
+      fullPath: '/transactions/$id/expediente'
+      preLoaderRoute: typeof AuthenticatedTransactionsIdExpedienteRouteImport
+      parentRoute: typeof AuthenticatedTransactionsIdRoute
+    }
     '/_authenticated/settings/organization/new': {
       id: '/_authenticated/settings/organization/new'
       path: '/new'
@@ -812,15 +832,31 @@ const AuthenticatedPaymentsRouteWithChildren =
     AuthenticatedPaymentsRouteChildren,
   )
 
+interface AuthenticatedTransactionsIdRouteChildren {
+  AuthenticatedTransactionsIdExpedienteRoute: typeof AuthenticatedTransactionsIdExpedienteRoute
+}
+
+const AuthenticatedTransactionsIdRouteChildren: AuthenticatedTransactionsIdRouteChildren =
+  {
+    AuthenticatedTransactionsIdExpedienteRoute:
+      AuthenticatedTransactionsIdExpedienteRoute,
+  }
+
+const AuthenticatedTransactionsIdRouteWithChildren =
+  AuthenticatedTransactionsIdRoute._addFileChildren(
+    AuthenticatedTransactionsIdRouteChildren,
+  )
+
 interface AuthenticatedTransactionsRouteChildren {
-  AuthenticatedTransactionsIdRoute: typeof AuthenticatedTransactionsIdRoute
+  AuthenticatedTransactionsIdRoute: typeof AuthenticatedTransactionsIdRouteWithChildren
   AuthenticatedTransactionsNewRoute: typeof AuthenticatedTransactionsNewRoute
   AuthenticatedTransactionsIndexRoute: typeof AuthenticatedTransactionsIndexRoute
 }
 
 const AuthenticatedTransactionsRouteChildren: AuthenticatedTransactionsRouteChildren =
   {
-    AuthenticatedTransactionsIdRoute: AuthenticatedTransactionsIdRoute,
+    AuthenticatedTransactionsIdRoute:
+      AuthenticatedTransactionsIdRouteWithChildren,
     AuthenticatedTransactionsNewRoute: AuthenticatedTransactionsNewRoute,
     AuthenticatedTransactionsIndexRoute: AuthenticatedTransactionsIndexRoute,
   }
