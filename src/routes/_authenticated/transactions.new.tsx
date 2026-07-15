@@ -6,6 +6,7 @@ import {
   type SectorId, type HitoDraft,
 } from "@/lib/sectors";
 import { SECTOR_CFG, DOC_BASE, DOC_BY_SECTOR, EVIDENCE_TYPES } from "@/lib/operations-catalog";
+import { OPERATION_EXAMPLES, type OperationExample } from "@/lib/operation-examples";
 import {
   searchCounterpart,
   upsertTransactionDraft,
