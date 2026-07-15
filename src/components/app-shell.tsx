@@ -71,8 +71,6 @@ export function AppShell({ children }: { children: React.ReactNode; sgyScore?: n
             <SidebarContent
               pathname={pathname}
               nav={nav}
-              role={role}
-              setRole={(r) => { setRole(r); }}
               score={profile.score}
               level={profile.level}
               onNavigate={() => setMobileOpen(false)}
