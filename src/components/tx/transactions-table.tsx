@@ -111,15 +111,16 @@ export function TransactionsTable({ rows, role, currentUserId }: Props) {
                 <tr key={r.id} className="border-b border-yo-border last:border-b-0 hover:bg-yo-raised transition-colors">
                   <td className="px-4 py-3">
                     <Link
-                      to="/transactions/$id"
+                      to="/transactions/$id/expediente"
                       params={{ id: r.id }}
-                      className="tx-id font-mono text-[12px] text-yo-ac hover:underline"
+                      className="tx-id font-mono text-[12px] text-yo-ac hover:underline block"
                     >
                       {r.numero ?? r.id.slice(0, 8).toUpperCase()}
                     </Link>
+                    <span className="font-mono text-[10px] text-yo-txt-3 tracking-wider">{hash}</span>
                   </td>
                   <td className="px-4 py-3 max-w-[240px]">
-                    <Link to="/transactions/$id" params={{ id: r.id }} className="font-medium text-yo-txt hover:text-yo-ac line-clamp-1">
+                    <Link to="/transactions/$id/expediente" params={{ id: r.id }} className="font-medium text-yo-txt hover:text-yo-ac line-clamp-1">
                       {r.title}
                     </Link>
                   </td>
