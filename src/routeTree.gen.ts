@@ -18,6 +18,7 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as InvitationsTokenRouteImport } from './routes/invitations.$token'
 import { Route as BiometricoTokenRouteImport } from './routes/biometrico.$token'
+import { Route as AuthenticatedTransactionsRouteImport } from './routes/_authenticated/transactions'
 import { Route as AuthenticatedScoreRouteImport } from './routes/_authenticated/score'
 import { Route as AuthenticatedReportsRouteImport } from './routes/_authenticated/reports'
 import { Route as AuthenticatedPaymentsRouteImport } from './routes/_authenticated/payments'
@@ -90,6 +91,12 @@ const BiometricoTokenRoute = BiometricoTokenRouteImport.update({
   path: '/biometrico/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedTransactionsRoute =
+  AuthenticatedTransactionsRouteImport.update({
+    id: '/transactions',
+    path: '/transactions',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedScoreRoute = AuthenticatedScoreRouteImport.update({
   id: '/score',
   path: '/score',
@@ -154,21 +161,21 @@ const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
 } as any)
 const AuthenticatedTransactionsIndexRoute =
   AuthenticatedTransactionsIndexRouteImport.update({
-    id: '/transactions/',
-    path: '/transactions/',
-    getParentRoute: () => AuthenticatedRouteRoute,
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedTransactionsRoute,
   } as any)
 const AuthenticatedTransactionsNewRoute =
   AuthenticatedTransactionsNewRouteImport.update({
-    id: '/transactions/new',
-    path: '/transactions/new',
-    getParentRoute: () => AuthenticatedRouteRoute,
+    id: '/new',
+    path: '/new',
+    getParentRoute: () => AuthenticatedTransactionsRoute,
   } as any)
 const AuthenticatedTransactionsIdRoute =
   AuthenticatedTransactionsIdRouteImport.update({
-    id: '/transactions/$id',
-    path: '/transactions/$id',
-    getParentRoute: () => AuthenticatedRouteRoute,
+    id: '/$id',
+    path: '/$id',
+    getParentRoute: () => AuthenticatedTransactionsRoute,
   } as any)
 const AuthenticatedSettingsOrganizationRoute =
   AuthenticatedSettingsOrganizationRouteImport.update({
@@ -258,6 +265,7 @@ export interface FileRoutesByFullPath {
   '/payments': typeof AuthenticatedPaymentsRouteWithChildren
   '/reports': typeof AuthenticatedReportsRoute
   '/score': typeof AuthenticatedScoreRoute
+  '/transactions': typeof AuthenticatedTransactionsRouteWithChildren
   '/biometrico/$token': typeof BiometricoTokenRoute
   '/invitations/$token': typeof InvitationsTokenRoute
   '/admin/disputes': typeof AuthenticatedAdminDisputesRouteWithChildren
@@ -334,6 +342,7 @@ export interface FileRoutesById {
   '/_authenticated/payments': typeof AuthenticatedPaymentsRouteWithChildren
   '/_authenticated/reports': typeof AuthenticatedReportsRoute
   '/_authenticated/score': typeof AuthenticatedScoreRoute
+  '/_authenticated/transactions': typeof AuthenticatedTransactionsRouteWithChildren
   '/biometrico/$token': typeof BiometricoTokenRoute
   '/invitations/$token': typeof InvitationsTokenRoute
   '/_authenticated/admin/disputes': typeof AuthenticatedAdminDisputesRouteWithChildren
@@ -373,6 +382,7 @@ export interface FileRouteTypes {
     | '/payments'
     | '/reports'
     | '/score'
+    | '/transactions'
     | '/biometrico/$token'
     | '/invitations/$token'
     | '/admin/disputes'
@@ -448,6 +458,7 @@ export interface FileRouteTypes {
     | '/_authenticated/payments'
     | '/_authenticated/reports'
     | '/_authenticated/score'
+    | '/_authenticated/transactions'
     | '/biometrico/$token'
     | '/invitations/$token'
     | '/_authenticated/admin/disputes'
@@ -547,6 +558,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BiometricoTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/transactions': {
+      id: '/_authenticated/transactions'
+      path: '/transactions'
+      fullPath: '/transactions'
+      preLoaderRoute: typeof AuthenticatedTransactionsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/score': {
       id: '/_authenticated/score'
       path: '/score'
@@ -633,24 +651,24 @@ declare module '@tanstack/react-router' {
     }
     '/_authenticated/transactions/': {
       id: '/_authenticated/transactions/'
-      path: '/transactions'
+      path: '/'
       fullPath: '/transactions/'
       preLoaderRoute: typeof AuthenticatedTransactionsIndexRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+      parentRoute: typeof AuthenticatedTransactionsRoute
     }
     '/_authenticated/transactions/new': {
       id: '/_authenticated/transactions/new'
-      path: '/transactions/new'
+      path: '/new'
       fullPath: '/transactions/new'
       preLoaderRoute: typeof AuthenticatedTransactionsNewRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+      parentRoute: typeof AuthenticatedTransactionsRoute
     }
     '/_authenticated/transactions/$id': {
       id: '/_authenticated/transactions/$id'
-      path: '/transactions/$id'
+      path: '/$id'
       fullPath: '/transactions/$id'
       preLoaderRoute: typeof AuthenticatedTransactionsIdRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+      parentRoute: typeof AuthenticatedTransactionsRoute
     }
     '/_authenticated/settings/organization': {
       id: '/_authenticated/settings/organization'
@@ -794,6 +812,24 @@ const AuthenticatedPaymentsRouteWithChildren =
     AuthenticatedPaymentsRouteChildren,
   )
 
+interface AuthenticatedTransactionsRouteChildren {
+  AuthenticatedTransactionsIdRoute: typeof AuthenticatedTransactionsIdRoute
+  AuthenticatedTransactionsNewRoute: typeof AuthenticatedTransactionsNewRoute
+  AuthenticatedTransactionsIndexRoute: typeof AuthenticatedTransactionsIndexRoute
+}
+
+const AuthenticatedTransactionsRouteChildren: AuthenticatedTransactionsRouteChildren =
+  {
+    AuthenticatedTransactionsIdRoute: AuthenticatedTransactionsIdRoute,
+    AuthenticatedTransactionsNewRoute: AuthenticatedTransactionsNewRoute,
+    AuthenticatedTransactionsIndexRoute: AuthenticatedTransactionsIndexRoute,
+  }
+
+const AuthenticatedTransactionsRouteWithChildren =
+  AuthenticatedTransactionsRoute._addFileChildren(
+    AuthenticatedTransactionsRouteChildren,
+  )
+
 interface AuthenticatedSettingsOrganizationRouteChildren {
   AuthenticatedSettingsOrganizationNewRoute: typeof AuthenticatedSettingsOrganizationNewRoute
 }
@@ -822,11 +858,9 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedPaymentsRoute: typeof AuthenticatedPaymentsRouteWithChildren
   AuthenticatedReportsRoute: typeof AuthenticatedReportsRoute
   AuthenticatedScoreRoute: typeof AuthenticatedScoreRoute
+  AuthenticatedTransactionsRoute: typeof AuthenticatedTransactionsRouteWithChildren
   AuthenticatedOnboardingPendienteRoute: typeof AuthenticatedOnboardingPendienteRoute
   AuthenticatedSettingsOrganizationRoute: typeof AuthenticatedSettingsOrganizationRouteWithChildren
-  AuthenticatedTransactionsIdRoute: typeof AuthenticatedTransactionsIdRoute
-  AuthenticatedTransactionsNewRoute: typeof AuthenticatedTransactionsNewRoute
-  AuthenticatedTransactionsIndexRoute: typeof AuthenticatedTransactionsIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -842,12 +876,10 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedPaymentsRoute: AuthenticatedPaymentsRouteWithChildren,
   AuthenticatedReportsRoute: AuthenticatedReportsRoute,
   AuthenticatedScoreRoute: AuthenticatedScoreRoute,
+  AuthenticatedTransactionsRoute: AuthenticatedTransactionsRouteWithChildren,
   AuthenticatedOnboardingPendienteRoute: AuthenticatedOnboardingPendienteRoute,
   AuthenticatedSettingsOrganizationRoute:
     AuthenticatedSettingsOrganizationRouteWithChildren,
-  AuthenticatedTransactionsIdRoute: AuthenticatedTransactionsIdRoute,
-  AuthenticatedTransactionsNewRoute: AuthenticatedTransactionsNewRoute,
-  AuthenticatedTransactionsIndexRoute: AuthenticatedTransactionsIndexRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
