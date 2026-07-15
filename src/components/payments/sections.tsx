@@ -90,7 +90,7 @@ function RowsTable({
               {columns.includes("provider") && <td className="px-4 py-3 text-yo-t2">{r.provider ?? "—"}{r.method ? ` · ${r.method}` : ""}</td>}
               {columns.includes("reference") && <td className="px-4 py-3 font-mono text-xs text-yo-t2">{r.reference ?? r.providerRef ?? "—"}</td>}
               {columns.includes("hito") && <td className="px-4 py-3 text-yo-t2">{r.hitoLabel ?? "—"}</td>}
-              {columns.includes("amount") && <td className="px-4 py-3 text-right"><MoneyCell cents={r.amountCents} currency={r.currency} /></td>}
+              {columns.includes("amount") && <td className="px-4 py-3 text-right"><MoneyCell amountCents={r.amountCents} currency={r.currency} /></td>}
               {columns.includes("status") && <td className="px-4 py-3"><PaymentStatusBadge status={r.status} /></td>}
               {columns.includes("updated") && <td className="px-4 py-3 text-yo-t2 text-xs">{new Date(r.updatedAt).toLocaleString("es-MX")}</td>}
               <td className="px-2"><ExternalLink className="size-4 text-yo-t2" /></td>
