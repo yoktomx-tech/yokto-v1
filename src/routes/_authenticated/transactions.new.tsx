@@ -18,7 +18,7 @@ import {
 import { Step1Schema, Step2Schema, Step3Schema, Step4Schema, Step5Schema } from "@/lib/validations/transaction";
 import {
   Info, Check, ChevronRight, ChevronLeft, X, Search, Trash2, Plus, GripVertical,
-  ArrowUp, ArrowDown, Sparkles, AlertTriangle, ClipboardList, FileText, Camera, ShieldCheck,
+  ArrowUp, ArrowDown, Sparkles, AlertTriangle, ClipboardList, FileText, Camera, ShieldCheck, ChevronDown,
 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/transactions/new")({
