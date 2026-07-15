@@ -19,6 +19,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as InvitationsTokenRouteImport } from './routes/invitations.$token'
 import { Route as BiometricoTokenRouteImport } from './routes/biometrico.$token'
 import { Route as AuthenticatedTransactionsRouteImport } from './routes/_authenticated/transactions'
+import { Route as AuthenticatedTeamsRouteImport } from './routes/_authenticated/teams'
 import { Route as AuthenticatedScoreRouteImport } from './routes/_authenticated/score'
 import { Route as AuthenticatedReportsRouteImport } from './routes/_authenticated/reports'
 import { Route as AuthenticatedPaymentsRouteImport } from './routes/_authenticated/payments'
@@ -33,9 +34,18 @@ import { Route as AuthenticatedApiClientsRouteImport } from './routes/_authentic
 import { Route as AuthenticatedAnalyticsRouteImport } from './routes/_authenticated/analytics'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedTransactionsIndexRouteImport } from './routes/_authenticated/transactions.index'
+import { Route as AuthenticatedTeamsIndexRouteImport } from './routes/_authenticated/teams.index'
 import { Route as AuthenticatedAnalyticsIndexRouteImport } from './routes/_authenticated/analytics.index'
 import { Route as AuthenticatedTransactionsNewRouteImport } from './routes/_authenticated/transactions.new'
 import { Route as AuthenticatedTransactionsIdRouteImport } from './routes/_authenticated/transactions.$id'
+import { Route as AuthenticatedTeamsWorkflowsRouteImport } from './routes/_authenticated/teams.workflows'
+import { Route as AuthenticatedTeamsSettingsRouteImport } from './routes/_authenticated/teams.settings'
+import { Route as AuthenticatedTeamsReportsRouteImport } from './routes/_authenticated/teams.reports'
+import { Route as AuthenticatedTeamsMembersRouteImport } from './routes/_authenticated/teams.members'
+import { Route as AuthenticatedTeamsIntegrationsRouteImport } from './routes/_authenticated/teams.integrations'
+import { Route as AuthenticatedTeamsAuditRouteImport } from './routes/_authenticated/teams.audit'
+import { Route as AuthenticatedTeamsApprovalsRouteImport } from './routes/_authenticated/teams.approvals'
+import { Route as AuthenticatedTeamsApiKeysRouteImport } from './routes/_authenticated/teams.api-keys'
 import { Route as AuthenticatedSettingsOrganizationRouteImport } from './routes/_authenticated/settings.organization'
 import { Route as AuthenticatedPaymentsLedgerRouteImport } from './routes/_authenticated/payments.ledger'
 import { Route as AuthenticatedPaymentsFiscalRouteImport } from './routes/_authenticated/payments.fiscal'
@@ -113,6 +123,11 @@ const AuthenticatedTransactionsRoute =
     path: '/transactions',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedTeamsRoute = AuthenticatedTeamsRouteImport.update({
+  id: '/teams',
+  path: '/teams',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedScoreRoute = AuthenticatedScoreRouteImport.update({
   id: '/score',
   path: '/score',
@@ -186,6 +201,11 @@ const AuthenticatedTransactionsIndexRoute =
     path: '/',
     getParentRoute: () => AuthenticatedTransactionsRoute,
   } as any)
+const AuthenticatedTeamsIndexRoute = AuthenticatedTeamsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthenticatedTeamsRoute,
+} as any)
 const AuthenticatedAnalyticsIndexRoute =
   AuthenticatedAnalyticsIndexRouteImport.update({
     id: '/',
@@ -203,6 +223,53 @@ const AuthenticatedTransactionsIdRoute =
     id: '/$id',
     path: '/$id',
     getParentRoute: () => AuthenticatedTransactionsRoute,
+  } as any)
+const AuthenticatedTeamsWorkflowsRoute =
+  AuthenticatedTeamsWorkflowsRouteImport.update({
+    id: '/workflows',
+    path: '/workflows',
+    getParentRoute: () => AuthenticatedTeamsRoute,
+  } as any)
+const AuthenticatedTeamsSettingsRoute =
+  AuthenticatedTeamsSettingsRouteImport.update({
+    id: '/settings',
+    path: '/settings',
+    getParentRoute: () => AuthenticatedTeamsRoute,
+  } as any)
+const AuthenticatedTeamsReportsRoute =
+  AuthenticatedTeamsReportsRouteImport.update({
+    id: '/reports',
+    path: '/reports',
+    getParentRoute: () => AuthenticatedTeamsRoute,
+  } as any)
+const AuthenticatedTeamsMembersRoute =
+  AuthenticatedTeamsMembersRouteImport.update({
+    id: '/members',
+    path: '/members',
+    getParentRoute: () => AuthenticatedTeamsRoute,
+  } as any)
+const AuthenticatedTeamsIntegrationsRoute =
+  AuthenticatedTeamsIntegrationsRouteImport.update({
+    id: '/integrations',
+    path: '/integrations',
+    getParentRoute: () => AuthenticatedTeamsRoute,
+  } as any)
+const AuthenticatedTeamsAuditRoute = AuthenticatedTeamsAuditRouteImport.update({
+  id: '/audit',
+  path: '/audit',
+  getParentRoute: () => AuthenticatedTeamsRoute,
+} as any)
+const AuthenticatedTeamsApprovalsRoute =
+  AuthenticatedTeamsApprovalsRouteImport.update({
+    id: '/approvals',
+    path: '/approvals',
+    getParentRoute: () => AuthenticatedTeamsRoute,
+  } as any)
+const AuthenticatedTeamsApiKeysRoute =
+  AuthenticatedTeamsApiKeysRouteImport.update({
+    id: '/api-keys',
+    path: '/api-keys',
+    getParentRoute: () => AuthenticatedTeamsRoute,
   } as any)
 const AuthenticatedSettingsOrganizationRoute =
   AuthenticatedSettingsOrganizationRouteImport.update({
@@ -377,6 +444,7 @@ export interface FileRoutesByFullPath {
   '/payments': typeof AuthenticatedPaymentsRouteWithChildren
   '/reports': typeof AuthenticatedReportsRoute
   '/score': typeof AuthenticatedScoreRoute
+  '/teams': typeof AuthenticatedTeamsRouteWithChildren
   '/transactions': typeof AuthenticatedTransactionsRouteWithChildren
   '/biometrico/$token': typeof BiometricoTokenRoute
   '/invitations/$token': typeof InvitationsTokenRoute
@@ -400,9 +468,18 @@ export interface FileRoutesByFullPath {
   '/payments/fiscal': typeof AuthenticatedPaymentsFiscalRoute
   '/payments/ledger': typeof AuthenticatedPaymentsLedgerRoute
   '/settings/organization': typeof AuthenticatedSettingsOrganizationRouteWithChildren
+  '/teams/api-keys': typeof AuthenticatedTeamsApiKeysRoute
+  '/teams/approvals': typeof AuthenticatedTeamsApprovalsRoute
+  '/teams/audit': typeof AuthenticatedTeamsAuditRoute
+  '/teams/integrations': typeof AuthenticatedTeamsIntegrationsRoute
+  '/teams/members': typeof AuthenticatedTeamsMembersRoute
+  '/teams/reports': typeof AuthenticatedTeamsReportsRoute
+  '/teams/settings': typeof AuthenticatedTeamsSettingsRoute
+  '/teams/workflows': typeof AuthenticatedTeamsWorkflowsRoute
   '/transactions/$id': typeof AuthenticatedTransactionsIdRouteWithChildren
   '/transactions/new': typeof AuthenticatedTransactionsNewRoute
   '/analytics/': typeof AuthenticatedAnalyticsIndexRoute
+  '/teams/': typeof AuthenticatedTeamsIndexRoute
   '/transactions/': typeof AuthenticatedTransactionsIndexRoute
   '/admin/disputes/$id': typeof AuthenticatedAdminDisputesIdRoute
   '/settings/organization/new': typeof AuthenticatedSettingsOrganizationNewRoute
@@ -452,9 +529,18 @@ export interface FileRoutesByTo {
   '/payments/fiscal': typeof AuthenticatedPaymentsFiscalRoute
   '/payments/ledger': typeof AuthenticatedPaymentsLedgerRoute
   '/settings/organization': typeof AuthenticatedSettingsOrganizationRouteWithChildren
+  '/teams/api-keys': typeof AuthenticatedTeamsApiKeysRoute
+  '/teams/approvals': typeof AuthenticatedTeamsApprovalsRoute
+  '/teams/audit': typeof AuthenticatedTeamsAuditRoute
+  '/teams/integrations': typeof AuthenticatedTeamsIntegrationsRoute
+  '/teams/members': typeof AuthenticatedTeamsMembersRoute
+  '/teams/reports': typeof AuthenticatedTeamsReportsRoute
+  '/teams/settings': typeof AuthenticatedTeamsSettingsRoute
+  '/teams/workflows': typeof AuthenticatedTeamsWorkflowsRoute
   '/transactions/$id': typeof AuthenticatedTransactionsIdRouteWithChildren
   '/transactions/new': typeof AuthenticatedTransactionsNewRoute
   '/analytics': typeof AuthenticatedAnalyticsIndexRoute
+  '/teams': typeof AuthenticatedTeamsIndexRoute
   '/transactions': typeof AuthenticatedTransactionsIndexRoute
   '/admin/disputes/$id': typeof AuthenticatedAdminDisputesIdRoute
   '/settings/organization/new': typeof AuthenticatedSettingsOrganizationNewRoute
@@ -485,6 +571,7 @@ export interface FileRoutesById {
   '/_authenticated/payments': typeof AuthenticatedPaymentsRouteWithChildren
   '/_authenticated/reports': typeof AuthenticatedReportsRoute
   '/_authenticated/score': typeof AuthenticatedScoreRoute
+  '/_authenticated/teams': typeof AuthenticatedTeamsRouteWithChildren
   '/_authenticated/transactions': typeof AuthenticatedTransactionsRouteWithChildren
   '/biometrico/$token': typeof BiometricoTokenRoute
   '/invitations/$token': typeof InvitationsTokenRoute
@@ -508,9 +595,18 @@ export interface FileRoutesById {
   '/_authenticated/payments/fiscal': typeof AuthenticatedPaymentsFiscalRoute
   '/_authenticated/payments/ledger': typeof AuthenticatedPaymentsLedgerRoute
   '/_authenticated/settings/organization': typeof AuthenticatedSettingsOrganizationRouteWithChildren
+  '/_authenticated/teams/api-keys': typeof AuthenticatedTeamsApiKeysRoute
+  '/_authenticated/teams/approvals': typeof AuthenticatedTeamsApprovalsRoute
+  '/_authenticated/teams/audit': typeof AuthenticatedTeamsAuditRoute
+  '/_authenticated/teams/integrations': typeof AuthenticatedTeamsIntegrationsRoute
+  '/_authenticated/teams/members': typeof AuthenticatedTeamsMembersRoute
+  '/_authenticated/teams/reports': typeof AuthenticatedTeamsReportsRoute
+  '/_authenticated/teams/settings': typeof AuthenticatedTeamsSettingsRoute
+  '/_authenticated/teams/workflows': typeof AuthenticatedTeamsWorkflowsRoute
   '/_authenticated/transactions/$id': typeof AuthenticatedTransactionsIdRouteWithChildren
   '/_authenticated/transactions/new': typeof AuthenticatedTransactionsNewRoute
   '/_authenticated/analytics/': typeof AuthenticatedAnalyticsIndexRoute
+  '/_authenticated/teams/': typeof AuthenticatedTeamsIndexRoute
   '/_authenticated/transactions/': typeof AuthenticatedTransactionsIndexRoute
   '/_authenticated/admin/disputes/$id': typeof AuthenticatedAdminDisputesIdRoute
   '/_authenticated/settings/organization/new': typeof AuthenticatedSettingsOrganizationNewRoute
@@ -541,6 +637,7 @@ export interface FileRouteTypes {
     | '/payments'
     | '/reports'
     | '/score'
+    | '/teams'
     | '/transactions'
     | '/biometrico/$token'
     | '/invitations/$token'
@@ -564,9 +661,18 @@ export interface FileRouteTypes {
     | '/payments/fiscal'
     | '/payments/ledger'
     | '/settings/organization'
+    | '/teams/api-keys'
+    | '/teams/approvals'
+    | '/teams/audit'
+    | '/teams/integrations'
+    | '/teams/members'
+    | '/teams/reports'
+    | '/teams/settings'
+    | '/teams/workflows'
     | '/transactions/$id'
     | '/transactions/new'
     | '/analytics/'
+    | '/teams/'
     | '/transactions/'
     | '/admin/disputes/$id'
     | '/settings/organization/new'
@@ -616,9 +722,18 @@ export interface FileRouteTypes {
     | '/payments/fiscal'
     | '/payments/ledger'
     | '/settings/organization'
+    | '/teams/api-keys'
+    | '/teams/approvals'
+    | '/teams/audit'
+    | '/teams/integrations'
+    | '/teams/members'
+    | '/teams/reports'
+    | '/teams/settings'
+    | '/teams/workflows'
     | '/transactions/$id'
     | '/transactions/new'
     | '/analytics'
+    | '/teams'
     | '/transactions'
     | '/admin/disputes/$id'
     | '/settings/organization/new'
@@ -648,6 +763,7 @@ export interface FileRouteTypes {
     | '/_authenticated/payments'
     | '/_authenticated/reports'
     | '/_authenticated/score'
+    | '/_authenticated/teams'
     | '/_authenticated/transactions'
     | '/biometrico/$token'
     | '/invitations/$token'
@@ -671,9 +787,18 @@ export interface FileRouteTypes {
     | '/_authenticated/payments/fiscal'
     | '/_authenticated/payments/ledger'
     | '/_authenticated/settings/organization'
+    | '/_authenticated/teams/api-keys'
+    | '/_authenticated/teams/approvals'
+    | '/_authenticated/teams/audit'
+    | '/_authenticated/teams/integrations'
+    | '/_authenticated/teams/members'
+    | '/_authenticated/teams/reports'
+    | '/_authenticated/teams/settings'
+    | '/_authenticated/teams/workflows'
     | '/_authenticated/transactions/$id'
     | '/_authenticated/transactions/new'
     | '/_authenticated/analytics/'
+    | '/_authenticated/teams/'
     | '/_authenticated/transactions/'
     | '/_authenticated/admin/disputes/$id'
     | '/_authenticated/settings/organization/new'
@@ -768,6 +893,13 @@ declare module '@tanstack/react-router' {
       path: '/transactions'
       fullPath: '/transactions'
       preLoaderRoute: typeof AuthenticatedTransactionsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/teams': {
+      id: '/_authenticated/teams'
+      path: '/teams'
+      fullPath: '/teams'
+      preLoaderRoute: typeof AuthenticatedTeamsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/score': {
@@ -868,6 +1000,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedTransactionsIndexRouteImport
       parentRoute: typeof AuthenticatedTransactionsRoute
     }
+    '/_authenticated/teams/': {
+      id: '/_authenticated/teams/'
+      path: '/'
+      fullPath: '/teams/'
+      preLoaderRoute: typeof AuthenticatedTeamsIndexRouteImport
+      parentRoute: typeof AuthenticatedTeamsRoute
+    }
     '/_authenticated/analytics/': {
       id: '/_authenticated/analytics/'
       path: '/'
@@ -888,6 +1027,62 @@ declare module '@tanstack/react-router' {
       fullPath: '/transactions/$id'
       preLoaderRoute: typeof AuthenticatedTransactionsIdRouteImport
       parentRoute: typeof AuthenticatedTransactionsRoute
+    }
+    '/_authenticated/teams/workflows': {
+      id: '/_authenticated/teams/workflows'
+      path: '/workflows'
+      fullPath: '/teams/workflows'
+      preLoaderRoute: typeof AuthenticatedTeamsWorkflowsRouteImport
+      parentRoute: typeof AuthenticatedTeamsRoute
+    }
+    '/_authenticated/teams/settings': {
+      id: '/_authenticated/teams/settings'
+      path: '/settings'
+      fullPath: '/teams/settings'
+      preLoaderRoute: typeof AuthenticatedTeamsSettingsRouteImport
+      parentRoute: typeof AuthenticatedTeamsRoute
+    }
+    '/_authenticated/teams/reports': {
+      id: '/_authenticated/teams/reports'
+      path: '/reports'
+      fullPath: '/teams/reports'
+      preLoaderRoute: typeof AuthenticatedTeamsReportsRouteImport
+      parentRoute: typeof AuthenticatedTeamsRoute
+    }
+    '/_authenticated/teams/members': {
+      id: '/_authenticated/teams/members'
+      path: '/members'
+      fullPath: '/teams/members'
+      preLoaderRoute: typeof AuthenticatedTeamsMembersRouteImport
+      parentRoute: typeof AuthenticatedTeamsRoute
+    }
+    '/_authenticated/teams/integrations': {
+      id: '/_authenticated/teams/integrations'
+      path: '/integrations'
+      fullPath: '/teams/integrations'
+      preLoaderRoute: typeof AuthenticatedTeamsIntegrationsRouteImport
+      parentRoute: typeof AuthenticatedTeamsRoute
+    }
+    '/_authenticated/teams/audit': {
+      id: '/_authenticated/teams/audit'
+      path: '/audit'
+      fullPath: '/teams/audit'
+      preLoaderRoute: typeof AuthenticatedTeamsAuditRouteImport
+      parentRoute: typeof AuthenticatedTeamsRoute
+    }
+    '/_authenticated/teams/approvals': {
+      id: '/_authenticated/teams/approvals'
+      path: '/approvals'
+      fullPath: '/teams/approvals'
+      preLoaderRoute: typeof AuthenticatedTeamsApprovalsRouteImport
+      parentRoute: typeof AuthenticatedTeamsRoute
+    }
+    '/_authenticated/teams/api-keys': {
+      id: '/_authenticated/teams/api-keys'
+      path: '/api-keys'
+      fullPath: '/teams/api-keys'
+      preLoaderRoute: typeof AuthenticatedTeamsApiKeysRouteImport
+      parentRoute: typeof AuthenticatedTeamsRoute
     }
     '/_authenticated/settings/organization': {
       id: '/_authenticated/settings/organization'
@@ -1174,6 +1369,33 @@ const AuthenticatedPaymentsRouteWithChildren =
     AuthenticatedPaymentsRouteChildren,
   )
 
+interface AuthenticatedTeamsRouteChildren {
+  AuthenticatedTeamsApiKeysRoute: typeof AuthenticatedTeamsApiKeysRoute
+  AuthenticatedTeamsApprovalsRoute: typeof AuthenticatedTeamsApprovalsRoute
+  AuthenticatedTeamsAuditRoute: typeof AuthenticatedTeamsAuditRoute
+  AuthenticatedTeamsIntegrationsRoute: typeof AuthenticatedTeamsIntegrationsRoute
+  AuthenticatedTeamsMembersRoute: typeof AuthenticatedTeamsMembersRoute
+  AuthenticatedTeamsReportsRoute: typeof AuthenticatedTeamsReportsRoute
+  AuthenticatedTeamsSettingsRoute: typeof AuthenticatedTeamsSettingsRoute
+  AuthenticatedTeamsWorkflowsRoute: typeof AuthenticatedTeamsWorkflowsRoute
+  AuthenticatedTeamsIndexRoute: typeof AuthenticatedTeamsIndexRoute
+}
+
+const AuthenticatedTeamsRouteChildren: AuthenticatedTeamsRouteChildren = {
+  AuthenticatedTeamsApiKeysRoute: AuthenticatedTeamsApiKeysRoute,
+  AuthenticatedTeamsApprovalsRoute: AuthenticatedTeamsApprovalsRoute,
+  AuthenticatedTeamsAuditRoute: AuthenticatedTeamsAuditRoute,
+  AuthenticatedTeamsIntegrationsRoute: AuthenticatedTeamsIntegrationsRoute,
+  AuthenticatedTeamsMembersRoute: AuthenticatedTeamsMembersRoute,
+  AuthenticatedTeamsReportsRoute: AuthenticatedTeamsReportsRoute,
+  AuthenticatedTeamsSettingsRoute: AuthenticatedTeamsSettingsRoute,
+  AuthenticatedTeamsWorkflowsRoute: AuthenticatedTeamsWorkflowsRoute,
+  AuthenticatedTeamsIndexRoute: AuthenticatedTeamsIndexRoute,
+}
+
+const AuthenticatedTeamsRouteWithChildren =
+  AuthenticatedTeamsRoute._addFileChildren(AuthenticatedTeamsRouteChildren)
+
 interface AuthenticatedTransactionsIdRouteChildren {
   AuthenticatedTransactionsIdExpedienteRoute: typeof AuthenticatedTransactionsIdExpedienteRoute
 }
@@ -1237,6 +1459,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedPaymentsRoute: typeof AuthenticatedPaymentsRouteWithChildren
   AuthenticatedReportsRoute: typeof AuthenticatedReportsRoute
   AuthenticatedScoreRoute: typeof AuthenticatedScoreRoute
+  AuthenticatedTeamsRoute: typeof AuthenticatedTeamsRouteWithChildren
   AuthenticatedTransactionsRoute: typeof AuthenticatedTransactionsRouteWithChildren
   AuthenticatedOnboardingPendienteRoute: typeof AuthenticatedOnboardingPendienteRoute
   AuthenticatedSettingsOrganizationRoute: typeof AuthenticatedSettingsOrganizationRouteWithChildren
@@ -1256,6 +1479,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedPaymentsRoute: AuthenticatedPaymentsRouteWithChildren,
   AuthenticatedReportsRoute: AuthenticatedReportsRoute,
   AuthenticatedScoreRoute: AuthenticatedScoreRoute,
+  AuthenticatedTeamsRoute: AuthenticatedTeamsRouteWithChildren,
   AuthenticatedTransactionsRoute: AuthenticatedTransactionsRouteWithChildren,
   AuthenticatedOnboardingPendienteRoute: AuthenticatedOnboardingPendienteRoute,
   AuthenticatedSettingsOrganizationRoute:
