@@ -167,8 +167,6 @@ function ApprovalsPage() {
           actions={
             <>
               <BtnSecondary icon={RefreshCw} onClick={() => toast.info("Bandeja actualizada")}>Actualizar</BtnSecondary>
-              <BtnSecondary icon={Download} onClick={() => toast.success("Expediente exportado")}>Exportar</BtnSecondary>
-              <BtnPrimary icon={BookOpen}>Criterios de aprobación</BtnPrimary>
             </>
           }
         />
