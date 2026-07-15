@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Plus, LayoutGrid, List as ListIcon, Download, Briefcase } from "lucide-react";
+import { Plus, LayoutGrid, List as ListIcon, Briefcase } from "lucide-react";
 import { PageHeader } from "@/components/page-header";
 import { supabase } from "@/integrations/supabase/client";
 import { useViewRole } from "@/hooks/use-view-role";
@@ -61,7 +61,7 @@ function TransactionsList() {
 
   const [rows, setRows] = useState<TxRow[]>([]);
   const [loading, setLoading] = useState(true);
-  const [kycOk, setKycOk] = useState<boolean | null>(null);
+
 
   // Filters + tab + view derived from URL search params (shareable state)
   const filters: TxFiltersState = useMemo(() => ({
@@ -93,14 +93,11 @@ function TransactionsList() {
   }, [navigate]);
 
   const fetchAll = useCallback(async () => {
-    const [{ data: txs }, { data: prof }] = await Promise.all([
-      supabase
-        .from("transactions")
-        .select("id,numero,title,sector,amount_cents,currency,status,buyer_id,seller_id,counterparty_email,beneficiario_nombre,created_at,delivery_deadline,funding_deadline")
-        .or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`)
-        .order("created_at", { ascending: false }),
-      supabase.from("profiles").select("kyc_status").eq("id", user.id).maybeSingle(),
-    ]);
+    const { data: txs } = await supabase
+      .from("transactions")
+      .select("id,numero,title,sector,amount_cents,currency,status,buyer_id,seller_id,counterparty_email,beneficiario_nombre,created_at,delivery_deadline,funding_deadline")
+      .or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`)
+      .order("created_at", { ascending: false });
 
     const txList = (txs ?? []) as TxRow[];
     const ids = txList.map((t) => t.id);
@@ -133,9 +130,9 @@ function TransactionsList() {
     });
 
     setRows(withDerived);
-    setKycOk(prof?.kyc_status === "approved");
     setLoading(false);
   }, [user.id]);
+
 
   useEffect(() => {
     setLoading(true);
@@ -162,14 +159,15 @@ function TransactionsList() {
       if (e.key === "/") {
         e.preventDefault();
         searchInputRef.current?.focus();
-      } else if (e.key.toLowerCase() === "n" && kycOk) {
+      } else if (e.key.toLowerCase() === "n") {
         e.preventDefault();
         navigate({ to: "/transactions/new" });
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [navigate, kycOk]);
+  }, [navigate]);
+
 
 
   // Filtering by tab + filters
@@ -225,34 +223,8 @@ function TransactionsList() {
 
   const tabCounts = useMemo(() => countByTab(rows, getTabs(role)), [rows, role]);
 
-  const exportCsv = useCallback(() => {
-    const headers = ["numero","titulo","sector","estado","monto","moneda","contraparte","creado","limite_entrega"];
-    const esc = (v: unknown) => {
-      const s = v == null ? "" : String(v);
-      return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
-    };
-    const lines = [headers.join(",")];
-    for (const r of filtered) {
-      lines.push([
-        r.numero ?? r.id.slice(0, 8),
-        r.title,
-        r.sector ?? "",
-        toUiStatus(r.status),
-        (r.amount_cents / 100).toFixed(2),
-        r.currency,
-        r.counterparty_email ?? r.beneficiario_nombre ?? "",
-        r.created_at,
-        r.delivery_deadline ?? "",
-      ].map(esc).join(","));
-    }
-    const blob = new Blob(["\uFEFF" + lines.join("\n")], { type: "text/csv;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `yokto-transacciones-${new Date().toISOString().slice(0,10)}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
-  }, [filtered]);
+
+
 
 
   return (
@@ -280,34 +252,17 @@ function TransactionsList() {
                   <LayoutGrid className="h-4 w-4" />
                 </button>
               </div>
-              <button
-                onClick={exportCsv}
-                disabled={filtered.length === 0}
-                className="inline-flex items-center gap-1.5 px-3 py-2 border border-yo-border text-sm font-medium rounded-md text-yo-txt-2 hover:bg-yo-raised hover:text-yo-txt disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-                title="Exportar filtrados a CSV"
+              <Link
+                to="/transactions/new"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-yo-ac text-white text-sm font-medium rounded-md hover:bg-yo-ac-h transition-colors"
               >
-                <Download className="h-4 w-4" />
-                <span className="hidden lg:inline">CSV</span>
-              </button>
-              {kycOk ? (
-                <Link
-                  to="/transactions/new"
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-yo-ac text-white text-sm font-medium rounded-md hover:bg-yo-ac-h transition-colors"
-                >
-                  <Plus className="h-4 w-4" />
-                  Nueva transacción
-                </Link>
-              ) : (
-                <Link
-                  to="/kyc"
-                  className="inline-flex items-center px-4 py-2 border border-yo-border text-sm font-medium rounded-md hover:bg-yo-raised"
-                >
-                  Completar KYC
-                </Link>
-              )}
+                <Plus className="h-4 w-4" />
+                Nueva operación
+              </Link>
             </>
           }
         />
+
 
 
         {/* Metrics */}
