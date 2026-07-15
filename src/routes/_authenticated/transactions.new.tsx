@@ -373,12 +373,11 @@ function NewOperationWizard() {
             />
             <NoCustodyCard />
           </aside>
-        </div>
-      </main>
+      </div>
 
-      {/* Botonera sticky inferior */}
-      <footer className="fixed bottom-0 inset-x-0 bg-yo-surface border-t border-yo-border px-4 md:px-6 py-3 z-30">
-        <div className="max-w-[1400px] mx-auto flex items-center justify-between gap-3">
+      {/* Botonera inferior */}
+      <footer className="bg-yo-surface border border-yo-border rounded-lg px-4 md:px-5 py-3">
+        <div className="flex items-center justify-between gap-3">
           <button
             onClick={goBack}
             disabled={saving || firmando}
