@@ -1,11 +1,11 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { supabase } from "@/integrations/supabase/client";
 import {
   SECTORES, getSector, calcularFee, PLANTILLAS_HITOS, plantillaToDraft,
   type SectorId, type HitoDraft,
 } from "@/lib/sectors";
+import { SECTOR_CFG, DOC_BASE, DOC_BY_SECTOR, EVIDENCE_TYPES } from "@/lib/operations-catalog";
 import {
   searchCounterpart,
   upsertTransactionDraft,
@@ -15,60 +15,69 @@ import {
   signAndActivateTransaction,
 } from "@/lib/transactions.functions";
 import { Step1Schema, Step2Schema, Step3Schema, Step4Schema, Step5Schema } from "@/lib/validations/transaction";
-
+import {
+  Info, Check, ChevronRight, ChevronLeft, X, Search, Trash2, Plus, GripVertical,
+  ArrowUp, ArrowDown, Sparkles, AlertTriangle, ClipboardList, FileText, Camera, ShieldCheck,
+} from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/transactions/new")({
-  head: () => ({ meta: [{ title: "Nueva transacción — YOKTO" }, { name: "robots", content: "noindex" }] }),
-  component: NewTransactionWizard,
+  head: () => ({ meta: [{ title: "Crear operación protegida — YOKTO" }, { name: "robots", content: "noindex" }] }),
+  component: NewOperationWizard,
 });
 
 type Rol = "PAGADOR" | "BENEFICIARIO";
+type Contraparte = { user_id: string | null; email: string; nombre: string; rfc?: string | null };
 
-type Contraparte = {
-  user_id: string | null;
-  email: string;
-  nombre: string;
-  rfc?: string | null;
-};
-
+const STEP_LABELS = ["Tipo", "Partes", "Hitos", "Cumplimiento", "Pago", "Revisión"] as const;
 const TOTAL_STEPS = 6;
 
-function NewTransactionWizard() {
+const fmtMoney = (n: number) =>
+  new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN" }).format(n || 0);
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Main component
+// ─────────────────────────────────────────────────────────────────────────────
+
+function NewOperationWizard() {
   const { user } = Route.useRouteContext();
   const navigate = useNavigate();
 
   const [step, setStep] = useState(1);
   const [txId, setTxId] = useState<string | null>(null);
   const [numero, setNumero] = useState<string | null>(null);
-  const [kycOk, setKycOk] = useState<boolean | null>(null);
   const [saving, setSaving] = useState(false);
+  const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [showActivation, setShowActivation] = useState(false);
 
   // Paso 1
   const [sector, setSector] = useState<SectorId | null>(null);
-
-  // Paso 2
-  const [rol, setRol] = useState<Rol>("PAGADOR");
+  const [subtipo, setSubtipo] = useState<string>("");
   const [descripcion, setDescripcion] = useState("");
-  const [contraparte, setContraparte] = useState<Contraparte | null>(null);
-
-  // Paso 3
-  const [hitos, setHitos] = useState<HitoDraft[]>([]);
-
-  // Paso 4
-  const [monto, setMonto] = useState<number>(0);
-  const [metodoPago, setMetodoPago] = useState<"SPEI" | "TARJETA" | "OXXO">("SPEI");
   const [fechaInicio, setFechaInicio] = useState<string>(new Date().toISOString().slice(0, 10));
   const [fechaFin, setFechaFin] = useState<string>("");
 
+  // Paso 2
+  const [rol, setRol] = useState<Rol>("PAGADOR");
+  const [contraparte, setContraparte] = useState<Contraparte | null>(null);
+
+  // Paso 3 & 4 — hitos con documentos, evidencia y checklist
+  const [hitos, setHitos] = useState<HitoDraft[]>([]);
+  const [checklist, setChecklist] = useState<Record<number, string[]>>({});
+
   // Paso 5
+  const [monto, setMonto] = useState<number>(0);
+  const [metodoPago, setMetodoPago] = useState<"SPEI" | "TARJETA" | "OXXO">("SPEI");
+  const [comisionPagadaPor, setComisionPagadaPor] = useState<"COMPRADOR" | "VENDEDOR">("COMPRADOR");
+
+  // Paso 6
   const [aceptaTerminos, setAceptaTerminos] = useState(false);
   const [aceptaRetencion, setAceptaRetencion] = useState(false);
+  const [aceptaCumplimiento, setAceptaCumplimiento] = useState(false);
+  const [aceptaTraza, setAceptaTraza] = useState(false);
   const [firmando, setFirmando] = useState(false);
   const [firmaResult, setFirmaResult] = useState<{ status: string; activated: boolean } | null>(null);
-
-  // Auto-save
-  const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
 
   const upsertDraft = useServerFn(upsertTransactionDraft);
   const cancelDraft = useServerFn(cancelTransactionDraft);
@@ -76,379 +85,659 @@ function NewTransactionWizard() {
   const saveMonto = useServerFn(saveTransactionMonto);
   const signAndActivate = useServerFn(signAndActivateTransaction);
 
-
-  useEffect(() => {
-    supabase.from("profiles").select("kyc_status").eq("id", user.id).maybeSingle().then(({ data }) => {
-      setKycOk(data?.kyc_status === "approved");
-    });
-  }, [user.id]);
-
   const sectorDef = useMemo(() => (sector ? getSector(sector) : undefined), [sector]);
+  const sectorCfg = useMemo(() => (sector ? SECTOR_CFG[sector] : undefined), [sector]);
+  const fee = useMemo(() => (sector ? calcularFee(sector, monto || 0, 0) : null), [sector, monto]);
+  const sumaPct = useMemo(() => hitos.reduce((s, h) => s + Number(h.monto_porcentaje || 0), 0), [hitos]);
+  const creatorRoleLabel = rol === "PAGADOR" ? "Comprador" : "Vendedor";
 
-  // Auto-save cada 30s si hay borrador y estamos en pasos 2-4
+  // ─── Autosave silencioso cada 30s cuando hay borrador
   useEffect(() => {
-    if (!txId || step < 2 || step > 4 || !sector) return;
+    if (!txId || step < 2 || step > 5 || !sector) return;
     const interval = setInterval(async () => {
-      const payload = Step2Schema.safeParse({
+      const p = Step2Schema.safeParse({
         rol, descripcion,
         contraparte_user_id: contraparte?.user_id ?? null,
         contraparte_email: contraparte?.email ?? null,
         contraparte_nombre: contraparte?.nombre ?? null,
         contraparte_rfc: contraparte?.rfc ?? null,
       });
-      if (!payload.success) return;
+      if (!p.success) return;
       try {
-        await upsertDraft({ data: { transaction_id: txId, step1: { sector }, step2: payload.data } });
+        setSaveState("saving");
+        await upsertDraft({ data: { transaction_id: txId, step1: { sector }, step2: p.data } });
+        setSaveState("saved");
         setLastSavedAt(new Date());
-      } catch { /* silencio */ }
+      } catch {
+        setSaveState("error");
+      }
     }, 30_000);
     return () => clearInterval(interval);
   }, [txId, step, sector, rol, descripcion, contraparte, upsertDraft]);
 
+  // ─── Handlers
+  const handleCancel = useCallback(async () => {
+    if (txId) { try { await cancelDraft({ data: { id: txId } }); } catch { /* noop */ } }
+    navigate({ to: "/transactions" });
+  }, [txId, cancelDraft, navigate]);
+
   const handleFirmar = useCallback(async () => {
     setError(null);
     const parsed = Step5Schema.safeParse({ acepta_terminos: aceptaTerminos, acepta_retencion: aceptaRetencion });
-    if (!parsed.success) { setError(parsed.error.issues[0]?.message ?? "Acepta los términos"); return; }
-    if (!txId) { setError("Falta el borrador"); return; }
+    if (!parsed.success) { setError(parsed.error.issues[0]?.message ?? "Debes aceptar los términos"); return; }
+    if (!txId) { setError("No hay borrador guardado"); return; }
+    if (!aceptaCumplimiento || !aceptaTraza) { setError("Confirma todas las declaraciones"); return; }
     setFirmando(true);
     try {
-      const res = await signAndActivate({
-        data: { transaction_id: txId, acepta_terminos: true, acepta_retencion: true },
-      });
+      const res = await signAndActivate({ data: { transaction_id: txId, acepta_terminos: true, acepta_retencion: true } });
       setFirmaResult({ status: res.status ?? "pending_signature", activated: res.activated });
+      setShowActivation(false);
     } catch (e) {
       setError((e as Error).message);
     } finally {
       setFirmando(false);
     }
-  }, [txId, aceptaTerminos, aceptaRetencion, signAndActivate]);
+  }, [aceptaTerminos, aceptaRetencion, aceptaCumplimiento, aceptaTraza, txId, signAndActivate]);
 
+  const validateStep = useCallback((s: number): string | null => {
+    if (s === 1) {
+      if (!sector) return "Selecciona el tipo de operación";
+      if (descripcion.trim().length < 10) return "Describe la operación (mínimo 10 caracteres)";
+    }
+    if (s === 2) {
+      if (!contraparte) return "Selecciona o invita una contraparte";
+    }
+    if (s === 3) {
+      if (hitos.length === 0) return "Agrega al menos un hito";
+      if (Math.abs(sumaPct - 100) > 0.01) return "La suma de liberaciones debe ser 100%";
+    }
+    if (s === 4) {
+      const invalid = hitos.some((h) => h.documentos_requeridos.length === 0 && h.evidencia_requerida.length === 0);
+      if (invalid) return "Cada hito debe tener al menos un documento o evidencia requerida";
+    }
+    if (s === 5) {
+      if (!monto || monto < 100) return "Ingresa un monto válido (mínimo $100 MXN)";
+    }
+    return null;
+  }, [sector, descripcion, contraparte, hitos, sumaPct, monto]);
 
   const goNext = useCallback(async () => {
     setError(null);
-    if (step === 1) {
-      const r = Step1Schema.safeParse({ sector });
-      if (!r.success) { setError(r.error.issues[0]?.message ?? "Selecciona un sector"); return; }
-      setStep(2);
-      return;
-    }
+    const err = validateStep(step);
+    if (err) { setError(err); return; }
+
+    if (step === 1) { setStep(2); return; }
+
     if (step === 2) {
-      const payload = {
-        rol,
-        descripcion,
+      const p = Step2Schema.safeParse({
+        rol, descripcion,
         contraparte_user_id: contraparte?.user_id ?? null,
         contraparte_email: contraparte?.email ?? null,
         contraparte_nombre: contraparte?.nombre ?? null,
         contraparte_rfc: contraparte?.rfc ?? null,
-      };
-      const r = Step2Schema.safeParse(payload);
-      if (!r.success) { setError(r.error.issues[0]?.message ?? "Revisa los campos"); return; }
-      setSaving(true);
+      });
+      if (!p.success) { setError(p.error.issues[0]?.message ?? "Revisa los campos"); return; }
+      setSaving(true); setSaveState("saving");
       try {
-        const res = await upsertDraft({
-          data: { transaction_id: txId ?? undefined, step1: { sector: sector! }, step2: r.data },
-        });
-        setTxId(res.id);
-        setNumero(res.numero ?? null);
-        // Pre-cargar plantilla de hitos si aún no hay
+        const res = await upsertDraft({ data: { transaction_id: txId ?? undefined, step1: { sector: sector! }, step2: p.data } });
+        setTxId(res.id); setNumero(res.numero ?? null);
+        setSaveState("saved"); setLastSavedAt(new Date());
         if (hitos.length === 0 && sector) {
-          const plantillas = PLANTILLAS_HITOS[sector];
-          setHitos(plantillas.map((p, i) => plantillaToDraft(p, i + 1, fechaInicio)));
+          setHitos(PLANTILLAS_HITOS[sector].map((pl, i) => plantillaToDraft(pl, i + 1, fechaInicio)));
         }
         setStep(3);
-      } catch (e) {
-        setError((e as Error).message);
-      } finally {
-        setSaving(false);
-      }
+      } catch (e) { setSaveState("error"); setError((e as Error).message); }
+      finally { setSaving(false); }
       return;
     }
-    if (step === 3) {
+
+    if (step === 3 || step === 4) {
       const r = Step3Schema.safeParse({ hitos });
       if (!r.success) { setError(r.error.issues[0]?.message ?? "Revisa los hitos"); return; }
       if (!txId) { setError("Falta guardar los pasos anteriores"); return; }
-      setSaving(true);
+      setSaving(true); setSaveState("saving");
       try {
         await saveHitos({ data: { transaction_id: txId, hitos: r.data.hitos } });
-        setStep(4);
-      } catch (e) {
-        setError((e as Error).message);
-      } finally { setSaving(false); }
+        setSaveState("saved"); setLastSavedAt(new Date());
+        setStep((s) => s + 1);
+      } catch (e) { setSaveState("error"); setError((e as Error).message); }
+      finally { setSaving(false); }
       return;
     }
-    if (step === 4) {
+
+    if (step === 5) {
       const r = Step4Schema.safeParse({
-        monto,
-        metodo_pago: metodoPago,
-        fecha_inicio_estimada: fechaInicio || null,
-        fecha_fin_estimada: fechaFin || null,
+        monto, metodo_pago: metodoPago,
+        fecha_inicio_estimada: fechaInicio || null, fecha_fin_estimada: fechaFin || null,
       });
       if (!r.success) { setError(r.error.issues[0]?.message ?? "Revisa el monto"); return; }
       if (!txId || !sector) { setError("Falta información previa"); return; }
-      setSaving(true);
+      setSaving(true); setSaveState("saving");
       try {
         await saveMonto({ data: { transaction_id: txId, sector, step4: r.data } });
-        setStep(5);
-      } catch (e) {
-        setError((e as Error).message);
-      } finally { setSaving(false); }
-      return;
+        setSaveState("saved"); setLastSavedAt(new Date());
+        setStep(6);
+      } catch (e) { setSaveState("error"); setError((e as Error).message); }
+      finally { setSaving(false); }
     }
-    // Paso 5: Fase 3
-    setStep((s) => Math.min(TOTAL_STEPS, s + 1));
-  }, [step, sector, rol, descripcion, contraparte, txId, hitos, monto, metodoPago, fechaInicio, fechaFin, upsertDraft, saveHitos, saveMonto]);
+  }, [step, validateStep, sector, rol, descripcion, contraparte, hitos, monto, metodoPago, fechaInicio, fechaFin, txId, upsertDraft, saveHitos, saveMonto]);
 
-  async function handleCancel() {
-    if (txId) {
-      try { await cancelDraft({ data: { id: txId } }); } catch { /* ignore */ }
+  const goBack = useCallback(() => {
+    setError(null);
+    if (step === 1) return handleCancel();
+    setStep((s) => s - 1);
+  }, [step, handleCancel]);
+
+  const handleGuardarYSalir = useCallback(async () => {
+    if (step >= 2 && sector) {
+      const p = Step2Schema.safeParse({
+        rol, descripcion,
+        contraparte_user_id: contraparte?.user_id ?? null,
+        contraparte_email: contraparte?.email ?? null,
+        contraparte_nombre: contraparte?.nombre ?? null,
+        contraparte_rfc: contraparte?.rfc ?? null,
+      });
+      if (p.success) {
+        try { await upsertDraft({ data: { transaction_id: txId ?? undefined, step1: { sector }, step2: p.data } }); } catch { /* noop */ }
+      }
     }
     navigate({ to: "/transactions" });
-  }
+  }, [step, sector, rol, descripcion, contraparte, txId, upsertDraft, navigate]);
 
-  if (kycOk === false) {
+  // ─── Pantalla de éxito
+  if (firmaResult) {
     return (
-      <>
-        <div className="container-editorial py-16 max-w-2xl">
-          <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Requisito</p>
-          <h1 className="mt-2 font-display text-5xl tracking-wide">Completa tu verificación</h1>
-          <p className="mt-3 text-muted-foreground">Necesitas KYC aprobado para crear transacciones.</p>
-          <button
-            onClick={() => navigate({ to: "/onboarding" })}
-            className="mt-6 inline-flex items-center px-5 py-2.5 bg-yo-ac text-white text-[12px] uppercase tracking-[0.14em] font-semibold border border-yo-border"
-          >
-            Ir a onboarding
-          </button>
-        </div>
-      </>
+      <SuccessScreen
+        rol={rol}
+        numero={numero}
+        activated={firmaResult.activated}
+        contraparte={contraparte}
+        onGoTransactions={() => navigate({ to: "/transactions" })}
+        onGoPayments={() => navigate({ to: "/payments" })}
+      />
     );
   }
 
+  const stepValidNow = !validateStep(step);
+
   return (
-    <>
-      <div className="container-editorial py-10 max-w-4xl">
-        <div className="flex items-baseline justify-between gap-4">
-          <div>
-            <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
-              Módulo C · Nueva transacción {numero && <span className="ml-2 font-mono text-foreground">{numero}</span>}
+    <div className="min-h-screen bg-yo-bg">
+      {/* Header */}
+      <header className="bg-yo-surface border-b border-yo-border px-4 md:px-6 py-4 sticky top-0 z-20">
+        <div className="max-w-[1400px] mx-auto flex items-start justify-between gap-4">
+          <div className="min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <h1 className="text-xl md:text-2xl font-semibold text-yo-txt">Crear operación protegida</h1>
+              <Badge tone="neutral" dot>Borrador</Badge>
+              {numero && <span className="font-mono text-xs text-yo-txt-3">{numero}</span>}
+            </div>
+            <p className="text-sm text-yo-txt-2 mt-1">
+              Define las partes, condiciones, evidencia y reglas de liberación.
             </p>
-            <h1 className="mt-1 font-display text-4xl md:text-5xl tracking-wide text-foreground">
-              {step === 1 && "¿Qué tipo de operación?"}
-              {step === 2 && "Partes de la transacción"}
-              {step === 3 && "Hitos y condiciones"}
-              {step === 4 && "Monto y comisiones"}
-              {step === 5 && "Revisión final"}
-              {step === 6 && "Firma y activación"}
-            </h1>
           </div>
-          <button
-            onClick={handleCancel}
-            className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground hover:text-foreground"
-          >
-            Cancelar
-          </button>
-        </div>
-
-        <WizardProgress current={step} total={TOTAL_STEPS} labels={["Sector","Partes","Hitos","Monto","Revisión","Firma"]} />
-
-        {error && (
-          <div className="mt-6 border border-[#FF3B3B] bg-[#FF3B3B]/10 p-3 text-sm text-[#FF3B3B]">{error}</div>
-        )}
-
-        <div className="mt-8 border border-yo-border bg-background p-6 md:p-8">
-          {step === 1 && <Step1 sector={sector} setSector={setSector} />}
-          {step === 2 && (
-            <Step2
-              sector={sector!}
-              rol={rol}
-              setRol={setRol}
-              descripcion={descripcion}
-              setDescripcion={setDescripcion}
-              contraparte={contraparte}
-              setContraparte={setContraparte}
-            />
-          )}
-          {step === 3 && sector && (
-            <Step3 sector={sector} hitos={hitos} setHitos={setHitos} fechaBase={fechaInicio} />
-          )}
-          {step === 4 && sector && (
-            <Step4
-              sector={sector}
-              monto={monto} setMonto={setMonto}
-              metodoPago={metodoPago} setMetodoPago={setMetodoPago}
-              fechaInicio={fechaInicio} setFechaInicio={setFechaInicio}
-              fechaFin={fechaFin} setFechaFin={setFechaFin}
-            />
-          )}
-          {(step === 5 || step === 6) && (
-            <Step5
-              mode={step === 5 ? "review" : "sign"}
-              numero={numero}
-              sector={sector}
-              rol={rol}
-              descripcion={descripcion}
-              contraparte={contraparte}
-              hitos={hitos}
-              monto={monto}
-              metodoPago={metodoPago}
-              fechaInicio={fechaInicio}
-              fechaFin={fechaFin}
-              aceptaTerminos={aceptaTerminos}
-              setAceptaTerminos={setAceptaTerminos}
-              aceptaRetencion={aceptaRetencion}
-              setAceptaRetencion={setAceptaRetencion}
-              firmando={firmando}
-              firmaResult={firmaResult}
-              onFirmar={handleFirmar}
-            />
-          )}
-        </div>
-
-        {lastSavedAt && step >= 2 && step <= 4 && (
-          <div className="mt-2 text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
-            Guardado automático · {lastSavedAt.toLocaleTimeString("es-MX")}
+          <div className="flex items-center gap-2 shrink-0">
+            <SaveIndicator state={saveState} at={lastSavedAt} />
+            <button
+              onClick={handleGuardarYSalir}
+              className="hidden sm:inline-flex items-center px-3 py-2 border border-yo-border text-sm font-medium rounded-md text-yo-txt-2 hover:bg-yo-raised"
+            >
+              Guardar y salir
+            </button>
+            <button
+              onClick={handleCancel}
+              className="inline-flex items-center px-3 py-2 text-sm text-yo-txt-3 hover:text-yo-txt"
+              aria-label="Cancelar"
+            >
+              <X className="h-4 w-4" />
+            </button>
           </div>
-        )}
+        </div>
+      </header>
 
-        <div className="mt-6 flex justify-between gap-3">
+      {/* Stepper */}
+      <div className="bg-yo-surface border-b border-yo-border">
+        <div className="max-w-[1400px] mx-auto px-4 md:px-6 py-3">
+          <Stepper current={step} labels={[...STEP_LABELS]} onJump={(n) => { if (n < step) setStep(n); }} />
+        </div>
+      </div>
+
+      {/* Contenido 70/30 */}
+      <main className="max-w-[1400px] mx-auto px-4 md:px-6 py-6 pb-32">
+        <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,7fr)_minmax(0,3fr)] gap-6">
+          {/* Área principal 70% */}
+          <section className="min-w-0">
+            {error && (
+              <div className="mb-4 flex items-start gap-3 rounded-lg border border-[#FECACA] bg-yo-err-bg p-3">
+                <AlertTriangle className="h-4 w-4 text-yo-err mt-0.5 shrink-0" />
+                <p className="text-sm text-yo-err">{error}</p>
+              </div>
+            )}
+            <div className="bg-yo-surface border border-yo-border rounded-lg p-5 md:p-6 shadow-sm">
+              {step === 1 && (
+                <Step1Tipo
+                  sector={sector} setSector={setSector}
+                  subtipo={subtipo} setSubtipo={setSubtipo}
+                  descripcion={descripcion} setDescripcion={setDescripcion}
+                  fechaInicio={fechaInicio} setFechaInicio={setFechaInicio}
+                  fechaFin={fechaFin} setFechaFin={setFechaFin}
+                />
+              )}
+              {step === 2 && sector && (
+                <Step2Partes
+                  sector={sector}
+                  rol={rol} setRol={setRol}
+                  contraparte={contraparte} setContraparte={setContraparte}
+                  currentUserId={user.id}
+                />
+              )}
+              {step === 3 && sector && (
+                <Step3Hitos sector={sector} hitos={hitos} setHitos={setHitos} fechaBase={fechaInicio} sumaPct={sumaPct} />
+              )}
+              {step === 4 && sector && (
+                <Step4Cumplimiento
+                  sector={sector} hitos={hitos} setHitos={setHitos}
+                  checklist={checklist} setChecklist={setChecklist}
+                />
+              )}
+              {step === 5 && sector && (
+                <Step5Pago
+                  sector={sector}
+                  monto={monto} setMonto={setMonto}
+                  metodoPago={metodoPago} setMetodoPago={setMetodoPago}
+                  comisionPagadaPor={comisionPagadaPor} setComisionPagadaPor={setComisionPagadaPor}
+                  fee={fee} hitos={hitos}
+                />
+              )}
+              {step === 6 && (
+                <Step6Revision
+                  numero={numero} rol={rol}
+                  sectorDef={sectorDef} sectorCfg={sectorCfg}
+                  subtipo={subtipo} descripcion={descripcion}
+                  fechaInicio={fechaInicio} fechaFin={fechaFin}
+                  contraparte={contraparte} hitos={hitos} monto={monto}
+                  metodoPago={metodoPago} comisionPagadaPor={comisionPagadaPor}
+                  fee={fee}
+                  aceptaTerminos={aceptaTerminos} setAceptaTerminos={setAceptaTerminos}
+                  aceptaRetencion={aceptaRetencion} setAceptaRetencion={setAceptaRetencion}
+                  aceptaCumplimiento={aceptaCumplimiento} setAceptaCumplimiento={setAceptaCumplimiento}
+                  aceptaTraza={aceptaTraza} setAceptaTraza={setAceptaTraza}
+                />
+              )}
+            </div>
+          </section>
+
+          {/* Panel resumen 30% */}
+          <aside className="lg:sticky lg:top-[125px] lg:self-start space-y-4">
+            <LiveSummary
+              sectorDef={sectorDef} sectorCfg={sectorCfg}
+              subtipo={subtipo} rol={rol} contraparte={contraparte}
+              monto={monto} fee={fee} hitos={hitos} sumaPct={sumaPct}
+              metodoPago={metodoPago} step={step}
+              creatorRoleLabel={creatorRoleLabel}
+            />
+            <NoCustodyCard />
+          </aside>
+        </div>
+      </main>
+
+      {/* Botonera sticky inferior */}
+      <footer className="fixed bottom-0 inset-x-0 bg-yo-surface border-t border-yo-border px-4 md:px-6 py-3 z-30">
+        <div className="max-w-[1400px] mx-auto flex items-center justify-between gap-3">
           <button
-            onClick={() => (step === 1 ? handleCancel() : setStep((s) => s - 1))}
-            disabled={step === 6 && (firmando || firmaResult?.activated === true)}
-            className="px-5 py-2.5 border border-yo-border text-[12px] uppercase tracking-[0.14em] font-semibold hover:bg-yo-ac-h hover:text-white disabled:opacity-40"
+            onClick={goBack}
+            disabled={saving || firmando}
+            className="inline-flex items-center gap-1.5 px-4 py-2 border border-yo-border text-sm font-medium rounded-md text-yo-txt-2 hover:bg-yo-raised disabled:opacity-40"
           >
+            <ChevronLeft className="h-4 w-4" />
             {step === 1 ? "Cancelar" : "Atrás"}
           </button>
-          {step < 6 ? (
+
+          <div className="flex items-center gap-2">
             <button
-              onClick={goNext}
+              onClick={handleGuardarYSalir}
               disabled={saving}
-              className="px-6 py-2.5 bg-yo-ac text-white text-[12px] uppercase tracking-[0.14em] font-semibold border border-yo-border hover:bg-yo-ac-h disabled:opacity-50"
+              className="hidden md:inline-flex px-4 py-2 border border-yo-border text-sm font-medium rounded-md text-yo-txt-2 hover:bg-yo-raised disabled:opacity-40"
             >
-              {saving ? "Guardando…" : step === 5 ? "Continuar a firma →" : "Continuar →"}
+              Guardar borrador
             </button>
-          ) : firmaResult ? (
-            <button
-              onClick={() => navigate({ to: "/transactions" })}
-              className="px-6 py-2.5 bg-yokto-yellow text-yokto-black text-[12px] uppercase tracking-[0.14em] font-semibold border border-yokto-black hover:bg-yokto-yellow/80"
-            >
-              Ir a mis transacciones →
-            </button>
-          ) : (
-            <button
-              onClick={handleFirmar}
-              disabled={firmando || !aceptaTerminos || !aceptaRetencion}
-              className="px-6 py-2.5 bg-yokto-black text-yokto-yellow text-[12px] uppercase tracking-[0.14em] font-semibold border border-yokto-black hover:opacity-90 disabled:opacity-40"
-            >
-              {firmando ? "Firmando…" : "Firmar y activar ✓"}
-            </button>
-          )}
-        </div>
-
-
-
-        {sectorDef && step > 1 && (
-          <div className="mt-6 border border-yo-border/40 bg-yo-bg/30 p-4 text-xs text-muted-foreground">
-            <span className="font-semibold text-foreground">{sectorDef.emoji} {sectorDef.titulo}</span>
-            {" · "}Tiempo típico: {sectorDef.tiempo_tipico}
-            {" · "}Monto típico: {sectorDef.monto_tipico}
-          </div>
-        )}
-      </div>
-    </>
-  );
-}
-
-// ─── Progreso ────────────────────────────────────────────────────────────────
-function WizardProgress({ current, total, labels }: { current: number; total: number; labels: string[] }) {
-  return (
-    <div className="mt-6">
-      <div className="flex gap-1">
-        {Array.from({ length: total }).map((_, i) => {
-          const n = i + 1;
-          return (
-            <div
-              key={n}
-              className={`h-1.5 flex-1 border border-yo-border ${n <= current ? "bg-yokto-yellow" : "bg-background"}`}
-            />
-          );
-        })}
-      </div>
-      <div className="mt-2 flex justify-between text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
-        {labels.map((l, i) => (
-          <span key={l} className={i + 1 === current ? "text-foreground font-semibold" : ""}>{l}</span>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-// ─── Paso 1: Sector ──────────────────────────────────────────────────────────
-function Step1({ sector, setSector }: { sector: SectorId | null; setSector: (s: SectorId) => void }) {
-  const selected = sector ? getSector(sector) : undefined;
-  return (
-    <div className="space-y-6">
-      <p className="text-sm text-muted-foreground">
-        Elige la categoría que mejor describe tu operación. Esto define plantillas de hitos, documentos requeridos y comisiones aplicables.
-      </p>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {SECTORES.map((s) => {
-          const isActive = sector === s.id;
-          return (
-            <button
-              key={s.id}
-              type="button"
-              onClick={() => setSector(s.id)}
-              className={`text-left p-4 border transition ${
-                isActive
-                  ? "border-yokto-black bg-yo-bg ring-2 ring-yokto-black"
-                  : "border-yo-border hover:border-yokto-black hover:bg-yo-bg/40"
-              }`}
-            >
-              <div className="text-3xl">{s.emoji}</div>
-              <div className="mt-2 text-[11px] uppercase tracking-[0.14em] font-semibold">{s.titulo}</div>
-              <div className="mt-1 text-xs text-muted-foreground">{s.descripcion}</div>
-            </button>
-          );
-        })}
-      </div>
-      {selected && (
-        <div className="border border-yo-border bg-yo-bg/40 p-4 grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-          <div>
-            <div className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">Tiempo típico</div>
-            <div className="text-foreground">{selected.tiempo_tipico}</div>
-          </div>
-          <div>
-            <div className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">Monto típico</div>
-            <div className="text-foreground">{selected.monto_tipico}</div>
-          </div>
-          <div className="sm:col-span-2">
-            <div className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">Ejemplos</div>
-            <div className="text-foreground">{selected.ejemplos.join(" · ")}</div>
+            {step < 6 ? (
+              <button
+                onClick={goNext}
+                disabled={saving || !stepValidNow}
+                title={!stepValidNow ? "Completa los campos obligatorios para continuar." : undefined}
+                className="inline-flex items-center gap-1.5 px-5 py-2 bg-yo-ac text-white text-sm font-semibold rounded-md hover:bg-yo-ac-h disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                {saving ? "Guardando…" : "Continuar"}
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            ) : (
+              <button
+                onClick={() => setShowActivation(true)}
+                disabled={!aceptaTerminos || !aceptaRetencion || !aceptaCumplimiento || !aceptaTraza}
+                title={(!aceptaTerminos || !aceptaRetencion || !aceptaCumplimiento || !aceptaTraza) ? "Acepta todas las declaraciones para continuar." : undefined}
+                className="inline-flex items-center gap-1.5 px-5 py-2 bg-yo-ac text-white text-sm font-semibold rounded-md hover:bg-yo-ac-h disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                {rol === "PAGADOR" ? "Activar operación y continuar a pago" : "Enviar propuesta al comprador"}
+              </button>
+            )}
           </div>
         </div>
+      </footer>
+
+      {showActivation && (
+        <ActivationModal
+          rol={rol}
+          firmando={firmando}
+          onClose={() => setShowActivation(false)}
+          onConfirm={handleFirmar}
+        />
       )}
     </div>
   );
 }
 
-// ─── Paso 2: Partes ──────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// Sub-components
+// ─────────────────────────────────────────────────────────────────────────────
+
+function Badge({ children, tone = "neutral", dot = false }: { children: React.ReactNode; tone?: "ok" | "warn" | "err" | "info" | "accent" | "neutral"; dot?: boolean }) {
+  const cls: Record<string, string> = {
+    ok: "bg-yo-ok-bg text-yo-ok", warn: "bg-yo-warn-bg text-yo-warn",
+    err: "bg-yo-err-bg text-yo-err", info: "bg-yo-info-bg text-yo-info",
+    accent: "bg-yo-ac-bg text-yo-ac-txt", neutral: "bg-yo-raised text-yo-txt-2",
+  };
+  return (
+    <span className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-medium ${cls[tone]}`}>
+      {dot && <span className="h-1.5 w-1.5 rounded-full bg-current" />}
+      {children}
+    </span>
+  );
+}
+
+function SaveIndicator({ state, at }: { state: "idle" | "saving" | "saved" | "error"; at: Date | null }) {
+  if (state === "saving") return <span className="text-xs text-yo-txt-3 hidden sm:inline">Guardando…</span>;
+  if (state === "error") return <span className="text-xs text-yo-err hidden sm:inline">Error al guardar</span>;
+  if (state === "saved" && at) {
+    return <span className="text-xs text-yo-txt-3 hidden sm:inline">Guardado {at.toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit" })}</span>;
+  }
+  return <span className="text-xs text-yo-txt-3 hidden sm:inline">Guardado automáticamente</span>;
+}
+
+function Stepper({ current, labels, onJump }: { current: number; labels: string[]; onJump: (n: number) => void }) {
+  return (
+    <ol className="flex items-center gap-1 overflow-x-auto">
+      {labels.map((label, i) => {
+        const n = i + 1;
+        const isDone = n < current;
+        const isCurrent = n === current;
+        return (
+          <li key={label} className="flex items-center gap-1 shrink-0">
+            <button
+              type="button"
+              onClick={() => onJump(n)}
+              disabled={n >= current}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-medium transition ${
+                isCurrent
+                  ? "bg-yo-ac-bg text-yo-ac-txt border border-yo-ac"
+                  : isDone
+                    ? "text-yo-txt-2 hover:bg-yo-raised"
+                    : "text-yo-txt-3 cursor-default"
+              }`}
+            >
+              <span className={`h-5 w-5 rounded-full flex items-center justify-center text-[10px] font-semibold ${
+                isDone ? "bg-yo-ok text-white" : isCurrent ? "bg-yo-ac text-white" : "bg-yo-raised text-yo-txt-3"
+              }`}>
+                {isDone ? <Check className="h-3 w-3" /> : n}
+              </span>
+              <span className="hidden md:inline">{label}</span>
+            </button>
+            {n < labels.length && <ChevronRight className="h-3 w-3 text-yo-txt-4" />}
+          </li>
+        );
+      })}
+    </ol>
+  );
+}
+
+function LiveSummary({
+  sectorDef, sectorCfg, subtipo, rol, contraparte, monto, fee, hitos, sumaPct, metodoPago, step, creatorRoleLabel,
+}: {
+  sectorDef: ReturnType<typeof getSector>; sectorCfg?: typeof SECTOR_CFG[SectorId];
+  subtipo: string; rol: Rol; contraparte: Contraparte | null; monto: number;
+  fee: ReturnType<typeof calcularFee> | null; hitos: HitoDraft[]; sumaPct: number;
+  metodoPago: string; step: number; creatorRoleLabel: string;
+}) {
+  const pctOk = Math.abs(sumaPct - 100) < 0.01;
+  return (
+    <div className="bg-yo-surface border border-yo-border rounded-lg overflow-hidden">
+      <div className="h-1 bg-yo-ac" />
+      <div className="p-4 space-y-3">
+        <div className="flex items-center justify-between">
+          <h3 className="text-sm font-semibold text-yo-txt">Resumen de la operación</h3>
+          <Badge tone="neutral" dot>Paso {step}/6</Badge>
+        </div>
+
+        <SummaryRow label="Sector">
+          {sectorDef ? (
+            <span className="inline-flex items-center gap-1.5">
+              <span>{sectorCfg?.emoji}</span>
+              <span className="text-yo-txt">{sectorDef.titulo}</span>
+            </span>
+          ) : <span className="text-yo-txt-3">Sin definir</span>}
+        </SummaryRow>
+
+        {subtipo && <SummaryRow label="Subtipo"><span className="text-yo-txt">{subtipo}</span></SummaryRow>}
+
+        <SummaryRow label="Tu rol">
+          <span className="text-yo-txt">{creatorRoleLabel}</span>
+        </SummaryRow>
+
+        <SummaryRow label="Contraparte">
+          {contraparte ? (
+            <span className="text-yo-txt truncate block">{contraparte.nombre}</span>
+          ) : <span className="text-yo-txt-3">Sin definir</span>}
+        </SummaryRow>
+
+        <SummaryRow label="Monto">
+          <span className="font-mono text-yo-txt">{fmtMoney(monto)}</span>
+        </SummaryRow>
+
+        {fee && monto > 0 && (
+          <>
+            <SummaryRow label="Comisión">
+              <span className="font-mono text-yo-txt-2">{fmtMoney(fee.comision_final + fee.iva_comision)}</span>
+            </SummaryRow>
+            <SummaryRow label="Total a depositar">
+              <span className="font-mono font-semibold text-yo-ac-txt">{fmtMoney(fee.total_a_depositar)}</span>
+            </SummaryRow>
+          </>
+        )}
+
+        <SummaryRow label="Hitos">
+          <span className="text-yo-txt">
+            {hitos.length}
+            {hitos.length > 0 && (
+              <span className={`ml-2 text-xs ${pctOk ? "text-yo-ok" : "text-yo-warn"}`}>
+                {sumaPct.toFixed(0)}%
+              </span>
+            )}
+          </span>
+        </SummaryRow>
+
+        <SummaryRow label="Método de pago">
+          <span className="text-yo-txt">{metodoPago}</span>
+        </SummaryRow>
+
+        <div className="pt-3 border-t border-yo-border">
+          <p className="text-xs text-yo-txt-2">
+            <span className="font-medium text-yo-txt">Responsabilidad principal:</span>{" "}
+            {rol === "PAGADOR"
+              ? "fondear la operación, revisar cumplimiento y aprobar liberaciones."
+              : "entregar bienes/servicios y cargar evidencia para solicitar liberaciones."}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function SummaryRow({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="flex items-baseline justify-between gap-3 text-sm">
+      <span className="text-yo-txt-3 text-xs">{label}</span>
+      <span className="text-right min-w-0 truncate">{children}</span>
+    </div>
+  );
+}
+
+function NoCustodyCard() {
+  return (
+    <div className="bg-yo-info-bg border border-[#BAE6FD] rounded-lg p-4">
+      <div className="flex items-start gap-2">
+        <Info className="h-4 w-4 text-yo-info shrink-0 mt-0.5" />
+        <div className="text-xs text-yo-txt-2 leading-relaxed">
+          <p className="font-semibold text-yo-info mb-1">YOKTO no custodia fondos</p>
+          <p>
+            El pago es procesado y retenido por una pasarela certificada. YOKTO registra
+            condiciones, evidencia y eventos para ordenar liberación o devolución conforme
+            a la operación.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Paso 1 ─────────────────────────────────────────────────────────────────
+function Step1Tipo({
+  sector, setSector, subtipo, setSubtipo, descripcion, setDescripcion,
+  fechaInicio, setFechaInicio, fechaFin, setFechaFin,
+}: {
+  sector: SectorId | null; setSector: (s: SectorId) => void;
+  subtipo: string; setSubtipo: (s: string) => void;
+  descripcion: string; setDescripcion: (s: string) => void;
+  fechaInicio: string; setFechaInicio: (s: string) => void;
+  fechaFin: string; setFechaFin: (s: string) => void;
+}) {
+  const cfg = sector ? SECTOR_CFG[sector] : undefined;
+  const sd = sector ? getSector(sector) : undefined;
+  return (
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-lg font-semibold text-yo-txt">Tipo de operación</h2>
+        <p className="text-sm text-yo-txt-2 mt-0.5">Elige la vertical. Sugeriremos hitos, documentos y evidencia adecuados.</p>
+      </div>
+
+      <div className="rounded-lg bg-yo-ac-bg border border-[#C7D2FE] p-3 flex items-start gap-2">
+        <Sparkles className="h-4 w-4 text-yo-ac-txt shrink-0 mt-0.5" />
+        <p className="text-xs text-yo-ac-txt">
+          Al elegir un sector, YOKTO precargará hitos, documentos y evidencia comunes. Podrás editarlos antes de activar.
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        {SECTORES.map((s) => {
+          const c = SECTOR_CFG[s.id];
+          const active = sector === s.id;
+          return (
+            <button
+              key={s.id}
+              type="button"
+              onClick={() => { setSector(s.id); setSubtipo(""); }}
+              className={`relative text-left p-4 rounded-lg border-2 transition ${
+                active ? "border-yo-ac bg-yo-ac-bg shadow-sm" : "border-yo-border bg-yo-surface hover:border-yo-border-s"
+              }`}
+            >
+              {active && (
+                <span className="absolute top-2 right-2 h-5 w-5 rounded-full bg-yo-ac text-white flex items-center justify-center">
+                  <Check className="h-3 w-3" />
+                </span>
+              )}
+              <div className="text-2xl" style={{ color: c.color }}>{c.emoji}</div>
+              <div className="mt-2 text-sm font-semibold text-yo-txt">{s.titulo}</div>
+              <div className="mt-0.5 text-xs text-yo-txt-2 line-clamp-2">{s.descripcion}</div>
+              <div className="mt-3 flex flex-wrap gap-1.5">
+                <span className="text-[10px] px-1.5 py-0.5 rounded" style={{ backgroundColor: c.bg, color: c.txt }}>
+                  {s.tiempo_tipico}
+                </span>
+              </div>
+            </button>
+          );
+        })}
+      </div>
+
+      {sector && cfg && sd && (
+        <>
+          <div>
+            <label className="block text-sm font-medium text-yo-txt mb-1.5">
+              Subtipo de operación <span className="text-yo-txt-3 font-normal">(opcional)</span>
+            </label>
+            <select
+              value={subtipo}
+              onChange={(e) => setSubtipo(e.target.value)}
+              className="w-full px-3 py-2 border border-yo-border rounded-md bg-yo-surface text-sm focus:outline-none focus:ring-2 focus:ring-yo-ac"
+            >
+              <option value="">— Selecciona subtipo —</option>
+              {cfg.subtipos.map((s) => <option key={s} value={s}>{s}</option>)}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-yo-txt mb-1.5">
+              Descripción de la operación <span className="text-yo-err">*</span>
+            </label>
+            <textarea
+              value={descripcion}
+              onChange={(e) => setDescripcion(e.target.value)}
+              rows={4}
+              maxLength={1000}
+              placeholder={sd.placeholder_descripcion}
+              className="w-full px-3 py-2 border border-yo-border rounded-md bg-yo-surface text-sm resize-y focus:outline-none focus:ring-2 focus:ring-yo-ac"
+            />
+            <div className="mt-1 flex items-center justify-between text-xs text-yo-txt-3">
+              <span>Mínimo 10 caracteres.</span>
+              <span className="font-mono">{descripcion.length}/1000</span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <label className="block">
+              <span className="block text-sm font-medium text-yo-txt mb-1.5">Fecha estimada de inicio</span>
+              <input type="date" value={fechaInicio} onChange={(e) => setFechaInicio(e.target.value)}
+                className="w-full px-3 py-2 border border-yo-border rounded-md bg-yo-surface text-sm focus:outline-none focus:ring-2 focus:ring-yo-ac" />
+            </label>
+            <label className="block">
+              <span className="block text-sm font-medium text-yo-txt mb-1.5">Fecha estimada de fin</span>
+              <input type="date" value={fechaFin} onChange={(e) => setFechaFin(e.target.value)}
+                className="w-full px-3 py-2 border border-yo-border rounded-md bg-yo-surface text-sm focus:outline-none focus:ring-2 focus:ring-yo-ac" />
+            </label>
+          </div>
+
+          <div className="rounded-lg bg-yo-warn-bg border border-[#FDE68A] p-3 flex items-start gap-2">
+            <Info className="h-4 w-4 text-yo-warn shrink-0 mt-0.5" />
+            <p className="text-xs text-yo-warn">
+              La plantilla es una guía operativa. Las partes pueden ajustar condiciones, documentos y fechas según el acuerdo real.
+            </p>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+// ─── Paso 2 ─────────────────────────────────────────────────────────────────
 type SearchResult = {
-  id: string;
-  first_name: string | null;
-  last_name: string | null;
-  legal_name: string | null;
-  email: string | null;
-  rfc: string | null;
-  account_type: string | null;
-  kyc_status: string | null;
+  id: string; first_name: string | null; last_name: string | null; legal_name: string | null;
+  email: string | null; rfc: string | null; account_type: string | null; kyc_status: string | null;
 };
 
-function Step2({
-  sector, rol, setRol, descripcion, setDescripcion, contraparte, setContraparte,
+function Step2Partes({
+  sector, rol, setRol, contraparte, setContraparte, currentUserId,
 }: {
   sector: SectorId;
   rol: Rol; setRol: (r: Rol) => void;
-  descripcion: string; setDescripcion: (d: string) => void;
   contraparte: Contraparte | null; setContraparte: (c: Contraparte | null) => void;
+  currentUserId: string;
 }) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResult[] | null>(null);
@@ -456,8 +745,9 @@ function Step2({
   const [inviteMode, setInviteMode] = useState(false);
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteNombre, setInviteNombre] = useState("");
+  const [inviteRfc, setInviteRfc] = useState("");
   const search = useServerFn(searchCounterpart);
-  const sectorDef = getSector(sector)!;
+  void sector;
 
   useEffect(() => {
     if (query.trim().length < 3) { setResults(null); return; }
@@ -465,155 +755,171 @@ function Step2({
       setSearching(true);
       try {
         const res = await search({ data: { query: query.trim() } });
-        setResults(res.results);
+        setResults(res.results.filter((r) => r.id !== currentUserId));
       } catch { setResults([]); }
       finally { setSearching(false); }
     }, 400);
     return () => clearTimeout(h);
-  }, [query, search]);
+  }, [query, search, currentUserId]);
 
   function pickResult(r: SearchResult) {
     const nombre = r.legal_name || [r.first_name, r.last_name].filter(Boolean).join(" ") || r.email || "Contraparte";
     setContraparte({ user_id: r.id, email: r.email ?? "", nombre, rfc: r.rfc });
-    setQuery(nombre);
-    setResults(null);
-    setInviteMode(false);
+    setQuery(nombre); setResults(null); setInviteMode(false);
   }
 
   function applyInvite() {
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(inviteEmail)) return;
     if (inviteNombre.trim().length < 2) return;
-    setContraparte({ user_id: null, email: inviteEmail.trim().toLowerCase(), nombre: inviteNombre.trim(), rfc: null });
+    setContraparte({ user_id: null, email: inviteEmail.trim().toLowerCase(), nombre: inviteNombre.trim(), rfc: inviteRfc.trim() || null });
   }
 
   return (
     <div className="space-y-6">
-      {/* Selector de rol */}
       <div>
-        <div className="text-[11px] uppercase tracking-[0.14em] font-semibold text-foreground mb-2">Tu rol en esta transacción</div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {(["PAGADOR", "BENEFICIARIO"] as const).map((r) => (
-            <button
-              key={r}
-              type="button"
-              onClick={() => setRol(r)}
-              className={`p-4 border text-left ${
-                rol === r ? "border-yokto-black bg-yo-bg ring-2 ring-yokto-black" : "border-yo-border hover:border-yokto-black"
-              }`}
-            >
-              <div className="text-[11px] uppercase tracking-[0.14em] font-semibold">
-                Soy {r === "PAGADOR" ? "el pagador" : "el beneficiario"}
-              </div>
-              <div className="text-xs text-muted-foreground mt-1">
-                {r === "PAGADOR" ? "Comprador / cliente que deposita los fondos" : "Vendedor / proveedor que recibe los fondos al cumplir"}
-              </div>
-            </button>
-          ))}
+        <h2 className="text-lg font-semibold text-yo-txt">Partes de la operación</h2>
+        <p className="text-sm text-yo-txt-2 mt-0.5">Define tu rol y busca o invita a la contraparte.</p>
+      </div>
+
+      {/* Rol */}
+      <div>
+        <label className="block text-sm font-medium text-yo-txt mb-2">Tu rol en esta operación</label>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <RoleCard
+            active={rol === "PAGADOR"}
+            onClick={() => setRol("PAGADOR")}
+            title="Comprador / Pagador"
+            bullets={["Deposita mediante pasarela", "Revisa evidencia", "Aprueba hitos", "Puede abrir disputa"]}
+          />
+          <RoleCard
+            active={rol === "BENEFICIARIO"}
+            onClick={() => setRol("BENEFICIARIO")}
+            title="Vendedor / Beneficiario"
+            bullets={["Acepta condiciones", "Carga documentos y evidencia", "Cumple hitos", "Recibe liberaciones"]}
+          />
         </div>
       </div>
 
-      {/* Búsqueda de contraparte */}
+      {/* Búsqueda */}
       <div>
-        <div className="text-[11px] uppercase tracking-[0.14em] font-semibold text-foreground mb-2">
-          Buscar contraparte por RFC o email
+        <label className="block text-sm font-medium text-yo-txt mb-1.5">Buscar contraparte</label>
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-yo-txt-3" />
+          <input
+            type="text"
+            value={query}
+            onChange={(e) => { setQuery(e.target.value); if (contraparte?.user_id) setContraparte(null); }}
+            placeholder="Busca por email o RFC (ej. ACME850101ABC o contacto@empresa.mx)"
+            className="w-full pl-9 pr-3 py-2 border border-yo-border rounded-md bg-yo-surface text-sm focus:outline-none focus:ring-2 focus:ring-yo-ac"
+          />
         </div>
-        <input
-          type="text"
-          value={query}
-          onChange={(e) => { setQuery(e.target.value); if (contraparte?.user_id) setContraparte(null); }}
-          placeholder="ABCD850101XYZ o contraparte@empresa.mx"
-          className="input-editorial"
-        />
-        {searching && <p className="mt-1 text-xs text-muted-foreground">Buscando…</p>}
+        {searching && <p className="mt-1.5 text-xs text-yo-txt-3">Buscando…</p>}
         {results && results.length > 0 && (
-          <div className="mt-2 border border-yo-border divide-y divide-yo-border/40">
+          <div className="mt-2 border border-yo-border rounded-md divide-y divide-yo-border overflow-hidden">
             {results.map((r) => {
               const nombre = r.legal_name || [r.first_name, r.last_name].filter(Boolean).join(" ") || r.email;
+              const rfcMask = r.rfc ? r.rfc.slice(0, 4) + "••••" + r.rfc.slice(-3) : "sin RFC";
               return (
-                <button
-                  key={r.id}
-                  type="button"
-                  onClick={() => pickResult(r)}
-                  className="w-full text-left px-3 py-2 hover:bg-yo-bg/40 flex items-center justify-between gap-3"
-                >
-                  <div>
-                    <div className="text-sm font-semibold text-foreground">{nombre}</div>
-                    <div className="text-xs text-muted-foreground">{r.rfc ?? "sin RFC"} · {r.email}</div>
+                <button key={r.id} type="button" onClick={() => pickResult(r)}
+                  className="w-full text-left px-4 py-3 hover:bg-yo-raised flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <div className="text-sm font-medium text-yo-txt truncate">{nombre}</div>
+                    <div className="text-xs text-yo-txt-3 font-mono">{rfcMask} · {r.account_type === "persona_moral" ? "Persona Moral" : "Persona Física"}</div>
                   </div>
-                  <span className={`text-[10px] uppercase tracking-[0.14em] px-2 py-1 border ${
-                    r.kyc_status === "approved" ? "bg-yokto-yellow border-yo-border text-yokto-black" : "border-yo-border text-muted-foreground"
-                  }`}>KYC {r.kyc_status ?? "n/a"}</span>
+                  <Badge tone={r.kyc_status === "approved" ? "ok" : "warn"} dot>
+                    {r.kyc_status === "approved" ? "Verificado" : "En revisión"}
+                  </Badge>
                 </button>
               );
             })}
           </div>
         )}
         {results && results.length === 0 && !inviteMode && (
-          <div className="mt-2 border border-yo-border/60 bg-yo-bg/40 p-3 text-sm text-muted-foreground">
-            No encontramos a esa contraparte en YOKTO.{" "}
-            <button
-              type="button"
-              onClick={() => { setInviteMode(true); setInviteEmail(query.includes("@") ? query : ""); }}
-              className="underline text-foreground"
-            >
-              Invitarla por email
+          <div className="mt-2 rounded-md border border-yo-border bg-yo-raised p-3 text-sm text-yo-txt-2 flex items-center justify-between gap-3">
+            <span>No encontramos a esa contraparte en YOKTO.</span>
+            <button type="button" onClick={() => { setInviteMode(true); setInviteEmail(query.includes("@") ? query : ""); }}
+              className="text-yo-ac hover:text-yo-ac-h text-sm font-medium">
+              Invitar contraparte
             </button>
           </div>
         )}
 
-        {inviteMode && (
-          <div className="mt-3 border border-yo-border bg-yo-bg/40 p-4 space-y-3">
-            <div className="text-[11px] uppercase tracking-[0.14em] font-semibold text-foreground">Invitar contraparte nueva</div>
-            <input type="email" value={inviteEmail} onChange={(e) => setInviteEmail(e.target.value)} placeholder="contraparte@empresa.mx" className="input-editorial" />
-            <input type="text" value={inviteNombre} onChange={(e) => setInviteNombre(e.target.value)} placeholder="Nombre o razón social" className="input-editorial" />
+        {inviteMode && !contraparte && (
+          <div className="mt-3 rounded-lg border border-yo-border bg-yo-raised p-4 space-y-3">
+            <div className="text-sm font-semibold text-yo-txt">Invitar contraparte nueva</div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <input type="email" value={inviteEmail} onChange={(e) => setInviteEmail(e.target.value)}
+                placeholder="Email *"
+                className="px-3 py-2 border border-yo-border rounded-md bg-yo-surface text-sm focus:outline-none focus:ring-2 focus:ring-yo-ac" />
+              <input type="text" value={inviteNombre} onChange={(e) => setInviteNombre(e.target.value)}
+                placeholder="Nombre o razón social *"
+                className="px-3 py-2 border border-yo-border rounded-md bg-yo-surface text-sm focus:outline-none focus:ring-2 focus:ring-yo-ac" />
+              <input type="text" value={inviteRfc} onChange={(e) => setInviteRfc(e.target.value.toUpperCase())}
+                placeholder="RFC (opcional)"
+                className="px-3 py-2 border border-yo-border rounded-md bg-yo-surface text-sm font-mono focus:outline-none focus:ring-2 focus:ring-yo-ac" />
+            </div>
             <div className="flex gap-2">
-              <button type="button" onClick={applyInvite} className="px-4 py-2 bg-yokto-yellow text-yokto-black text-[11px] uppercase tracking-[0.14em] font-semibold border border-yo-border">
+              <button type="button" onClick={applyInvite}
+                className="px-4 py-2 bg-yo-ac text-white text-sm font-medium rounded-md hover:bg-yo-ac-h">
                 Usar como contraparte
               </button>
-              <button type="button" onClick={() => { setInviteMode(false); setContraparte(null); }} className="px-4 py-2 border border-yo-border text-[11px] uppercase tracking-[0.14em]">
+              <button type="button" onClick={() => setInviteMode(false)}
+                className="px-4 py-2 border border-yo-border text-sm font-medium rounded-md text-yo-txt-2 hover:bg-yo-surface">
                 Cancelar
               </button>
             </div>
-            <p className="text-[11px] text-muted-foreground">
-              Recibirá un correo con instrucciones para crear su cuenta YOKTO y firmar. La transacción queda en <strong>pendiente de firma</strong> hasta que complete su KYC básico.
+            <p className="text-xs text-yo-txt-3">
+              La operación quedará pendiente de aceptación hasta que la contraparte cree su cuenta, complete verificación básica y acepte las condiciones.
             </p>
           </div>
         )}
 
         {contraparte && (
-          <div className="mt-3 border-2 border-yokto-black bg-background p-3 flex items-center justify-between gap-3">
-            <div>
-              <div className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">Contraparte seleccionada</div>
-              <div className="text-sm font-semibold text-foreground">{contraparte.nombre}</div>
-              <div className="text-xs text-muted-foreground">
-                {contraparte.email}{contraparte.rfc ? ` · ${contraparte.rfc}` : ""} · {contraparte.user_id ? "usuario YOKTO" : "por invitar"}
+          <div className="mt-3 rounded-lg border-2 border-yo-ac bg-yo-ac-bg p-4 flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <div className="text-xs text-yo-ac-txt font-medium">Contraparte seleccionada</div>
+              <div className="mt-0.5 text-sm font-semibold text-yo-txt">{contraparte.nombre}</div>
+              <div className="text-xs text-yo-txt-2 font-mono">
+                {contraparte.email}{contraparte.rfc ? ` · ${contraparte.rfc}` : ""}
+                {" · "}{contraparte.user_id ? "usuario YOKTO" : "por invitar"}
               </div>
             </div>
-            <button type="button" onClick={() => setContraparte(null)} className="text-[11px] uppercase tracking-[0.14em] underline text-muted-foreground">
+            <button type="button" onClick={() => { setContraparte(null); setQuery(""); }}
+              className="text-xs text-yo-ac hover:text-yo-ac-h font-medium">
               Cambiar
             </button>
           </div>
         )}
       </div>
-
-      {/* Descripción */}
-      <div>
-        <div className="text-[11px] uppercase tracking-[0.14em] font-semibold text-foreground mb-2">Descripción de la operación</div>
-        <textarea
-          value={descripcion}
-          onChange={(e) => setDescripcion(e.target.value)}
-          rows={4}
-          placeholder={sectorDef.placeholder_descripcion}
-          maxLength={1000}
-          className="input-editorial resize-y"
-        />
-        <div className="mt-1 text-[11px] text-muted-foreground text-right">{descripcion.length}/1000</div>
-      </div>
     </div>
   );
 }
 
-// ─── Paso 3: Hitos ──────────────────────────────────────────────────────────
+function RoleCard({ active, onClick, title, bullets }: { active: boolean; onClick: () => void; title: string; bullets: string[] }) {
+  return (
+    <button type="button" onClick={onClick}
+      className={`relative text-left p-4 rounded-lg border-2 transition ${
+        active ? "border-yo-ac bg-yo-ac-bg shadow-sm" : "border-yo-border bg-yo-surface hover:border-yo-border-s"
+      }`}>
+      {active && (
+        <span className="absolute top-2 right-2 h-5 w-5 rounded-full bg-yo-ac text-white flex items-center justify-center">
+          <Check className="h-3 w-3" />
+        </span>
+      )}
+      <div className="text-sm font-semibold text-yo-txt">{title}</div>
+      <ul className="mt-2 space-y-1">
+        {bullets.map((b) => (
+          <li key={b} className="text-xs text-yo-txt-2 flex items-start gap-1.5">
+            <span className="h-1 w-1 rounded-full bg-yo-txt-3 mt-1.5 shrink-0" />
+            {b}
+          </li>
+        ))}
+      </ul>
+    </button>
+  );
+}
+
+// ─── Paso 3 ─────────────────────────────────────────────────────────────────
 const TIPOS_VERIF: Array<{ id: HitoDraft["tipo_verificacion"]; label: string }> = [
   { id: "DOCUMENTAL", label: "Documental" },
   { id: "EVIDENCIA_FISICA", label: "Evidencia física" },
@@ -623,16 +929,14 @@ const TIPOS_VERIF: Array<{ id: HitoDraft["tipo_verificacion"]; label: string }> 
   { id: "MANUAL_YOKTO", label: "Verificado por YOKTO" },
 ];
 
-function Step3({
-  sector, hitos, setHitos, fechaBase,
+function Step3Hitos({
+  sector, hitos, setHitos, fechaBase, sumaPct,
 }: {
-  sector: SectorId;
-  hitos: HitoDraft[];
-  setHitos: (h: HitoDraft[]) => void;
-  fechaBase: string;
+  sector: SectorId; hitos: HitoDraft[]; setHitos: (h: HitoDraft[]) => void;
+  fechaBase: string; sumaPct: number;
 }) {
-  const suma = hitos.reduce((s, h) => s + Number(h.monto_porcentaje || 0), 0);
-  const ok = Math.abs(suma - 100) < 0.01;
+  const ok = Math.abs(sumaPct - 100) < 0.01;
+  const cfg = SECTOR_CFG[sector];
 
   function update(idx: number, patch: Partial<HitoDraft>) {
     setHitos(hitos.map((h, i) => (i === idx ? { ...h, ...patch } : h)));
@@ -648,400 +952,715 @@ function Step3({
     setHitos(copy.map((h, i) => ({ ...h, orden: i + 1 })));
   }
   function addBlank() {
-    setHitos([
-      ...hitos,
-      {
-        orden: hitos.length + 1,
-        titulo: "Nuevo hito",
-        descripcion: "",
-        monto_porcentaje: 0,
-        fecha_limite: fechaBase,
-        tipo_verificacion: "DOCUMENTAL",
-        documentos_requeridos: [],
-        evidencia_requerida: [],
-        responsable: "PAGADOR",
-        auto_release: false,
-      },
-    ]);
+    setHitos([...hitos, {
+      orden: hitos.length + 1, titulo: "Nuevo hito", descripcion: "",
+      monto_porcentaje: 0, fecha_limite: fechaBase, tipo_verificacion: "DOCUMENTAL",
+      documentos_requeridos: [], evidencia_requerida: [], responsable: "PAGADOR", auto_release: false,
+    }]);
   }
   function resetPlantilla() {
-    const p = PLANTILLAS_HITOS[sector];
-    setHitos(p.map((pl, i) => plantillaToDraft(pl, i + 1, fechaBase)));
+    setHitos(PLANTILLAS_HITOS[sector].map((pl, i) => plantillaToDraft(pl, i + 1, fechaBase)));
   }
   function distribuirIgual() {
     if (hitos.length === 0) return;
     const each = Math.floor((100 / hitos.length) * 100) / 100;
     const resto = 100 - each * hitos.length;
-    setHitos(hitos.map((h, i) => ({ ...h, monto_porcentaje: i === 0 ? each + resto : each })));
+    setHitos(hitos.map((h, i) => ({ ...h, monto_porcentaje: i === 0 ? +(each + resto).toFixed(2) : each })));
   }
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between gap-3 flex-wrap">
-        <p className="text-sm text-muted-foreground max-w-2xl">
-          Divide la operación en hitos verificables. Los fondos se liberan hito por hito conforme se aprueban.
+      <div>
+        <h2 className="text-lg font-semibold text-yo-txt">Condiciones e hitos</h2>
+        <p className="text-sm text-yo-txt-2 mt-0.5">
+          Divide la operación en condiciones verificables. La suma de liberaciones debe ser exactamente 100%.
         </p>
-        <div className="flex gap-2">
-          <button type="button" onClick={resetPlantilla} className="px-3 py-1.5 border border-yo-border text-[11px] uppercase tracking-[0.14em]">
-            Usar plantilla del sector
-          </button>
-          <button type="button" onClick={distribuirIgual} className="px-3 py-1.5 border border-yo-border text-[11px] uppercase tracking-[0.14em]">
-            Distribuir 100% igual
-          </button>
+      </div>
+
+      <div className="flex flex-wrap gap-2">
+        <button type="button" onClick={resetPlantilla}
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 border border-yo-border rounded-md text-xs font-medium text-yo-txt-2 hover:bg-yo-raised">
+          <Sparkles className="h-3.5 w-3.5" /> Usar plantilla recomendada
+        </button>
+        <button type="button" onClick={distribuirIgual}
+          className="px-3 py-1.5 border border-yo-border rounded-md text-xs font-medium text-yo-txt-2 hover:bg-yo-raised">
+          Distribuir porcentajes automáticamente
+        </button>
+      </div>
+
+      {/* Distribution bar */}
+      <div>
+        <div className="flex items-center justify-between mb-1.5">
+          <span className="text-xs text-yo-txt-2">Distribución de liberaciones</span>
+          <span className={`text-xs font-mono font-semibold ${ok ? "text-yo-ok" : sumaPct > 100 ? "text-yo-err" : "text-yo-warn"}`}>
+            {sumaPct.toFixed(2)}% {ok && "✓"}
+          </span>
         </div>
+        <div className="h-2 bg-yo-raised rounded-full overflow-hidden flex">
+          {hitos.map((h, i) => (
+            <div key={i} style={{ width: `${Math.min(Number(h.monto_porcentaje), 100)}%`, backgroundColor: cfg.color, opacity: 0.4 + (i * 0.15) }} />
+          ))}
+        </div>
+        {!ok && (
+          <p className="mt-1.5 text-xs text-yo-warn">
+            La suma de liberaciones debe ser exactamente 100% antes de activar la operación.
+          </p>
+        )}
       </div>
 
-      <div className={`border p-3 text-sm flex items-center justify-between ${ok ? "border-yo-border bg-yokto-yellow/30 text-yokto-black" : "border-[#FF3B3B] bg-[#FF3B3B]/10 text-[#FF3B3B]"}`}>
-        <span>Suma actual: <strong>{suma.toFixed(2)}%</strong> {ok ? "✓ correcto" : "· debe sumar exactamente 100%"}</span>
-        <span className="text-xs">{hitos.length} hito{hitos.length === 1 ? "" : "s"}</span>
-      </div>
-
-      <div className="space-y-4">
+      {/* Milestones */}
+      <div className="space-y-3">
         {hitos.map((h, idx) => (
-          <div key={idx} className="border border-yo-border p-4 bg-background space-y-3">
-            <div className="flex items-center justify-between gap-2">
-              <div className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground font-semibold">
-                Hito {h.orden}
+          <div key={idx} className="rounded-lg border border-yo-border bg-yo-surface p-4">
+            <div className="flex items-center justify-between gap-2 mb-3">
+              <div className="flex items-center gap-2">
+                <GripVertical className="h-4 w-4 text-yo-txt-3" />
+                <span className="text-xs font-mono text-yo-txt-3">Hito {h.orden}</span>
+                <Badge tone={h.titulo && h.monto_porcentaje > 0 ? "ok" : "warn"} dot>
+                  {h.titulo && h.monto_porcentaje > 0 ? "Configurado" : "Incompleto"}
+                </Badge>
               </div>
-              <div className="flex gap-1">
-                <button type="button" onClick={() => move(idx, -1)} disabled={idx === 0} className="px-2 py-1 border border-yo-border text-xs disabled:opacity-30">↑</button>
-                <button type="button" onClick={() => move(idx, 1)} disabled={idx === hitos.length - 1} className="px-2 py-1 border border-yo-border text-xs disabled:opacity-30">↓</button>
-                <button type="button" onClick={() => remove(idx)} className="px-2 py-1 border border-[#FF3B3B] text-[#FF3B3B] text-xs">Eliminar</button>
+              <div className="flex items-center gap-1">
+                <button type="button" onClick={() => move(idx, -1)} disabled={idx === 0}
+                  className="p-1.5 rounded hover:bg-yo-raised disabled:opacity-30" aria-label="Subir">
+                  <ArrowUp className="h-3.5 w-3.5 text-yo-txt-2" />
+                </button>
+                <button type="button" onClick={() => move(idx, 1)} disabled={idx === hitos.length - 1}
+                  className="p-1.5 rounded hover:bg-yo-raised disabled:opacity-30" aria-label="Bajar">
+                  <ArrowDown className="h-3.5 w-3.5 text-yo-txt-2" />
+                </button>
+                <button type="button" onClick={() => remove(idx)}
+                  className="p-1.5 rounded hover:bg-yo-err-bg text-yo-err" aria-label="Eliminar">
+                  <Trash2 className="h-3.5 w-3.5" />
+                </button>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <label className="block">
-                <span className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">Título</span>
-                <input type="text" value={h.titulo} onChange={(e) => update(idx, { titulo: e.target.value })} className="input-editorial mt-1" />
-              </label>
-              <label className="block">
-                <span className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">% del monto</span>
-                <input type="number" min={0} max={100} step={0.01} value={h.monto_porcentaje} onChange={(e) => update(idx, { monto_porcentaje: Number(e.target.value) })} className="input-editorial mt-1" />
+            <div className="grid grid-cols-1 sm:grid-cols-6 gap-3">
+              <label className="block sm:col-span-4">
+                <span className="text-xs font-medium text-yo-txt-2">Título</span>
+                <input type="text" value={h.titulo} onChange={(e) => update(idx, { titulo: e.target.value })}
+                  className="mt-1 w-full px-3 py-2 border border-yo-border rounded-md bg-yo-surface text-sm focus:outline-none focus:ring-2 focus:ring-yo-ac" />
               </label>
               <label className="block sm:col-span-2">
-                <span className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">Descripción</span>
-                <textarea rows={2} value={h.descripcion} onChange={(e) => update(idx, { descripcion: e.target.value })} className="input-editorial mt-1 resize-y" />
+                <span className="text-xs font-medium text-yo-txt-2">% liberación</span>
+                <input type="number" min={0} max={100} step={0.01} value={h.monto_porcentaje}
+                  onChange={(e) => update(idx, { monto_porcentaje: Number(e.target.value) })}
+                  className="mt-1 w-full px-3 py-2 border border-yo-border rounded-md bg-yo-surface text-sm font-mono focus:outline-none focus:ring-2 focus:ring-yo-ac" />
               </label>
-              <label className="block">
-                <span className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">Fecha límite</span>
-                <input type="date" value={h.fecha_limite} onChange={(e) => update(idx, { fecha_limite: e.target.value })} className="input-editorial mt-1" />
+              <label className="block sm:col-span-6">
+                <span className="text-xs font-medium text-yo-txt-2">Descripción</span>
+                <textarea rows={2} value={h.descripcion ?? ""} onChange={(e) => update(idx, { descripcion: e.target.value })}
+                  className="mt-1 w-full px-3 py-2 border border-yo-border rounded-md bg-yo-surface text-sm resize-y focus:outline-none focus:ring-2 focus:ring-yo-ac" />
               </label>
-              <label className="block">
-                <span className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">Tipo de verificación</span>
-                <select value={h.tipo_verificacion} onChange={(e) => update(idx, { tipo_verificacion: e.target.value as HitoDraft["tipo_verificacion"] })} className="input-editorial mt-1">
+              <label className="block sm:col-span-2">
+                <span className="text-xs font-medium text-yo-txt-2">Fecha límite</span>
+                <input type="date" value={h.fecha_limite} onChange={(e) => update(idx, { fecha_limite: e.target.value })}
+                  className="mt-1 w-full px-3 py-2 border border-yo-border rounded-md bg-yo-surface text-sm focus:outline-none focus:ring-2 focus:ring-yo-ac" />
+              </label>
+              <label className="block sm:col-span-2">
+                <span className="text-xs font-medium text-yo-txt-2">Tipo de verificación</span>
+                <select value={h.tipo_verificacion} onChange={(e) => update(idx, { tipo_verificacion: e.target.value as HitoDraft["tipo_verificacion"] })}
+                  className="mt-1 w-full px-3 py-2 border border-yo-border rounded-md bg-yo-surface text-sm focus:outline-none focus:ring-2 focus:ring-yo-ac">
                   {TIPOS_VERIF.map((t) => <option key={t.id} value={t.id}>{t.label}</option>)}
                 </select>
               </label>
-              <label className="block">
-                <span className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">Aprueba</span>
-                <select value={h.responsable} onChange={(e) => update(idx, { responsable: e.target.value as "PAGADOR" | "BENEFICIARIO" })} className="input-editorial mt-1">
-                  <option value="PAGADOR">Pagador</option>
-                  <option value="BENEFICIARIO">Beneficiario</option>
+              <label className="block sm:col-span-2">
+                <span className="text-xs font-medium text-yo-txt-2">Responsable de evidencia</span>
+                <select value={h.responsable} onChange={(e) => update(idx, { responsable: e.target.value as "PAGADOR" | "BENEFICIARIO" })}
+                  className="mt-1 w-full px-3 py-2 border border-yo-border rounded-md bg-yo-surface text-sm focus:outline-none focus:ring-2 focus:ring-yo-ac">
+                  <option value="BENEFICIARIO">Vendedor</option>
+                  <option value="PAGADOR">Comprador</option>
                 </select>
               </label>
-              <label className="flex items-center gap-2 sm:mt-6">
-                <input type="checkbox" checked={h.auto_release} onChange={(e) => update(idx, { auto_release: e.target.checked })} />
-                <span className="text-xs text-foreground">Liberación automática al aprobar</span>
-              </label>
-              <label className="block sm:col-span-2">
-                <span className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">Documentos requeridos (separa por coma)</span>
-                <input
-                  type="text"
-                  value={h.documentos_requeridos.join(", ")}
-                  onChange={(e) => update(idx, { documentos_requeridos: e.target.value.split(",").map((s) => s.trim()).filter(Boolean) })}
-                  className="input-editorial mt-1"
-                />
+              <label className="flex items-center gap-2 sm:col-span-6">
+                <input type="checkbox" checked={h.auto_release} onChange={(e) => update(idx, { auto_release: e.target.checked })}
+                  className="rounded border-yo-border text-yo-ac focus:ring-yo-ac" />
+                <span className="text-xs text-yo-txt-2">
+                  Liberación automática al aprobar (solo si las reglas del hito son verificables automáticamente).
+                </span>
               </label>
             </div>
           </div>
         ))}
       </div>
 
-      <button type="button" onClick={addBlank} className="w-full px-4 py-3 border-2 border-dashed border-yo-border text-[12px] uppercase tracking-[0.14em] font-semibold hover:bg-yo-bg">
-        + Agregar hito
+      <button type="button" onClick={addBlank}
+        className="w-full inline-flex items-center justify-center gap-1.5 px-4 py-3 border-2 border-dashed border-yo-border rounded-lg text-sm font-medium text-yo-txt-2 hover:border-yo-ac hover:text-yo-ac hover:bg-yo-ac-bg transition">
+        <Plus className="h-4 w-4" /> Agregar hito
       </button>
     </div>
   );
 }
 
-// ─── Paso 4: Monto y comisiones ─────────────────────────────────────────────
-function Step4({
-  sector, monto, setMonto, metodoPago, setMetodoPago, fechaInicio, setFechaInicio, fechaFin, setFechaFin,
+// ─── Paso 4: Cumplimiento y evidencia ───────────────────────────────────────
+function Step4Cumplimiento({
+  sector, hitos, setHitos, checklist, setChecklist,
 }: {
-  sector: SectorId;
-  monto: number; setMonto: (n: number) => void;
-  metodoPago: "SPEI" | "TARJETA" | "OXXO"; setMetodoPago: (m: "SPEI" | "TARJETA" | "OXXO") => void;
-  fechaInicio: string; setFechaInicio: (s: string) => void;
-  fechaFin: string; setFechaFin: (s: string) => void;
+  sector: SectorId; hitos: HitoDraft[]; setHitos: (h: HitoDraft[]) => void;
+  checklist: Record<number, string[]>; setChecklist: (v: Record<number, string[]>) => void;
 }) {
-  const sectorDef = getSector(sector)!;
-  const fee = useMemo(() => calcularFee(sector, monto || 0, 0), [sector, monto]);
-  const fmt = (n: number) => new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN" }).format(n);
+  const [openIdx, setOpenIdx] = useState<number>(0);
+  const docCatalog = useMemo(() => [...DOC_BASE, ...DOC_BY_SECTOR[sector]], [sector]);
+
+  function toggleDoc(idx: number, doc: string) {
+    const cur = hitos[idx].documentos_requeridos;
+    const next = cur.includes(doc) ? cur.filter((d) => d !== doc) : [...cur, doc];
+    setHitos(hitos.map((h, i) => i === idx ? { ...h, documentos_requeridos: next } : h));
+  }
+  function toggleEvidence(idx: number, ev: string) {
+    const cur = hitos[idx].evidencia_requerida;
+    const next = cur.includes(ev) ? cur.filter((e) => e !== ev) : [...cur, ev];
+    setHitos(hitos.map((h, i) => i === idx ? { ...h, evidencia_requerida: next } : h));
+  }
+  function addChecklistItem(idx: number, text: string) {
+    if (!text.trim()) return;
+    setChecklist({ ...checklist, [idx]: [...(checklist[idx] ?? []), text.trim()] });
+  }
+  function removeChecklistItem(idx: number, i: number) {
+    setChecklist({ ...checklist, [idx]: (checklist[idx] ?? []).filter((_, j) => j !== i) });
+  }
 
   return (
     <div className="space-y-6">
       <div>
-        <div className="text-[11px] uppercase tracking-[0.14em] font-semibold text-foreground mb-2">Monto de la operación (MXN)</div>
-        <input
-          type="number"
-          min={100}
-          step={100}
-          value={monto || ""}
-          onChange={(e) => setMonto(Number(e.target.value))}
-          placeholder="Ej: 150000"
-          className="input-editorial text-2xl font-display tracking-wide"
-        />
-        <p className="mt-1 text-xs text-muted-foreground">Rango típico para {sectorDef.titulo}: {sectorDef.monto_tipico}</p>
+        <h2 className="text-lg font-semibold text-yo-txt">Cumplimiento y evidencia</h2>
+        <p className="text-sm text-yo-txt-2 mt-0.5">
+          Define, por hito, qué documentos, evidencia y checklist deben validarse antes de liberar el pago.
+        </p>
+      </div>
+
+      <div className="rounded-lg bg-yo-info-bg border border-[#BAE6FD] p-3 flex items-start gap-2">
+        <Info className="h-4 w-4 text-yo-info shrink-0 mt-0.5" />
+        <p className="text-xs text-yo-txt-2">
+          Los documentos y evidencias configurados aquí serán usados para validar hitos, resolver disputas y alimentar el Perfil de Cumplimiento.
+        </p>
+      </div>
+
+      <div className="space-y-3">
+        {hitos.map((h, idx) => {
+          const open = openIdx === idx;
+          const cnt = h.documentos_requeridos.length + h.evidencia_requerida.length;
+          return (
+            <div key={idx} className="rounded-lg border border-yo-border bg-yo-surface overflow-hidden">
+              <button type="button" onClick={() => setOpenIdx(open ? -1 : idx)}
+                className="w-full flex items-center justify-between gap-3 px-4 py-3 hover:bg-yo-raised">
+                <div className="flex items-center gap-3 min-w-0">
+                  <span className="text-xs font-mono text-yo-txt-3">Hito {h.orden}</span>
+                  <span className="text-sm font-medium text-yo-txt truncate">{h.titulo}</span>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <Badge tone={cnt > 0 ? "ok" : "warn"} dot>{cnt} requisito{cnt === 1 ? "" : "s"}</Badge>
+                  <ChevronRight className={`h-4 w-4 text-yo-txt-3 transition ${open ? "rotate-90" : ""}`} />
+                </div>
+              </button>
+
+              {open && (
+                <div className="px-4 pb-4 space-y-4 border-t border-yo-border pt-4">
+                  {/* Documentos */}
+                  <section>
+                    <div className="flex items-center gap-2 mb-2">
+                      <FileText className="h-4 w-4 text-yo-ac" />
+                      <h4 className="text-sm font-semibold text-yo-txt">Documentos requeridos</h4>
+                    </div>
+                    <div className="flex flex-wrap gap-1.5">
+                      {docCatalog.map((doc) => {
+                        const on = h.documentos_requeridos.includes(doc);
+                        return (
+                          <button key={doc} type="button" onClick={() => toggleDoc(idx, doc)}
+                            className={`px-2.5 py-1 rounded-full text-xs border transition ${
+                              on ? "bg-yo-ac text-white border-yo-ac" : "bg-yo-surface text-yo-txt-2 border-yo-border hover:border-yo-ac"
+                            }`}>
+                            {on && <Check className="inline h-3 w-3 mr-1" />}
+                            {doc}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </section>
+
+                  {/* Evidencia */}
+                  <section>
+                    <div className="flex items-center gap-2 mb-2">
+                      <Camera className="h-4 w-4 text-yo-ac" />
+                      <h4 className="text-sm font-semibold text-yo-txt">Evidencia requerida</h4>
+                    </div>
+                    <div className="flex flex-wrap gap-1.5">
+                      {EVIDENCE_TYPES.map((ev) => {
+                        const on = h.evidencia_requerida.includes(ev);
+                        return (
+                          <button key={ev} type="button" onClick={() => toggleEvidence(idx, ev)}
+                            className={`px-2.5 py-1 rounded-full text-xs border transition ${
+                              on ? "bg-yo-ac text-white border-yo-ac" : "bg-yo-surface text-yo-txt-2 border-yo-border hover:border-yo-ac"
+                            }`}>
+                            {on && <Check className="inline h-3 w-3 mr-1" />}
+                            {ev}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </section>
+
+                  {/* Checklist */}
+                  <section>
+                    <div className="flex items-center gap-2 mb-2">
+                      <ClipboardList className="h-4 w-4 text-yo-ac" />
+                      <h4 className="text-sm font-semibold text-yo-txt">Checklist operativo</h4>
+                    </div>
+                    <ChecklistEditor
+                      items={checklist[idx] ?? []}
+                      onAdd={(t) => addChecklistItem(idx, t)}
+                      onRemove={(i) => removeChecklistItem(idx, i)}
+                    />
+                  </section>
+
+                  {/* Resumen matriz */}
+                  <div className="rounded-md bg-yo-raised p-3 grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+                    <MiniStat label="Documentos" value={h.documentos_requeridos.length} />
+                    <MiniStat label="Evidencia" value={h.evidencia_requerida.length} />
+                    <MiniStat label="Checklist" value={(checklist[idx] ?? []).length} />
+                    <MiniStat label="Aprueba" value={h.responsable === "PAGADOR" ? "Comprador" : "Vendedor"} />
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function MiniStat({ label, value }: { label: string; value: string | number }) {
+  return (
+    <div>
+      <div className="text-yo-txt-3">{label}</div>
+      <div className="text-yo-txt font-semibold font-mono">{value}</div>
+    </div>
+  );
+}
+
+function ChecklistEditor({ items, onAdd, onRemove }: { items: string[]; onAdd: (t: string) => void; onRemove: (i: number) => void }) {
+  const [txt, setTxt] = useState("");
+  return (
+    <div className="space-y-2">
+      <div className="flex gap-2">
+        <input value={txt} onChange={(e) => setTxt(e.target.value)}
+          onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); onAdd(txt); setTxt(""); } }}
+          placeholder="Ej: Mercancía cargada completa"
+          className="flex-1 px-3 py-1.5 border border-yo-border rounded-md bg-yo-surface text-sm focus:outline-none focus:ring-2 focus:ring-yo-ac" />
+        <button type="button" onClick={() => { onAdd(txt); setTxt(""); }}
+          className="px-3 py-1.5 border border-yo-border rounded-md text-xs font-medium text-yo-txt-2 hover:bg-yo-raised">
+          Añadir
+        </button>
+      </div>
+      {items.length > 0 && (
+        <ul className="space-y-1">
+          {items.map((it, i) => (
+            <li key={i} className="flex items-center justify-between gap-2 rounded-md bg-yo-raised px-2.5 py-1.5">
+              <span className="text-xs text-yo-txt-2">☐ {it}</span>
+              <button type="button" onClick={() => onRemove(i)} className="text-yo-txt-3 hover:text-yo-err">
+                <Trash2 className="h-3 w-3" />
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+// ─── Paso 5: Pago ───────────────────────────────────────────────────────────
+function Step5Pago({
+  sector, monto, setMonto, metodoPago, setMetodoPago, comisionPagadaPor, setComisionPagadaPor, fee, hitos,
+}: {
+  sector: SectorId;
+  monto: number; setMonto: (n: number) => void;
+  metodoPago: "SPEI" | "TARJETA" | "OXXO"; setMetodoPago: (m: "SPEI" | "TARJETA" | "OXXO") => void;
+  comisionPagadaPor: "COMPRADOR" | "VENDEDOR"; setComisionPagadaPor: (v: "COMPRADOR" | "VENDEDOR") => void;
+  fee: ReturnType<typeof calcularFee> | null;
+  hitos: HitoDraft[];
+}) {
+  const sd = getSector(sector)!;
+  return (
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-lg font-semibold text-yo-txt">Monto y pago</h2>
+        <p className="text-sm text-yo-txt-2 mt-0.5">Define monto, comisiones, método de pago y reglas de liberación.</p>
       </div>
 
       <div>
-        <div className="text-[11px] uppercase tracking-[0.14em] font-semibold text-foreground mb-2">Método de pago</div>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          {sectorDef.metodos_pago.map((m) => (
-            <button
-              key={m}
-              type="button"
-              onClick={() => setMetodoPago(m)}
-              className={`p-3 border text-left ${metodoPago === m ? "border-yokto-black bg-yo-bg ring-2 ring-yokto-black" : "border-yo-border hover:border-yokto-black"}`}
-            >
-              <div className="text-[11px] uppercase tracking-[0.14em] font-semibold">{m}</div>
-              <div className="text-xs text-muted-foreground mt-1">
-                {m === "SPEI" ? "Transferencia interbancaria" : m === "TARJETA" ? "Débito o crédito" : "Pago en efectivo"}
+        <label className="block text-sm font-medium text-yo-txt mb-1.5">
+          Monto de la operación <span className="text-yo-err">*</span>
+        </label>
+        <div className="relative">
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-yo-txt-3 text-sm font-mono">MXN</span>
+          <input type="number" min={100} step={100} value={monto || ""}
+            onChange={(e) => setMonto(Number(e.target.value))}
+            placeholder="0.00"
+            className="w-full pl-14 pr-3 py-3 border border-yo-border rounded-md bg-yo-surface text-2xl font-mono focus:outline-none focus:ring-2 focus:ring-yo-ac" />
+        </div>
+        <p className="mt-1 text-xs text-yo-txt-3">Rango típico para {sd.titulo}: {sd.monto_tipico}</p>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-yo-txt mb-2">Comisión pagada por</label>
+        <div className="grid grid-cols-2 gap-3">
+          {(["COMPRADOR", "VENDEDOR"] as const).map((c) => (
+            <button key={c} type="button" onClick={() => setComisionPagadaPor(c)}
+              className={`p-3 rounded-lg border-2 text-left transition ${
+                comisionPagadaPor === c ? "border-yo-ac bg-yo-ac-bg" : "border-yo-border bg-yo-surface hover:border-yo-border-s"
+              }`}>
+              <div className="text-sm font-medium text-yo-txt">{c === "COMPRADOR" ? "Comprador" : "Vendedor"}</div>
+              <div className="text-xs text-yo-txt-3">
+                {c === "COMPRADOR" ? "Se suma al total a depositar" : "Se descuenta al liberar"}
               </div>
             </button>
           ))}
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <label className="block">
-          <span className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">Fecha estimada de inicio</span>
-          <input type="date" value={fechaInicio} onChange={(e) => setFechaInicio(e.target.value)} className="input-editorial mt-1" />
-        </label>
-        <label className="block">
-          <span className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">Fecha estimada de fin</span>
-          <input type="date" value={fechaFin} onChange={(e) => setFechaFin(e.target.value)} className="input-editorial mt-1" />
-        </label>
-      </div>
-
-      {/* Fee breakdown */}
-      <div className="border-2 border-yokto-black bg-yo-bg/40 p-5 space-y-2">
-        <div className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground font-semibold">Desglose de comisiones</div>
-        <Row label="Monto de la operación" value={fmt(monto || 0)} />
-        <Row
-          label={`Comisión YOKTO ${fee.fee_tipo === "FIJO" ? "(tarifa fija)" : `(${(FEES_PCT(sector) * 100).toFixed(2)}%)`}`}
-          value={fmt(fee.comision_final)}
-        />
-        <Row label="IVA (16%) sobre comisión" value={fmt(fee.iva_comision)} />
-        <div className="border-t border-yo-border pt-2 mt-2">
-          <Row
-            label={<span className="font-semibold text-foreground">Total a depositar por el pagador</span>}
-            value={<span className="font-display text-2xl">{fmt(fee.total_a_depositar)}</span>}
-          />
+      <div>
+        <label className="block text-sm font-medium text-yo-txt mb-2">Método de pago</label>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          {sd.metodos_pago.map((m) => (
+            <button key={m} type="button" onClick={() => setMetodoPago(m)}
+              className={`p-3 rounded-lg border-2 text-left transition ${
+                metodoPago === m ? "border-yo-ac bg-yo-ac-bg" : "border-yo-border bg-yo-surface hover:border-yo-border-s"
+              }`}>
+              <div className="text-sm font-semibold text-yo-txt">{m}</div>
+              <div className="text-xs text-yo-txt-3 mt-0.5">
+                {m === "SPEI" ? "Recomendado para operaciones de mayor monto" : m === "TARJETA" ? "Débito o crédito" : "Pago en efectivo"}
+              </div>
+            </button>
+          ))}
         </div>
-        <p className="text-[11px] text-muted-foreground pt-2">
-          Comisión efectiva: <strong>{fee.porcentaje_efectivo.toFixed(2)}%</strong> del monto de la operación.
-          {fee.descuento_aplicado > 0 && ` · Descuento por volumen aplicado: ${(fee.descuento_aplicado * 100).toFixed(0)}%.`}
+        <p className="mt-2 text-xs text-yo-txt-3">
+          El pago será procesado por la pasarela seleccionada. YOKTO no recibe ni custodia directamente los fondos.
         </p>
       </div>
+
+      {/* FeeCalculator */}
+      {fee && monto > 0 && (
+        <div className="rounded-lg bg-yo-ac-bg border border-[#C7D2FE] p-5 space-y-2">
+          <h3 className="text-sm font-semibold text-yo-ac-txt mb-2">Desglose estimado</h3>
+          <FeeRow label="Monto protegido" value={fmtMoney(monto)} />
+          <FeeRow label={`Comisión servicio${fee.fee_tipo === "FIJO" ? " (fija)" : ""}`} value={fmtMoney(fee.comision_final)} />
+          <FeeRow label="IVA comisión (16%)" value={fmtMoney(fee.iva_comision)} />
+          <div className="border-t border-[#C7D2FE] pt-2 mt-2">
+            <FeeRow label={<span className="font-semibold text-yo-ac-txt">Total a depositar</span>}
+              value={<span className="font-mono text-xl font-bold text-yo-ac-txt">{fmtMoney(fee.total_a_depositar)}</span>} />
+          </div>
+          {fee.descuento_aplicado > 0 && (
+            <p className="text-xs text-yo-ok pt-1">Descuento por volumen aplicado: {(fee.descuento_aplicado * 100).toFixed(0)}%.</p>
+          )}
+        </div>
+      )}
+
+      {/* Distribución por hito */}
+      {hitos.length > 0 && monto > 0 && (
+        <div>
+          <h3 className="text-sm font-semibold text-yo-txt mb-2">Distribución por hito</h3>
+          <div className="rounded-lg border border-yo-border overflow-hidden">
+            <table className="w-full text-sm">
+              <thead className="bg-yo-raised text-yo-txt-3 text-xs">
+                <tr>
+                  <th className="text-left px-3 py-2 font-medium">Hito</th>
+                  <th className="text-right px-3 py-2 font-medium">%</th>
+                  <th className="text-right px-3 py-2 font-medium">Monto</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-yo-border">
+                {hitos.map((h) => (
+                  <tr key={h.orden}>
+                    <td className="px-3 py-2 text-yo-txt">{h.orden}. {h.titulo}</td>
+                    <td className="px-3 py-2 text-right font-mono text-yo-txt-2">{Number(h.monto_porcentaje).toFixed(2)}%</td>
+                    <td className="px-3 py-2 text-right font-mono text-yo-txt">{fmtMoney(monto * (Number(h.monto_porcentaje) / 100))}</td>
+                  </tr>
+                ))}
+              </tbody>
+              <tfoot className="bg-yo-raised">
+                <tr>
+                  <td className="px-3 py-2 font-semibold text-yo-txt">Total</td>
+                  <td className="px-3 py-2 text-right font-mono font-semibold">100%</td>
+                  <td className="px-3 py-2 text-right font-mono font-semibold">{fmtMoney(monto)}</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
-function Row({ label, value }: { label: React.ReactNode; value: React.ReactNode }) {
+function FeeRow({ label, value }: { label: React.ReactNode; value: React.ReactNode }) {
   return (
     <div className="flex items-baseline justify-between gap-3 text-sm">
-      <span className="text-muted-foreground">{label}</span>
-      <span className="text-foreground tabular-nums">{value}</span>
+      <span className="text-yo-txt-2">{label}</span>
+      <span className="font-mono text-yo-txt">{value}</span>
     </div>
   );
 }
 
-function FEES_PCT(sector: SectorId): number {
-  // Espejo simple del FEES.porcentaje_base sin re-exportar
-  const map: Record<SectorId, number> = {
-    AUTOTRANSPORTE: 0.018, CONSTRUCCION: 0.022, COMERCIO_EXTERIOR: 0.015,
-    INMOBILIARIO: 0.012, VEHICULOS: 0.025, SERVICIOS: 0.030,
-  };
-  return map[sector];
-}
-
-// ─── Paso 5: Revisión y firma ───────────────────────────────────────────────
-function Step5({
-  mode, numero, sector, rol, descripcion, contraparte, hitos, monto, metodoPago,
-  fechaInicio, fechaFin,
-  aceptaTerminos, setAceptaTerminos, aceptaRetencion, setAceptaRetencion,
-  firmando, firmaResult, onFirmar,
-}: {
-  mode: "review" | "sign";
-  numero: string | null;
-  sector: SectorId | null;
-  rol: Rol;
-  descripcion: string;
-  contraparte: Contraparte | null;
-  hitos: HitoDraft[];
-  monto: number;
-  metodoPago: "SPEI" | "TARJETA" | "OXXO";
-  fechaInicio: string;
-  fechaFin: string;
-  aceptaTerminos: boolean;
-  setAceptaTerminos: (v: boolean) => void;
-  aceptaRetencion: boolean;
-  setAceptaRetencion: (v: boolean) => void;
-  firmando: boolean;
-  firmaResult: { status: string; activated: boolean } | null;
-  onFirmar: () => void;
+// ─── Paso 6: Revisión ───────────────────────────────────────────────────────
+function Step6Revision(props: {
+  numero: string | null; rol: Rol;
+  sectorDef: ReturnType<typeof getSector>; sectorCfg?: typeof SECTOR_CFG[SectorId];
+  subtipo: string; descripcion: string; fechaInicio: string; fechaFin: string;
+  contraparte: Contraparte | null; hitos: HitoDraft[]; monto: number;
+  metodoPago: string; comisionPagadaPor: string;
+  fee: ReturnType<typeof calcularFee> | null;
+  aceptaTerminos: boolean; setAceptaTerminos: (v: boolean) => void;
+  aceptaRetencion: boolean; setAceptaRetencion: (v: boolean) => void;
+  aceptaCumplimiento: boolean; setAceptaCumplimiento: (v: boolean) => void;
+  aceptaTraza: boolean; setAceptaTraza: (v: boolean) => void;
 }) {
-  const sectorDef = sector ? getSector(sector) : null;
-  const fee = useMemo(() => (sector ? calcularFee(sector, monto || 0, 0) : null), [sector, monto]);
-  const fmt = (n: number) => new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN" }).format(n);
-
-  if (firmaResult) {
-    return (
-      <div className="py-10 text-center space-y-4">
-        <div className="text-6xl">{firmaResult.activated ? "✓" : "⏳"}</div>
-        <h2 className="font-display text-3xl tracking-wide text-foreground">
-          {firmaResult.activated ? "Transacción activada" : "Firma registrada"}
-        </h2>
-        <p className="text-sm text-muted-foreground max-w-md mx-auto">
-          {firmaResult.activated
-            ? `Ambas partes firmaron. La transacción ${numero} está lista para fondearse.`
-            : contraparte?.user_id
-              ? `Notificamos a ${contraparte?.nombre} para que firme y active la transacción ${numero}.`
-              : `Enviamos una invitación a ${contraparte?.email}. La transacción ${numero} quedará pendiente hasta que se registre y firme.`}
-        </p>
-      </div>
-    );
-  }
+  const {
+    numero, rol, sectorDef, sectorCfg, subtipo, descripcion, fechaInicio, fechaFin,
+    contraparte, hitos, monto, metodoPago, comisionPagadaPor, fee,
+    aceptaTerminos, setAceptaTerminos, aceptaRetencion, setAceptaRetencion,
+    aceptaCumplimiento, setAceptaCumplimiento, aceptaTraza, setAceptaTraza,
+  } = props;
 
   return (
     <div className="space-y-6">
-      <div className="border border-yo-border bg-yo-bg/30 p-4">
-        <div className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">Contrato de depósito en garantía</div>
-        <div className="mt-1 font-mono text-sm text-foreground">{numero}</div>
-        <p className="mt-2 text-xs text-muted-foreground">
-          Revisa cuidadosamente los términos. Al firmar aceptas que YOKTO retenga los fondos y libere hito por hito conforme se cumplan las condiciones.
-        </p>
+      <div>
+        <h2 className="text-lg font-semibold text-yo-txt">Revisión y activación</h2>
+        <p className="text-sm text-yo-txt-2 mt-0.5">Verifica el resumen y acepta las declaraciones para activar la operación.</p>
       </div>
 
-      {/* Resumen general */}
-      <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <SummaryCard title="Sector">
-          <div>{sectorDef?.emoji} {sectorDef?.titulo}</div>
-        </SummaryCard>
-        <SummaryCard title="Tu rol">
-          <div>{rol === "PAGADOR" ? "Pagador (deposita)" : "Beneficiario (recibe)"}</div>
-        </SummaryCard>
-        <SummaryCard title="Contraparte">
-          <div className="font-semibold">{contraparte?.nombre}</div>
-          <div className="text-xs text-muted-foreground">
-            {contraparte?.email}{contraparte?.rfc ? ` · ${contraparte.rfc}` : ""} · {contraparte?.user_id ? "usuario YOKTO" : "por invitar"}
-          </div>
-        </SummaryCard>
-        <SummaryCard title="Método de pago">
-          <div>{metodoPago}</div>
-          <div className="text-xs text-muted-foreground">{fechaInicio} → {fechaFin || "s/f"}</div>
-        </SummaryCard>
-        <SummaryCard title="Descripción" wide>
-          <div className="text-sm whitespace-pre-wrap">{descripcion}</div>
-        </SummaryCard>
-      </section>
-
-      {/* Hitos */}
-      <section>
-        <div className="text-[11px] uppercase tracking-[0.14em] font-semibold text-foreground mb-2">Hitos ({hitos.length})</div>
-        <div className="border border-yo-border divide-y divide-yo-border/50">
-          {hitos.map((h) => (
-            <div key={h.orden} className="p-3 flex items-start justify-between gap-3">
-              <div>
-                <div className="text-sm font-semibold text-foreground">{h.orden}. {h.titulo}</div>
-                <div className="text-xs text-muted-foreground">
-                  {h.tipo_verificacion} · aprueba {h.responsable.toLowerCase()} · vence {h.fecha_limite}
-                  {h.auto_release && " · auto-liberación"}
-                </div>
-              </div>
-              <div className="text-right">
-                <div className="text-sm font-semibold text-foreground tabular-nums">{Number(h.monto_porcentaje).toFixed(2)}%</div>
-                <div className="text-xs text-muted-foreground tabular-nums">{fmt((monto || 0) * (Number(h.monto_porcentaje) / 100))}</div>
-              </div>
-            </div>
-          ))}
+      {numero && (
+        <div className="rounded-lg bg-yo-raised border border-yo-border p-3">
+          <div className="text-xs text-yo-txt-3">Folio interno</div>
+          <div className="font-mono text-sm text-yo-txt">{numero}</div>
         </div>
-      </section>
-
-      {/* Comisiones */}
-      {fee && (
-        <section className="border-2 border-yokto-black bg-yo-bg/40 p-4 space-y-1">
-          <div className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground font-semibold">Comisiones y total</div>
-          <Row label="Monto de la operación" value={fmt(monto || 0)} />
-          <Row label="Comisión YOKTO" value={fmt(fee.comision_final)} />
-          <Row label="IVA 16%" value={fmt(fee.iva_comision)} />
-          <div className="border-t border-yo-border pt-2 mt-2">
-            <Row
-              label={<span className="font-semibold text-foreground">Total a depositar</span>}
-              value={<span className="font-display text-xl">{fmt(fee.total_a_depositar)}</span>}
-            />
-          </div>
-        </section>
       )}
 
-      {mode === "sign" && (
-        <>
-          {/* Términos */}
-          <section className="space-y-3 border border-yo-border p-4 bg-background">
-            <label className="flex items-start gap-3 cursor-pointer">
-              <input
-                type="checkbox"
-                className="mt-1"
-                checked={aceptaTerminos}
-                onChange={(e) => setAceptaTerminos(e.target.checked)}
-              />
-              <span className="text-sm text-foreground">
-                Declaro que la información es veraz y acepto los <a href="/terminos" target="_blank" className="underline">Términos y Condiciones</a>, el <a href="/privacidad" target="_blank" className="underline">Aviso de Privacidad</a> y las reglas de disputa de YOKTO.
-              </span>
-            </label>
-            <label className="flex items-start gap-3 cursor-pointer">
-              <input
-                type="checkbox"
-                className="mt-1"
-                checked={aceptaRetencion}
-                onChange={(e) => setAceptaRetencion(e.target.checked)}
-              />
-              <span className="text-sm text-foreground">
-                Entiendo que los fondos serán retenidos en cuenta de garantía hasta el cumplimiento verificable de cada hito y que YOKTO no es entidad financiera.
-              </span>
-            </label>
-          </section>
+      <ReviewSection title="Resumen general">
+        <ReviewGrid rows={[
+          ["Sector", <span key="s">{sectorCfg?.emoji} {sectorDef?.titulo}</span>],
+          ["Subtipo", subtipo || "—"],
+          ["Descripción", <span key="d" className="text-sm whitespace-pre-wrap">{descripcion}</span>, true],
+          ["Fechas estimadas", `${fechaInicio || "—"} → ${fechaFin || "—"}`],
+        ]} />
+      </ReviewSection>
 
-          <p className="text-[11px] text-muted-foreground">
-            Al pulsar <strong>Firmar y activar</strong> se registra tu firma electrónica con fecha, hora e IP.
-            {contraparte?.user_id
-              ? " Se notificará a tu contraparte para que firme también."
-              : " Se enviará una invitación por correo a la contraparte."}
-          </p>
+      <ReviewSection title="Partes">
+        <ReviewGrid rows={[
+          ["Creador", rol === "PAGADOR" ? "Comprador (Pagador)" : "Vendedor (Beneficiario)"],
+          ["Contraparte", <span key="c">
+            <div className="font-medium text-yo-txt">{contraparte?.nombre}</div>
+            <div className="text-xs text-yo-txt-3 font-mono">{contraparte?.email}{contraparte?.rfc ? ` · ${contraparte.rfc}` : ""}</div>
+          </span>],
+          ["Estado", contraparte?.user_id
+            ? <Badge tone="ok" dot>Usuario YOKTO</Badge>
+            : <Badge tone="warn" dot>Por invitar</Badge>],
+        ]} />
+      </ReviewSection>
 
-          {/* Botón inline redundante para mobile */}
-          <button
-            onClick={onFirmar}
-            disabled={firmando || !aceptaTerminos || !aceptaRetencion}
-            className="w-full md:hidden px-6 py-3 bg-yokto-black text-yokto-yellow text-[12px] uppercase tracking-[0.14em] font-semibold border border-yokto-black hover:opacity-90 disabled:opacity-40"
-          >
-            {firmando ? "Firmando…" : "Firmar y activar ✓"}
-          </button>
-        </>
-      )}
+      <ReviewSection title={`Hitos y liberaciones (${hitos.length})`}>
+        <div className="rounded-md border border-yo-border overflow-hidden">
+          <table className="w-full text-sm">
+            <thead className="bg-yo-raised text-yo-txt-3 text-xs">
+              <tr>
+                <th className="text-left px-3 py-2 font-medium">#</th>
+                <th className="text-left px-3 py-2 font-medium">Hito</th>
+                <th className="text-left px-3 py-2 font-medium">Fecha</th>
+                <th className="text-right px-3 py-2 font-medium">%</th>
+                <th className="text-left px-3 py-2 font-medium">Validación</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-yo-border">
+              {hitos.map((h) => (
+                <tr key={h.orden}>
+                  <td className="px-3 py-2 font-mono text-yo-txt-3">{h.orden}</td>
+                  <td className="px-3 py-2 text-yo-txt">{h.titulo}</td>
+                  <td className="px-3 py-2 text-yo-txt-2 font-mono text-xs">{h.fecha_limite}</td>
+                  <td className="px-3 py-2 text-right font-mono">{Number(h.monto_porcentaje).toFixed(2)}%</td>
+                  <td className="px-3 py-2"><Badge tone="neutral" dot>{h.tipo_verificacion}</Badge></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </ReviewSection>
 
+      <ReviewSection title="Cumplimiento">
+        <ReviewGrid rows={[
+          ["Documentos totales", String(hitos.reduce((s, h) => s + h.documentos_requeridos.length, 0))],
+          ["Evidencias totales", String(hitos.reduce((s, h) => s + h.evidencia_requerida.length, 0))],
+          ["Impacto en Perfil de Cumplimiento", "Sí"],
+        ]} />
+      </ReviewSection>
+
+      <ReviewSection title="Pago">
+        <ReviewGrid rows={[
+          ["Monto operación", <span key="m" className="font-mono">{fmtMoney(monto)}</span>],
+          ["Comisión + IVA", <span key="c" className="font-mono">{fmtMoney((fee?.comision_final ?? 0) + (fee?.iva_comision ?? 0))}</span>],
+          ["Total a depositar", <span key="t" className="font-mono font-bold text-yo-ac-txt">{fmtMoney(fee?.total_a_depositar ?? 0)}</span>],
+          ["Método de pago", metodoPago],
+          ["Comisión pagada por", comisionPagadaPor === "COMPRADOR" ? "Comprador" : "Vendedor"],
+        ]} />
+      </ReviewSection>
+
+      <ReviewSection title="Aceptaciones">
+        <div className="space-y-2">
+          <Check3 checked={aceptaTerminos} onChange={setAceptaTerminos}
+            label="He revisado las condiciones de la operación." />
+          <Check3 checked={aceptaCumplimiento} onChange={setAceptaCumplimiento}
+            label="Entiendo que la liberación depende del cumplimiento de los hitos y evidencia configurada." />
+          <Check3 checked={aceptaRetencion} onChange={setAceptaRetencion}
+            label="Entiendo que los fondos son procesados y retenidos por la pasarela de pago, no por YOKTO." />
+          <Check3 checked={aceptaTraza} onChange={setAceptaTraza}
+            label="Acepto los términos de operación y autorización de trazabilidad." />
+        </div>
+      </ReviewSection>
+
+      <div className="rounded-lg bg-yo-info-bg border border-[#BAE6FD] p-4 flex items-start gap-2">
+        <ShieldCheck className="h-4 w-4 text-yo-info shrink-0 mt-0.5" />
+        <p className="text-xs text-yo-txt-2">
+          YOKTO no custodia fondos. El pago es procesado y retenido por una pasarela certificada. YOKTO registra
+          condiciones, evidencia y eventos para ordenar liberación o devolución conforme a la operación.
+        </p>
+      </div>
     </div>
   );
 }
 
-function SummaryCard({ title, children, wide }: { title: string; children: React.ReactNode; wide?: boolean }) {
+function ReviewSection({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className={`border border-yo-border p-3 ${wide ? "md:col-span-2" : ""}`}>
-      <div className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">{title}</div>
-      <div className="mt-1 text-foreground">{children}</div>
+    <section>
+      <h3 className="text-xs font-semibold uppercase tracking-wider text-yo-txt-3 mb-2">{title}</h3>
+      {children}
+    </section>
+  );
+}
+
+function ReviewGrid({ rows }: { rows: Array<[string, React.ReactNode] | [string, React.ReactNode, boolean]> }) {
+  return (
+    <dl className="rounded-lg border border-yo-border divide-y divide-yo-border">
+      {rows.map(([label, value, wide], i) => (
+        <div key={i} className={`px-4 py-2.5 ${wide ? "block" : "grid grid-cols-1 sm:grid-cols-[minmax(0,180px)_minmax(0,1fr)] gap-2"}`}>
+          <dt className={`text-xs text-yo-txt-3 ${wide ? "mb-1" : ""}`}>{label}</dt>
+          <dd className="text-sm text-yo-txt">{value}</dd>
+        </div>
+      ))}
+    </dl>
+  );
+}
+
+function Check3({ checked, onChange, label }: { checked: boolean; onChange: (v: boolean) => void; label: string }) {
+  return (
+    <label className="flex items-start gap-2.5 cursor-pointer p-2 rounded hover:bg-yo-raised">
+      <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)}
+        className="mt-0.5 rounded border-yo-border text-yo-ac focus:ring-yo-ac" />
+      <span className="text-sm text-yo-txt">{label}</span>
+    </label>
+  );
+}
+
+// ─── Modal de activación ────────────────────────────────────────────────────
+function ActivationModal({ rol, firmando, onClose, onConfirm }: {
+  rol: Rol; firmando: boolean; onClose: () => void; onConfirm: () => void;
+}) {
+  const isBuyer = rol === "PAGADOR";
+  const modalRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape" && !firmando) onClose(); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose, firmando]);
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={firmando ? undefined : onClose}>
+      <div ref={modalRef} onClick={(e) => e.stopPropagation()}
+        className="w-full max-w-lg bg-yo-surface rounded-xl border border-yo-border shadow-xl overflow-hidden">
+        <div className="p-5 border-b border-yo-border">
+          <h3 className="text-lg font-semibold text-yo-txt">
+            {isBuyer ? "Activar operación protegida" : "Enviar propuesta al comprador"}
+          </h3>
+          <p className="mt-1 text-sm text-yo-txt-2">
+            {isBuyer
+              ? "Se registrarán las condiciones, hitos, documentos y reglas de liberación. La contraparte recibirá una invitación para revisar y aceptar."
+              : "El comprador recibirá la propuesta y deberá aceptarla, completar su verificación mínima y fondear la operación para iniciar el cumplimiento."}
+          </p>
+        </div>
+        <div className="p-5">
+          <div className="rounded-lg bg-yo-info-bg border border-[#BAE6FD] p-3 flex items-start gap-2">
+            <Info className="h-4 w-4 text-yo-info shrink-0 mt-0.5" />
+            <p className="text-xs text-yo-txt-2">
+              YOKTO no custodia fondos. La retención y liberación se realiza mediante la pasarela de pago integrada
+              conforme a las reglas aceptadas por las partes.
+            </p>
+          </div>
+        </div>
+        <div className="p-4 bg-yo-raised border-t border-yo-border flex items-center justify-end gap-2">
+          <button onClick={onClose} disabled={firmando}
+            className="px-4 py-2 border border-yo-border rounded-md text-sm font-medium text-yo-txt-2 hover:bg-yo-surface disabled:opacity-40">
+            Cancelar
+          </button>
+          <button onClick={onConfirm} disabled={firmando}
+            className="px-5 py-2 bg-yo-ac text-white text-sm font-semibold rounded-md hover:bg-yo-ac-h disabled:opacity-40">
+            {firmando ? "Procesando…" : isBuyer ? "Activar operación" : "Enviar propuesta"}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
 
+// ─── Pantalla de éxito ──────────────────────────────────────────────────────
+function SuccessScreen({
+  rol, numero, activated, contraparte, onGoTransactions, onGoPayments,
+}: {
+  rol: Rol; numero: string | null; activated: boolean; contraparte: Contraparte | null;
+  onGoTransactions: () => void; onGoPayments: () => void;
+}) {
+  const isBuyer = rol === "PAGADOR";
+  return (
+    <div className="min-h-screen bg-yo-bg flex items-center justify-center p-6">
+      <div className="w-full max-w-lg bg-yo-surface rounded-xl border border-yo-border shadow-sm p-8 text-center">
+        <div className="mx-auto h-14 w-14 rounded-full bg-yo-ok-bg flex items-center justify-center">
+          <Check className="h-7 w-7 text-yo-ok" />
+        </div>
+        <h2 className="mt-4 text-xl font-semibold text-yo-txt">
+          {isBuyer ? "Operación creada correctamente" : "Operación enviada al comprador"}
+        </h2>
+        {numero && <p className="mt-1 text-sm font-mono text-yo-txt-3">{numero}</p>}
+        <p className="mt-3 text-sm text-yo-txt-2">
+          {isBuyer
+            ? (activated
+                ? "Ahora puedes invitar a la contraparte y continuar con el fondeo mediante la pasarela seleccionada."
+                : `Enviamos una invitación a ${contraparte?.email ?? "la contraparte"}. La operación queda en pendiente hasta que acepte y firme.`)
+            : "El comprador deberá revisar, aceptar y fondear la operación para iniciar el cumplimiento."}
+        </p>
+        <div className="mt-6 flex flex-col sm:flex-row gap-2 justify-center">
+          {isBuyer ? (
+            <>
+              <button onClick={onGoPayments}
+                className="px-5 py-2 bg-yo-ac text-white text-sm font-semibold rounded-md hover:bg-yo-ac-h">
+                Ir a Centro de Pagos
+              </button>
+              <button onClick={onGoTransactions}
+                className="px-5 py-2 border border-yo-border rounded-md text-sm font-medium text-yo-txt-2 hover:bg-yo-raised">
+                Ver operación
+              </button>
+            </>
+          ) : (
+            <>
+              <button onClick={onGoTransactions}
+                className="px-5 py-2 bg-yo-ac text-white text-sm font-semibold rounded-md hover:bg-yo-ac-h">
+                Ver operación
+              </button>
+              <button onClick={() => window.location.reload()}
+                className="px-5 py-2 border border-yo-border rounded-md text-sm font-medium text-yo-txt-2 hover:bg-yo-raised">
+                Crear otra operación
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
