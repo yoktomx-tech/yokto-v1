@@ -61,7 +61,7 @@ function TransactionsList() {
 
   const [rows, setRows] = useState<TxRow[]>([]);
   const [loading, setLoading] = useState(true);
-  const [kycOk, setKycOk] = useState<boolean | null>(null);
+
 
   // Filters + tab + view derived from URL search params (shareable state)
   const filters: TxFiltersState = useMemo(() => ({
