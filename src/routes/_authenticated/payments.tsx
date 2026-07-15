@@ -51,10 +51,11 @@ function PaymentsPage() {
     queryFn: () => listFn(),
   });
 
-  const { data: isAdmin = false } = useQuery({
+  const { data: adminInfo } = useQuery({
     queryKey: ["is-admin"],
     queryFn: () => adminFn(),
   });
+  const isAdmin = adminInfo?.isAdmin ?? false;
 
   const openRow = (r: PaymentRow) => {
     if (!r.id.startsWith("tx-")) navigate({ to: "/payments/$id", params: { id: r.id } });
