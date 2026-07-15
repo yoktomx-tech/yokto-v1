@@ -129,6 +129,93 @@ export type Hito = {
   checklist: { label: string; state: "ok" | "pending" | "reject" | "opt" }[];
 };
 
+export type ContractStatus =
+  | "NO_CONFIGURADO" | "PENDIENTE_CARGA" | "PENDIENTE_GENERACION"
+  | "GENERADO" | "SUBIDO" | "EN_FIRMA"
+  | "FIRMADO_PARCIAL" | "FIRMADO_COMPLETO" | "RECHAZADO" | "VERSIONADO";
+
+export type SignatureMethod = "AUTOGRAFA_DIGITAL_BIOMETRICA" | "EFIRMA_SAT";
+
+export type ContractInfo = {
+  status: ContractStatus;
+  method: "SUBIDO_PDF" | "GENERADO_AUTOMATICO";
+  version: string;
+  hash: string;
+  templateName?: string;
+  signatures: {
+    party: "COMPRADOR" | "VENDEDOR";
+    name: string;
+    method?: SignatureMethod;
+    signed: boolean;
+    signedAt?: string;
+  }[];
+};
+
+export type FiscalStatus =
+  | "SIN_CFDI" | "CFDI_SUBIDO" | "CFDI_VALIDANDO" | "CFDI_EN_REVISION"
+  | "CFDI_ACEPTADO" | "CFDI_RECHAZADO"
+  | "REP_PENDIENTE" | "REP_SUBIDO" | "REP_VALIDANDO" | "REP_EN_REVISION"
+  | "REP_ACEPTADO" | "REP_RECHAZADO" | "FISCAL_COMPLETO";
+
+export type CFDIInfo = {
+  status: FiscalStatus;
+  uuid?: string;
+  amount?: number;
+  method?: "PPD";
+  formaPago?: "99";
+  emisorRfc?: string;
+  receptorRfc?: string;
+  usoCfdi?: string;
+  timbradoAt?: string;
+  observacion?: string;
+};
+
+export type REPInfo = {
+  id: string;
+  hitoId: string;
+  numParcialidad: number;
+  impSaldoAnt: number;
+  impPagado: number;
+  impSaldoInsoluto: number;
+  formaDePagoP?: "03";
+  status: FiscalStatus;
+  uuid?: string;
+  observacion?: string;
+};
+
+export type FiscalInfo = {
+  cfdi: CFDIInfo;
+  reps: REPInfo[];
+  emisorRfc: string;
+  receptorRfc: string;
+  usoCfdi: string;
+  cpReceptor: string;
+  totalOperacion: number;
+  conceptoSugerido: string;
+};
+
+export type SectorRequirement = {
+  id: string;
+  label: string;
+  type: "DOCUMENTO" | "EVIDENCIA" | "CHECKLIST" | "API";
+  status: "PENDIENTE" | "EN_PROCESO" | "COMPLETO" | "RECHAZADO";
+  hint?: string;
+};
+
+export type ComplianceLockType =
+  | "CONTRACT_NOT_SIGNED" | "CFDI_NOT_ACCEPTED" | "REP_PREVIOUS_PENDING"
+  | "REQUIRED_DOCUMENT_MISSING" | "EVIDENCE_MISSING" | "SECTOR_VALIDATION_PENDING"
+  | "DISPUTE_ACTIVE" | "KYC_INCOMPLETE" | "COUNTERPARTY_PENDING";
+
+export type ComplianceLock = {
+  type: ComplianceLockType;
+  label: string;
+  detail: string;
+  blocksApproval: boolean;
+  blocksRelease: boolean;
+  actionLabel?: string;
+};
+
 export type Operation = {
   id: string;
   name: string;
@@ -142,7 +229,90 @@ export type Operation = {
   nextDueDate: string;
   risk: "BAJO" | "MEDIO" | "ALTO";
   hitos: Hito[];
+  contract: ContractInfo;
+  fiscal: FiscalInfo;
+  sectorRequirements: SectorRequirement[];
+  locks: ComplianceLock[];
 };
+
+export const CONTRACT_STATUS_LABEL: Record<ContractStatus, string> = {
+  NO_CONFIGURADO: "Sin configurar",
+  PENDIENTE_CARGA: "Pendiente de carga",
+  PENDIENTE_GENERACION: "Pendiente de generación",
+  GENERADO: "Generado",
+  SUBIDO: "Subido",
+  EN_FIRMA: "En firma",
+  FIRMADO_PARCIAL: "Firmado parcialmente",
+  FIRMADO_COMPLETO: "Firmado completo",
+  RECHAZADO: "Rechazado",
+  VERSIONADO: "Nueva versión",
+};
+
+export const FISCAL_STATUS_LABEL: Record<FiscalStatus, string> = {
+  SIN_CFDI: "Sin CFDI",
+  CFDI_SUBIDO: "CFDI subido",
+  CFDI_VALIDANDO: "CFDI validando",
+  CFDI_EN_REVISION: "CFDI en revisión",
+  CFDI_ACEPTADO: "CFDI aceptado",
+  CFDI_RECHAZADO: "CFDI rechazado",
+  REP_PENDIENTE: "REP pendiente",
+  REP_SUBIDO: "REP subido",
+  REP_VALIDANDO: "REP validando",
+  REP_EN_REVISION: "REP en revisión",
+  REP_ACEPTADO: "REP aceptado",
+  REP_RECHAZADO: "REP rechazado",
+  FISCAL_COMPLETO: "Fiscal completo",
+};
+
+export function computeOpLocks(op: Operation): ComplianceLock[] {
+  const locks: ComplianceLock[] = [];
+  const contractSigned = op.contract.signatures.every((s) => s.signed);
+  if (!contractSigned && op.contract.status !== "FIRMADO_COMPLETO") {
+    const pendVendedor = op.contract.signatures.find((s) => s.party === "VENDEDOR" && !s.signed);
+    locks.push({
+      type: "CONTRACT_NOT_SIGNED",
+      label: "Contrato sin firmar",
+      detail: pendVendedor
+        ? "Falta tu firma en el contrato."
+        : "Falta firma del comprador en el contrato.",
+      blocksApproval: true, blocksRelease: true,
+      actionLabel: pendVendedor ? "Firmar contrato" : undefined,
+    });
+  }
+  if (op.fiscal.cfdi.status !== "CFDI_ACEPTADO" && op.fiscal.cfdi.status !== "FISCAL_COMPLETO") {
+    locks.push({
+      type: "CFDI_NOT_ACCEPTED",
+      label: "CFDI PPD pendiente",
+      detail: op.fiscal.cfdi.status === "SIN_CFDI"
+        ? "Debes subir el CFDI PPD timbrado."
+        : "El CFDI aún no es aceptado por el comprador.",
+      blocksApproval: false, blocksRelease: true,
+      actionLabel: op.fiscal.cfdi.status === "SIN_CFDI" ? "Subir CFDI XML" : undefined,
+    });
+  }
+  const repPend = op.fiscal.reps.find((r) => r.status === "REP_PENDIENTE" || r.status === "REP_RECHAZADO");
+  if (repPend) {
+    locks.push({
+      type: "REP_PREVIOUS_PENDING",
+      label: `REP parcialidad ${repPend.numParcialidad} pendiente`,
+      detail: "Debes emitir el REP por la parcialidad anterior antes de liberar la siguiente.",
+      blocksApproval: false, blocksRelease: true,
+      actionLabel: "Subir REP XML",
+    });
+  }
+  const sectPend = op.sectorRequirements.filter((s) => s.status !== "COMPLETO");
+  if (sectPend.length > 0) {
+    locks.push({
+      type: "SECTOR_VALIDATION_PENDING",
+      label: `Requisitos sectoriales (${sectPend.length})`,
+      detail: sectPend.slice(0, 2).map((s) => s.label).join(" · "),
+      blocksApproval: true, blocksRelease: false,
+      actionLabel: "Completar requisitos",
+    });
+  }
+  return locks;
+}
+
 
 /** Compute VENCIDO client-side (72h alerts + overdue). */
 export function withComputedDueStatus(op: Operation): Operation {
@@ -162,7 +332,7 @@ export function daysUntil(dateStr: string): number {
   return Math.ceil(ms / (24 * 3600 * 1000));
 }
 
-export const MOCK_OPS: Operation[] = [
+const RAW_OPS: Array<Omit<Operation, "contract" | "fiscal" | "sectorRequirements" | "locks">> = [
   {
     id: "OP-2026-00124",
     name: "Suministro de materiales etapa 2",
@@ -380,6 +550,120 @@ export const MOCK_OPS: Operation[] = [
   },
 ];
 
+function defaultContract(op: Omit<Operation, "contract" | "fiscal" | "sectorRequirements" | "locks">, i: number): ContractInfo {
+  // vary across ops to showcase different states
+  if (i === 0) return {
+    status: "EN_FIRMA", method: "GENERADO_AUTOMATICO", version: "v2",
+    hash: "sha256:9f2a...c81e", templateName: "Construcción — Suministro y obra",
+    signatures: [
+      { party: "COMPRADOR", name: op.buyer, method: "AUTOGRAFA_DIGITAL_BIOMETRICA", signed: true, signedAt: "2026-06-25 11:20" },
+      { party: "VENDEDOR", name: "Tu organización", method: "AUTOGRAFA_DIGITAL_BIOMETRICA", signed: false },
+    ],
+  };
+  if (i === 1) return {
+    status: "FIRMADO_COMPLETO", method: "SUBIDO_PDF", version: "v1",
+    hash: "sha256:3c1d...ab72",
+    signatures: [
+      { party: "COMPRADOR", name: op.buyer, method: "EFIRMA_SAT", signed: true, signedAt: "2026-07-05 09:00" },
+      { party: "VENDEDOR", name: "Tu organización", method: "EFIRMA_SAT", signed: true, signedAt: "2026-07-05 09:14" },
+    ],
+  };
+  return {
+    status: "PENDIENTE_CARGA", method: "SUBIDO_PDF", version: "—", hash: "—",
+    signatures: [
+      { party: "COMPRADOR", name: op.buyer, signed: false },
+      { party: "VENDEDOR", name: "Tu organización", signed: false },
+    ],
+  };
+}
+
+function defaultFiscal(op: Omit<Operation, "contract" | "fiscal" | "sectorRequirements" | "locks">, i: number): FiscalInfo {
+  const base = {
+    emisorRfc: "XAXX010101000",
+    receptorRfc: i === 0 ? "CNO900101ABC" : i === 1 ? "IDB050203DEF" : "GPA110515GHI",
+    usoCfdi: "G03 — Gastos en general",
+    cpReceptor: i === 0 ? "64000" : i === 1 ? "37000" : "11000",
+    totalOperacion: op.totalAmount,
+    conceptoSugerido: op.name,
+  };
+  if (i === 0) return {
+    ...base,
+    cfdi: {
+      status: "CFDI_ACEPTADO", uuid: "A1B2C3D4-E5F6-7890-ABCD-1234567890EF",
+      amount: op.totalAmount, method: "PPD", formaPago: "99",
+      emisorRfc: base.emisorRfc, receptorRfc: base.receptorRfc, usoCfdi: base.usoCfdi,
+      timbradoAt: "2026-06-22",
+    },
+    reps: [
+      { id: "REP-1", hitoId: "MILE-001", numParcialidad: 1, impSaldoAnt: op.totalAmount, impPagado: 100000, impSaldoInsoluto: op.totalAmount - 100000, formaDePagoP: "03", status: "REP_ACEPTADO", uuid: "REP-UUID-001" },
+      { id: "REP-2", hitoId: "MILE-002", numParcialidad: 2, impSaldoAnt: op.totalAmount - 100000, impPagado: 185000, impSaldoInsoluto: op.totalAmount - 285000, formaDePagoP: "03", status: "REP_PENDIENTE" },
+    ],
+  };
+  if (i === 1) return {
+    ...base,
+    cfdi: { status: "SIN_CFDI", method: "PPD", formaPago: "99" },
+    reps: [],
+  };
+  return {
+    ...base,
+    cfdi: { status: "CFDI_EN_REVISION", uuid: "ZZ99-AA88", amount: op.totalAmount, method: "PPD", formaPago: "99", emisorRfc: base.emisorRfc, receptorRfc: base.receptorRfc, usoCfdi: base.usoCfdi, timbradoAt: "2026-07-15" },
+    reps: [],
+  };
+}
+
+function defaultSectorReqs(op: Omit<Operation, "contract" | "fiscal" | "sectorRequirements" | "locks">): SectorRequirement[] {
+  const s = op.sector.toLowerCase();
+  if (s.includes("construc")) return [
+    { id: "SR-1", label: "REPSE vigente", type: "API", status: "COMPLETO" },
+    { id: "SR-2", label: "Estimación de obra firmada", type: "DOCUMENTO", status: "EN_PROCESO" },
+    { id: "SR-3", label: "Evidencia de avance de obra", type: "EVIDENCIA", status: "PENDIENTE" },
+    { id: "SR-4", label: "Acta de entrega parcial", type: "DOCUMENTO", status: "PENDIENTE" },
+  ];
+  if (s.includes("autotransporte") || s.includes("flete")) return [
+    { id: "SR-1", label: "Carta Porte 2.0 timbrada", type: "DOCUMENTO", status: "PENDIENTE" },
+    { id: "SR-2", label: "Foto de carga", type: "EVIDENCIA", status: "PENDIENTE" },
+    { id: "SR-3", label: "Foto de descarga", type: "EVIDENCIA", status: "PENDIENTE" },
+    { id: "SR-4", label: "Evidencia GPS de ruta", type: "API", status: "EN_PROCESO" },
+  ];
+  if (s.includes("vehic")) return [
+    { id: "SR-1", label: "Consulta REPUVE", type: "API", status: "PENDIENTE", hint: "VIN requerido" },
+    { id: "SR-2", label: "Checklist 96 puntos", type: "CHECKLIST", status: "EN_PROCESO" },
+    { id: "SR-3", label: "25 fotografías obligatorias", type: "EVIDENCIA", status: "PENDIENTE" },
+    { id: "SR-4", label: "Tarjeta de circulación", type: "DOCUMENTO", status: "PENDIENTE" },
+  ];
+  if (s.includes("comercio") || s.includes("exterior")) return [
+    { id: "SR-1", label: "Bill of Lading / AWB", type: "DOCUMENTO", status: "PENDIENTE" },
+    { id: "SR-2", label: "Pedimento aduanal", type: "DOCUMENTO", status: "PENDIENTE" },
+    { id: "SR-3", label: "Factura comercial", type: "DOCUMENTO", status: "EN_PROCESO" },
+    { id: "SR-4", label: "Tracking de embarque", type: "API", status: "EN_PROCESO" },
+  ];
+  if (s.includes("inmobil")) return [
+    { id: "SR-1", label: "Escritura pública", type: "DOCUMENTO", status: "COMPLETO" },
+    { id: "SR-2", label: "Avalúo vigente", type: "DOCUMENTO", status: "EN_PROCESO" },
+    { id: "SR-3", label: "Certificado libertad de gravamen", type: "DOCUMENTO", status: "PENDIENTE" },
+    { id: "SR-4", label: "Due diligence completa", type: "CHECKLIST", status: "PENDIENTE" },
+  ];
+  // Servicios / Consultoría default
+  return [
+    { id: "SR-1", label: "Propuesta aprobada", type: "DOCUMENTO", status: "COMPLETO" },
+    { id: "SR-2", label: "Entregable digital", type: "DOCUMENTO", status: "EN_PROCESO" },
+    { id: "SR-3", label: "Acta de aceptación", type: "DOCUMENTO", status: "PENDIENTE" },
+  ];
+}
+
+export const MOCK_OPS: Operation[] = RAW_OPS.map((op, i) => {
+  const full: Operation = {
+    ...op,
+    contract: defaultContract(op, i),
+    fiscal: defaultFiscal(op, i),
+    sectorRequirements: defaultSectorReqs(op),
+    locks: [],
+  };
+  full.locks = computeOpLocks(full);
+  return full;
+});
+
 export function formatMXN(cents: number, currency = "MXN") {
   return `$${cents.toLocaleString("es-MX", { minimumFractionDigits: 0 })} ${currency}`;
 }
+

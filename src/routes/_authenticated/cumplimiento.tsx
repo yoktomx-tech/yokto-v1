@@ -13,8 +13,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import {
   MOCK_OPS, HITO_STATUS_CFG, DOC_STATUS_CFG, TONE_BADGE, TONE_ACCENT, formatMXN,
-  withComputedDueStatus, daysUntil,
+  withComputedDueStatus, daysUntil, CONTRACT_STATUS_LABEL, FISCAL_STATUS_LABEL,
   type Operation, type Hito, type HitoStatus, type Document as HitoDoc, type Observation,
+  type ContractInfo, type FiscalInfo, type SectorRequirement, type ComplianceLock, type REPInfo,
 } from "@/lib/cumplimiento-mock";
 
 export const Route = createFileRoute("/_authenticated/cumplimiento")({
@@ -25,15 +26,19 @@ export const Route = createFileRoute("/_authenticated/cumplimiento")({
   component: CumplimientoPage,
 });
 
-const TABS: { key: "ALL" | HitoStatus; label: string }[] = [
+type TabKey =
+  | "ALL" | "PENDIENTE" | "EN_REVISION" | "OBSERVACIONES"
+  | "CONTRATOS" | "FISCAL" | "SECTORIALES" | "APROBADO";
+
+const TABS: { key: TabKey; label: string }[] = [
   { key: "ALL", label: "Todos" },
   { key: "PENDIENTE", label: "Pendientes" },
-  { key: "EN_CARGA", label: "En carga" },
-  { key: "LISTO_REVISION", label: "Listos para revisión" },
   { key: "EN_REVISION", label: "En revisión" },
+  { key: "OBSERVACIONES", label: "Con observaciones" },
+  { key: "CONTRATOS", label: "Contratos y firmas" },
+  { key: "FISCAL", label: "Fiscal CFDI/REP" },
+  { key: "SECTORIALES", label: "Sectoriales" },
   { key: "APROBADO", label: "Aprobados" },
-  { key: "RECHAZADO", label: "Rechazados" },
-  { key: "VENCIDO", label: "Vencidos" },
 ];
 
 type QuickFilter = "atencion" | "vence7d" | "conPago" | "docsRechazados" | null;
@@ -56,7 +61,7 @@ function CumplimientoPage() {
   const { currentOrg, can } = useCurrentOrg();
 
   // Hooks always run in same order (fix hooks-order bug).
-  const [tab, setTab] = useState<(typeof TABS)[number]["key"]>("ALL");
+  const [tab, setTab] = useState<TabKey>("ALL");
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState<{ opId: string; hitoId?: string } | null>(null);
   const [uploadFor, setUploadFor] = useState<{ opId: string; hitoId?: string } | null>(null);
@@ -113,16 +118,30 @@ function CumplimientoPage() {
 
   const filteredOps = useMemo(() => {
     const q = query.trim().toLowerCase();
+    // Op-level tabs keep the whole operation
+    const opLevelTabs: TabKey[] = ["CONTRATOS", "FISCAL", "SECTORIALES"];
+    const isOpLevel = opLevelTabs.includes(tab);
     return ops
+      .filter((op) => {
+        if (adv.sector && op.sector !== adv.sector) return false;
+        if (adv.contraparte && !op.buyer.toLowerCase().includes(adv.contraparte.toLowerCase())) return false;
+        if (tab === "CONTRATOS" && op.contract.status === "FIRMADO_COMPLETO") return false;
+        if (tab === "FISCAL" && op.fiscal.cfdi.status === "CFDI_ACEPTADO" && op.fiscal.reps.every((r) => r.status === "REP_ACEPTADO")) return false;
+        if (tab === "SECTORIALES" && op.sectorRequirements.every((s) => s.status === "COMPLETO")) return false;
+        return true;
+      })
       .map((op) => {
         const hitos = op.hitos.filter((h) => {
-          if (tab !== "ALL" && h.status !== tab) return false;
+          if (!isOpLevel) {
+            if (tab === "PENDIENTE" && !["PENDIENTE", "EN_CARGA", "NO_INICIADO"].includes(h.status)) return false;
+            if (tab === "EN_REVISION" && !["EN_REVISION", "LISTO_REVISION"].includes(h.status)) return false;
+            if (tab === "OBSERVACIONES" && h.observationsOpen === 0 && h.status !== "RECHAZADO") return false;
+            if (tab === "APROBADO" && h.status !== "APROBADO") return false;
+          }
           if (q) {
             const hay = [op.id, op.name, op.buyer, h.name, h.id].join(" ").toLowerCase();
             if (!hay.includes(q)) return false;
           }
-          if (adv.sector && op.sector !== adv.sector) return false;
-          if (adv.contraparte && !op.buyer.toLowerCase().includes(adv.contraparte.toLowerCase())) return false;
           if (adv.priority && h.priority !== adv.priority) return false;
           if (adv.dueBefore && new Date(h.dueDate) > new Date(adv.dueBefore)) return false;
           if (adv.hasPayment && !h.hasPendingPayment) return false;
@@ -135,8 +154,9 @@ function CumplimientoPage() {
         });
         return { ...op, hitos };
       })
-      .filter((op) => op.hitos.length > 0);
+      .filter((op) => isOpLevel || op.hitos.length > 0);
   }, [ops, tab, query, adv, quick]);
+
 
   const selectedOp = selected ? ops.find((o) => o.id === selected.opId) ?? null : null;
   const selectedHito = selectedOp && selected?.hitoId
@@ -438,6 +458,19 @@ function OperationCard({
           </div>
         </div>
 
+        {op.locks.length > 0 && (
+          <button onClick={onOpenOp} className="mt-3 w-full text-left rounded-md border border-[#FEF3C7] bg-[#FFFBEB] px-3 py-2 flex items-center justify-between gap-2 hover:border-[#FDE68A]">
+            <div className="flex items-center gap-2 min-w-0">
+              <Lock className="size-3.5 text-[#D97706] shrink-0" />
+              <span className="text-[11.5px] text-[#92400E] truncate">
+                {op.locks.length} {op.locks.length === 1 ? "candado activo" : "candados activos"}: {op.locks.slice(0, 2).map((l) => l.label).join(" · ")}
+                {op.locks.length > 2 && ` +${op.locks.length - 2}`}
+              </span>
+            </div>
+            <ChevronRight className="size-3.5 text-[#92400E] shrink-0" />
+          </button>
+        )}
+
         <div className="mt-3 flex flex-wrap gap-2">
           <button onClick={onOpenOp} className="h-8 px-3 rounded-md border border-yo-border bg-yo-surface text-xs font-medium text-yo-txt hover:border-yo-border-s">Ver detalle</button>
           <button onClick={() => setOpen((v) => !v)} className="h-8 px-3 rounded-md text-xs font-medium text-yo-ac hover:bg-yo-ac-bg inline-flex items-center gap-1">
@@ -588,7 +621,7 @@ function TableView({ ops, onOpen, onUpload }: { ops: Operation[]; onOpen: (op: s
 
 function DetailPanel({ op, hito, canMarkReady, onClose, onUpload, onMarkReady, onFixObs }:
   { op: Operation; hito: Hito | null; canMarkReady: boolean; onClose: () => void; onUpload: (hitoId?: string) => void; onMarkReady: () => void; onFixObs: (o: Observation) => void }) {
-  const [tab, setTab] = useState<"resumen" | "docs" | "evid" | "obs" | "timeline">("resumen");
+  const [tab, setTab] = useState<"resumen" | "contrato" | "fiscal" | "sectorial" | "candados" | "docs" | "evid" | "obs" | "timeline">("resumen");
 
   return (
     <div className="rounded-xl border border-yo-border bg-yo-surface shadow-sm overflow-hidden">
@@ -622,6 +655,10 @@ function DetailPanel({ op, hito, canMarkReady, onClose, onUpload, onMarkReady, o
       <div className="border-b border-yo-border flex overflow-x-auto">
         {([
           { k: "resumen", l: "Resumen" },
+          { k: "candados", l: `Candados${op.locks.length ? ` (${op.locks.length})` : ""}` },
+          { k: "contrato", l: "Contrato" },
+          { k: "fiscal", l: "Fiscal CFDI/REP" },
+          { k: "sectorial", l: "Sectoriales" },
           { k: "docs", l: "Documentos" },
           { k: "evid", l: "Evidencias" },
           { k: "obs", l: "Observaciones" },
@@ -640,6 +677,10 @@ function DetailPanel({ op, hito, canMarkReady, onClose, onUpload, onMarkReady, o
 
       <div className="p-4">
         {tab === "resumen" && <ResumenTab op={op} hito={hito} />}
+        {tab === "candados" && <CandadosTab op={op} />}
+        {tab === "contrato" && <ContratoTab op={op} />}
+        {tab === "fiscal" && <FiscalTab op={op} />}
+        {tab === "sectorial" && <SectorialTab op={op} />}
         {tab === "docs" && <DocsTab hito={hito} />}
         {tab === "evid" && <EvidTab hito={hito} />}
         {tab === "obs" && <ObsTab hito={hito} onFix={onFixObs} />}
@@ -827,6 +868,277 @@ function TimelineTab() {
         </li>
       ))}
     </ol>
+  );
+}
+
+/* ============= New: Candados / Contrato / Fiscal / Sectorial tabs ============= */
+
+function CandadosTab({ op }: { op: Operation }) {
+  if (op.locks.length === 0) {
+    return (
+      <div className="rounded-md border border-[#DCFCE7] bg-[#F0FDF4] p-4 text-[12.5px] text-[#166534]">
+        <div className="flex items-center gap-2 font-medium"><CheckCircle2 className="size-4" /> Sin candados activos</div>
+        <p className="mt-1 text-[11.5px] text-[#166534]/80">Esta operación no tiene bloqueos de cumplimiento pendientes.</p>
+      </div>
+    );
+  }
+  return (
+    <div className="space-y-2">
+      <div className="rounded-md border border-[#FEF3C7] bg-[#FFFBEB] p-3 text-[12px] text-[#92400E] flex gap-2">
+        <Lock className="size-4 mt-0.5" />
+        <div>Estos candados impiden que el hito pueda enviarse a revisión o que YOKTO ordene liberaciones a la pasarela.</div>
+      </div>
+      {op.locks.map((lk, i) => (
+        <div key={i} className="rounded-md border border-yo-border p-3">
+          <div className="flex items-start justify-between gap-2">
+            <div className="min-w-0">
+              <div className="text-[12.5px] font-medium text-yo-txt flex items-center gap-1.5">
+                <AlertTriangle className="size-3.5 text-[#D97706]" /> {lk.label}
+              </div>
+              <p className="mt-0.5 text-[11.5px] text-yo-txt-2">{lk.detail}</p>
+              <div className="mt-1.5 flex gap-1.5 flex-wrap">
+                {lk.blocksApproval && <span className="text-[10px] font-medium bg-[#FEF2F2] text-[#DC2626] rounded-full px-2 py-0.5">Bloquea aprobación</span>}
+                {lk.blocksRelease && <span className="text-[10px] font-medium bg-[#FFFBEB] text-[#D97706] rounded-full px-2 py-0.5">Bloquea liberación</span>}
+              </div>
+            </div>
+            {lk.actionLabel && (
+              <button className="h-7 px-2.5 rounded-md bg-yo-ac text-white text-[11px] font-medium hover:bg-yo-ac-h shrink-0">{lk.actionLabel}</button>
+            )}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function ContratoTab({ op }: { op: Operation }) {
+  const c: ContractInfo = op.contract;
+  const badgeTone = c.status === "FIRMADO_COMPLETO" ? "ok"
+    : c.status === "RECHAZADO" ? "err"
+    : c.status === "EN_FIRMA" || c.status === "FIRMADO_PARCIAL" ? "info"
+    : "neutral";
+  return (
+    <div className="space-y-3">
+      <div className="rounded-md border border-yo-border p-3">
+        <div className="flex items-start justify-between gap-2">
+          <div className="min-w-0">
+            <div className="text-[10px] uppercase tracking-wider text-yo-txt-3 font-semibold">Contrato de la operación</div>
+            <div className="mt-0.5 text-[13px] font-semibold text-yo-txt">
+              {c.method === "GENERADO_AUTOMATICO" ? "Generado automáticamente" : "PDF subido"} · {c.templateName ?? "—"}
+            </div>
+            <div className="mt-1 text-[11.5px] text-yo-txt-2">
+              Versión <span className="font-mono">{c.version}</span> · Hash <span className="font-mono text-yo-txt-3">{c.hash}</span>
+            </div>
+          </div>
+          <span className={cn("inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-medium", TONE_BADGE[badgeTone])}>
+            <span className="w-1.5 h-1.5 rounded-full bg-current" />
+            {CONTRACT_STATUS_LABEL[c.status]}
+          </span>
+        </div>
+      </div>
+
+      <div className="rounded-md border border-yo-border">
+        <div className="px-3 py-2 border-b border-yo-border bg-yo-raised/40 text-[11px] font-medium text-yo-txt-2">Firmas</div>
+        <ul className="divide-y divide-yo-border">
+          {c.signatures.map((s, i) => (
+            <li key={i} className="p-3 flex items-start justify-between gap-2">
+              <div className="min-w-0">
+                <div className="text-[12.5px] font-medium text-yo-txt">
+                  {s.party === "COMPRADOR" ? "Comprador" : "Vendedor"} — {s.name}
+                </div>
+                <div className="text-[11px] text-yo-txt-3 mt-0.5">
+                  {s.method === "EFIRMA_SAT" ? "e.firma SAT" : s.method === "AUTOGRAFA_DIGITAL_BIOMETRICA" ? "Firma autógrafa + biometría" : "Método por definir"}
+                  {s.signedAt && <> · {s.signedAt}</>}
+                </div>
+              </div>
+              {s.signed ? (
+                <span className="inline-flex items-center gap-1 text-[11px] font-medium text-[#059669] bg-[#ECFDF5] rounded-full px-2 py-0.5">
+                  <CheckCircle2 className="size-3" /> Firmado
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1 text-[11px] font-medium text-[#D97706] bg-[#FFFBEB] rounded-full px-2 py-0.5">
+                  <Clock className="size-3" /> Pendiente
+                </span>
+              )}
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <div className="flex flex-wrap gap-2">
+        <button className="h-8 px-3 rounded-md border border-yo-border bg-yo-surface text-xs font-medium text-yo-txt hover:border-yo-border-s">Ver contrato</button>
+        <button className="h-8 px-3 rounded-md border border-yo-border bg-yo-surface text-xs font-medium text-yo-txt hover:border-yo-border-s">Descargar PDF</button>
+        {c.signatures.some((s) => s.party === "VENDEDOR" && !s.signed) && (
+          <button className="h-8 px-3 rounded-md bg-yo-ac text-white text-xs font-medium hover:bg-yo-ac-h">Firmar ahora</button>
+        )}
+        {c.status === "RECHAZADO" && (
+          <button className="h-8 px-3 rounded-md border border-yo-border bg-yo-surface text-xs font-medium text-yo-txt hover:border-yo-border-s">Subir nueva versión</button>
+        )}
+      </div>
+
+      <div className="rounded-md border border-yo-border bg-yo-raised/40 p-3 text-[11.5px] text-yo-txt-2">
+        El contrato firmado forma parte del expediente. Si falta alguna firma requerida, no podrás enviar hitos a revisión.
+      </div>
+    </div>
+  );
+}
+
+function FiscalTab({ op }: { op: Operation }) {
+  const [showData, setShowData] = useState<"cfdi" | REPInfo | null>(null);
+  const f: FiscalInfo = op.fiscal;
+  const cfdiTone = f.cfdi.status === "CFDI_ACEPTADO" ? "ok"
+    : f.cfdi.status === "CFDI_RECHAZADO" ? "err"
+    : f.cfdi.status === "SIN_CFDI" ? "warn" : "info";
+  return (
+    <div className="space-y-3">
+      <div className="rounded-md border border-[#FEF3C7] bg-[#FFFBEB] p-3 text-[12px] text-[#92400E] flex gap-2">
+        <Info className="size-4 mt-0.5" />
+        <div>YOKTO no emite CFDI ni REP. Debes generarlos en tu PAC o sistema contable y subir el XML timbrado.</div>
+      </div>
+
+      <div className="rounded-md border border-yo-border p-3">
+        <div className="flex items-start justify-between gap-2">
+          <div>
+            <div className="text-[10px] uppercase tracking-wider text-yo-txt-3 font-semibold">CFDI PPD inicial</div>
+            <div className="mt-0.5 text-[13px] font-semibold text-yo-txt">
+              {f.cfdi.uuid ? <span className="font-mono text-[12px]">{f.cfdi.uuid}</span> : "Aún no subido"}
+            </div>
+            <div className="mt-1 text-[11.5px] text-yo-txt-2">
+              Emisor <span className="font-mono">{f.emisorRfc}</span> · Receptor <span className="font-mono">{f.receptorRfc}</span> · Uso {f.usoCfdi}
+            </div>
+            {f.cfdi.observacion && <div className="mt-1 text-[11.5px] text-[#DC2626]">{f.cfdi.observacion}</div>}
+          </div>
+          <span className={cn("inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-medium", TONE_BADGE[cfdiTone])}>
+            <span className="w-1.5 h-1.5 rounded-full bg-current" />
+            {FISCAL_STATUS_LABEL[f.cfdi.status]}
+          </span>
+        </div>
+        <div className="mt-2 flex flex-wrap gap-1.5">
+          <button onClick={() => setShowData("cfdi")} className="h-7 px-2.5 rounded-md border border-yo-border text-[11px] font-medium text-yo-txt">Ver datos para CFDI</button>
+          {f.cfdi.status === "SIN_CFDI" && (
+            <button className="h-7 px-2.5 rounded-md bg-yo-ac text-white text-[11px] font-medium hover:bg-yo-ac-h">Subir XML</button>
+          )}
+        </div>
+      </div>
+
+      <div className="rounded-md border border-yo-border">
+        <div className="px-3 py-2 border-b border-yo-border bg-yo-raised/40 text-[11px] font-medium text-yo-txt-2">
+          REPs por parcialidad — {f.reps.length === 0 ? "sin parcialidades registradas" : `${f.reps.filter((r) => r.status === "REP_ACEPTADO").length}/${f.reps.length} aceptados`}
+        </div>
+        {f.reps.length === 0 ? (
+          <div className="p-4 text-[11.5px] text-yo-txt-3">Los REPs se habilitan cuando exista un CFDI PPD aceptado y se liberen parcialidades.</div>
+        ) : (
+          <ul className="divide-y divide-yo-border">
+            {f.reps.map((r) => {
+              const tone = r.status === "REP_ACEPTADO" ? "ok" : r.status === "REP_RECHAZADO" ? "err" : "warn";
+              return (
+                <li key={r.id} className="p-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <div className="text-[12.5px] font-medium text-yo-txt">Parcialidad {r.numParcialidad}</div>
+                      <div className="text-[11px] text-yo-txt-3 font-mono">
+                        Saldo ant {formatMXN(r.impSaldoAnt)} · Pagado {formatMXN(r.impPagado)} · Saldo insoluto {formatMXN(r.impSaldoInsoluto)}
+                      </div>
+                      {r.observacion && <div className="text-[11px] text-[#DC2626] mt-0.5">{r.observacion}</div>}
+                    </div>
+                    <span className={cn("inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[10.5px] font-medium", TONE_BADGE[tone])}>
+                      <span className="w-1.5 h-1.5 rounded-full bg-current" />
+                      {FISCAL_STATUS_LABEL[r.status]}
+                    </span>
+                  </div>
+                  <div className="mt-2 flex gap-1.5">
+                    <button onClick={() => setShowData(r)} className="h-7 px-2.5 rounded-md border border-yo-border text-[11px] font-medium text-yo-txt">Ver datos REP</button>
+                    {(r.status === "REP_PENDIENTE" || r.status === "REP_RECHAZADO") && (
+                      <button className="h-7 px-2.5 rounded-md bg-yo-ac text-white text-[11px] font-medium hover:bg-yo-ac-h">Subir REP XML</button>
+                    )}
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </div>
+
+      {showData && (
+        <div className="fixed inset-0 z-50 bg-black/40 grid place-items-center p-4" onClick={() => setShowData(null)}>
+          <div className="w-full max-w-md rounded-xl bg-yo-surface border border-yo-border shadow-lg overflow-hidden" onClick={(e) => e.stopPropagation()}>
+            <div className="p-4 border-b border-yo-border flex items-center justify-between">
+              <div>
+                <h3 className="text-[14px] font-semibold text-yo-txt">
+                  {showData === "cfdi" ? "Datos para emitir tu CFDI PPD" : `Datos para REP parcialidad ${showData.numParcialidad}`}
+                </h3>
+                <p className="text-[11px] text-yo-txt-3">Cópialos en tu sistema contable o PAC.</p>
+              </div>
+              <button onClick={() => setShowData(null)} className="size-7 grid place-items-center rounded-md hover:bg-yo-raised"><X className="size-4" /></button>
+            </div>
+            <div className="p-4 text-[12px] font-mono space-y-1.5 text-yo-txt bg-yo-raised/40">
+              {showData === "cfdi" ? (
+                <>
+                  <div>RFC emisor: {f.emisorRfc}</div>
+                  <div>RFC receptor: {f.receptorRfc}</div>
+                  <div>Método de pago: PPD</div>
+                  <div>Forma de pago: 99 — Por definir</div>
+                  <div>Uso CFDI: {f.usoCfdi}</div>
+                  <div>CP receptor: {f.cpReceptor}</div>
+                  <div>Total: {formatMXN(f.totalOperacion)}</div>
+                  <div>Concepto: {f.conceptoSugerido}</div>
+                </>
+              ) : (
+                <>
+                  <div>UUID CFDI origen: {f.cfdi.uuid ?? "—"}</div>
+                  <div>NumParcialidad: {showData.numParcialidad}</div>
+                  <div>ImpSaldoAnt: {formatMXN(showData.impSaldoAnt)}</div>
+                  <div>ImpPagado: {formatMXN(showData.impPagado)}</div>
+                  <div>ImpSaldoInsoluto: {formatMXN(showData.impSaldoInsoluto)}</div>
+                  <div>FormaDePagoP: {showData.formaDePagoP ?? "03 — SPEI"}</div>
+                </>
+              )}
+            </div>
+            <div className="p-3 border-t border-yo-border flex justify-end">
+              <button onClick={() => setShowData(null)} className="h-9 px-3 rounded-md bg-yo-ac text-white text-sm font-medium">Cerrar</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function SectorialTab({ op }: { op: Operation }) {
+  const reqs = op.sectorRequirements;
+  if (reqs.length === 0) return <Empty text="Este sector no tiene requisitos adicionales configurados." />;
+  return (
+    <div className="space-y-2">
+      <div className="rounded-md border border-yo-border bg-yo-raised/40 p-3 text-[11.5px] text-yo-txt-2">
+        Sector: <span className="font-medium text-yo-txt">{op.sector}</span>. Los requisitos cambian según lo pactado en la operación.
+      </div>
+      <ul className="divide-y divide-yo-border rounded-md border border-yo-border overflow-hidden">
+        {reqs.map((r: SectorRequirement) => {
+          const tone = r.status === "COMPLETO" ? "ok"
+            : r.status === "RECHAZADO" ? "err"
+            : r.status === "EN_PROCESO" ? "info" : "neutral";
+          return (
+            <li key={r.id} className="p-3 flex items-start justify-between gap-2 bg-yo-surface">
+              <div className="min-w-0">
+                <div className="text-[12.5px] font-medium text-yo-txt">{r.label}</div>
+                <div className="text-[10.5px] text-yo-txt-3 mt-0.5">{r.type}{r.hint && ` · ${r.hint}`}</div>
+              </div>
+              <div className="flex items-center gap-1.5 shrink-0">
+                <span className={cn("inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10.5px] font-medium", TONE_BADGE[tone])}>
+                  <span className="w-1.5 h-1.5 rounded-full bg-current" />
+                  {r.status}
+                </span>
+                {r.status !== "COMPLETO" && (
+                  <button className="h-7 px-2.5 rounded-md bg-yo-ac text-white text-[11px] font-medium hover:bg-yo-ac-h">
+                    {r.type === "EVIDENCIA" ? "Subir" : r.type === "CHECKLIST" ? "Completar" : "Cargar"}
+                  </button>
+                )}
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
   );
 }
 
