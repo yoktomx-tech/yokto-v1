@@ -41,7 +41,7 @@ export function AppHeader({ email, userId }: { email?: string | null; section?: 
         <div className="flex-1 md:hidden" />
 
 
-        <div className="flex items-center gap-1 shrink-0">
+        <div className="flex items-center gap-1 shrink-0 ml-auto">
           {userId && <NotificationsBell userId={userId} />}
           <button
             onClick={toggleFullscreen}
