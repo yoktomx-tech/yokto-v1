@@ -99,13 +99,13 @@ function DisputesModule() {
               <button className="inline-flex items-center gap-2 rounded-[8px] border border-[#EBEBF0] bg-white px-3 py-2 text-sm text-[#52525B] hover:bg-[#F4F4F7]">
                 <RefreshCw className="h-4 w-4" /> Actualizar
               </button>
-              <button className="inline-flex items-center gap-2 rounded-[8px] border border-[#EBEBF0] bg-white px-3 py-2 text-sm text-[#52525B] hover:bg-[#F4F4F7]">
-                <Download className="h-4 w-4" /> Exportar
-              </button>
               {canOpenDispute(isBuyer ? "buyer" : "seller") && (
-                <button onClick={() => setOpenModal(true)} className="inline-flex items-center gap-2 rounded-[8px] bg-[#4F46E5] px-3 py-2 text-sm font-medium text-white hover:bg-[#4338CA]">
+                <Link
+                  to="/disputes/new"
+                  className="inline-flex items-center gap-2 rounded-[8px] bg-[#4F46E5] px-3 py-2 text-sm font-medium text-white hover:bg-[#4338CA]"
+                >
                   <Plus className="h-4 w-4" /> Abrir disputa
-                </button>
+                </Link>
               )}
             </>
           }
