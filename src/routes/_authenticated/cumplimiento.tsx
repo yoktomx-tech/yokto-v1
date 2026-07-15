@@ -61,7 +61,7 @@ function CumplimientoPage() {
   const { currentOrg, can } = useCurrentOrg();
 
   // Hooks always run in same order (fix hooks-order bug).
-  const [tab, setTab] = useState<(typeof TABS)[number]["key"]>("ALL");
+  const [tab, setTab] = useState<TabKey>("ALL");
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState<{ opId: string; hitoId?: string } | null>(null);
   const [uploadFor, setUploadFor] = useState<{ opId: string; hitoId?: string } | null>(null);
