@@ -41,6 +41,7 @@ function fmtDate(d: string | null) {
 }
 
 export function TransactionsTable({ rows, role, currentUserId }: Props) {
+  const navigate = useNavigate();
   return (
     <div className="surface-card overflow-hidden">
       <div className="overflow-x-auto">
