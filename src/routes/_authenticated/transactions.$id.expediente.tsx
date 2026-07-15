@@ -2,8 +2,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import {
   ArrowLeft, Copy, ShieldAlert, Wallet, CheckCircle2, FileText,
-  Camera, ScrollText, MessageSquare, Clock, AlertTriangle, Info,
-  Building2, User, Calendar, Hash,
+  Camera, ScrollText, MessageSquare, Clock, Info,
+  Calendar, Hash,
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
