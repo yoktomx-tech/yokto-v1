@@ -118,16 +118,30 @@ function CumplimientoPage() {
 
   const filteredOps = useMemo(() => {
     const q = query.trim().toLowerCase();
+    // Op-level tabs keep the whole operation
+    const opLevelTabs: TabKey[] = ["CONTRATOS", "FISCAL", "SECTORIALES"];
+    const isOpLevel = opLevelTabs.includes(tab);
     return ops
+      .filter((op) => {
+        if (adv.sector && op.sector !== adv.sector) return false;
+        if (adv.contraparte && !op.buyer.toLowerCase().includes(adv.contraparte.toLowerCase())) return false;
+        if (tab === "CONTRATOS" && op.contract.status === "FIRMADO_COMPLETO") return false;
+        if (tab === "FISCAL" && op.fiscal.cfdi.status === "FISCAL_COMPLETO") return false;
+        if (tab === "SECTORIALES" && op.sectorRequirements.every((s) => s.status === "COMPLETO")) return false;
+        return true;
+      })
       .map((op) => {
         const hitos = op.hitos.filter((h) => {
-          if (tab !== "ALL" && h.status !== tab) return false;
+          if (!isOpLevel) {
+            if (tab === "PENDIENTE" && !["PENDIENTE", "EN_CARGA", "NO_INICIADO"].includes(h.status)) return false;
+            if (tab === "EN_REVISION" && !["EN_REVISION", "LISTO_REVISION"].includes(h.status)) return false;
+            if (tab === "OBSERVACIONES" && h.observationsOpen === 0 && h.status !== "RECHAZADO") return false;
+            if (tab === "APROBADO" && h.status !== "APROBADO") return false;
+          }
           if (q) {
             const hay = [op.id, op.name, op.buyer, h.name, h.id].join(" ").toLowerCase();
             if (!hay.includes(q)) return false;
           }
-          if (adv.sector && op.sector !== adv.sector) return false;
-          if (adv.contraparte && !op.buyer.toLowerCase().includes(adv.contraparte.toLowerCase())) return false;
           if (adv.priority && h.priority !== adv.priority) return false;
           if (adv.dueBefore && new Date(h.dueDate) > new Date(adv.dueBefore)) return false;
           if (adv.hasPayment && !h.hasPendingPayment) return false;
@@ -140,8 +154,9 @@ function CumplimientoPage() {
         });
         return { ...op, hitos };
       })
-      .filter((op) => op.hitos.length > 0);
+      .filter((op) => isOpLevel || op.hitos.length > 0);
   }, [ops, tab, query, adv, quick]);
+
 
   const selectedOp = selected ? ops.find((o) => o.id === selected.opId) ?? null : null;
   const selectedHito = selectedOp && selected?.hitoId
