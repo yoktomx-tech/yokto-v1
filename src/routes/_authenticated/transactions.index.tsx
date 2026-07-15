@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Plus, LayoutGrid, List as ListIcon, Briefcase } from "lucide-react";
 import { PageHeader } from "@/components/page-header";
@@ -92,15 +92,10 @@ function TransactionsList() {
     navigate({ search: (s: SearchParams) => ({ ...s, view: v === "table" ? undefined : v }), replace: true });
   }, [navigate]);
 
-  const openNewOperationWindow = useCallback(() => {
-    const popup = window.open("/transactions/new", "_blank", "width=1440,height=960");
-    if (popup) {
-      popup.opener = null;
-      popup.focus();
-      return;
-    }
-    window.location.assign("/transactions/new");
-  }, []);
+  const goToNewOperation = useCallback(() => {
+    navigate({ to: "/transactions/new" });
+  }, [navigate]);
+
 
   const fetchAll = useCallback(async () => {
     const { data: txs } = await supabase
@@ -171,12 +166,12 @@ function TransactionsList() {
         searchInputRef.current?.focus();
       } else if (e.key.toLowerCase() === "n") {
         e.preventDefault();
-        openNewOperationWindow();
+        goToNewOperation();
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [openNewOperationWindow]);
+  }, [goToNewOperation]);
 
 
 
@@ -262,19 +257,13 @@ function TransactionsList() {
                   <LayoutGrid className="h-4 w-4" />
                 </button>
               </div>
-              <a
-                href="/transactions/new"
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={(event) => {
-                  event.preventDefault();
-                  openNewOperationWindow();
-                }}
+              <Link
+                to="/transactions/new"
                 className="inline-flex items-center gap-2 px-4 py-2 bg-yo-ac text-white text-sm font-medium rounded-md hover:bg-yo-ac-h transition-colors"
               >
                 <Plus className="h-4 w-4" />
                 Nueva operación
-              </a>
+              </Link>
             </>
           }
         />

@@ -1,3 +1,4 @@
+import { Link } from "@tanstack/react-router";
 import { ArrowRight, UserPlus, ListChecks, ShieldCheck } from "lucide-react";
 
 export function EmptyStateDashboard({ name }: { name: string }) {
@@ -32,25 +33,13 @@ export function EmptyStateDashboard({ name }: { name: string }) {
         </div>
 
         <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
-          <a
-            href="/transactions/new"
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={(event) => {
-              event.preventDefault();
-              const popup = window.open("/transactions/new", "_blank", "width=1440,height=960");
-              if (popup) {
-                popup.opener = null;
-                popup.focus();
-                return;
-              }
-              window.location.assign("/transactions/new");
-            }}
+          <Link
+            to="/transactions/new"
             className="inline-flex items-center gap-2 rounded-md bg-yo-ac hover:bg-yo-ac-h text-white text-sm font-semibold px-5 py-2.5 shadow-sm transition"
           >
             Crear mi primera transacción
             <ArrowRight className="size-4" />
-          </a>
+          </Link>
         </div>
       </div>
     </div>
