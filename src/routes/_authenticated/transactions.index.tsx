@@ -11,6 +11,7 @@ import { TransactionsTabs, getTabs, countByTab, type TabId } from "@/components/
 import { TransactionsTable, type TxRow } from "@/components/tx/transactions-table";
 import { TransactionCardMobile } from "@/components/tx/transaction-card-mobile";
 import { EmptyState } from "@/components/tx/ui";
+import { buildDemoTxRows } from "@/lib/operation-examples";
 
 type SearchParams = {
   tab?: TabId;
@@ -134,7 +135,8 @@ function TransactionsList() {
       };
     });
 
-    setRows(withDerived);
+    const demo = buildDemoTxRows(user.id) as unknown as TxRow[];
+    setRows([...withDerived, ...demo]);
     setLoading(false);
   }, [user.id]);
 

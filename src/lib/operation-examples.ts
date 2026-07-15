@@ -332,3 +332,95 @@ export const OPERATION_EXAMPLES: OperationExample[] = [
 export function findExample(id: string): OperationExample | undefined {
   return OPERATION_EXAMPLES.find((e) => e.id === id);
 }
+
+// ─── Demo TxRows para /transactions ───────────────────────────────────────
+// Genera filas de demostración a partir de los ejemplos por sector, con
+// estados variados para que el listado, métricas y tabs se vean pobladas.
+
+type DemoTxRow = {
+  id: string;
+  numero: string;
+  title: string;
+  sector: string;
+  buyer_id: string;
+  seller_id: string | null;
+  counterparty_email: string | null;
+  beneficiario_nombre: string | null;
+  amount_cents: number;
+  currency: string;
+  status: string;
+  created_at: string;
+  delivery_deadline: string | null;
+  funding_deadline: string | null;
+  milestones_total: number;
+  milestones_done: number;
+  held_cents: number;
+  releasable_cents: number;
+  next_action: { label: string; tone: "warn" | "info" | "err" | "ok" } | null;
+  __demo: true;
+};
+
+// Estado + progreso asignado por ejemplo (para variedad visual)
+const DEMO_STATE: Record<string, { status: string; done: number }> = {
+  "EJ-CONSTRUCCION":            { status: "in_progress",       done: 1 },
+  "EJ-SERVICIOS-INDUSTRIALES":  { status: "en_verificacion",   done: 1 },
+  "EJ-CONSULTORIA":             { status: "released",          done: 1 },
+  "EJ-AUTOTRANSPORTE":          { status: "funded",            done: 0 },
+  "EJ-INMOBILIARIO":            { status: "awaiting_funding",  done: 0 },
+  "EJ-VEHICULOS":               { status: "draft",             done: 0 },
+};
+
+const HELD_STATES = new Set(["funded", "in_progress", "en_verificacion", "partial_release", "disputed"]);
+const RELEASABLE_STATES = new Set(["conditions_met", "partial_release"]);
+
+function nextActionDemo(status: string, isBuyer: boolean): DemoTxRow["next_action"] {
+  if (isBuyer) {
+    if (status === "awaiting_funding") return { label: "Fondear ahora", tone: "warn" };
+    if (status === "conditions_met") return { label: "Liberar pago", tone: "info" };
+    if (status === "disputed") return { label: "Responder disputa", tone: "err" };
+    return null;
+  }
+  if (status === "pending_signature") return { label: "Aceptar invitación", tone: "info" };
+  if (status === "funded" || status === "in_progress") return { label: "Subir evidencia", tone: "warn" };
+  if (status === "en_verificacion") return { label: "En revisión", tone: "info" };
+  if (status === "disputed") return { label: "Responder disputa", tone: "err" };
+  return null;
+}
+
+export function buildDemoTxRows(userId: string): DemoTxRow[] {
+  const now = Date.now();
+  return OPERATION_EXAMPLES.map((ex, idx) => {
+    const state = DEMO_STATE[ex.id] ?? { status: "in_progress", done: 0 };
+    const amount_cents = Math.round(ex.monto * 100);
+    const isBuyer = ex.rol === "PAGADOR";
+    const buyer_id = isBuyer ? userId : `demo-buyer-${idx}`;
+    const seller_id = isBuyer ? `demo-seller-${idx}` : userId;
+    const created = new Date(now - (idx + 1) * 86_400_000 * 3);
+    const delivery = new Date(created.getTime() + ex.diasDuracion * 86_400_000);
+    const held = HELD_STATES.has(state.status) ? amount_cents : 0;
+    const releasable = RELEASABLE_STATES.has(state.status) ? amount_cents : 0;
+    return {
+      id: `demo-${ex.id}`,
+      numero: `YOKTO-DEMO-${String(idx + 1).padStart(3, "0")}`,
+      title: ex.label,
+      sector: ex.sector,
+      buyer_id,
+      seller_id,
+      counterparty_email: ex.contraparte.email,
+      beneficiario_nombre: ex.contraparte.nombre,
+      amount_cents,
+      currency: "MXN",
+      status: state.status,
+      created_at: created.toISOString(),
+      delivery_deadline: delivery.toISOString(),
+      funding_deadline: state.status === "awaiting_funding" ? delivery.toISOString() : null,
+      milestones_total: ex.hitos.length,
+      milestones_done: state.done,
+      held_cents: held,
+      releasable_cents: releasable,
+      next_action: nextActionDemo(state.status, isBuyer),
+      __demo: true,
+    };
+  });
+}
+
