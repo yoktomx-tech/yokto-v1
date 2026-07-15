@@ -114,7 +114,7 @@ function ScorePage() {
         subtitle={subtitle}
         actions={
           <>
-            <PersonTypeSelect value={personType} onChange={setPersonType} />
+            
             <button
               onClick={() => setCompleteOpen(true)}
               className="inline-flex items-center gap-2 rounded-lg bg-yo-ac hover:bg-yo-ac-h text-white px-3 py-2 text-sm font-medium transition"
