@@ -21,7 +21,7 @@ type SearchParams = {
   view?: "table" | "cards";
 };
 
-export const Route = createFileRoute("/_authenticated/transactions")({
+export const Route = createFileRoute("/_authenticated/transactions/")({
   head: () => ({ meta: [{ title: "Transacciones — YOKTO" }, { name: "robots", content: "noindex" }] }),
   validateSearch: (s: Record<string, unknown>): SearchParams => ({
     tab: (s.tab as TabId) || undefined,
