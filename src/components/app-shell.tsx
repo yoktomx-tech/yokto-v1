@@ -21,6 +21,7 @@ const SELLER_NAV: NavItem[] = [
   { to: "/payments",     icon: Banknote,        label: "Pagos y retenciones" },
   { to: "/analytics",    icon: BarChart3,       label: "Analytics" },
   { to: "/crm",          icon: Users,           label: "CRM" },
+  { to: "/teams",        icon: Users2,          label: "Equipo" },
   { to: "/score",        icon: Star,            label: "Score de confianza" },
 ];
 
@@ -32,6 +33,7 @@ const BUYER_NAV: NavItem[] = [
   { to: "/payments",     icon: Banknote,        label: "Pagos y retenciones" },
   { to: "/analytics",    icon: BarChart3,       label: "Analytics" },
   { to: "/crm",          icon: Users,           label: "CRM" },
+  { to: "/teams",        icon: Users2,          label: "Equipo" },
   { to: "/score",        icon: Star,            label: "Score de confianza" },
 ];
 
