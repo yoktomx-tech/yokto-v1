@@ -1547,21 +1547,21 @@ function Step6Revision(props: {
 
       <ReviewSection title="Cumplimiento fiscal">
         <ReviewGrid rows={[
-          ["Requiere CFDI PPD inicial", fiscal.cfdiPPDRequerido ? "Sí" : "No"],
-          ["REP por parcialidad", fiscal.repPorParcialidad ? "Requerido en cada hito" : "No requerido"],
-          ["Uso CFDI", fiscal.usoCfdi || "—"],
-          ["Régimen fiscal receptor", fiscal.regimenReceptor || "—"],
+          ["Requiere CFDI PPD inicial", fiscal.requiereCfdiPpd ? "Sí" : "No"],
+          ["REP por parcialidad", fiscal.requiereRep ? "Requerido en cada hito" : "No requerido"],
+          ["Uso CFDI", fiscal.usoCfdiReceptor || "—"],
+          ["Régimen fiscal receptor", fiscal.regimenFiscalReceptor || "—"],
           ["CP receptor", fiscal.cpReceptor || "—"],
         ]} />
       </ReviewSection>
 
       <ReviewSection title="Contrato">
         <ReviewGrid rows={[
-          ["Método", contract.method === "upload" ? "PDF cargado" : contract.method === "generate" ? "Generado por YOKTO" : "—"],
-          ["Plantilla / archivo", contract.method === "upload" ? (contract.uploadedFileName ?? "—") : (contract.templateId ?? "—")],
-          ["Hash SHA-256", contract.hash ? <span key="h" className="font-mono text-xs">{contract.hash.slice(0, 24)}…</span> : "—"],
-          ["Firma creador", contract.signatureMethodCreator === "biometric" ? "Autógrafa + biometría" : contract.signatureMethodCreator === "efirma" ? "e.firma SAT" : "—"],
-          ["Firma contraparte", contract.signatureMethodCounterparty === "biometric" ? "Autógrafa + biometría" : contract.signatureMethodCounterparty === "efirma" ? "e.firma SAT" : "—"],
+          ["Método", contract.method === "UPLOADED_PDF" ? "PDF cargado" : contract.method === "GENERATED" ? "Generado por YOKTO" : "—"],
+          ["Plantilla / archivo", contract.method === "UPLOADED_PDF" ? (contract.pdfName ?? "—") : (contract.templateKey ?? "—")],
+          ["Hash SHA-256", contract.pdfHash ? <span key="h" className="font-mono text-xs">{contract.pdfHash.slice(0, 24)}…</span> : "—"],
+          ["Firma comprador", contract.buyerSignatureMethod === "AUTOGRAFA_BIOMETRICA" ? "Autógrafa + biometría" : contract.buyerSignatureMethod === "EFIRMA_SAT" ? "e.firma SAT" : "—"],
+          ["Firma vendedor", contract.sellerSignatureMethod === "AUTOGRAFA_BIOMETRICA" ? "Autógrafa + biometría" : contract.sellerSignatureMethod === "EFIRMA_SAT" ? "e.firma SAT" : "—"],
         ]} />
       </ReviewSection>
 
