@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Plus, LayoutGrid, List as ListIcon, Briefcase } from "lucide-react";
 import { PageHeader } from "@/components/page-header";
