@@ -75,8 +75,20 @@ export function TransactionsTable({ rows, role, currentUserId }: Props) {
 
               const overdue = r.delivery_deadline && new Date(r.delivery_deadline) < new Date() && ui !== "CLOSED" && ui !== "RELEASED";
 
+              const hash = txHash(r.id);
+              const goExpediente = () => navigate({ to: "/transactions/$id/expediente", params: { id: r.id } });
+
               const items: ActionItem[] = [
-                { key: "view", label: "Ver detalle", icon: <Eye className="h-3.5 w-3.5" /> },
+                { key: "view", label: "Ver expediente", icon: <Eye className="h-3.5 w-3.5" />, onSelect: goExpediente },
+                {
+                  key: "copy-hash",
+                  label: "Copiar hash",
+                  icon: <Copy className="h-3.5 w-3.5" />,
+                  onSelect: () => {
+                    navigator.clipboard?.writeText(hash);
+                    toast.success("Hash copiado", { description: hash });
+                  },
+                },
                 { key: "download", label: "Descargar resumen", icon: <FileText className="h-3.5 w-3.5" /> },
                 { key: "duplicate", label: "Duplicar", icon: <Copy className="h-3.5 w-3.5" /> },
                 {
