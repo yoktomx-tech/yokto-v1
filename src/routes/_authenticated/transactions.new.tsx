@@ -16,9 +16,15 @@ import {
   signAndActivateTransaction,
 } from "@/lib/transactions.functions";
 import { Step1Schema, Step2Schema, Step3Schema, Step4Schema, Step5Schema } from "@/lib/validations/transaction";
+import { ContractStep, isContractStepValid } from "@/components/tx/contract-step";
+import {
+  DEFAULT_CONTRACT_STATE, DEFAULT_FISCAL_CONFIG, USO_CFDI_OPTIONS,
+  type ContractState, type FiscalConfig,
+} from "@/lib/contract-catalog";
 import {
   Info, Check, ChevronRight, ChevronLeft, X, Search, Trash2, Plus, GripVertical,
   ArrowUp, ArrowDown, Sparkles, AlertTriangle, ClipboardList, FileText, Camera, ShieldCheck,
+  Receipt, FileSignature,
 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/transactions/new")({
@@ -29,8 +35,8 @@ export const Route = createFileRoute("/_authenticated/transactions/new")({
 type Rol = "PAGADOR" | "BENEFICIARIO";
 type Contraparte = { user_id: string | null; email: string; nombre: string; rfc?: string | null };
 
-const STEP_LABELS = ["Tipo", "Partes", "Hitos", "Cumplimiento", "Pago", "Revisión"] as const;
-const TOTAL_STEPS = 6;
+const STEP_LABELS = ["Tipo", "Partes", "Hitos", "Cumplimiento", "Contrato", "Pago", "Revisión"] as const;
+const TOTAL_STEPS = 7;
 
 const fmtMoney = (n: number) =>
   new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN" }).format(n || 0);
