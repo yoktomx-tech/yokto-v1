@@ -42,6 +42,12 @@ import { Route as AuthenticatedPaymentsFiscalRouteImport } from './routes/_authe
 import { Route as AuthenticatedPaymentsIdRouteImport } from './routes/_authenticated/payments.$id'
 import { Route as AuthenticatedOnboardingPendienteRouteImport } from './routes/_authenticated/onboarding.pendiente'
 import { Route as AuthenticatedDisputesIdRouteImport } from './routes/_authenticated/disputes.$id'
+import { Route as AuthenticatedAnalyticsPagosRouteImport } from './routes/_authenticated/analytics.pagos'
+import { Route as AuthenticatedAnalyticsOperacionesRouteImport } from './routes/_authenticated/analytics.operaciones'
+import { Route as AuthenticatedAnalyticsFiscalRouteImport } from './routes/_authenticated/analytics.fiscal'
+import { Route as AuthenticatedAnalyticsDisputasRouteImport } from './routes/_authenticated/analytics.disputas'
+import { Route as AuthenticatedAnalyticsCumplimientoRouteImport } from './routes/_authenticated/analytics.cumplimiento'
+import { Route as AuthenticatedAnalyticsContratosRouteImport } from './routes/_authenticated/analytics.contratos'
 import { Route as AuthenticatedAdminDisputesRouteImport } from './routes/_authenticated/admin.disputes'
 import { Route as ApiPublicV1TransactionsRouteImport } from './routes/api/public/v1.transactions'
 import { Route as ApiPublicStripeWebhookRouteImport } from './routes/api/public/stripe.webhook'
@@ -225,6 +231,42 @@ const AuthenticatedDisputesIdRoute = AuthenticatedDisputesIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => AuthenticatedDisputesRoute,
 } as any)
+const AuthenticatedAnalyticsPagosRoute =
+  AuthenticatedAnalyticsPagosRouteImport.update({
+    id: '/pagos',
+    path: '/pagos',
+    getParentRoute: () => AuthenticatedAnalyticsRoute,
+  } as any)
+const AuthenticatedAnalyticsOperacionesRoute =
+  AuthenticatedAnalyticsOperacionesRouteImport.update({
+    id: '/operaciones',
+    path: '/operaciones',
+    getParentRoute: () => AuthenticatedAnalyticsRoute,
+  } as any)
+const AuthenticatedAnalyticsFiscalRoute =
+  AuthenticatedAnalyticsFiscalRouteImport.update({
+    id: '/fiscal',
+    path: '/fiscal',
+    getParentRoute: () => AuthenticatedAnalyticsRoute,
+  } as any)
+const AuthenticatedAnalyticsDisputasRoute =
+  AuthenticatedAnalyticsDisputasRouteImport.update({
+    id: '/disputas',
+    path: '/disputas',
+    getParentRoute: () => AuthenticatedAnalyticsRoute,
+  } as any)
+const AuthenticatedAnalyticsCumplimientoRoute =
+  AuthenticatedAnalyticsCumplimientoRouteImport.update({
+    id: '/cumplimiento',
+    path: '/cumplimiento',
+    getParentRoute: () => AuthenticatedAnalyticsRoute,
+  } as any)
+const AuthenticatedAnalyticsContratosRoute =
+  AuthenticatedAnalyticsContratosRouteImport.update({
+    id: '/contratos',
+    path: '/contratos',
+    getParentRoute: () => AuthenticatedAnalyticsRoute,
+  } as any)
 const AuthenticatedAdminDisputesRoute =
   AuthenticatedAdminDisputesRouteImport.update({
     id: '/disputes',
@@ -290,6 +332,12 @@ export interface FileRoutesByFullPath {
   '/biometrico/$token': typeof BiometricoTokenRoute
   '/invitations/$token': typeof InvitationsTokenRoute
   '/admin/disputes': typeof AuthenticatedAdminDisputesRouteWithChildren
+  '/analytics/contratos': typeof AuthenticatedAnalyticsContratosRoute
+  '/analytics/cumplimiento': typeof AuthenticatedAnalyticsCumplimientoRoute
+  '/analytics/disputas': typeof AuthenticatedAnalyticsDisputasRoute
+  '/analytics/fiscal': typeof AuthenticatedAnalyticsFiscalRoute
+  '/analytics/operaciones': typeof AuthenticatedAnalyticsOperacionesRoute
+  '/analytics/pagos': typeof AuthenticatedAnalyticsPagosRoute
   '/disputes/$id': typeof AuthenticatedDisputesIdRoute
   '/onboarding/pendiente': typeof AuthenticatedOnboardingPendienteRoute
   '/payments/$id': typeof AuthenticatedPaymentsIdRoute
@@ -329,6 +377,12 @@ export interface FileRoutesByTo {
   '/biometrico/$token': typeof BiometricoTokenRoute
   '/invitations/$token': typeof InvitationsTokenRoute
   '/admin/disputes': typeof AuthenticatedAdminDisputesRouteWithChildren
+  '/analytics/contratos': typeof AuthenticatedAnalyticsContratosRoute
+  '/analytics/cumplimiento': typeof AuthenticatedAnalyticsCumplimientoRoute
+  '/analytics/disputas': typeof AuthenticatedAnalyticsDisputasRoute
+  '/analytics/fiscal': typeof AuthenticatedAnalyticsFiscalRoute
+  '/analytics/operaciones': typeof AuthenticatedAnalyticsOperacionesRoute
+  '/analytics/pagos': typeof AuthenticatedAnalyticsPagosRoute
   '/disputes/$id': typeof AuthenticatedDisputesIdRoute
   '/onboarding/pendiente': typeof AuthenticatedOnboardingPendienteRoute
   '/payments/$id': typeof AuthenticatedPaymentsIdRoute
@@ -372,6 +426,12 @@ export interface FileRoutesById {
   '/biometrico/$token': typeof BiometricoTokenRoute
   '/invitations/$token': typeof InvitationsTokenRoute
   '/_authenticated/admin/disputes': typeof AuthenticatedAdminDisputesRouteWithChildren
+  '/_authenticated/analytics/contratos': typeof AuthenticatedAnalyticsContratosRoute
+  '/_authenticated/analytics/cumplimiento': typeof AuthenticatedAnalyticsCumplimientoRoute
+  '/_authenticated/analytics/disputas': typeof AuthenticatedAnalyticsDisputasRoute
+  '/_authenticated/analytics/fiscal': typeof AuthenticatedAnalyticsFiscalRoute
+  '/_authenticated/analytics/operaciones': typeof AuthenticatedAnalyticsOperacionesRoute
+  '/_authenticated/analytics/pagos': typeof AuthenticatedAnalyticsPagosRoute
   '/_authenticated/disputes/$id': typeof AuthenticatedDisputesIdRoute
   '/_authenticated/onboarding/pendiente': typeof AuthenticatedOnboardingPendienteRoute
   '/_authenticated/payments/$id': typeof AuthenticatedPaymentsIdRoute
@@ -415,6 +475,12 @@ export interface FileRouteTypes {
     | '/biometrico/$token'
     | '/invitations/$token'
     | '/admin/disputes'
+    | '/analytics/contratos'
+    | '/analytics/cumplimiento'
+    | '/analytics/disputas'
+    | '/analytics/fiscal'
+    | '/analytics/operaciones'
+    | '/analytics/pagos'
     | '/disputes/$id'
     | '/onboarding/pendiente'
     | '/payments/$id'
@@ -454,6 +520,12 @@ export interface FileRouteTypes {
     | '/biometrico/$token'
     | '/invitations/$token'
     | '/admin/disputes'
+    | '/analytics/contratos'
+    | '/analytics/cumplimiento'
+    | '/analytics/disputas'
+    | '/analytics/fiscal'
+    | '/analytics/operaciones'
+    | '/analytics/pagos'
     | '/disputes/$id'
     | '/onboarding/pendiente'
     | '/payments/$id'
@@ -496,6 +568,12 @@ export interface FileRouteTypes {
     | '/biometrico/$token'
     | '/invitations/$token'
     | '/_authenticated/admin/disputes'
+    | '/_authenticated/analytics/contratos'
+    | '/_authenticated/analytics/cumplimiento'
+    | '/_authenticated/analytics/disputas'
+    | '/_authenticated/analytics/fiscal'
+    | '/_authenticated/analytics/operaciones'
+    | '/_authenticated/analytics/pagos'
     | '/_authenticated/disputes/$id'
     | '/_authenticated/onboarding/pendiente'
     | '/_authenticated/payments/$id'
@@ -762,6 +840,48 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDisputesIdRouteImport
       parentRoute: typeof AuthenticatedDisputesRoute
     }
+    '/_authenticated/analytics/pagos': {
+      id: '/_authenticated/analytics/pagos'
+      path: '/pagos'
+      fullPath: '/analytics/pagos'
+      preLoaderRoute: typeof AuthenticatedAnalyticsPagosRouteImport
+      parentRoute: typeof AuthenticatedAnalyticsRoute
+    }
+    '/_authenticated/analytics/operaciones': {
+      id: '/_authenticated/analytics/operaciones'
+      path: '/operaciones'
+      fullPath: '/analytics/operaciones'
+      preLoaderRoute: typeof AuthenticatedAnalyticsOperacionesRouteImport
+      parentRoute: typeof AuthenticatedAnalyticsRoute
+    }
+    '/_authenticated/analytics/fiscal': {
+      id: '/_authenticated/analytics/fiscal'
+      path: '/fiscal'
+      fullPath: '/analytics/fiscal'
+      preLoaderRoute: typeof AuthenticatedAnalyticsFiscalRouteImport
+      parentRoute: typeof AuthenticatedAnalyticsRoute
+    }
+    '/_authenticated/analytics/disputas': {
+      id: '/_authenticated/analytics/disputas'
+      path: '/disputas'
+      fullPath: '/analytics/disputas'
+      preLoaderRoute: typeof AuthenticatedAnalyticsDisputasRouteImport
+      parentRoute: typeof AuthenticatedAnalyticsRoute
+    }
+    '/_authenticated/analytics/cumplimiento': {
+      id: '/_authenticated/analytics/cumplimiento'
+      path: '/cumplimiento'
+      fullPath: '/analytics/cumplimiento'
+      preLoaderRoute: typeof AuthenticatedAnalyticsCumplimientoRouteImport
+      parentRoute: typeof AuthenticatedAnalyticsRoute
+    }
+    '/_authenticated/analytics/contratos': {
+      id: '/_authenticated/analytics/contratos'
+      path: '/contratos'
+      fullPath: '/analytics/contratos'
+      preLoaderRoute: typeof AuthenticatedAnalyticsContratosRouteImport
+      parentRoute: typeof AuthenticatedAnalyticsRoute
+    }
     '/_authenticated/admin/disputes': {
       id: '/_authenticated/admin/disputes'
       path: '/disputes'
@@ -840,11 +960,25 @@ const AuthenticatedAdminRouteWithChildren =
   AuthenticatedAdminRoute._addFileChildren(AuthenticatedAdminRouteChildren)
 
 interface AuthenticatedAnalyticsRouteChildren {
+  AuthenticatedAnalyticsContratosRoute: typeof AuthenticatedAnalyticsContratosRoute
+  AuthenticatedAnalyticsCumplimientoRoute: typeof AuthenticatedAnalyticsCumplimientoRoute
+  AuthenticatedAnalyticsDisputasRoute: typeof AuthenticatedAnalyticsDisputasRoute
+  AuthenticatedAnalyticsFiscalRoute: typeof AuthenticatedAnalyticsFiscalRoute
+  AuthenticatedAnalyticsOperacionesRoute: typeof AuthenticatedAnalyticsOperacionesRoute
+  AuthenticatedAnalyticsPagosRoute: typeof AuthenticatedAnalyticsPagosRoute
   AuthenticatedAnalyticsIndexRoute: typeof AuthenticatedAnalyticsIndexRoute
 }
 
 const AuthenticatedAnalyticsRouteChildren: AuthenticatedAnalyticsRouteChildren =
   {
+    AuthenticatedAnalyticsContratosRoute: AuthenticatedAnalyticsContratosRoute,
+    AuthenticatedAnalyticsCumplimientoRoute:
+      AuthenticatedAnalyticsCumplimientoRoute,
+    AuthenticatedAnalyticsDisputasRoute: AuthenticatedAnalyticsDisputasRoute,
+    AuthenticatedAnalyticsFiscalRoute: AuthenticatedAnalyticsFiscalRoute,
+    AuthenticatedAnalyticsOperacionesRoute:
+      AuthenticatedAnalyticsOperacionesRoute,
+    AuthenticatedAnalyticsPagosRoute: AuthenticatedAnalyticsPagosRoute,
     AuthenticatedAnalyticsIndexRoute: AuthenticatedAnalyticsIndexRoute,
   }
 

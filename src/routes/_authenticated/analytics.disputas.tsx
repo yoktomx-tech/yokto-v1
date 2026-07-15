@@ -41,7 +41,7 @@ function DisputesReport() {
         <MetricCard label="Tiempo promedio resolución" value={kpis.tiempoProm} />
         <MetricCard label="A favor comprador" value={String(kpis.comprador)} accent="info" />
         <MetricCard label="A favor vendedor" value={String(kpis.vendedor)} accent="info" />
-        <MetricCard label="Divididas" value={String(kpis.dividida)} accent="accent" />
+        <MetricCard label="Divididas" value={String(kpis.dividida)} accent="indigo" />
       </div>
 
       <div className="rounded-lg border border-yo-warn bg-[#FFFBEB] p-3">
