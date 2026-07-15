@@ -257,19 +257,13 @@ function TransactionsList() {
                   <LayoutGrid className="h-4 w-4" />
                 </button>
               </div>
-              <a
-                href="/transactions/new"
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={(event) => {
-                  event.preventDefault();
-                  openNewOperationWindow();
-                }}
+              <Link
+                to="/transactions/new"
                 className="inline-flex items-center gap-2 px-4 py-2 bg-yo-ac text-white text-sm font-medium rounded-md hover:bg-yo-ac-h transition-colors"
               >
                 <Plus className="h-4 w-4" />
                 Nueva operación
-              </a>
+              </Link>
             </>
           }
         />
