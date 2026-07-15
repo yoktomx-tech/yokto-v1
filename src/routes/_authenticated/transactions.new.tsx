@@ -360,9 +360,21 @@ function NewOperationWizard() {
                 <Step4Cumplimiento
                   sector={sector} hitos={hitos} setHitos={setHitos}
                   checklist={checklist} setChecklist={setChecklist}
+                  fiscal={fiscal} setFiscal={setFiscal}
                 />
               )}
               {step === 5 && sector && (
+                <ContractStep
+                  sector={sector}
+                  monto={monto}
+                  descripcion={descripcion}
+                  contraparteNombre={contraparte?.nombre ?? null}
+                  creatorRoleLabel={creatorRoleLabel}
+                  state={contract}
+                  setState={setContract}
+                />
+              )}
+              {step === 6 && sector && (
                 <Step5Pago
                   sector={sector}
                   monto={monto} setMonto={setMonto}
@@ -371,7 +383,7 @@ function NewOperationWizard() {
                   fee={fee} hitos={hitos}
                 />
               )}
-              {step === 6 && (
+              {step === 7 && (
                 <Step6Revision
                   numero={numero} rol={rol}
                   sectorDef={sectorDef} sectorCfg={sectorCfg}
@@ -380,10 +392,12 @@ function NewOperationWizard() {
                   contraparte={contraparte} hitos={hitos} monto={monto}
                   metodoPago={metodoPago} comisionPagadaPor={comisionPagadaPor}
                   fee={fee}
+                  fiscal={fiscal} contract={contract}
                   aceptaTerminos={aceptaTerminos} setAceptaTerminos={setAceptaTerminos}
                   aceptaRetencion={aceptaRetencion} setAceptaRetencion={setAceptaRetencion}
                   aceptaCumplimiento={aceptaCumplimiento} setAceptaCumplimiento={setAceptaCumplimiento}
                   aceptaTraza={aceptaTraza} setAceptaTraza={setAceptaTraza}
+                  aceptaContrato={aceptaContrato} setAceptaContrato={setAceptaContrato}
                 />
               )}
             </div>
