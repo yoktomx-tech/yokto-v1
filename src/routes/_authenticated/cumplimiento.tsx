@@ -642,6 +642,10 @@ function DetailPanel({ op, hito, canMarkReady, onClose, onUpload, onMarkReady, o
       <div className="border-b border-yo-border flex overflow-x-auto">
         {([
           { k: "resumen", l: "Resumen" },
+          { k: "candados", l: `Candados${op.locks.length ? ` (${op.locks.length})` : ""}` },
+          { k: "contrato", l: "Contrato" },
+          { k: "fiscal", l: "Fiscal CFDI/REP" },
+          { k: "sectorial", l: "Sectoriales" },
           { k: "docs", l: "Documentos" },
           { k: "evid", l: "Evidencias" },
           { k: "obs", l: "Observaciones" },
@@ -660,6 +664,10 @@ function DetailPanel({ op, hito, canMarkReady, onClose, onUpload, onMarkReady, o
 
       <div className="p-4">
         {tab === "resumen" && <ResumenTab op={op} hito={hito} />}
+        {tab === "candados" && <CandadosTab op={op} />}
+        {tab === "contrato" && <ContratoTab op={op} />}
+        {tab === "fiscal" && <FiscalTab op={op} />}
+        {tab === "sectorial" && <SectorialTab op={op} />}
         {tab === "docs" && <DocsTab hito={hito} />}
         {tab === "evid" && <EvidTab hito={hito} />}
         {tab === "obs" && <ObsTab hito={hito} onFix={onFixObs} />}
