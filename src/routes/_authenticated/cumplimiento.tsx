@@ -608,7 +608,7 @@ function TableView({ ops, onOpen, onUpload }: { ops: Operation[]; onOpen: (op: s
 
 function DetailPanel({ op, hito, canMarkReady, onClose, onUpload, onMarkReady, onFixObs }:
   { op: Operation; hito: Hito | null; canMarkReady: boolean; onClose: () => void; onUpload: (hitoId?: string) => void; onMarkReady: () => void; onFixObs: (o: Observation) => void }) {
-  const [tab, setTab] = useState<"resumen" | "docs" | "evid" | "obs" | "timeline">("resumen");
+  const [tab, setTab] = useState<"resumen" | "contrato" | "fiscal" | "sectorial" | "candados" | "docs" | "evid" | "obs" | "timeline">("resumen");
 
   return (
     <div className="rounded-xl border border-yo-border bg-yo-surface shadow-sm overflow-hidden">
