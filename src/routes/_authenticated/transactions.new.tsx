@@ -295,17 +295,13 @@ function NewOperationWizard() {
       </header>
 
       {/* Stepper */}
-      <div className="bg-yo-surface border-b border-yo-border">
-        <div className="max-w-[1400px] mx-auto px-4 md:px-6 py-3">
-          <Stepper current={step} labels={[...STEP_LABELS]} onJump={(n) => { if (n < step) setStep(n); }} />
-        </div>
+      <div className="bg-yo-surface border border-yo-border rounded-lg px-4 md:px-5 py-3">
+        <Stepper current={step} labels={[...STEP_LABELS]} onJump={(n) => { if (n < step) setStep(n); }} />
       </div>
 
       {/* Contenido 70/30 */}
-      <main className="max-w-[1400px] mx-auto px-4 md:px-6 py-6 pb-32">
-        <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,7fr)_minmax(0,3fr)] gap-6">
-          {/* Área principal 70% */}
-          <section className="min-w-0">
+      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,7fr)_minmax(0,3fr)] gap-4">
+        <section className="min-w-0 space-y-4">
             {error && (
               <div className="mb-4 flex items-start gap-3 rounded-lg border border-[#FECACA] bg-yo-err-bg p-3">
                 <AlertTriangle className="h-4 w-4 text-yo-err mt-0.5 shrink-0" />
