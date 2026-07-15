@@ -168,12 +168,17 @@ function NewOperationWizard() {
     if (s === 4) {
       const invalid = hitos.some((h) => h.documentos_requeridos.length === 0 && h.evidencia_requerida.length === 0);
       if (invalid) return "Cada hito debe tener al menos un documento o evidencia requerida";
+      if (fiscal.requiereCfdiPpd && !fiscal.usoCfdiReceptor) return "Selecciona un uso de CFDI para el receptor";
     }
     if (s === 5) {
+      const err = isContractStepValid(contract);
+      if (err) return err;
+    }
+    if (s === 6) {
       if (!monto || monto < 100) return "Ingresa un monto válido (mínimo $100 MXN)";
     }
     return null;
-  }, [sector, descripcion, contraparte, hitos, sumaPct, monto]);
+  }, [sector, descripcion, contraparte, hitos, sumaPct, monto, contract, fiscal]);
 
   const goNext = useCallback(async () => {
     setError(null);
@@ -220,6 +225,12 @@ function NewOperationWizard() {
     }
 
     if (step === 5) {
+      // Contrato: se guarda en memoria; persistencia real ocurre al activar.
+      setStep(6);
+      return;
+    }
+
+    if (step === 6) {
       const r = Step4Schema.safeParse({
         monto, metodo_pago: metodoPago,
         fecha_inicio_estimada: fechaInicio || null, fecha_fin_estimada: fechaFin || null,
@@ -230,11 +241,11 @@ function NewOperationWizard() {
       try {
         await saveMonto({ data: { transaction_id: txId, sector, step4: r.data } });
         setSaveState("saved"); setLastSavedAt(new Date());
-        setStep(6);
+        setStep(7);
       } catch (e) { setSaveState("error"); setError((e as Error).message); }
       finally { setSaving(false); }
     }
-  }, [step, validateStep, sector, rol, descripcion, contraparte, hitos, monto, metodoPago, fechaInicio, fechaFin, txId, upsertDraft, saveHitos, saveMonto]);
+  }, [step, validateStep, sector, rol, descripcion, contraparte, hitos, monto, metodoPago, fechaInicio, fechaFin, txId, contract, upsertDraft, saveHitos, saveMonto]);
 
   const goBack = useCallback(() => {
     setError(null);
