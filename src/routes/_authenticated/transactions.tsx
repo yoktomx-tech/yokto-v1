@@ -280,34 +280,17 @@ function TransactionsList() {
                   <LayoutGrid className="h-4 w-4" />
                 </button>
               </div>
-              <button
-                onClick={exportCsv}
-                disabled={filtered.length === 0}
-                className="inline-flex items-center gap-1.5 px-3 py-2 border border-yo-border text-sm font-medium rounded-md text-yo-txt-2 hover:bg-yo-raised hover:text-yo-txt disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-                title="Exportar filtrados a CSV"
+              <Link
+                to="/transactions/new"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-yo-ac text-white text-sm font-medium rounded-md hover:bg-yo-ac-h transition-colors"
               >
-                <Download className="h-4 w-4" />
-                <span className="hidden lg:inline">CSV</span>
-              </button>
-              {kycOk ? (
-                <Link
-                  to="/transactions/new"
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-yo-ac text-white text-sm font-medium rounded-md hover:bg-yo-ac-h transition-colors"
-                >
-                  <Plus className="h-4 w-4" />
-                  Nueva transacción
-                </Link>
-              ) : (
-                <Link
-                  to="/kyc"
-                  className="inline-flex items-center px-4 py-2 border border-yo-border text-sm font-medium rounded-md hover:bg-yo-raised"
-                >
-                  Completar KYC
-                </Link>
-              )}
+                <Plus className="h-4 w-4" />
+                Nueva operación
+              </Link>
             </>
           }
         />
+
 
 
         {/* Metrics */}
