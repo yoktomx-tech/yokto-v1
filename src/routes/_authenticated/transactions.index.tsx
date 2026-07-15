@@ -166,12 +166,12 @@ function TransactionsList() {
         searchInputRef.current?.focus();
       } else if (e.key.toLowerCase() === "n") {
         e.preventDefault();
-        openNewOperationWindow();
+        goToNewOperation();
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [openNewOperationWindow]);
+  }, [goToNewOperation]);
 
 
 
