@@ -93,14 +93,11 @@ function TransactionsList() {
   }, [navigate]);
 
   const fetchAll = useCallback(async () => {
-    const [{ data: txs }, { data: prof }] = await Promise.all([
-      supabase
-        .from("transactions")
-        .select("id,numero,title,sector,amount_cents,currency,status,buyer_id,seller_id,counterparty_email,beneficiario_nombre,created_at,delivery_deadline,funding_deadline")
-        .or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`)
-        .order("created_at", { ascending: false }),
-      supabase.from("profiles").select("kyc_status").eq("id", user.id).maybeSingle(),
-    ]);
+    const { data: txs } = await supabase
+      .from("transactions")
+      .select("id,numero,title,sector,amount_cents,currency,status,buyer_id,seller_id,counterparty_email,beneficiario_nombre,created_at,delivery_deadline,funding_deadline")
+      .or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`)
+      .order("created_at", { ascending: false });
 
     const txList = (txs ?? []) as TxRow[];
     const ids = txList.map((t) => t.id);
@@ -133,9 +130,9 @@ function TransactionsList() {
     });
 
     setRows(withDerived);
-    setKycOk(prof?.kyc_status === "approved");
     setLoading(false);
   }, [user.id]);
+
 
   useEffect(() => {
     setLoading(true);
