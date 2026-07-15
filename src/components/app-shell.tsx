@@ -140,32 +140,36 @@ function SidebarContent({
       </nav>
 
       <div className="border-t border-yo-border p-3 space-y-3">
-        <Link
-          to="/score"
-          onClick={onNavigate}
-          className="block rounded-md border border-yo-border bg-yo-bg p-3 hover:bg-yo-raised transition"
-        >
-          <div className="flex items-center justify-between mb-1.5">
-            <div className="flex items-center gap-1.5">
-              <Star className="size-3.5 text-yo-ac" />
-              <span className="text-[10px] uppercase tracking-[0.14em] font-semibold text-yo-txt-3">Perfil de cumplimiento</span>
-            </div>
-            <span className={cn("text-[10px] font-semibold px-1.5 py-0.5 rounded", tone.bg, tone.text)}>{cfg.label}</span>
-          </div>
-          <div className="flex items-baseline gap-1 mb-1.5">
-            <span className="text-lg font-bold text-yo-txt tabular-nums">{score}</span>
-            <span className="text-[10px] text-yo-txt-3">/ 100</span>
-          </div>
-          <div className="h-1 w-full rounded-full bg-yo-border overflow-hidden">
-            <div className={cn("h-full rounded-full transition-all", tone.dot)} style={{ width: `${pct}%` }} />
-          </div>
-        </Link>
-
         <div>
           <p className="px-1 text-[10px] uppercase tracking-[0.14em] font-semibold text-yo-txt-3 mb-1.5">Espacio de trabajo</p>
           <OrgSwitcher />
+        </div>
+
+        <div>
+          <p className="px-1 text-[10px] uppercase tracking-[0.14em] font-semibold text-yo-txt-3 mb-1.5">Perfil de cumplimiento</p>
+          <Link
+            to="/score"
+            onClick={onNavigate}
+            className="block rounded-md border border-yo-border bg-yo-bg p-3 hover:bg-yo-raised transition"
+          >
+            <div className="flex items-center justify-between mb-1.5">
+              <div className="flex items-center gap-1.5">
+                <Star className="size-3.5 text-yo-ac" />
+                <span className="text-[11px] font-medium text-yo-txt-2">Score</span>
+              </div>
+              <span className={cn("text-[10px] font-semibold px-1.5 py-0.5 rounded", tone.bg, tone.text)}>{cfg.label}</span>
+            </div>
+            <div className="flex items-baseline gap-1 mb-1.5">
+              <span className="text-lg font-bold text-yo-txt tabular-nums">{score}</span>
+              <span className="text-[10px] text-yo-txt-3">/ 100</span>
+            </div>
+            <div className="h-1 w-full rounded-full bg-yo-border overflow-hidden">
+              <div className={cn("h-full rounded-full transition-all", tone.dot)} style={{ width: `${pct}%` }} />
+            </div>
+          </Link>
         </div>
       </div>
     </>
   );
 }
+

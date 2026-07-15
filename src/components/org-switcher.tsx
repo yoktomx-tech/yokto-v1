@@ -44,7 +44,7 @@ export function OrgSwitcher() {
       {open && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} aria-hidden />
-          <div className="absolute right-0 mt-1 z-50 w-72 rounded-lg border border-yo-border bg-yo-surface shadow-lg overflow-hidden">
+          <div className="absolute left-0 right-0 bottom-full mb-1 z-50 w-72 rounded-lg border border-yo-border bg-yo-surface shadow-lg overflow-hidden">
             <div className="px-3 py-2 text-[10px] uppercase tracking-wider font-semibold text-yo-txt-3 border-b border-yo-border">
               Tus organizaciones
             </div>
