@@ -390,7 +390,7 @@ function ExpedienteView() {
                 <TabPagos tx={tx} held={held} released={released} commission={commission} />
               )}
               {tab === "disputa" && (
-                <TabDisputa uiStatus={ui} />
+                <TabDisputa tx={tx} uiStatus={ui} />
               )}
               {tab === "auditoria" && (
                 <TabAuditoria tx={tx} />
@@ -653,8 +653,9 @@ function TabPagos({ tx, held, released, commission }: { tx: UnifiedTx; held: num
   );
 }
 
-function TabDisputa({ uiStatus }: { uiStatus: string }) {
+function TabDisputa({ tx, uiStatus }: { tx: UnifiedTx; uiStatus: string }) {
   if (uiStatus !== "DISPUTED") {
+    const hito = tx.hitos.find((x) => !["APROBADO", "APPROVED"].includes(x.estado));
     return (
       <div>
         <EmptyState
@@ -663,9 +664,13 @@ function TabDisputa({ uiStatus }: { uiStatus: string }) {
           icon={<ShieldAlert className="h-8 w-8 text-yo-txt-3" />}
         />
         <div className="mt-3 text-center">
-          <button className="inline-flex items-center gap-2 rounded-md border border-yo-border px-3 py-2 text-sm hover:bg-yo-raised" onClick={() => toast.info("Abrir disputa (mock)")}>
+          <Link
+            to="/disputes/new"
+            search={{ tx: tx.numero ?? tx.id, hito: hito?.id }}
+            className="inline-flex items-center gap-2 rounded-md border border-yo-border px-3 py-2 text-sm hover:bg-yo-raised"
+          >
             <ShieldAlert className="h-4 w-4" /> Abrir disputa
-          </button>
+          </Link>
         </div>
       </div>
     );

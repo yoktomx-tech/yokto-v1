@@ -96,6 +96,10 @@ export function TransactionsTable({ rows, role, currentUserId }: Props) {
                   label: "Abrir disputa",
                   icon: <ShieldAlert className="h-3.5 w-3.5" />,
                   divider: true,
+                  onSelect: () => navigate({
+                    to: "/disputes/new",
+                    search: { tx: r.numero ?? r.id },
+                  }),
                   disabled: !["FUNDED", "IN_PROGRESS", "IN_VERIFICATION", "READY_FOR_APPROVAL", "PARTIALLY_RELEASED"].includes(ui),
                 },
                 {
