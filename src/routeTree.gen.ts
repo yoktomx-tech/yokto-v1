@@ -30,8 +30,10 @@ import { Route as AuthenticatedCumplimientoRouteImport } from './routes/_authent
 import { Route as AuthenticatedCrmRouteImport } from './routes/_authenticated/crm'
 import { Route as AuthenticatedApprovalsRouteImport } from './routes/_authenticated/approvals'
 import { Route as AuthenticatedApiClientsRouteImport } from './routes/_authenticated/api-clients'
+import { Route as AuthenticatedAnalyticsRouteImport } from './routes/_authenticated/analytics'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedTransactionsIndexRouteImport } from './routes/_authenticated/transactions.index'
+import { Route as AuthenticatedAnalyticsIndexRouteImport } from './routes/_authenticated/analytics.index'
 import { Route as AuthenticatedTransactionsNewRouteImport } from './routes/_authenticated/transactions.new'
 import { Route as AuthenticatedTransactionsIdRouteImport } from './routes/_authenticated/transactions.$id'
 import { Route as AuthenticatedSettingsOrganizationRouteImport } from './routes/_authenticated/settings.organization'
@@ -155,6 +157,11 @@ const AuthenticatedApiClientsRoute = AuthenticatedApiClientsRouteImport.update({
   path: '/api-clients',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedAnalyticsRoute = AuthenticatedAnalyticsRouteImport.update({
+  id: '/analytics',
+  path: '/analytics',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   id: '/admin',
   path: '/admin',
@@ -165,6 +172,12 @@ const AuthenticatedTransactionsIndexRoute =
     id: '/',
     path: '/',
     getParentRoute: () => AuthenticatedTransactionsRoute,
+  } as any)
+const AuthenticatedAnalyticsIndexRoute =
+  AuthenticatedAnalyticsIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedAnalyticsRoute,
   } as any)
 const AuthenticatedTransactionsNewRoute =
   AuthenticatedTransactionsNewRouteImport.update({
@@ -261,6 +274,7 @@ export interface FileRoutesByFullPath {
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
+  '/analytics': typeof AuthenticatedAnalyticsRouteWithChildren
   '/api-clients': typeof AuthenticatedApiClientsRoute
   '/approvals': typeof AuthenticatedApprovalsRoute
   '/crm': typeof AuthenticatedCrmRoute
@@ -284,6 +298,7 @@ export interface FileRoutesByFullPath {
   '/settings/organization': typeof AuthenticatedSettingsOrganizationRouteWithChildren
   '/transactions/$id': typeof AuthenticatedTransactionsIdRouteWithChildren
   '/transactions/new': typeof AuthenticatedTransactionsNewRoute
+  '/analytics/': typeof AuthenticatedAnalyticsIndexRoute
   '/transactions/': typeof AuthenticatedTransactionsIndexRoute
   '/admin/disputes/$id': typeof AuthenticatedAdminDisputesIdRoute
   '/settings/organization/new': typeof AuthenticatedSettingsOrganizationNewRoute
@@ -322,6 +337,7 @@ export interface FileRoutesByTo {
   '/settings/organization': typeof AuthenticatedSettingsOrganizationRouteWithChildren
   '/transactions/$id': typeof AuthenticatedTransactionsIdRouteWithChildren
   '/transactions/new': typeof AuthenticatedTransactionsNewRoute
+  '/analytics': typeof AuthenticatedAnalyticsIndexRoute
   '/transactions': typeof AuthenticatedTransactionsIndexRoute
   '/admin/disputes/$id': typeof AuthenticatedAdminDisputesIdRoute
   '/settings/organization/new': typeof AuthenticatedSettingsOrganizationNewRoute
@@ -340,6 +356,7 @@ export interface FileRoutesById {
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
+  '/_authenticated/analytics': typeof AuthenticatedAnalyticsRouteWithChildren
   '/_authenticated/api-clients': typeof AuthenticatedApiClientsRoute
   '/_authenticated/approvals': typeof AuthenticatedApprovalsRoute
   '/_authenticated/crm': typeof AuthenticatedCrmRoute
@@ -363,6 +380,7 @@ export interface FileRoutesById {
   '/_authenticated/settings/organization': typeof AuthenticatedSettingsOrganizationRouteWithChildren
   '/_authenticated/transactions/$id': typeof AuthenticatedTransactionsIdRouteWithChildren
   '/_authenticated/transactions/new': typeof AuthenticatedTransactionsNewRoute
+  '/_authenticated/analytics/': typeof AuthenticatedAnalyticsIndexRoute
   '/_authenticated/transactions/': typeof AuthenticatedTransactionsIndexRoute
   '/_authenticated/admin/disputes/$id': typeof AuthenticatedAdminDisputesIdRoute
   '/_authenticated/settings/organization/new': typeof AuthenticatedSettingsOrganizationNewRoute
@@ -381,6 +399,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/sitemap.xml'
     | '/admin'
+    | '/analytics'
     | '/api-clients'
     | '/approvals'
     | '/crm'
@@ -404,6 +423,7 @@ export interface FileRouteTypes {
     | '/settings/organization'
     | '/transactions/$id'
     | '/transactions/new'
+    | '/analytics/'
     | '/transactions/'
     | '/admin/disputes/$id'
     | '/settings/organization/new'
@@ -442,6 +462,7 @@ export interface FileRouteTypes {
     | '/settings/organization'
     | '/transactions/$id'
     | '/transactions/new'
+    | '/analytics'
     | '/transactions'
     | '/admin/disputes/$id'
     | '/settings/organization/new'
@@ -459,6 +480,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/sitemap.xml'
     | '/_authenticated/admin'
+    | '/_authenticated/analytics'
     | '/_authenticated/api-clients'
     | '/_authenticated/approvals'
     | '/_authenticated/crm'
@@ -482,6 +504,7 @@ export interface FileRouteTypes {
     | '/_authenticated/settings/organization'
     | '/_authenticated/transactions/$id'
     | '/_authenticated/transactions/new'
+    | '/_authenticated/analytics/'
     | '/_authenticated/transactions/'
     | '/_authenticated/admin/disputes/$id'
     | '/_authenticated/settings/organization/new'
@@ -655,6 +678,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedApiClientsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/analytics': {
+      id: '/_authenticated/analytics'
+      path: '/analytics'
+      fullPath: '/analytics'
+      preLoaderRoute: typeof AuthenticatedAnalyticsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/admin': {
       id: '/_authenticated/admin'
       path: '/admin'
@@ -668,6 +698,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/transactions/'
       preLoaderRoute: typeof AuthenticatedTransactionsIndexRouteImport
       parentRoute: typeof AuthenticatedTransactionsRoute
+    }
+    '/_authenticated/analytics/': {
+      id: '/_authenticated/analytics/'
+      path: '/'
+      fullPath: '/analytics/'
+      preLoaderRoute: typeof AuthenticatedAnalyticsIndexRouteImport
+      parentRoute: typeof AuthenticatedAnalyticsRoute
     }
     '/_authenticated/transactions/new': {
       id: '/_authenticated/transactions/new'
@@ -802,6 +839,20 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
 const AuthenticatedAdminRouteWithChildren =
   AuthenticatedAdminRoute._addFileChildren(AuthenticatedAdminRouteChildren)
 
+interface AuthenticatedAnalyticsRouteChildren {
+  AuthenticatedAnalyticsIndexRoute: typeof AuthenticatedAnalyticsIndexRoute
+}
+
+const AuthenticatedAnalyticsRouteChildren: AuthenticatedAnalyticsRouteChildren =
+  {
+    AuthenticatedAnalyticsIndexRoute: AuthenticatedAnalyticsIndexRoute,
+  }
+
+const AuthenticatedAnalyticsRouteWithChildren =
+  AuthenticatedAnalyticsRoute._addFileChildren(
+    AuthenticatedAnalyticsRouteChildren,
+  )
+
 interface AuthenticatedDisputesRouteChildren {
   AuthenticatedDisputesIdRoute: typeof AuthenticatedDisputesIdRoute
 }
@@ -883,6 +934,7 @@ const AuthenticatedSettingsOrganizationRouteWithChildren =
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
+  AuthenticatedAnalyticsRoute: typeof AuthenticatedAnalyticsRouteWithChildren
   AuthenticatedApiClientsRoute: typeof AuthenticatedApiClientsRoute
   AuthenticatedApprovalsRoute: typeof AuthenticatedApprovalsRoute
   AuthenticatedCrmRoute: typeof AuthenticatedCrmRoute
@@ -901,6 +953,7 @@ interface AuthenticatedRouteRouteChildren {
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
+  AuthenticatedAnalyticsRoute: AuthenticatedAnalyticsRouteWithChildren,
   AuthenticatedApiClientsRoute: AuthenticatedApiClientsRoute,
   AuthenticatedApprovalsRoute: AuthenticatedApprovalsRoute,
   AuthenticatedCrmRoute: AuthenticatedCrmRoute,
