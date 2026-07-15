@@ -16,9 +16,15 @@ import {
   signAndActivateTransaction,
 } from "@/lib/transactions.functions";
 import { Step1Schema, Step2Schema, Step3Schema, Step4Schema, Step5Schema } from "@/lib/validations/transaction";
+import { ContractStep, isContractStepValid } from "@/components/tx/contract-step";
+import {
+  DEFAULT_CONTRACT_STATE, DEFAULT_FISCAL_CONFIG, USO_CFDI_OPTIONS,
+  type ContractState, type FiscalConfig,
+} from "@/lib/contract-catalog";
 import {
   Info, Check, ChevronRight, ChevronLeft, X, Search, Trash2, Plus, GripVertical,
   ArrowUp, ArrowDown, Sparkles, AlertTriangle, ClipboardList, FileText, Camera, ShieldCheck,
+  Receipt, FileSignature,
 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/transactions/new")({
@@ -29,8 +35,8 @@ export const Route = createFileRoute("/_authenticated/transactions/new")({
 type Rol = "PAGADOR" | "BENEFICIARIO";
 type Contraparte = { user_id: string | null; email: string; nombre: string; rfc?: string | null };
 
-const STEP_LABELS = ["Tipo", "Partes", "Hitos", "Cumplimiento", "Pago", "Revisión"] as const;
-const TOTAL_STEPS = 6;
+const STEP_LABELS = ["Tipo", "Partes", "Hitos", "Cumplimiento", "Contrato", "Pago", "Revisión"] as const;
+const TOTAL_STEPS = 7;
 
 const fmtMoney = (n: number) =>
   new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN" }).format(n || 0);
@@ -67,16 +73,23 @@ function NewOperationWizard() {
   const [hitos, setHitos] = useState<HitoDraft[]>([]);
   const [checklist, setChecklist] = useState<Record<number, string[]>>({});
 
-  // Paso 5
+  // Paso 4 (bloque fiscal CFDI / REP)
+  const [fiscal, setFiscal] = useState<FiscalConfig>(DEFAULT_FISCAL_CONFIG);
+
+  // Paso 5 (Contrato)
+  const [contract, setContract] = useState<ContractState>(DEFAULT_CONTRACT_STATE);
+
+  // Paso 6 (Pago)
   const [monto, setMonto] = useState<number>(0);
   const [metodoPago, setMetodoPago] = useState<"SPEI" | "TARJETA" | "OXXO">("SPEI");
   const [comisionPagadaPor, setComisionPagadaPor] = useState<"COMPRADOR" | "VENDEDOR">("COMPRADOR");
 
-  // Paso 6
+  // Paso 7 (Revisión)
   const [aceptaTerminos, setAceptaTerminos] = useState(false);
   const [aceptaRetencion, setAceptaRetencion] = useState(false);
   const [aceptaCumplimiento, setAceptaCumplimiento] = useState(false);
   const [aceptaTraza, setAceptaTraza] = useState(false);
+  const [aceptaContrato, setAceptaContrato] = useState(false);
   const [firmando, setFirmando] = useState(false);
   const [firmaResult, setFirmaResult] = useState<{ status: string; activated: boolean } | null>(null);
 
@@ -155,12 +168,17 @@ function NewOperationWizard() {
     if (s === 4) {
       const invalid = hitos.some((h) => h.documentos_requeridos.length === 0 && h.evidencia_requerida.length === 0);
       if (invalid) return "Cada hito debe tener al menos un documento o evidencia requerida";
+      if (fiscal.requiereCfdiPpd && !fiscal.usoCfdiReceptor) return "Selecciona un uso de CFDI para el receptor";
     }
     if (s === 5) {
+      const err = isContractStepValid(contract);
+      if (err) return err;
+    }
+    if (s === 6) {
       if (!monto || monto < 100) return "Ingresa un monto válido (mínimo $100 MXN)";
     }
     return null;
-  }, [sector, descripcion, contraparte, hitos, sumaPct, monto]);
+  }, [sector, descripcion, contraparte, hitos, sumaPct, monto, contract, fiscal]);
 
   const goNext = useCallback(async () => {
     setError(null);
@@ -207,6 +225,12 @@ function NewOperationWizard() {
     }
 
     if (step === 5) {
+      // Contrato: se guarda en memoria; persistencia real ocurre al activar.
+      setStep(6);
+      return;
+    }
+
+    if (step === 6) {
       const r = Step4Schema.safeParse({
         monto, metodo_pago: metodoPago,
         fecha_inicio_estimada: fechaInicio || null, fecha_fin_estimada: fechaFin || null,
@@ -217,11 +241,11 @@ function NewOperationWizard() {
       try {
         await saveMonto({ data: { transaction_id: txId, sector, step4: r.data } });
         setSaveState("saved"); setLastSavedAt(new Date());
-        setStep(6);
+        setStep(7);
       } catch (e) { setSaveState("error"); setError((e as Error).message); }
       finally { setSaving(false); }
     }
-  }, [step, validateStep, sector, rol, descripcion, contraparte, hitos, monto, metodoPago, fechaInicio, fechaFin, txId, upsertDraft, saveHitos, saveMonto]);
+  }, [step, validateStep, sector, rol, descripcion, contraparte, hitos, monto, metodoPago, fechaInicio, fechaFin, txId, contract, upsertDraft, saveHitos, saveMonto]);
 
   const goBack = useCallback(() => {
     setError(null);
@@ -336,9 +360,21 @@ function NewOperationWizard() {
                 <Step4Cumplimiento
                   sector={sector} hitos={hitos} setHitos={setHitos}
                   checklist={checklist} setChecklist={setChecklist}
+                  fiscal={fiscal} setFiscal={setFiscal}
                 />
               )}
               {step === 5 && sector && (
+                <ContractStep
+                  sector={sector}
+                  monto={monto}
+                  descripcion={descripcion}
+                  contraparteNombre={contraparte?.nombre ?? null}
+                  creatorRoleLabel={creatorRoleLabel}
+                  state={contract}
+                  setState={setContract}
+                />
+              )}
+              {step === 6 && sector && (
                 <Step5Pago
                   sector={sector}
                   monto={monto} setMonto={setMonto}
@@ -347,7 +383,7 @@ function NewOperationWizard() {
                   fee={fee} hitos={hitos}
                 />
               )}
-              {step === 6 && (
+              {step === 7 && (
                 <Step6Revision
                   numero={numero} rol={rol}
                   sectorDef={sectorDef} sectorCfg={sectorCfg}
@@ -356,10 +392,12 @@ function NewOperationWizard() {
                   contraparte={contraparte} hitos={hitos} monto={monto}
                   metodoPago={metodoPago} comisionPagadaPor={comisionPagadaPor}
                   fee={fee}
+                  fiscal={fiscal} contract={contract}
                   aceptaTerminos={aceptaTerminos} setAceptaTerminos={setAceptaTerminos}
                   aceptaRetencion={aceptaRetencion} setAceptaRetencion={setAceptaRetencion}
                   aceptaCumplimiento={aceptaCumplimiento} setAceptaCumplimiento={setAceptaCumplimiento}
                   aceptaTraza={aceptaTraza} setAceptaTraza={setAceptaTraza}
+                  aceptaContrato={aceptaContrato} setAceptaContrato={setAceptaContrato}
                 />
               )}
             </div>
@@ -398,7 +436,7 @@ function NewOperationWizard() {
             >
               Guardar borrador
             </button>
-            {step < 6 ? (
+            {step < 7 ? (
               <button
                 onClick={goNext}
                 disabled={saving || !stepValidNow}
@@ -411,8 +449,8 @@ function NewOperationWizard() {
             ) : (
               <button
                 onClick={() => setShowActivation(true)}
-                disabled={!aceptaTerminos || !aceptaRetencion || !aceptaCumplimiento || !aceptaTraza}
-                title={(!aceptaTerminos || !aceptaRetencion || !aceptaCumplimiento || !aceptaTraza) ? "Acepta todas las declaraciones para continuar." : undefined}
+                disabled={!aceptaTerminos || !aceptaRetencion || !aceptaCumplimiento || !aceptaTraza || !aceptaContrato}
+                title={(!aceptaTerminos || !aceptaRetencion || !aceptaCumplimiento || !aceptaTraza || !aceptaContrato) ? "Acepta todas las declaraciones y confirma el contrato para continuar." : undefined}
                 className="inline-flex items-center gap-1.5 px-5 py-2 bg-yo-ac text-white text-sm font-semibold rounded-md hover:bg-yo-ac-h disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 {rol === "PAGADOR" ? "Activar operación y continuar a pago" : "Enviar propuesta al comprador"}
@@ -1093,10 +1131,11 @@ function Step3Hitos({
 
 // ─── Paso 4: Cumplimiento y evidencia ───────────────────────────────────────
 function Step4Cumplimiento({
-  sector, hitos, setHitos, checklist, setChecklist,
+  sector, hitos, setHitos, checklist, setChecklist, fiscal, setFiscal,
 }: {
   sector: SectorId; hitos: HitoDraft[]; setHitos: (h: HitoDraft[]) => void;
   checklist: Record<number, string[]>; setChecklist: (v: Record<number, string[]>) => void;
+  fiscal: FiscalConfig; setFiscal: (v: FiscalConfig) => void;
 }) {
   const [openIdx, setOpenIdx] = useState<number>(0);
   const docCatalog = useMemo(() => [...DOC_BASE, ...DOC_BY_SECTOR[sector]], [sector]);
@@ -1133,6 +1172,75 @@ function Step4Cumplimiento({
         <p className="text-xs text-yo-txt-2">
           Los documentos y evidencias configurados aquí serán usados para validar hitos, resolver disputas y alimentar el Perfil de Cumplimiento.
         </p>
+      </div>
+
+      {/* Cumplimiento fiscal global (CFDI PPD + REP) */}
+      <div className="rounded-lg border border-yo-border bg-white p-4 space-y-3">
+        <div>
+          <h3 className="text-sm font-semibold text-yo-txt">Cumplimiento fiscal (CFDI PPD + REP)</h3>
+          <p className="text-xs text-yo-txt-2 mt-0.5">
+            YOKTO no emite CFDI. El vendedor los timbra con su PAC y los sube; YOKTO valida SAT, RFCs, monto, método PPD, forma 99, TFD y coherencia con la operación.
+          </p>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <label className="flex items-start gap-2 text-sm text-yo-txt">
+            <input type="checkbox" className="mt-0.5"
+              checked={fiscal.requiereCfdiPpd}
+              onChange={(e) => setFiscal({ ...fiscal, requiereCfdiPpd: e.target.checked })} />
+            <span>Requerir CFDI PPD inicial al activar</span>
+          </label>
+          <label className="flex items-start gap-2 text-sm text-yo-txt">
+            <input type="checkbox" className="mt-0.5"
+              checked={fiscal.requiereRep}
+              onChange={(e) => setFiscal({ ...fiscal, requiereRep: e.target.checked })} />
+            <span>Requerir REP por cada parcialidad / hito liberado</span>
+          </label>
+          <label className="flex items-start gap-2 text-sm text-yo-txt md:col-span-2">
+            <input type="checkbox" className="mt-0.5"
+              checked={fiscal.validacionSatRequerida}
+              onChange={(e) => setFiscal({ ...fiscal, validacionSatRequerida: e.target.checked })} />
+            <span>Validar estado vigente ante SAT antes de aceptar</span>
+          </label>
+          <div>
+            <label className="block text-xs text-yo-txt-2 mb-1">Uso CFDI receptor</label>
+            <select className="w-full h-9 px-2 rounded-md border border-yo-border bg-white text-sm"
+              value={fiscal.usoCfdiReceptor}
+              onChange={(e) => setFiscal({ ...fiscal, usoCfdiReceptor: e.target.value })}>
+              {USO_CFDI_OPTIONS.map((o) => <option key={o.key} value={o.key}>{o.label}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs text-yo-txt-2 mb-1">Régimen fiscal receptor</label>
+            <input type="text" placeholder="p. ej. 601, 612, 626"
+              className="w-full h-9 px-2 rounded-md border border-yo-border bg-white text-sm"
+              value={fiscal.regimenFiscalReceptor}
+              onChange={(e) => setFiscal({ ...fiscal, regimenFiscalReceptor: e.target.value })} />
+          </div>
+          <div>
+            <label className="block text-xs text-yo-txt-2 mb-1">CP receptor</label>
+            <input type="text" inputMode="numeric" maxLength={5}
+              className="w-full h-9 px-2 rounded-md border border-yo-border bg-white text-sm"
+              value={fiscal.cpReceptor}
+              onChange={(e) => setFiscal({ ...fiscal, cpReceptor: e.target.value.replace(/\D/g, "") })} />
+          </div>
+          <div>
+            <label className="block text-xs text-yo-txt-2 mb-1">Tolerancia de monto (%)</label>
+            <select className="w-full h-9 px-2 rounded-md border border-yo-border bg-white text-sm"
+              value={fiscal.toleranciaMonto}
+              onChange={(e) => setFiscal({ ...fiscal, toleranciaMonto: Number(e.target.value) as 0 | 1 | 2 })}>
+              <option value={0}>0% (estricto)</option>
+              <option value={1}>1%</option>
+              <option value={2}>2%</option>
+            </select>
+          </div>
+          <div className="md:col-span-2">
+            <label className="block text-xs text-yo-txt-2 mb-1">Concepto sugerido para el CFDI</label>
+            <input type="text"
+              className="w-full h-9 px-2 rounded-md border border-yo-border bg-white text-sm"
+              value={fiscal.conceptoSugerido}
+              onChange={(e) => setFiscal({ ...fiscal, conceptoSugerido: e.target.value })} />
+          </div>
+        </div>
       </div>
 
       <div className="space-y-3">
@@ -1409,16 +1517,20 @@ function Step6Revision(props: {
   contraparte: Contraparte | null; hitos: HitoDraft[]; monto: number;
   metodoPago: string; comisionPagadaPor: string;
   fee: ReturnType<typeof calcularFee> | null;
+  fiscal: FiscalConfig; contract: ContractState;
   aceptaTerminos: boolean; setAceptaTerminos: (v: boolean) => void;
   aceptaRetencion: boolean; setAceptaRetencion: (v: boolean) => void;
   aceptaCumplimiento: boolean; setAceptaCumplimiento: (v: boolean) => void;
   aceptaTraza: boolean; setAceptaTraza: (v: boolean) => void;
+  aceptaContrato: boolean; setAceptaContrato: (v: boolean) => void;
 }) {
   const {
     numero, rol, sectorDef, sectorCfg, subtipo, descripcion, fechaInicio, fechaFin,
     contraparte, hitos, monto, metodoPago, comisionPagadaPor, fee,
+    fiscal, contract,
     aceptaTerminos, setAceptaTerminos, aceptaRetencion, setAceptaRetencion,
     aceptaCumplimiento, setAceptaCumplimiento, aceptaTraza, setAceptaTraza,
+    aceptaContrato, setAceptaContrato,
   } = props;
 
   return (
@@ -1502,6 +1614,26 @@ function Step6Revision(props: {
         ]} />
       </ReviewSection>
 
+      <ReviewSection title="Cumplimiento fiscal">
+        <ReviewGrid rows={[
+          ["Requiere CFDI PPD inicial", fiscal.requiereCfdiPpd ? "Sí" : "No"],
+          ["REP por parcialidad", fiscal.requiereRep ? "Requerido en cada hito" : "No requerido"],
+          ["Uso CFDI", fiscal.usoCfdiReceptor || "—"],
+          ["Régimen fiscal receptor", fiscal.regimenFiscalReceptor || "—"],
+          ["CP receptor", fiscal.cpReceptor || "—"],
+        ]} />
+      </ReviewSection>
+
+      <ReviewSection title="Contrato">
+        <ReviewGrid rows={[
+          ["Método", contract.method === "UPLOADED_PDF" ? "PDF cargado" : contract.method === "GENERATED" ? "Generado por YOKTO" : "—"],
+          ["Plantilla / archivo", contract.method === "UPLOADED_PDF" ? (contract.pdfName ?? "—") : (contract.templateKey ?? "—")],
+          ["Hash SHA-256", contract.pdfHash ? <span key="h" className="font-mono text-xs">{contract.pdfHash.slice(0, 24)}…</span> : "—"],
+          ["Firma comprador", contract.buyerSignatureMethod === "AUTOGRAFA_BIOMETRICA" ? "Autógrafa + biometría" : contract.buyerSignatureMethod === "EFIRMA_SAT" ? "e.firma SAT" : "—"],
+          ["Firma vendedor", contract.sellerSignatureMethod === "AUTOGRAFA_BIOMETRICA" ? "Autógrafa + biometría" : contract.sellerSignatureMethod === "EFIRMA_SAT" ? "e.firma SAT" : "—"],
+        ]} />
+      </ReviewSection>
+
       <ReviewSection title="Aceptaciones">
         <div className="space-y-2">
           <Check3 checked={aceptaTerminos} onChange={setAceptaTerminos}
@@ -1510,6 +1642,8 @@ function Step6Revision(props: {
             label="Entiendo que la liberación depende del cumplimiento de los hitos y evidencia configurada." />
           <Check3 checked={aceptaRetencion} onChange={setAceptaRetencion}
             label="Entiendo que los fondos son procesados y retenidos por la pasarela de pago, no por YOKTO." />
+          <Check3 checked={aceptaContrato} onChange={setAceptaContrato}
+            label="Confirmo el contrato y el método de firma seleccionado para ambas partes." />
           <Check3 checked={aceptaTraza} onChange={setAceptaTraza}
             label="Acepto los términos de operación y autorización de trazabilidad." />
         </div>
