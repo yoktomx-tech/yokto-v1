@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { StatusBadge, SectorBadge, MoneyDisplay, ProgressBar, NextActionPill } from "@/components/tx/ui";
 import type { TxRow } from "./transactions-table";
 import type { ViewRole } from "@/hooks/use-view-role";
+import { txHash } from "@/lib/tx-hash";
 
 type Props = {
   row: TxRow;
