@@ -1,7 +1,9 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
+import { toast } from "sonner";
 import { Eye, Copy, XCircle, ShieldAlert, FileText } from "lucide-react";
 import { StatusBadge, SectorBadge, MoneyDisplay, ProgressBar, ActionMenu, NextActionPill, type ActionItem } from "@/components/tx/ui";
 import { toUiStatus } from "@/lib/tx-catalog";
+import { txHash } from "@/lib/tx-hash";
 import type { ViewRole } from "@/hooks/use-view-role";
 
 export type TxRow = {
