@@ -245,6 +245,45 @@ function NewOperationWizard() {
     navigate({ to: "/transactions" });
   }, [step, sector, rol, descripcion, contraparte, txId, upsertDraft, navigate]);
 
+  // ─── Cargar ejemplo (prellenar todo el wizard con datos de demo)
+  const [showExamples, setShowExamples] = useState(false);
+  const loadExample = useCallback((ex: OperationExample) => {
+    setError(null);
+    setSector(ex.sector);
+    setSubtipo(ex.subtipo);
+    setDescripcion(ex.descripcion);
+    const hoy = new Date();
+    const fin = new Date();
+    fin.setDate(hoy.getDate() + ex.diasDuracion);
+    const inicioISO = hoy.toISOString().slice(0, 10);
+    setFechaInicio(inicioISO);
+    setFechaFin(fin.toISOString().slice(0, 10));
+    setRol(ex.rol);
+    setContraparte({ user_id: null, email: ex.contraparte.email, nombre: ex.contraparte.nombre, rfc: ex.contraparte.rfc });
+    setMonto(ex.monto);
+    setMetodoPago(ex.metodoPago);
+    setComisionPagadaPor(ex.comisionPagadaPor);
+    const base = new Date(inicioISO);
+    setHitos(ex.hitos.map((h, i) => {
+      const f = new Date(base);
+      f.setDate(base.getDate() + h.diasDesdeInicio);
+      return {
+        orden: i + 1,
+        titulo: h.titulo,
+        descripcion: h.descripcion ?? "",
+        monto_porcentaje: h.monto_porcentaje,
+        fecha_limite: f.toISOString().slice(0, 10),
+        tipo_verificacion: h.tipo_verificacion,
+        documentos_requeridos: [...h.documentos_requeridos],
+        evidencia_requerida: [...h.evidencia_requerida],
+        responsable: h.responsable,
+        auto_release: h.auto_release,
+      };
+    }));
+    setShowExamples(false);
+  }, []);
+
+
   // ─── Pantalla de éxito
   if (firmaResult) {
     return (
