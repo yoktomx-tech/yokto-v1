@@ -126,7 +126,7 @@ function CumplimientoPage() {
         if (adv.sector && op.sector !== adv.sector) return false;
         if (adv.contraparte && !op.buyer.toLowerCase().includes(adv.contraparte.toLowerCase())) return false;
         if (tab === "CONTRATOS" && op.contract.status === "FIRMADO_COMPLETO") return false;
-        if (tab === "FISCAL" && op.fiscal.cfdi.status === "FISCAL_COMPLETO") return false;
+        if (tab === "FISCAL" && op.fiscal.cfdi.status === "CFDI_ACEPTADO" && op.fiscal.reps.every((r) => r.status === "REP_ACEPTADO")) return false;
         if (tab === "SECTORIALES" && op.sectorRequirements.every((s) => s.status === "COMPLETO")) return false;
         return true;
       })
