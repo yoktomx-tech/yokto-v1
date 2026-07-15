@@ -27,6 +27,7 @@ import {
 } from "lucide-react";
 import { PageHeader } from "@/components/page-header";
 import { useViewRole } from "@/hooks/use-view-role";
+import { usePersonType } from "@/hooks/use-person-type";
 import {
   getMockProfile,
   LEVEL_CFG,
@@ -87,7 +88,7 @@ function Badge({ tone, children }: { tone: string; children: React.ReactNode }) 
 function ScorePage() {
   const { role } = useViewRole();
   const viewRole = role === "buyer" ? "buyer" : "seller";
-  const [personType, setPersonType] = useState<PersonType>("PM");
+  const { personType } = usePersonType();
   const profile = useMemo(() => getMockProfile(viewRole, personType), [viewRole, personType]);
   const [tab, setTab] = useState<TabKey>("resumen");
   const [openDoc, setOpenDoc] = useState<ComplianceDoc | null>(null);
@@ -113,7 +114,7 @@ function ScorePage() {
         subtitle={subtitle}
         actions={
           <>
-            <PersonTypeSelect value={personType} onChange={setPersonType} />
+            
             <button
               onClick={() => setCompleteOpen(true)}
               className="inline-flex items-center gap-2 rounded-lg bg-yo-ac hover:bg-yo-ac-h text-white px-3 py-2 text-sm font-medium transition"
