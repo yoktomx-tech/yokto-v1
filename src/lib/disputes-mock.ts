@@ -373,7 +373,7 @@ export const MOCK_DISPUTES: Dispute[] = [
 export type ActorRole = "buyer" | "seller" | "backoffice" | "auditor";
 
 export function canOpenDispute(role: ActorRole) {
-  return role === "buyer";
+  return role === "buyer" || role === "seller";
 }
 export function canRespond(role: ActorRole, d: Dispute) {
   if (isClosed(d.status)) return false;
