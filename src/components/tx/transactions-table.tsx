@@ -1,7 +1,9 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
+import { toast } from "sonner";
 import { Eye, Copy, XCircle, ShieldAlert, FileText } from "lucide-react";
 import { StatusBadge, SectorBadge, MoneyDisplay, ProgressBar, ActionMenu, NextActionPill, type ActionItem } from "@/components/tx/ui";
 import { toUiStatus } from "@/lib/tx-catalog";
+import { txHash } from "@/lib/tx-hash";
 import type { ViewRole } from "@/hooks/use-view-role";
 
 export type TxRow = {
@@ -39,6 +41,7 @@ function fmtDate(d: string | null) {
 }
 
 export function TransactionsTable({ rows, role, currentUserId }: Props) {
+  const navigate = useNavigate();
   return (
     <div className="surface-card overflow-hidden">
       <div className="overflow-x-auto">
@@ -72,8 +75,20 @@ export function TransactionsTable({ rows, role, currentUserId }: Props) {
 
               const overdue = r.delivery_deadline && new Date(r.delivery_deadline) < new Date() && ui !== "CLOSED" && ui !== "RELEASED";
 
+              const hash = txHash(r.id);
+              const goExpediente = () => navigate({ to: "/transactions/$id/expediente", params: { id: r.id } });
+
               const items: ActionItem[] = [
-                { key: "view", label: "Ver detalle", icon: <Eye className="h-3.5 w-3.5" /> },
+                { key: "view", label: "Ver expediente", icon: <Eye className="h-3.5 w-3.5" />, onSelect: goExpediente },
+                {
+                  key: "copy-hash",
+                  label: "Copiar hash",
+                  icon: <Copy className="h-3.5 w-3.5" />,
+                  onSelect: () => {
+                    navigator.clipboard?.writeText(hash);
+                    toast.success("Hash copiado", { description: hash });
+                  },
+                },
                 { key: "download", label: "Descargar resumen", icon: <FileText className="h-3.5 w-3.5" /> },
                 { key: "duplicate", label: "Duplicar", icon: <Copy className="h-3.5 w-3.5" /> },
                 {
@@ -96,15 +111,16 @@ export function TransactionsTable({ rows, role, currentUserId }: Props) {
                 <tr key={r.id} className="border-b border-yo-border last:border-b-0 hover:bg-yo-raised transition-colors">
                   <td className="px-4 py-3">
                     <Link
-                      to="/transactions/$id"
+                      to="/transactions/$id/expediente"
                       params={{ id: r.id }}
-                      className="tx-id font-mono text-[12px] text-yo-ac hover:underline"
+                      className="tx-id font-mono text-[12px] text-yo-ac hover:underline block"
                     >
                       {r.numero ?? r.id.slice(0, 8).toUpperCase()}
                     </Link>
+                    <span className="font-mono text-[10px] text-yo-txt-3 tracking-wider">{hash}</span>
                   </td>
                   <td className="px-4 py-3 max-w-[240px]">
-                    <Link to="/transactions/$id" params={{ id: r.id }} className="font-medium text-yo-txt hover:text-yo-ac line-clamp-1">
+                    <Link to="/transactions/$id/expediente" params={{ id: r.id }} className="font-medium text-yo-txt hover:text-yo-ac line-clamp-1">
                       {r.title}
                     </Link>
                   </td>
