@@ -73,16 +73,23 @@ function NewOperationWizard() {
   const [hitos, setHitos] = useState<HitoDraft[]>([]);
   const [checklist, setChecklist] = useState<Record<number, string[]>>({});
 
-  // Paso 5
+  // Paso 4 (bloque fiscal CFDI / REP)
+  const [fiscal, setFiscal] = useState<FiscalConfig>(DEFAULT_FISCAL_CONFIG);
+
+  // Paso 5 (Contrato)
+  const [contract, setContract] = useState<ContractState>(DEFAULT_CONTRACT_STATE);
+
+  // Paso 6 (Pago)
   const [monto, setMonto] = useState<number>(0);
   const [metodoPago, setMetodoPago] = useState<"SPEI" | "TARJETA" | "OXXO">("SPEI");
   const [comisionPagadaPor, setComisionPagadaPor] = useState<"COMPRADOR" | "VENDEDOR">("COMPRADOR");
 
-  // Paso 6
+  // Paso 7 (Revisión)
   const [aceptaTerminos, setAceptaTerminos] = useState(false);
   const [aceptaRetencion, setAceptaRetencion] = useState(false);
   const [aceptaCumplimiento, setAceptaCumplimiento] = useState(false);
   const [aceptaTraza, setAceptaTraza] = useState(false);
+  const [aceptaContrato, setAceptaContrato] = useState(false);
   const [firmando, setFirmando] = useState(false);
   const [firmaResult, setFirmaResult] = useState<{ status: string; activated: boolean } | null>(null);
 
