@@ -51,6 +51,7 @@ import { Route as AuthenticatedPaymentsLedgerRouteImport } from './routes/_authe
 import { Route as AuthenticatedPaymentsFiscalRouteImport } from './routes/_authenticated/payments.fiscal'
 import { Route as AuthenticatedPaymentsIdRouteImport } from './routes/_authenticated/payments.$id'
 import { Route as AuthenticatedOnboardingPendienteRouteImport } from './routes/_authenticated/onboarding.pendiente'
+import { Route as AuthenticatedDisputesNewRouteImport } from './routes/_authenticated/disputes.new'
 import { Route as AuthenticatedDisputesIdRouteImport } from './routes/_authenticated/disputes.$id'
 import { Route as AuthenticatedAnalyticsSectoresRouteImport } from './routes/_authenticated/analytics.sectores'
 import { Route as AuthenticatedAnalyticsPerfilCumplimientoRouteImport } from './routes/_authenticated/analytics.perfil-cumplimiento'
@@ -300,6 +301,12 @@ const AuthenticatedOnboardingPendienteRoute =
     path: '/onboarding/pendiente',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedDisputesNewRoute =
+  AuthenticatedDisputesNewRouteImport.update({
+    id: '/new',
+    path: '/new',
+    getParentRoute: () => AuthenticatedDisputesRoute,
+  } as any)
 const AuthenticatedDisputesIdRoute = AuthenticatedDisputesIdRouteImport.update({
   id: '/$id',
   path: '/$id',
@@ -463,6 +470,7 @@ export interface FileRoutesByFullPath {
   '/analytics/perfil-cumplimiento': typeof AuthenticatedAnalyticsPerfilCumplimientoRoute
   '/analytics/sectores': typeof AuthenticatedAnalyticsSectoresRoute
   '/disputes/$id': typeof AuthenticatedDisputesIdRoute
+  '/disputes/new': typeof AuthenticatedDisputesNewRoute
   '/onboarding/pendiente': typeof AuthenticatedOnboardingPendienteRoute
   '/payments/$id': typeof AuthenticatedPaymentsIdRoute
   '/payments/fiscal': typeof AuthenticatedPaymentsFiscalRoute
@@ -524,6 +532,7 @@ export interface FileRoutesByTo {
   '/analytics/perfil-cumplimiento': typeof AuthenticatedAnalyticsPerfilCumplimientoRoute
   '/analytics/sectores': typeof AuthenticatedAnalyticsSectoresRoute
   '/disputes/$id': typeof AuthenticatedDisputesIdRoute
+  '/disputes/new': typeof AuthenticatedDisputesNewRoute
   '/onboarding/pendiente': typeof AuthenticatedOnboardingPendienteRoute
   '/payments/$id': typeof AuthenticatedPaymentsIdRoute
   '/payments/fiscal': typeof AuthenticatedPaymentsFiscalRoute
@@ -590,6 +599,7 @@ export interface FileRoutesById {
   '/_authenticated/analytics/perfil-cumplimiento': typeof AuthenticatedAnalyticsPerfilCumplimientoRoute
   '/_authenticated/analytics/sectores': typeof AuthenticatedAnalyticsSectoresRoute
   '/_authenticated/disputes/$id': typeof AuthenticatedDisputesIdRoute
+  '/_authenticated/disputes/new': typeof AuthenticatedDisputesNewRoute
   '/_authenticated/onboarding/pendiente': typeof AuthenticatedOnboardingPendienteRoute
   '/_authenticated/payments/$id': typeof AuthenticatedPaymentsIdRoute
   '/_authenticated/payments/fiscal': typeof AuthenticatedPaymentsFiscalRoute
@@ -656,6 +666,7 @@ export interface FileRouteTypes {
     | '/analytics/perfil-cumplimiento'
     | '/analytics/sectores'
     | '/disputes/$id'
+    | '/disputes/new'
     | '/onboarding/pendiente'
     | '/payments/$id'
     | '/payments/fiscal'
@@ -717,6 +728,7 @@ export interface FileRouteTypes {
     | '/analytics/perfil-cumplimiento'
     | '/analytics/sectores'
     | '/disputes/$id'
+    | '/disputes/new'
     | '/onboarding/pendiente'
     | '/payments/$id'
     | '/payments/fiscal'
@@ -782,6 +794,7 @@ export interface FileRouteTypes {
     | '/_authenticated/analytics/perfil-cumplimiento'
     | '/_authenticated/analytics/sectores'
     | '/_authenticated/disputes/$id'
+    | '/_authenticated/disputes/new'
     | '/_authenticated/onboarding/pendiente'
     | '/_authenticated/payments/$id'
     | '/_authenticated/payments/fiscal'
@@ -1119,6 +1132,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedOnboardingPendienteRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/disputes/new': {
+      id: '/_authenticated/disputes/new'
+      path: '/new'
+      fullPath: '/disputes/new'
+      preLoaderRoute: typeof AuthenticatedDisputesNewRouteImport
+      parentRoute: typeof AuthenticatedDisputesRoute
+    }
     '/_authenticated/disputes/$id': {
       id: '/_authenticated/disputes/$id'
       path: '/$id'
@@ -1341,10 +1361,12 @@ const AuthenticatedAnalyticsRouteWithChildren =
 
 interface AuthenticatedDisputesRouteChildren {
   AuthenticatedDisputesIdRoute: typeof AuthenticatedDisputesIdRoute
+  AuthenticatedDisputesNewRoute: typeof AuthenticatedDisputesNewRoute
 }
 
 const AuthenticatedDisputesRouteChildren: AuthenticatedDisputesRouteChildren = {
   AuthenticatedDisputesIdRoute: AuthenticatedDisputesIdRoute,
+  AuthenticatedDisputesNewRoute: AuthenticatedDisputesNewRoute,
 }
 
 const AuthenticatedDisputesRouteWithChildren =
