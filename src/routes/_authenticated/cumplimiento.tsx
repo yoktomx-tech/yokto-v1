@@ -17,6 +17,8 @@ import {
   type Operation, type Hito, type HitoStatus, type Document as HitoDoc, type Observation,
   type ContractInfo, type FiscalInfo, type SectorRequirement, type ComplianceLock, type REPInfo,
 } from "@/lib/cumplimiento-mock";
+import { NoCustodyBanner } from "@/components/payments/ui/no-custody-banner";
+import { InfoBox } from "@/components/tx/ui/info-box";
 
 export const Route = createFileRoute("/_authenticated/cumplimiento")({
   head: () => ({ meta: [
@@ -206,6 +208,16 @@ function CumplimientoPage() {
           </>
         }
       />
+
+      <NoCustodyBanner
+        message="Este panel es tu bandeja operativa como vendedor. YOKTO valida las evidencias que subas y, cuando el comprador aprueba, ordena la liberación a la pasarela. YOKTO no custodia fondos."
+      />
+
+      <InfoBox tone="info" title="Cómo funciona el cumplimiento">
+        Cada operación tiene hitos, documentos, contratos y comprobantes fiscales requeridos. Un candado activo
+        (contrato sin firma, CFDI faltante, requisito sectorial) bloquea la aprobación y la liberación del pago
+        hasta que quede subsanado.
+      </InfoBox>
 
       {profileMissing.length > 0 && (
         <div className="rounded-lg border border-[#FEF3C7] bg-[#FFFBEB] px-4 py-3 flex items-start gap-3">

@@ -12,6 +12,8 @@ import { TransactionsTable, type TxRow } from "@/components/tx/transactions-tabl
 import { TransactionCardMobile } from "@/components/tx/transaction-card-mobile";
 import { EmptyState } from "@/components/tx/ui";
 import { buildDemoTxRows } from "@/lib/operation-examples";
+import { NoCustodyBanner } from "@/components/payments/ui/no-custody-banner";
+import { InfoBox } from "@/components/tx/ui/info-box";
 
 type SearchParams = {
   tab?: TabId;
@@ -270,13 +272,22 @@ function TransactionsList() {
           }
         />
 
-
+        <NoCustodyBanner
+          message={role === "buyer"
+            ? "YOKTO verifica el cumplimiento de las condiciones pactadas. Los fondos son retenidos y liberados por la pasarela certificada de cada operación — YOKTO no custodia dinero."
+            : "YOKTO verifica el cumplimiento acordado y ordena las liberaciones a la pasarela cuando corresponde. Los pagos que recibes son procesados por la pasarela, no por YOKTO."}
+        />
 
         {/* Metrics */}
         <TransactionsMetricsGrid role={role} data={metrics} />
 
         {/* Filters */}
         <TransactionsFilters ref={searchInputRef} value={filters} onChange={setFilters} />
+
+        <InfoBox tone="info" title="Lo que ves aquí">
+          Cada fila refleja el estado de verificación de una operación. Las acciones (fondear, aprobar hito, liberar)
+          se ejecutan en la pasarela a través de YOKTO conforme a las condiciones pactadas.
+        </InfoBox>
 
         {/* Tabs */}
         <TransactionsTabs active={tab} onChange={setTab} role={role} counts={tabCounts} />
