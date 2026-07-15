@@ -10,6 +10,8 @@ import {
 import { useViewRole } from "@/hooks/use-view-role";
 import { cn } from "@/lib/utils";
 import { PageHeader } from "@/components/page-header";
+import { NoCustodyBanner } from "@/components/payments/ui/no-custody-banner";
+import { InfoBox } from "@/components/tx/ui/info-box";
 import {
   MOCK_APPROVALS, STATUS_CFG, SECTOR_CFG, formatMoney, daysUntil,
   CHECKLIST_LABELS, CHECK_CFG, CONTRACT_STATUS_LABEL, FISCAL_STATUS_LABEL,
