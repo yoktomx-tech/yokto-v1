@@ -458,6 +458,19 @@ function OperationCard({
           </div>
         </div>
 
+        {op.locks.length > 0 && (
+          <button onClick={onOpenOp} className="mt-3 w-full text-left rounded-md border border-[#FEF3C7] bg-[#FFFBEB] px-3 py-2 flex items-center justify-between gap-2 hover:border-[#FDE68A]">
+            <div className="flex items-center gap-2 min-w-0">
+              <Lock className="size-3.5 text-[#D97706] shrink-0" />
+              <span className="text-[11.5px] text-[#92400E] truncate">
+                {op.locks.length} {op.locks.length === 1 ? "candado activo" : "candados activos"}: {op.locks.slice(0, 2).map((l) => l.label).join(" · ")}
+                {op.locks.length > 2 && ` +${op.locks.length - 2}`}
+              </span>
+            </div>
+            <ChevronRight className="size-3.5 text-[#92400E] shrink-0" />
+          </button>
+        )}
+
         <div className="mt-3 flex flex-wrap gap-2">
           <button onClick={onOpenOp} className="h-8 px-3 rounded-md border border-yo-border bg-yo-surface text-xs font-medium text-yo-txt hover:border-yo-border-s">Ver detalle</button>
           <button onClick={() => setOpen((v) => !v)} className="h-8 px-3 rounded-md text-xs font-medium text-yo-ac hover:bg-yo-ac-bg inline-flex items-center gap-1">
