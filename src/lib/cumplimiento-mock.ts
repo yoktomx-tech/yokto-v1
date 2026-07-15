@@ -332,7 +332,7 @@ export function daysUntil(dateStr: string): number {
   return Math.ceil(ms / (24 * 3600 * 1000));
 }
 
-export const MOCK_OPS: Operation[] = [
+const RAW_OPS: Array<Omit<Operation, "contract" | "fiscal" | "sectorRequirements" | "locks">> = [
   {
     id: "OP-2026-00124",
     name: "Suministro de materiales etapa 2",
