@@ -566,7 +566,17 @@ function TxDetail() {
                           <Wallet className="h-4 w-4 mr-1.5 inline" /> Liberar fondos
                         </button>
                       )}
-                      <button disabled={busy} onClick={() => setDisputeOpen(true)} className={btnDanger}>
+                      <button
+                        disabled={busy}
+                        onClick={() => navigate({
+                          to: "/disputes/new",
+                          search: {
+                            tx: tx.numero ?? id,
+                            hito: hitos.find((h) => h.estado !== "APROBADO")?.id,
+                          },
+                        })}
+                        className={btnDanger}
+                      >
                         <ShieldAlert className="h-4 w-4 mr-1.5 inline" /> Abrir disputa
                       </button>
                     </>
