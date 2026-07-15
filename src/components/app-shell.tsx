@@ -2,7 +2,7 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import { useRef, useState, useEffect } from "react";
 import {
   LayoutDashboard, Briefcase, PackageCheck, AlertTriangle, Banknote,
-  Users, Star, Menu, X, ClipboardCheck, ShoppingCart, Store, ChevronDown, Check,
+  Users, Star, Menu, X, ClipboardCheck, ShoppingCart, Store, ChevronDown, Check, BarChart3,
 } from "lucide-react";
 import { YoktoLogo } from "@/components/logo";
 import { useViewRole, type ViewRole } from "@/hooks/use-view-role";
@@ -19,6 +19,7 @@ const SELLER_NAV: NavItem[] = [
   { to: "/cumplimiento", icon: PackageCheck,     label: "Cumplimiento" },
   { to: "/disputes",     icon: AlertTriangle,   label: "Disputas" },
   { to: "/payments",     icon: Banknote,        label: "Pagos y retenciones" },
+  { to: "/analytics",    icon: BarChart3,       label: "Analytics" },
   { to: "/crm",          icon: Users,           label: "CRM" },
   { to: "/score",        icon: Star,            label: "Score de confianza" },
 ];
@@ -29,6 +30,7 @@ const BUYER_NAV: NavItem[] = [
   { to: "/approvals",    icon: ClipboardCheck,  label: "Aprobaciones" },
   { to: "/disputes",     icon: AlertTriangle,   label: "Disputas" },
   { to: "/payments",     icon: Banknote,        label: "Pagos y retenciones" },
+  { to: "/analytics",    icon: BarChart3,       label: "Analytics" },
   { to: "/crm",          icon: Users,           label: "CRM" },
   { to: "/score",        icon: Star,            label: "Score de confianza" },
 ];

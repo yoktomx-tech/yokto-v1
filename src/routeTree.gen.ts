@@ -42,13 +42,20 @@ import { Route as AuthenticatedPaymentsFiscalRouteImport } from './routes/_authe
 import { Route as AuthenticatedPaymentsIdRouteImport } from './routes/_authenticated/payments.$id'
 import { Route as AuthenticatedOnboardingPendienteRouteImport } from './routes/_authenticated/onboarding.pendiente'
 import { Route as AuthenticatedDisputesIdRouteImport } from './routes/_authenticated/disputes.$id'
+import { Route as AuthenticatedAnalyticsSectoresRouteImport } from './routes/_authenticated/analytics.sectores'
+import { Route as AuthenticatedAnalyticsPerfilCumplimientoRouteImport } from './routes/_authenticated/analytics.perfil-cumplimiento'
 import { Route as AuthenticatedAnalyticsPagosRouteImport } from './routes/_authenticated/analytics.pagos'
 import { Route as AuthenticatedAnalyticsOperacionesRouteImport } from './routes/_authenticated/analytics.operaciones'
 import { Route as AuthenticatedAnalyticsFiscalRouteImport } from './routes/_authenticated/analytics.fiscal'
+import { Route as AuthenticatedAnalyticsExportacionesRouteImport } from './routes/_authenticated/analytics.exportaciones'
+import { Route as AuthenticatedAnalyticsEquipoRouteImport } from './routes/_authenticated/analytics.equipo'
 import { Route as AuthenticatedAnalyticsDisputasRouteImport } from './routes/_authenticated/analytics.disputas'
+import { Route as AuthenticatedAnalyticsCustomRouteImport } from './routes/_authenticated/analytics.custom'
 import { Route as AuthenticatedAnalyticsCumplimientoRouteImport } from './routes/_authenticated/analytics.cumplimiento'
 import { Route as AuthenticatedAnalyticsContratosRouteImport } from './routes/_authenticated/analytics.contratos'
+import { Route as AuthenticatedAnalyticsAprobacionesRouteImport } from './routes/_authenticated/analytics.aprobaciones'
 import { Route as AuthenticatedAdminDisputesRouteImport } from './routes/_authenticated/admin.disputes'
+import { Route as AuthenticatedAdminAnalyticsRouteImport } from './routes/_authenticated/admin.analytics'
 import { Route as ApiPublicV1TransactionsRouteImport } from './routes/api/public/v1.transactions'
 import { Route as ApiPublicStripeWebhookRouteImport } from './routes/api/public/stripe.webhook'
 import { Route as ApiPublicHooksDisputeDeadlinesRouteImport } from './routes/api/public/hooks/dispute-deadlines'
@@ -231,6 +238,18 @@ const AuthenticatedDisputesIdRoute = AuthenticatedDisputesIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => AuthenticatedDisputesRoute,
 } as any)
+const AuthenticatedAnalyticsSectoresRoute =
+  AuthenticatedAnalyticsSectoresRouteImport.update({
+    id: '/sectores',
+    path: '/sectores',
+    getParentRoute: () => AuthenticatedAnalyticsRoute,
+  } as any)
+const AuthenticatedAnalyticsPerfilCumplimientoRoute =
+  AuthenticatedAnalyticsPerfilCumplimientoRouteImport.update({
+    id: '/perfil-cumplimiento',
+    path: '/perfil-cumplimiento',
+    getParentRoute: () => AuthenticatedAnalyticsRoute,
+  } as any)
 const AuthenticatedAnalyticsPagosRoute =
   AuthenticatedAnalyticsPagosRouteImport.update({
     id: '/pagos',
@@ -249,10 +268,28 @@ const AuthenticatedAnalyticsFiscalRoute =
     path: '/fiscal',
     getParentRoute: () => AuthenticatedAnalyticsRoute,
   } as any)
+const AuthenticatedAnalyticsExportacionesRoute =
+  AuthenticatedAnalyticsExportacionesRouteImport.update({
+    id: '/exportaciones',
+    path: '/exportaciones',
+    getParentRoute: () => AuthenticatedAnalyticsRoute,
+  } as any)
+const AuthenticatedAnalyticsEquipoRoute =
+  AuthenticatedAnalyticsEquipoRouteImport.update({
+    id: '/equipo',
+    path: '/equipo',
+    getParentRoute: () => AuthenticatedAnalyticsRoute,
+  } as any)
 const AuthenticatedAnalyticsDisputasRoute =
   AuthenticatedAnalyticsDisputasRouteImport.update({
     id: '/disputas',
     path: '/disputas',
+    getParentRoute: () => AuthenticatedAnalyticsRoute,
+  } as any)
+const AuthenticatedAnalyticsCustomRoute =
+  AuthenticatedAnalyticsCustomRouteImport.update({
+    id: '/custom',
+    path: '/custom',
     getParentRoute: () => AuthenticatedAnalyticsRoute,
   } as any)
 const AuthenticatedAnalyticsCumplimientoRoute =
@@ -267,10 +304,22 @@ const AuthenticatedAnalyticsContratosRoute =
     path: '/contratos',
     getParentRoute: () => AuthenticatedAnalyticsRoute,
   } as any)
+const AuthenticatedAnalyticsAprobacionesRoute =
+  AuthenticatedAnalyticsAprobacionesRouteImport.update({
+    id: '/aprobaciones',
+    path: '/aprobaciones',
+    getParentRoute: () => AuthenticatedAnalyticsRoute,
+  } as any)
 const AuthenticatedAdminDisputesRoute =
   AuthenticatedAdminDisputesRouteImport.update({
     id: '/disputes',
     path: '/disputes',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminAnalyticsRoute =
+  AuthenticatedAdminAnalyticsRouteImport.update({
+    id: '/analytics',
+    path: '/analytics',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
 const ApiPublicV1TransactionsRoute = ApiPublicV1TransactionsRouteImport.update({
@@ -331,13 +380,20 @@ export interface FileRoutesByFullPath {
   '/transactions': typeof AuthenticatedTransactionsRouteWithChildren
   '/biometrico/$token': typeof BiometricoTokenRoute
   '/invitations/$token': typeof InvitationsTokenRoute
+  '/admin/analytics': typeof AuthenticatedAdminAnalyticsRoute
   '/admin/disputes': typeof AuthenticatedAdminDisputesRouteWithChildren
+  '/analytics/aprobaciones': typeof AuthenticatedAnalyticsAprobacionesRoute
   '/analytics/contratos': typeof AuthenticatedAnalyticsContratosRoute
   '/analytics/cumplimiento': typeof AuthenticatedAnalyticsCumplimientoRoute
+  '/analytics/custom': typeof AuthenticatedAnalyticsCustomRoute
   '/analytics/disputas': typeof AuthenticatedAnalyticsDisputasRoute
+  '/analytics/equipo': typeof AuthenticatedAnalyticsEquipoRoute
+  '/analytics/exportaciones': typeof AuthenticatedAnalyticsExportacionesRoute
   '/analytics/fiscal': typeof AuthenticatedAnalyticsFiscalRoute
   '/analytics/operaciones': typeof AuthenticatedAnalyticsOperacionesRoute
   '/analytics/pagos': typeof AuthenticatedAnalyticsPagosRoute
+  '/analytics/perfil-cumplimiento': typeof AuthenticatedAnalyticsPerfilCumplimientoRoute
+  '/analytics/sectores': typeof AuthenticatedAnalyticsSectoresRoute
   '/disputes/$id': typeof AuthenticatedDisputesIdRoute
   '/onboarding/pendiente': typeof AuthenticatedOnboardingPendienteRoute
   '/payments/$id': typeof AuthenticatedPaymentsIdRoute
@@ -376,13 +432,20 @@ export interface FileRoutesByTo {
   '/score': typeof AuthenticatedScoreRoute
   '/biometrico/$token': typeof BiometricoTokenRoute
   '/invitations/$token': typeof InvitationsTokenRoute
+  '/admin/analytics': typeof AuthenticatedAdminAnalyticsRoute
   '/admin/disputes': typeof AuthenticatedAdminDisputesRouteWithChildren
+  '/analytics/aprobaciones': typeof AuthenticatedAnalyticsAprobacionesRoute
   '/analytics/contratos': typeof AuthenticatedAnalyticsContratosRoute
   '/analytics/cumplimiento': typeof AuthenticatedAnalyticsCumplimientoRoute
+  '/analytics/custom': typeof AuthenticatedAnalyticsCustomRoute
   '/analytics/disputas': typeof AuthenticatedAnalyticsDisputasRoute
+  '/analytics/equipo': typeof AuthenticatedAnalyticsEquipoRoute
+  '/analytics/exportaciones': typeof AuthenticatedAnalyticsExportacionesRoute
   '/analytics/fiscal': typeof AuthenticatedAnalyticsFiscalRoute
   '/analytics/operaciones': typeof AuthenticatedAnalyticsOperacionesRoute
   '/analytics/pagos': typeof AuthenticatedAnalyticsPagosRoute
+  '/analytics/perfil-cumplimiento': typeof AuthenticatedAnalyticsPerfilCumplimientoRoute
+  '/analytics/sectores': typeof AuthenticatedAnalyticsSectoresRoute
   '/disputes/$id': typeof AuthenticatedDisputesIdRoute
   '/onboarding/pendiente': typeof AuthenticatedOnboardingPendienteRoute
   '/payments/$id': typeof AuthenticatedPaymentsIdRoute
@@ -425,13 +488,20 @@ export interface FileRoutesById {
   '/_authenticated/transactions': typeof AuthenticatedTransactionsRouteWithChildren
   '/biometrico/$token': typeof BiometricoTokenRoute
   '/invitations/$token': typeof InvitationsTokenRoute
+  '/_authenticated/admin/analytics': typeof AuthenticatedAdminAnalyticsRoute
   '/_authenticated/admin/disputes': typeof AuthenticatedAdminDisputesRouteWithChildren
+  '/_authenticated/analytics/aprobaciones': typeof AuthenticatedAnalyticsAprobacionesRoute
   '/_authenticated/analytics/contratos': typeof AuthenticatedAnalyticsContratosRoute
   '/_authenticated/analytics/cumplimiento': typeof AuthenticatedAnalyticsCumplimientoRoute
+  '/_authenticated/analytics/custom': typeof AuthenticatedAnalyticsCustomRoute
   '/_authenticated/analytics/disputas': typeof AuthenticatedAnalyticsDisputasRoute
+  '/_authenticated/analytics/equipo': typeof AuthenticatedAnalyticsEquipoRoute
+  '/_authenticated/analytics/exportaciones': typeof AuthenticatedAnalyticsExportacionesRoute
   '/_authenticated/analytics/fiscal': typeof AuthenticatedAnalyticsFiscalRoute
   '/_authenticated/analytics/operaciones': typeof AuthenticatedAnalyticsOperacionesRoute
   '/_authenticated/analytics/pagos': typeof AuthenticatedAnalyticsPagosRoute
+  '/_authenticated/analytics/perfil-cumplimiento': typeof AuthenticatedAnalyticsPerfilCumplimientoRoute
+  '/_authenticated/analytics/sectores': typeof AuthenticatedAnalyticsSectoresRoute
   '/_authenticated/disputes/$id': typeof AuthenticatedDisputesIdRoute
   '/_authenticated/onboarding/pendiente': typeof AuthenticatedOnboardingPendienteRoute
   '/_authenticated/payments/$id': typeof AuthenticatedPaymentsIdRoute
@@ -474,13 +544,20 @@ export interface FileRouteTypes {
     | '/transactions'
     | '/biometrico/$token'
     | '/invitations/$token'
+    | '/admin/analytics'
     | '/admin/disputes'
+    | '/analytics/aprobaciones'
     | '/analytics/contratos'
     | '/analytics/cumplimiento'
+    | '/analytics/custom'
     | '/analytics/disputas'
+    | '/analytics/equipo'
+    | '/analytics/exportaciones'
     | '/analytics/fiscal'
     | '/analytics/operaciones'
     | '/analytics/pagos'
+    | '/analytics/perfil-cumplimiento'
+    | '/analytics/sectores'
     | '/disputes/$id'
     | '/onboarding/pendiente'
     | '/payments/$id'
@@ -519,13 +596,20 @@ export interface FileRouteTypes {
     | '/score'
     | '/biometrico/$token'
     | '/invitations/$token'
+    | '/admin/analytics'
     | '/admin/disputes'
+    | '/analytics/aprobaciones'
     | '/analytics/contratos'
     | '/analytics/cumplimiento'
+    | '/analytics/custom'
     | '/analytics/disputas'
+    | '/analytics/equipo'
+    | '/analytics/exportaciones'
     | '/analytics/fiscal'
     | '/analytics/operaciones'
     | '/analytics/pagos'
+    | '/analytics/perfil-cumplimiento'
+    | '/analytics/sectores'
     | '/disputes/$id'
     | '/onboarding/pendiente'
     | '/payments/$id'
@@ -567,13 +651,20 @@ export interface FileRouteTypes {
     | '/_authenticated/transactions'
     | '/biometrico/$token'
     | '/invitations/$token'
+    | '/_authenticated/admin/analytics'
     | '/_authenticated/admin/disputes'
+    | '/_authenticated/analytics/aprobaciones'
     | '/_authenticated/analytics/contratos'
     | '/_authenticated/analytics/cumplimiento'
+    | '/_authenticated/analytics/custom'
     | '/_authenticated/analytics/disputas'
+    | '/_authenticated/analytics/equipo'
+    | '/_authenticated/analytics/exportaciones'
     | '/_authenticated/analytics/fiscal'
     | '/_authenticated/analytics/operaciones'
     | '/_authenticated/analytics/pagos'
+    | '/_authenticated/analytics/perfil-cumplimiento'
+    | '/_authenticated/analytics/sectores'
     | '/_authenticated/disputes/$id'
     | '/_authenticated/onboarding/pendiente'
     | '/_authenticated/payments/$id'
@@ -840,6 +931,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDisputesIdRouteImport
       parentRoute: typeof AuthenticatedDisputesRoute
     }
+    '/_authenticated/analytics/sectores': {
+      id: '/_authenticated/analytics/sectores'
+      path: '/sectores'
+      fullPath: '/analytics/sectores'
+      preLoaderRoute: typeof AuthenticatedAnalyticsSectoresRouteImport
+      parentRoute: typeof AuthenticatedAnalyticsRoute
+    }
+    '/_authenticated/analytics/perfil-cumplimiento': {
+      id: '/_authenticated/analytics/perfil-cumplimiento'
+      path: '/perfil-cumplimiento'
+      fullPath: '/analytics/perfil-cumplimiento'
+      preLoaderRoute: typeof AuthenticatedAnalyticsPerfilCumplimientoRouteImport
+      parentRoute: typeof AuthenticatedAnalyticsRoute
+    }
     '/_authenticated/analytics/pagos': {
       id: '/_authenticated/analytics/pagos'
       path: '/pagos'
@@ -861,11 +966,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAnalyticsFiscalRouteImport
       parentRoute: typeof AuthenticatedAnalyticsRoute
     }
+    '/_authenticated/analytics/exportaciones': {
+      id: '/_authenticated/analytics/exportaciones'
+      path: '/exportaciones'
+      fullPath: '/analytics/exportaciones'
+      preLoaderRoute: typeof AuthenticatedAnalyticsExportacionesRouteImport
+      parentRoute: typeof AuthenticatedAnalyticsRoute
+    }
+    '/_authenticated/analytics/equipo': {
+      id: '/_authenticated/analytics/equipo'
+      path: '/equipo'
+      fullPath: '/analytics/equipo'
+      preLoaderRoute: typeof AuthenticatedAnalyticsEquipoRouteImport
+      parentRoute: typeof AuthenticatedAnalyticsRoute
+    }
     '/_authenticated/analytics/disputas': {
       id: '/_authenticated/analytics/disputas'
       path: '/disputas'
       fullPath: '/analytics/disputas'
       preLoaderRoute: typeof AuthenticatedAnalyticsDisputasRouteImport
+      parentRoute: typeof AuthenticatedAnalyticsRoute
+    }
+    '/_authenticated/analytics/custom': {
+      id: '/_authenticated/analytics/custom'
+      path: '/custom'
+      fullPath: '/analytics/custom'
+      preLoaderRoute: typeof AuthenticatedAnalyticsCustomRouteImport
       parentRoute: typeof AuthenticatedAnalyticsRoute
     }
     '/_authenticated/analytics/cumplimiento': {
@@ -882,11 +1008,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAnalyticsContratosRouteImport
       parentRoute: typeof AuthenticatedAnalyticsRoute
     }
+    '/_authenticated/analytics/aprobaciones': {
+      id: '/_authenticated/analytics/aprobaciones'
+      path: '/aprobaciones'
+      fullPath: '/analytics/aprobaciones'
+      preLoaderRoute: typeof AuthenticatedAnalyticsAprobacionesRouteImport
+      parentRoute: typeof AuthenticatedAnalyticsRoute
+    }
     '/_authenticated/admin/disputes': {
       id: '/_authenticated/admin/disputes'
       path: '/disputes'
       fullPath: '/admin/disputes'
       preLoaderRoute: typeof AuthenticatedAdminDisputesRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/analytics': {
+      id: '/_authenticated/admin/analytics'
+      path: '/analytics'
+      fullPath: '/admin/analytics'
+      preLoaderRoute: typeof AuthenticatedAdminAnalyticsRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
     '/api/public/v1/transactions': {
@@ -949,10 +1089,12 @@ const AuthenticatedAdminDisputesRouteWithChildren =
   )
 
 interface AuthenticatedAdminRouteChildren {
+  AuthenticatedAdminAnalyticsRoute: typeof AuthenticatedAdminAnalyticsRoute
   AuthenticatedAdminDisputesRoute: typeof AuthenticatedAdminDisputesRouteWithChildren
 }
 
 const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
+  AuthenticatedAdminAnalyticsRoute: AuthenticatedAdminAnalyticsRoute,
   AuthenticatedAdminDisputesRoute: AuthenticatedAdminDisputesRouteWithChildren,
 }
 
@@ -960,25 +1102,40 @@ const AuthenticatedAdminRouteWithChildren =
   AuthenticatedAdminRoute._addFileChildren(AuthenticatedAdminRouteChildren)
 
 interface AuthenticatedAnalyticsRouteChildren {
+  AuthenticatedAnalyticsAprobacionesRoute: typeof AuthenticatedAnalyticsAprobacionesRoute
   AuthenticatedAnalyticsContratosRoute: typeof AuthenticatedAnalyticsContratosRoute
   AuthenticatedAnalyticsCumplimientoRoute: typeof AuthenticatedAnalyticsCumplimientoRoute
+  AuthenticatedAnalyticsCustomRoute: typeof AuthenticatedAnalyticsCustomRoute
   AuthenticatedAnalyticsDisputasRoute: typeof AuthenticatedAnalyticsDisputasRoute
+  AuthenticatedAnalyticsEquipoRoute: typeof AuthenticatedAnalyticsEquipoRoute
+  AuthenticatedAnalyticsExportacionesRoute: typeof AuthenticatedAnalyticsExportacionesRoute
   AuthenticatedAnalyticsFiscalRoute: typeof AuthenticatedAnalyticsFiscalRoute
   AuthenticatedAnalyticsOperacionesRoute: typeof AuthenticatedAnalyticsOperacionesRoute
   AuthenticatedAnalyticsPagosRoute: typeof AuthenticatedAnalyticsPagosRoute
+  AuthenticatedAnalyticsPerfilCumplimientoRoute: typeof AuthenticatedAnalyticsPerfilCumplimientoRoute
+  AuthenticatedAnalyticsSectoresRoute: typeof AuthenticatedAnalyticsSectoresRoute
   AuthenticatedAnalyticsIndexRoute: typeof AuthenticatedAnalyticsIndexRoute
 }
 
 const AuthenticatedAnalyticsRouteChildren: AuthenticatedAnalyticsRouteChildren =
   {
+    AuthenticatedAnalyticsAprobacionesRoute:
+      AuthenticatedAnalyticsAprobacionesRoute,
     AuthenticatedAnalyticsContratosRoute: AuthenticatedAnalyticsContratosRoute,
     AuthenticatedAnalyticsCumplimientoRoute:
       AuthenticatedAnalyticsCumplimientoRoute,
+    AuthenticatedAnalyticsCustomRoute: AuthenticatedAnalyticsCustomRoute,
     AuthenticatedAnalyticsDisputasRoute: AuthenticatedAnalyticsDisputasRoute,
+    AuthenticatedAnalyticsEquipoRoute: AuthenticatedAnalyticsEquipoRoute,
+    AuthenticatedAnalyticsExportacionesRoute:
+      AuthenticatedAnalyticsExportacionesRoute,
     AuthenticatedAnalyticsFiscalRoute: AuthenticatedAnalyticsFiscalRoute,
     AuthenticatedAnalyticsOperacionesRoute:
       AuthenticatedAnalyticsOperacionesRoute,
     AuthenticatedAnalyticsPagosRoute: AuthenticatedAnalyticsPagosRoute,
+    AuthenticatedAnalyticsPerfilCumplimientoRoute:
+      AuthenticatedAnalyticsPerfilCumplimientoRoute,
+    AuthenticatedAnalyticsSectoresRoute: AuthenticatedAnalyticsSectoresRoute,
     AuthenticatedAnalyticsIndexRoute: AuthenticatedAnalyticsIndexRoute,
   }
 
