@@ -26,15 +26,19 @@ export const Route = createFileRoute("/_authenticated/cumplimiento")({
   component: CumplimientoPage,
 });
 
-const TABS: { key: "ALL" | HitoStatus; label: string }[] = [
+type TabKey =
+  | "ALL" | "PENDIENTE" | "EN_REVISION" | "OBSERVACIONES"
+  | "CONTRATOS" | "FISCAL" | "SECTORIALES" | "APROBADO";
+
+const TABS: { key: TabKey; label: string }[] = [
   { key: "ALL", label: "Todos" },
   { key: "PENDIENTE", label: "Pendientes" },
-  { key: "EN_CARGA", label: "En carga" },
-  { key: "LISTO_REVISION", label: "Listos para revisión" },
   { key: "EN_REVISION", label: "En revisión" },
+  { key: "OBSERVACIONES", label: "Con observaciones" },
+  { key: "CONTRATOS", label: "Contratos y firmas" },
+  { key: "FISCAL", label: "Fiscal CFDI/REP" },
+  { key: "SECTORIALES", label: "Sectoriales" },
   { key: "APROBADO", label: "Aprobados" },
-  { key: "RECHAZADO", label: "Rechazados" },
-  { key: "VENCIDO", label: "Vencidos" },
 ];
 
 type QuickFilter = "atencion" | "vence7d" | "conPago" | "docsRechazados" | null;
