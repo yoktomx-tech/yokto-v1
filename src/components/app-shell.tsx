@@ -1,11 +1,12 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { useRef, useState, useEffect } from "react";
+import { useState } from "react";
 import {
   LayoutDashboard, Briefcase, PackageCheck, AlertTriangle, Banknote,
-  Users, Users2, Star, Menu, X, ClipboardCheck, ShoppingCart, Store, ChevronDown, Check, BarChart3,
+  Users, Users2, Star, Menu, X, ClipboardCheck, BarChart3,
 } from "lucide-react";
 import { YoktoLogo } from "@/components/logo";
-import { useViewRole, type ViewRole } from "@/hooks/use-view-role";
+import { OrgSwitcher } from "@/components/org-switcher";
+import { useViewRole } from "@/hooks/use-view-role";
 import { useAuthUser } from "@/hooks/use-auth-user";
 import { AppHeader } from "@/components/app-header";
 import { cn } from "@/lib/utils";
@@ -50,7 +51,7 @@ export function AppShell({ children }: { children: React.ReactNode; sgyScore?: n
   return (
     <div className="min-h-dvh flex bg-yo-bg">
       <aside className="hidden md:flex md:w-60 lg:w-64 shrink-0 flex-col border-r border-yo-border bg-yo-surface sticky top-0 h-dvh">
-        <SidebarContent pathname={pathname} nav={nav_} role={role} setRole={setRole} score={profile.score} level={profile.level} />
+        <SidebarContent pathname={pathname} nav={nav_} score={profile.score} level={profile.level} />
       </aside>
 
 
@@ -70,8 +71,6 @@ export function AppShell({ children }: { children: React.ReactNode; sgyScore?: n
             <SidebarContent
               pathname={pathname}
               nav={nav}
-              role={role}
-              setRole={(r) => { setRole(r); }}
               score={profile.score}
               level={profile.level}
               onNavigate={() => setMobileOpen(false)}
@@ -95,86 +94,11 @@ export function AppShell({ children }: { children: React.ReactNode; sgyScore?: n
   );
 }
 
-const ROLE_DESC: Record<ViewRole, string> = {
-  seller: "Envías hitos y evidencia para liberar pagos.",
-  buyer: "Fondeas operaciones y apruebas hitos entregados.",
-};
-
-
-function RoleSelect({ role, setRole }: { role: ViewRole; setRole: (r: ViewRole) => void }) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    function onClick(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
-    }
-    if (open) document.addEventListener("mousedown", onClick);
-    return () => document.removeEventListener("mousedown", onClick);
-  }, [open]);
-
-  const current = role === "seller"
-    ? { icon: Store, label: "Vendedor" }
-    : { icon: ShoppingCart, label: "Comprador" };
-  const CurrentIcon = current.icon;
-
-  return (
-    <div className="relative" ref={ref}>
-      <p className="px-1 text-[10px] uppercase tracking-[0.14em] font-semibold text-yo-txt-3 mb-1.5">Vista actual</p>
-      <button
-        onClick={() => setOpen((v) => !v)}
-        className="w-full flex flex-col gap-1 px-2.5 py-2 rounded-md border border-yo-border bg-yo-bg hover:bg-yo-raised transition text-left"
-      >
-        <div className="flex items-center gap-2">
-          <CurrentIcon className="size-3.5 text-yo-ac shrink-0" />
-          <span className="flex-1 text-[12.5px] font-semibold text-yo-txt truncate">{current.label}</span>
-          <ChevronDown className={cn("size-3.5 text-yo-txt-3 transition-transform", open && "rotate-180")} />
-        </div>
-        <p className="text-[10.5px] leading-tight text-yo-txt-3">{ROLE_DESC[role]}</p>
-      </button>
-
-
-      {open && (
-        <div className="absolute bottom-full mb-1 left-0 right-0 z-50 rounded-md border border-yo-border bg-yo-surface shadow-lg overflow-hidden">
-          {([
-            { key: "seller" as ViewRole, icon: Store, label: "Vendedor" },
-            { key: "buyer" as ViewRole, icon: ShoppingCart, label: "Comprador" },
-          ]).map((opt) => {
-            const Icon = opt.icon;
-            const active = role === opt.key;
-            return (
-              <button
-                key={opt.key}
-                onClick={() => { setRole(opt.key); setOpen(false); }}
-                className={cn(
-                  "w-full flex items-start gap-2 px-2.5 py-2 text-left hover:bg-yo-raised",
-                  active && "bg-yo-ac-bg/40"
-                )}
-              >
-                <Icon className="size-3.5 text-yo-txt-3 shrink-0 mt-0.5" />
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-[12.5px] font-medium text-yo-txt">{opt.label}</span>
-                    {active && <Check className="size-3 text-yo-ac" />}
-                  </div>
-                  <p className="text-[10.5px] leading-tight text-yo-txt-3 mt-0.5">{ROLE_DESC[opt.key]}</p>
-                </div>
-              </button>
-            );
-          })}
-        </div>
-      )}
-    </div>
-  );
-}
-
 function SidebarContent({
-  pathname, nav, role, setRole, score, level, onNavigate,
+  pathname, nav, score, level, onNavigate,
 }: {
   pathname: string;
   nav: NavItem[];
-  role: ViewRole;
-  setRole: (r: ViewRole) => void;
   score: number;
   level: import("@/lib/score-mock").ComplianceLevel;
   onNavigate?: () => void;
@@ -237,7 +161,10 @@ function SidebarContent({
           </div>
         </Link>
 
-        <RoleSelect role={role} setRole={setRole} />
+        <div>
+          <p className="px-1 text-[10px] uppercase tracking-[0.14em] font-semibold text-yo-txt-3 mb-1.5">Espacio de trabajo</p>
+          <OrgSwitcher />
+        </div>
       </div>
     </>
   );

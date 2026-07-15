@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Maximize2, Minimize2, Moon, Search, Sun } from "lucide-react";
 import { NotificationsBell } from "@/components/notifications-bell";
-import { OrgSwitcher } from "@/components/org-switcher";
+import { RoleSelectHeader } from "@/components/role-select";
 import { UserMenu } from "@/components/user-menu";
 import { useTheme } from "@/hooks/use-theme";
 
@@ -25,8 +25,8 @@ export function AppHeader({ email, userId }: { email?: string | null; section?: 
   return (
     <header className="sticky top-0 z-30 border-b border-yo-border bg-yo-surface/85 backdrop-blur-sm">
       <div className="flex h-14 items-center gap-3 pl-14 md:pl-6 pr-4 md:pr-6">
-        <div className="min-w-0 w-[220px] md:w-[300px] lg:w-[360px] shrink-0">
-          <OrgSwitcher />
+        <div className="shrink-0">
+          <RoleSelectHeader />
         </div>
 
         <div className="hidden md:flex flex-1 max-w-xl relative">
