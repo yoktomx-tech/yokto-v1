@@ -161,7 +161,10 @@ function SidebarContent({
           </div>
         </Link>
 
-        <RoleSelect role={role} setRole={setRole} />
+        <div>
+          <p className="px-1 text-[10px] uppercase tracking-[0.14em] font-semibold text-yo-txt-3 mb-1.5">Espacio de trabajo</p>
+          <OrgSwitcher />
+        </div>
       </div>
     </>
   );
