@@ -27,6 +27,7 @@ import {
 } from "lucide-react";
 import { PageHeader } from "@/components/page-header";
 import { useViewRole } from "@/hooks/use-view-role";
+import { usePersonType } from "@/hooks/use-person-type";
 import {
   getMockProfile,
   LEVEL_CFG,
