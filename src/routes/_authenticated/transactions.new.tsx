@@ -748,13 +748,6 @@ function Step1Tipo({
                 className="w-full px-3 py-2 border border-yo-border rounded-md bg-yo-surface text-sm focus:outline-none focus:ring-2 focus:ring-yo-ac" />
             </label>
           </div>
-
-          <div className="rounded-lg bg-yo-warn-bg border border-[#FDE68A] p-3 flex items-start gap-2">
-            <Info className="h-4 w-4 text-yo-warn shrink-0 mt-0.5" />
-            <p className="text-xs text-yo-warn">
-              La plantilla es una guía operativa. Las partes pueden ajustar condiciones, documentos y fechas según el acuerdo real.
-            </p>
-          </div>
         </>
       )}
     </div>
