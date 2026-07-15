@@ -51,7 +51,7 @@ export function AppShell({ children }: { children: React.ReactNode; sgyScore?: n
   return (
     <div className="min-h-dvh flex bg-yo-bg">
       <aside className="hidden md:flex md:w-60 lg:w-64 shrink-0 flex-col border-r border-yo-border bg-yo-surface sticky top-0 h-dvh">
-        <SidebarContent pathname={pathname} nav={nav_} role={role} setRole={setRole} score={profile.score} level={profile.level} />
+        <SidebarContent pathname={pathname} nav={nav_} score={profile.score} level={profile.level} />
       </aside>
 
 
