@@ -88,7 +88,7 @@ function Badge({ tone, children }: { tone: string; children: React.ReactNode }) 
 function ScorePage() {
   const { role } = useViewRole();
   const viewRole = role === "buyer" ? "buyer" : "seller";
-  const [personType, setPersonType] = useState<PersonType>("PM");
+  const { personType } = usePersonType();
   const profile = useMemo(() => getMockProfile(viewRole, personType), [viewRole, personType]);
   const [tab, setTab] = useState<TabKey>("resumen");
   const [openDoc, setOpenDoc] = useState<ComplianceDoc | null>(null);
