@@ -27,14 +27,17 @@ export function TransactionCardMobile({ row: r, role, currentUserId }: Props) {
 
   return (
     <Link
-      to="/transactions/$id"
+      to="/transactions/$id/expediente"
       params={{ id: r.id }}
       className="surface-card p-4 flex flex-col gap-3 hover:border-yo-border-s transition-colors"
     >
       <div className="flex items-center justify-between gap-2">
-        <span className="tx-id font-mono text-[11px] text-yo-ac">
-          {r.numero ?? r.id.slice(0, 8).toUpperCase()}
-        </span>
+        <div className="flex flex-col">
+          <span className="tx-id font-mono text-[11px] text-yo-ac">
+            {r.numero ?? r.id.slice(0, 8).toUpperCase()}
+          </span>
+          <span className="font-mono text-[10px] text-yo-txt-3 tracking-wider">{txHash(r.id)}</span>
+        </div>
         <StatusBadge status={r.status} size="sm" />
       </div>
 
