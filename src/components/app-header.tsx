@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Maximize2, Minimize2, Moon, Search, Sun } from "lucide-react";
 import { NotificationsBell } from "@/components/notifications-bell";
-import { OrgSwitcher } from "@/components/org-switcher";
+import { RoleSelectHeader } from "@/components/role-select";
 import { UserMenu } from "@/components/user-menu";
 import { useTheme } from "@/hooks/use-theme";
 
