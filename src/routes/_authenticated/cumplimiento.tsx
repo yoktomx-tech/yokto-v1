@@ -858,6 +858,277 @@ function TimelineTab() {
   );
 }
 
+/* ============= New: Candados / Contrato / Fiscal / Sectorial tabs ============= */
+
+function CandadosTab({ op }: { op: Operation }) {
+  if (op.locks.length === 0) {
+    return (
+      <div className="rounded-md border border-[#DCFCE7] bg-[#F0FDF4] p-4 text-[12.5px] text-[#166534]">
+        <div className="flex items-center gap-2 font-medium"><CheckCircle2 className="size-4" /> Sin candados activos</div>
+        <p className="mt-1 text-[11.5px] text-[#166534]/80">Esta operación no tiene bloqueos de cumplimiento pendientes.</p>
+      </div>
+    );
+  }
+  return (
+    <div className="space-y-2">
+      <div className="rounded-md border border-[#FEF3C7] bg-[#FFFBEB] p-3 text-[12px] text-[#92400E] flex gap-2">
+        <Lock className="size-4 mt-0.5" />
+        <div>Estos candados impiden que el hito pueda enviarse a revisión o que YOKTO ordene liberaciones a la pasarela.</div>
+      </div>
+      {op.locks.map((lk, i) => (
+        <div key={i} className="rounded-md border border-yo-border p-3">
+          <div className="flex items-start justify-between gap-2">
+            <div className="min-w-0">
+              <div className="text-[12.5px] font-medium text-yo-txt flex items-center gap-1.5">
+                <AlertTriangle className="size-3.5 text-[#D97706]" /> {lk.label}
+              </div>
+              <p className="mt-0.5 text-[11.5px] text-yo-txt-2">{lk.detail}</p>
+              <div className="mt-1.5 flex gap-1.5 flex-wrap">
+                {lk.blocksApproval && <span className="text-[10px] font-medium bg-[#FEF2F2] text-[#DC2626] rounded-full px-2 py-0.5">Bloquea aprobación</span>}
+                {lk.blocksRelease && <span className="text-[10px] font-medium bg-[#FFFBEB] text-[#D97706] rounded-full px-2 py-0.5">Bloquea liberación</span>}
+              </div>
+            </div>
+            {lk.actionLabel && (
+              <button className="h-7 px-2.5 rounded-md bg-yo-ac text-white text-[11px] font-medium hover:bg-yo-ac-h shrink-0">{lk.actionLabel}</button>
+            )}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function ContratoTab({ op }: { op: Operation }) {
+  const c: ContractInfo = op.contract;
+  const badgeTone = c.status === "FIRMADO_COMPLETO" ? "ok"
+    : c.status === "RECHAZADO" ? "err"
+    : c.status === "EN_FIRMA" || c.status === "FIRMADO_PARCIAL" ? "info"
+    : "neutral";
+  return (
+    <div className="space-y-3">
+      <div className="rounded-md border border-yo-border p-3">
+        <div className="flex items-start justify-between gap-2">
+          <div className="min-w-0">
+            <div className="text-[10px] uppercase tracking-wider text-yo-txt-3 font-semibold">Contrato de la operación</div>
+            <div className="mt-0.5 text-[13px] font-semibold text-yo-txt">
+              {c.method === "GENERADO_AUTOMATICO" ? "Generado automáticamente" : "PDF subido"} · {c.templateName ?? "—"}
+            </div>
+            <div className="mt-1 text-[11.5px] text-yo-txt-2">
+              Versión <span className="font-mono">{c.version}</span> · Hash <span className="font-mono text-yo-txt-3">{c.hash}</span>
+            </div>
+          </div>
+          <span className={cn("inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-medium", TONE_BADGE[badgeTone])}>
+            <span className="w-1.5 h-1.5 rounded-full bg-current" />
+            {CONTRACT_STATUS_LABEL[c.status]}
+          </span>
+        </div>
+      </div>
+
+      <div className="rounded-md border border-yo-border">
+        <div className="px-3 py-2 border-b border-yo-border bg-yo-raised/40 text-[11px] font-medium text-yo-txt-2">Firmas</div>
+        <ul className="divide-y divide-yo-border">
+          {c.signatures.map((s, i) => (
+            <li key={i} className="p-3 flex items-start justify-between gap-2">
+              <div className="min-w-0">
+                <div className="text-[12.5px] font-medium text-yo-txt">
+                  {s.party === "COMPRADOR" ? "Comprador" : "Vendedor"} — {s.name}
+                </div>
+                <div className="text-[11px] text-yo-txt-3 mt-0.5">
+                  {s.method === "EFIRMA_SAT" ? "e.firma SAT" : s.method === "AUTOGRAFA_DIGITAL_BIOMETRICA" ? "Firma autógrafa + biometría" : "Método por definir"}
+                  {s.signedAt && <> · {s.signedAt}</>}
+                </div>
+              </div>
+              {s.signed ? (
+                <span className="inline-flex items-center gap-1 text-[11px] font-medium text-[#059669] bg-[#ECFDF5] rounded-full px-2 py-0.5">
+                  <CheckCircle2 className="size-3" /> Firmado
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1 text-[11px] font-medium text-[#D97706] bg-[#FFFBEB] rounded-full px-2 py-0.5">
+                  <Clock className="size-3" /> Pendiente
+                </span>
+              )}
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <div className="flex flex-wrap gap-2">
+        <button className="h-8 px-3 rounded-md border border-yo-border bg-yo-surface text-xs font-medium text-yo-txt hover:border-yo-border-s">Ver contrato</button>
+        <button className="h-8 px-3 rounded-md border border-yo-border bg-yo-surface text-xs font-medium text-yo-txt hover:border-yo-border-s">Descargar PDF</button>
+        {c.signatures.some((s) => s.party === "VENDEDOR" && !s.signed) && (
+          <button className="h-8 px-3 rounded-md bg-yo-ac text-white text-xs font-medium hover:bg-yo-ac-h">Firmar ahora</button>
+        )}
+        {c.status === "RECHAZADO" && (
+          <button className="h-8 px-3 rounded-md border border-yo-border bg-yo-surface text-xs font-medium text-yo-txt hover:border-yo-border-s">Subir nueva versión</button>
+        )}
+      </div>
+
+      <div className="rounded-md border border-yo-border bg-yo-raised/40 p-3 text-[11.5px] text-yo-txt-2">
+        El contrato firmado forma parte del expediente. Si falta alguna firma requerida, no podrás enviar hitos a revisión.
+      </div>
+    </div>
+  );
+}
+
+function FiscalTab({ op }: { op: Operation }) {
+  const [showData, setShowData] = useState<"cfdi" | REPInfo | null>(null);
+  const f: FiscalInfo = op.fiscal;
+  const cfdiTone = f.cfdi.status === "CFDI_ACEPTADO" ? "ok"
+    : f.cfdi.status === "CFDI_RECHAZADO" ? "err"
+    : f.cfdi.status === "SIN_CFDI" ? "warn" : "info";
+  return (
+    <div className="space-y-3">
+      <div className="rounded-md border border-[#FEF3C7] bg-[#FFFBEB] p-3 text-[12px] text-[#92400E] flex gap-2">
+        <Info className="size-4 mt-0.5" />
+        <div>YOKTO no emite CFDI ni REP. Debes generarlos en tu PAC o sistema contable y subir el XML timbrado.</div>
+      </div>
+
+      <div className="rounded-md border border-yo-border p-3">
+        <div className="flex items-start justify-between gap-2">
+          <div>
+            <div className="text-[10px] uppercase tracking-wider text-yo-txt-3 font-semibold">CFDI PPD inicial</div>
+            <div className="mt-0.5 text-[13px] font-semibold text-yo-txt">
+              {f.cfdi.uuid ? <span className="font-mono text-[12px]">{f.cfdi.uuid}</span> : "Aún no subido"}
+            </div>
+            <div className="mt-1 text-[11.5px] text-yo-txt-2">
+              Emisor <span className="font-mono">{f.emisorRfc}</span> · Receptor <span className="font-mono">{f.receptorRfc}</span> · Uso {f.usoCfdi}
+            </div>
+            {f.cfdi.observacion && <div className="mt-1 text-[11.5px] text-[#DC2626]">{f.cfdi.observacion}</div>}
+          </div>
+          <span className={cn("inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-medium", TONE_BADGE[cfdiTone])}>
+            <span className="w-1.5 h-1.5 rounded-full bg-current" />
+            {FISCAL_STATUS_LABEL[f.cfdi.status]}
+          </span>
+        </div>
+        <div className="mt-2 flex flex-wrap gap-1.5">
+          <button onClick={() => setShowData("cfdi")} className="h-7 px-2.5 rounded-md border border-yo-border text-[11px] font-medium text-yo-txt">Ver datos para CFDI</button>
+          {f.cfdi.status === "SIN_CFDI" && (
+            <button className="h-7 px-2.5 rounded-md bg-yo-ac text-white text-[11px] font-medium hover:bg-yo-ac-h">Subir XML</button>
+          )}
+        </div>
+      </div>
+
+      <div className="rounded-md border border-yo-border">
+        <div className="px-3 py-2 border-b border-yo-border bg-yo-raised/40 text-[11px] font-medium text-yo-txt-2">
+          REPs por parcialidad — {f.reps.length === 0 ? "sin parcialidades registradas" : `${f.reps.filter((r) => r.status === "REP_ACEPTADO").length}/${f.reps.length} aceptados`}
+        </div>
+        {f.reps.length === 0 ? (
+          <div className="p-4 text-[11.5px] text-yo-txt-3">Los REPs se habilitan cuando exista un CFDI PPD aceptado y se liberen parcialidades.</div>
+        ) : (
+          <ul className="divide-y divide-yo-border">
+            {f.reps.map((r) => {
+              const tone = r.status === "REP_ACEPTADO" ? "ok" : r.status === "REP_RECHAZADO" ? "err" : "warn";
+              return (
+                <li key={r.id} className="p-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <div className="text-[12.5px] font-medium text-yo-txt">Parcialidad {r.numParcialidad}</div>
+                      <div className="text-[11px] text-yo-txt-3 font-mono">
+                        Saldo ant {formatMXN(r.impSaldoAnt)} · Pagado {formatMXN(r.impPagado)} · Saldo insoluto {formatMXN(r.impSaldoInsoluto)}
+                      </div>
+                      {r.observacion && <div className="text-[11px] text-[#DC2626] mt-0.5">{r.observacion}</div>}
+                    </div>
+                    <span className={cn("inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[10.5px] font-medium", TONE_BADGE[tone])}>
+                      <span className="w-1.5 h-1.5 rounded-full bg-current" />
+                      {FISCAL_STATUS_LABEL[r.status]}
+                    </span>
+                  </div>
+                  <div className="mt-2 flex gap-1.5">
+                    <button onClick={() => setShowData(r)} className="h-7 px-2.5 rounded-md border border-yo-border text-[11px] font-medium text-yo-txt">Ver datos REP</button>
+                    {(r.status === "REP_PENDIENTE" || r.status === "REP_RECHAZADO") && (
+                      <button className="h-7 px-2.5 rounded-md bg-yo-ac text-white text-[11px] font-medium hover:bg-yo-ac-h">Subir REP XML</button>
+                    )}
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </div>
+
+      {showData && (
+        <div className="fixed inset-0 z-50 bg-black/40 grid place-items-center p-4" onClick={() => setShowData(null)}>
+          <div className="w-full max-w-md rounded-xl bg-yo-surface border border-yo-border shadow-lg overflow-hidden" onClick={(e) => e.stopPropagation()}>
+            <div className="p-4 border-b border-yo-border flex items-center justify-between">
+              <div>
+                <h3 className="text-[14px] font-semibold text-yo-txt">
+                  {showData === "cfdi" ? "Datos para emitir tu CFDI PPD" : `Datos para REP parcialidad ${showData.numParcialidad}`}
+                </h3>
+                <p className="text-[11px] text-yo-txt-3">Cópialos en tu sistema contable o PAC.</p>
+              </div>
+              <button onClick={() => setShowData(null)} className="size-7 grid place-items-center rounded-md hover:bg-yo-raised"><X className="size-4" /></button>
+            </div>
+            <div className="p-4 text-[12px] font-mono space-y-1.5 text-yo-txt bg-yo-raised/40">
+              {showData === "cfdi" ? (
+                <>
+                  <div>RFC emisor: {f.emisorRfc}</div>
+                  <div>RFC receptor: {f.receptorRfc}</div>
+                  <div>Método de pago: PPD</div>
+                  <div>Forma de pago: 99 — Por definir</div>
+                  <div>Uso CFDI: {f.usoCfdi}</div>
+                  <div>CP receptor: {f.cpReceptor}</div>
+                  <div>Total: {formatMXN(f.totalOperacion)}</div>
+                  <div>Concepto: {f.conceptoSugerido}</div>
+                </>
+              ) : (
+                <>
+                  <div>UUID CFDI origen: {f.cfdi.uuid ?? "—"}</div>
+                  <div>NumParcialidad: {showData.numParcialidad}</div>
+                  <div>ImpSaldoAnt: {formatMXN(showData.impSaldoAnt)}</div>
+                  <div>ImpPagado: {formatMXN(showData.impPagado)}</div>
+                  <div>ImpSaldoInsoluto: {formatMXN(showData.impSaldoInsoluto)}</div>
+                  <div>FormaDePagoP: {showData.formaDePagoP ?? "03 — SPEI"}</div>
+                </>
+              )}
+            </div>
+            <div className="p-3 border-t border-yo-border flex justify-end">
+              <button onClick={() => setShowData(null)} className="h-9 px-3 rounded-md bg-yo-ac text-white text-sm font-medium">Cerrar</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function SectorialTab({ op }: { op: Operation }) {
+  const reqs = op.sectorRequirements;
+  if (reqs.length === 0) return <Empty text="Este sector no tiene requisitos adicionales configurados." />;
+  return (
+    <div className="space-y-2">
+      <div className="rounded-md border border-yo-border bg-yo-raised/40 p-3 text-[11.5px] text-yo-txt-2">
+        Sector: <span className="font-medium text-yo-txt">{op.sector}</span>. Los requisitos cambian según lo pactado en la operación.
+      </div>
+      <ul className="divide-y divide-yo-border rounded-md border border-yo-border overflow-hidden">
+        {reqs.map((r: SectorRequirement) => {
+          const tone = r.status === "COMPLETO" ? "ok"
+            : r.status === "RECHAZADO" ? "err"
+            : r.status === "EN_PROCESO" ? "info" : "neutral";
+          return (
+            <li key={r.id} className="p-3 flex items-start justify-between gap-2 bg-yo-surface">
+              <div className="min-w-0">
+                <div className="text-[12.5px] font-medium text-yo-txt">{r.label}</div>
+                <div className="text-[10.5px] text-yo-txt-3 mt-0.5">{r.type}{r.hint && ` · ${r.hint}`}</div>
+              </div>
+              <div className="flex items-center gap-1.5 shrink-0">
+                <span className={cn("inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10.5px] font-medium", TONE_BADGE[tone])}>
+                  <span className="w-1.5 h-1.5 rounded-full bg-current" />
+                  {r.status}
+                </span>
+                {r.status !== "COMPLETO" && (
+                  <button className="h-7 px-2.5 rounded-md bg-yo-ac text-white text-[11px] font-medium hover:bg-yo-ac-h">
+                    {r.type === "EVIDENCIA" ? "Subir" : r.type === "CHECKLIST" ? "Completar" : "Cargar"}
+                  </button>
+                )}
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
+}
+
 function NoHito() { return <Empty text="Selecciona un hito específico para ver este contenido." />; }
 function Empty({ text }: { text: string }) {
   return <div className="rounded-md border border-dashed border-yo-border p-6 text-center text-xs text-yo-txt-3">{text}</div>;
