@@ -92,7 +92,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       {
         property: "og:description",
         content:
-          "El escrow moderno adaptado a México. Retención neutral de fondos vía pasarelas certificadas hasta que se cumplan las condiciones pactadas.",
+          "YOKTO es la plataforma neutral de pago contra cumplimiento para México. Retenemos fondos y los liberamos solo cuando se verifican las condiciones acordadas entre las partes.",
       },
       { property: "og:type", content: "website" },
       { property: "og:locale", content: "es_MX" },
@@ -100,8 +100,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:title", content: "YOKTO — Pago Seguro contra Cumplimiento" },
       {
         name: "twitter:description",
-        content: "Retención neutral de fondos hasta que se cumplan las condiciones pactadas.",
+        content: "YOKTO es la plataforma neutral de pago contra cumplimiento para México. Retenemos fondos y los liberamos solo cuando se verifican las condiciones acordadas entre las partes.",
       },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/f0106119-1231-4232-a4a0-b1f0d9fe8e5e/id-preview-3a966e6c--018b237f-9ae4-4e79-8e2f-a64bd6b88fea.lovable.app-1784105564739.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/f0106119-1231-4232-a4a0-b1f0d9fe8e5e/id-preview-3a966e6c--018b237f-9ae4-4e79-8e2f-a64bd6b88fea.lovable.app-1784105564739.png" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
