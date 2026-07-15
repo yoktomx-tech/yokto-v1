@@ -1174,6 +1174,75 @@ function Step4Cumplimiento({
         </p>
       </div>
 
+      {/* Cumplimiento fiscal global (CFDI PPD + REP) */}
+      <div className="rounded-lg border border-yo-border bg-white p-4 space-y-3">
+        <div>
+          <h3 className="text-sm font-semibold text-yo-txt">Cumplimiento fiscal (CFDI PPD + REP)</h3>
+          <p className="text-xs text-yo-txt-2 mt-0.5">
+            YOKTO no emite CFDI. El vendedor los timbra con su PAC y los sube; YOKTO valida SAT, RFCs, monto, método PPD, forma 99, TFD y coherencia con la operación.
+          </p>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <label className="flex items-start gap-2 text-sm text-yo-txt">
+            <input type="checkbox" className="mt-0.5"
+              checked={fiscal.requiereCfdiPpd}
+              onChange={(e) => setFiscal({ ...fiscal, requiereCfdiPpd: e.target.checked })} />
+            <span>Requerir CFDI PPD inicial al activar</span>
+          </label>
+          <label className="flex items-start gap-2 text-sm text-yo-txt">
+            <input type="checkbox" className="mt-0.5"
+              checked={fiscal.requiereRep}
+              onChange={(e) => setFiscal({ ...fiscal, requiereRep: e.target.checked })} />
+            <span>Requerir REP por cada parcialidad / hito liberado</span>
+          </label>
+          <label className="flex items-start gap-2 text-sm text-yo-txt md:col-span-2">
+            <input type="checkbox" className="mt-0.5"
+              checked={fiscal.validacionSatRequerida}
+              onChange={(e) => setFiscal({ ...fiscal, validacionSatRequerida: e.target.checked })} />
+            <span>Validar estado vigente ante SAT antes de aceptar</span>
+          </label>
+          <div>
+            <label className="block text-xs text-yo-txt-2 mb-1">Uso CFDI receptor</label>
+            <select className="w-full h-9 px-2 rounded-md border border-yo-border bg-white text-sm"
+              value={fiscal.usoCfdiReceptor}
+              onChange={(e) => setFiscal({ ...fiscal, usoCfdiReceptor: e.target.value })}>
+              {USO_CFDI_OPTIONS.map((o) => <option key={o.key} value={o.key}>{o.label}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs text-yo-txt-2 mb-1">Régimen fiscal receptor</label>
+            <input type="text" placeholder="p. ej. 601, 612, 626"
+              className="w-full h-9 px-2 rounded-md border border-yo-border bg-white text-sm"
+              value={fiscal.regimenFiscalReceptor}
+              onChange={(e) => setFiscal({ ...fiscal, regimenFiscalReceptor: e.target.value })} />
+          </div>
+          <div>
+            <label className="block text-xs text-yo-txt-2 mb-1">CP receptor</label>
+            <input type="text" inputMode="numeric" maxLength={5}
+              className="w-full h-9 px-2 rounded-md border border-yo-border bg-white text-sm"
+              value={fiscal.cpReceptor}
+              onChange={(e) => setFiscal({ ...fiscal, cpReceptor: e.target.value.replace(/\D/g, "") })} />
+          </div>
+          <div>
+            <label className="block text-xs text-yo-txt-2 mb-1">Tolerancia de monto (%)</label>
+            <select className="w-full h-9 px-2 rounded-md border border-yo-border bg-white text-sm"
+              value={fiscal.toleranciaMonto}
+              onChange={(e) => setFiscal({ ...fiscal, toleranciaMonto: Number(e.target.value) as 0 | 1 | 2 })}>
+              <option value={0}>0% (estricto)</option>
+              <option value={1}>1%</option>
+              <option value={2}>2%</option>
+            </select>
+          </div>
+          <div className="md:col-span-2">
+            <label className="block text-xs text-yo-txt-2 mb-1">Concepto sugerido para el CFDI</label>
+            <input type="text"
+              className="w-full h-9 px-2 rounded-md border border-yo-border bg-white text-sm"
+              value={fiscal.conceptoSugerido}
+              onChange={(e) => setFiscal({ ...fiscal, conceptoSugerido: e.target.value })} />
+          </div>
+        </div>
+      </div>
+
       <div className="space-y-3">
         {hitos.map((h, idx) => {
           const open = openIdx === idx;
