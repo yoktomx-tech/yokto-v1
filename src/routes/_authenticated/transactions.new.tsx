@@ -436,7 +436,7 @@ function NewOperationWizard() {
             >
               Guardar borrador
             </button>
-            {step < 6 ? (
+            {step < 7 ? (
               <button
                 onClick={goNext}
                 disabled={saving || !stepValidNow}
@@ -449,8 +449,8 @@ function NewOperationWizard() {
             ) : (
               <button
                 onClick={() => setShowActivation(true)}
-                disabled={!aceptaTerminos || !aceptaRetencion || !aceptaCumplimiento || !aceptaTraza}
-                title={(!aceptaTerminos || !aceptaRetencion || !aceptaCumplimiento || !aceptaTraza) ? "Acepta todas las declaraciones para continuar." : undefined}
+                disabled={!aceptaTerminos || !aceptaRetencion || !aceptaCumplimiento || !aceptaTraza || !aceptaContrato}
+                title={(!aceptaTerminos || !aceptaRetencion || !aceptaCumplimiento || !aceptaTraza || !aceptaContrato) ? "Acepta todas las declaraciones y confirma el contrato para continuar." : undefined}
                 className="inline-flex items-center gap-1.5 px-5 py-2 bg-yo-ac text-white text-sm font-semibold rounded-md hover:bg-yo-ac-h disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 {rol === "PAGADOR" ? "Activar operación y continuar a pago" : "Enviar propuesta al comprador"}
