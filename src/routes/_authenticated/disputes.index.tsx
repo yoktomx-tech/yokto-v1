@@ -13,7 +13,7 @@ import { useViewRole } from "@/hooks/use-view-role";
 import { cn } from "@/lib/utils";
 import { PageHeader } from "@/components/page-header";
 
-export const Route = createFileRoute("/_authenticated/disputes")({
+export const Route = createFileRoute("/_authenticated/disputes/")({
   head: () => ({ meta: [{ title: "Disputas — YOKTO" }, { name: "robots", content: "noindex" }] }),
   component: DisputesModule,
 });
