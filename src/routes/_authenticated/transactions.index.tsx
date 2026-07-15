@@ -92,15 +92,10 @@ function TransactionsList() {
     navigate({ search: (s: SearchParams) => ({ ...s, view: v === "table" ? undefined : v }), replace: true });
   }, [navigate]);
 
-  const openNewOperationWindow = useCallback(() => {
-    const popup = window.open("/transactions/new", "_blank", "width=1440,height=960");
-    if (popup) {
-      popup.opener = null;
-      popup.focus();
-      return;
-    }
-    window.location.assign("/transactions/new");
-  }, []);
+  const goToNewOperation = useCallback(() => {
+    navigate({ to: "/transactions/new" });
+  }, [navigate]);
+
 
   const fetchAll = useCallback(async () => {
     const { data: txs } = await supabase
