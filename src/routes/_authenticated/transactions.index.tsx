@@ -92,6 +92,16 @@ function TransactionsList() {
     navigate({ search: (s: SearchParams) => ({ ...s, view: v === "table" ? undefined : v }), replace: true });
   }, [navigate]);
 
+  const openNewOperationWindow = useCallback(() => {
+    const popup = window.open("/transactions/new", "_blank", "width=1440,height=960");
+    if (popup) {
+      popup.opener = null;
+      popup.focus();
+      return;
+    }
+    window.location.assign("/transactions/new");
+  }, []);
+
   const fetchAll = useCallback(async () => {
     const { data: txs } = await supabase
       .from("transactions")
@@ -161,12 +171,12 @@ function TransactionsList() {
         searchInputRef.current?.focus();
       } else if (e.key.toLowerCase() === "n") {
         e.preventDefault();
-        window.open("/transactions/new", "_blank", "noopener,noreferrer");
+        openNewOperationWindow();
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [navigate]);
+  }, [openNewOperationWindow]);
 
 
 
@@ -256,6 +266,10 @@ function TransactionsList() {
                 href="/transactions/new"
                 target="_blank"
                 rel="noopener noreferrer"
+                onClick={(event) => {
+                  event.preventDefault();
+                  openNewOperationWindow();
+                }}
                 className="inline-flex items-center gap-2 px-4 py-2 bg-yo-ac text-white text-sm font-medium rounded-md hover:bg-yo-ac-h transition-colors"
               >
                 <Plus className="h-4 w-4" />
