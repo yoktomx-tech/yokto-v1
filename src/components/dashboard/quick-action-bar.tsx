@@ -9,6 +9,16 @@ export function QuickActionBar() {
           href="/transactions/new"
           target="_blank"
           rel="noopener noreferrer"
+          onClick={(event) => {
+            event.preventDefault();
+            const popup = window.open("/transactions/new", "_blank", "width=1440,height=960");
+            if (popup) {
+              popup.opener = null;
+              popup.focus();
+              return;
+            }
+            window.location.assign("/transactions/new");
+          }}
           className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-full bg-yo-ac hover:bg-yo-ac-h text-white text-sm font-semibold transition"
         >
           <Plus className="size-4" />

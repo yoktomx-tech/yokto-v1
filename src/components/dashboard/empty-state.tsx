@@ -36,6 +36,16 @@ export function EmptyStateDashboard({ name }: { name: string }) {
             href="/transactions/new"
             target="_blank"
             rel="noopener noreferrer"
+            onClick={(event) => {
+              event.preventDefault();
+              const popup = window.open("/transactions/new", "_blank", "width=1440,height=960");
+              if (popup) {
+                popup.opener = null;
+                popup.focus();
+                return;
+              }
+              window.location.assign("/transactions/new");
+            }}
             className="inline-flex items-center gap-2 rounded-md bg-yo-ac hover:bg-yo-ac-h text-white text-sm font-semibold px-5 py-2.5 shadow-sm transition"
           >
             Crear mi primera transacción
