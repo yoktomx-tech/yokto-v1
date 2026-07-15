@@ -6,7 +6,7 @@ import {
   type SectorId, type HitoDraft,
 } from "@/lib/sectors";
 import { SECTOR_CFG, DOC_BASE, DOC_BY_SECTOR, EVIDENCE_TYPES } from "@/lib/operations-catalog";
-import { OPERATION_EXAMPLES, type OperationExample } from "@/lib/operation-examples";
+
 import {
   searchCounterpart,
   upsertTransactionDraft,
@@ -18,7 +18,7 @@ import {
 import { Step1Schema, Step2Schema, Step3Schema, Step4Schema, Step5Schema } from "@/lib/validations/transaction";
 import {
   Info, Check, ChevronRight, ChevronLeft, X, Search, Trash2, Plus, GripVertical,
-  ArrowUp, ArrowDown, Sparkles, AlertTriangle, ClipboardList, FileText, Camera, ShieldCheck, ChevronDown,
+  ArrowUp, ArrowDown, Sparkles, AlertTriangle, ClipboardList, FileText, Camera, ShieldCheck,
 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/transactions/new")({
@@ -245,43 +245,6 @@ function NewOperationWizard() {
     navigate({ to: "/transactions" });
   }, [step, sector, rol, descripcion, contraparte, txId, upsertDraft, navigate]);
 
-  // ─── Cargar ejemplo (prellenar todo el wizard con datos de demo)
-  const [showExamples, setShowExamples] = useState(false);
-  const loadExample = useCallback((ex: OperationExample) => {
-    setError(null);
-    setSector(ex.sector);
-    setSubtipo(ex.subtipo);
-    setDescripcion(ex.descripcion);
-    const hoy = new Date();
-    const fin = new Date();
-    fin.setDate(hoy.getDate() + ex.diasDuracion);
-    const inicioISO = hoy.toISOString().slice(0, 10);
-    setFechaInicio(inicioISO);
-    setFechaFin(fin.toISOString().slice(0, 10));
-    setRol(ex.rol);
-    setContraparte({ user_id: null, email: ex.contraparte.email, nombre: ex.contraparte.nombre, rfc: ex.contraparte.rfc });
-    setMonto(ex.monto);
-    setMetodoPago(ex.metodoPago);
-    setComisionPagadaPor(ex.comisionPagadaPor);
-    const base = new Date(inicioISO);
-    setHitos(ex.hitos.map((h, i) => {
-      const f = new Date(base);
-      f.setDate(base.getDate() + h.diasDesdeInicio);
-      return {
-        orden: i + 1,
-        titulo: h.titulo,
-        descripcion: h.descripcion ?? "",
-        monto_porcentaje: h.monto_porcentaje,
-        fecha_limite: f.toISOString().slice(0, 10),
-        tipo_verificacion: h.tipo_verificacion,
-        documentos_requeridos: [...h.documentos_requeridos],
-        evidencia_requerida: [...h.evidencia_requerida],
-        responsable: h.responsable,
-        auto_release: h.auto_release,
-      };
-    }));
-    setShowExamples(false);
-  }, []);
 
 
   // ─── Pantalla de éxito
@@ -317,42 +280,6 @@ function NewOperationWizard() {
           </div>
           <div className="flex items-center gap-2 shrink-0">
             <SaveIndicator state={saveState} at={lastSavedAt} />
-            <div className="relative">
-              <button
-                onClick={() => setShowExamples((v) => !v)}
-                className="inline-flex items-center gap-1.5 px-3 py-2 border border-yo-border text-sm font-medium rounded-md text-yo-txt-2 hover:bg-yo-raised"
-                title="Prellenar el formulario con un ejemplo por sector"
-              >
-                <Sparkles className="h-4 w-4" />
-                <span className="hidden sm:inline">Cargar ejemplo</span>
-                <ChevronDown className="h-3.5 w-3.5" />
-              </button>
-              {showExamples && (
-                <>
-                  <div className="fixed inset-0 z-10" onClick={() => setShowExamples(false)} />
-                  <div className="absolute right-0 mt-1 w-80 max-h-96 overflow-auto z-20 bg-yo-surface border border-yo-border rounded-lg shadow-lg py-1">
-                    <div className="px-3 py-2 text-[11px] uppercase tracking-wide text-yo-txt-3 border-b border-yo-border">
-                      Ejemplos por sector
-                    </div>
-                    {OPERATION_EXAMPLES.map((ex) => (
-                      <button
-                        key={ex.id}
-                        onClick={() => loadExample(ex)}
-                        className="w-full text-left px-3 py-2 hover:bg-yo-raised flex items-start gap-2.5"
-                      >
-                        <span className="text-lg leading-none mt-0.5">{ex.emoji}</span>
-                        <span className="min-w-0 flex-1">
-                          <span className="block text-sm font-medium text-yo-txt truncate">{ex.label}</span>
-                          <span className="block text-xs text-yo-txt-3 truncate">
-                            {ex.subtipo} · {fmtMoney(ex.monto)}
-                          </span>
-                        </span>
-                      </button>
-                    ))}
-                  </div>
-                </>
-              )}
-            </div>
             <button
               onClick={handleGuardarYSalir}
               className="hidden sm:inline-flex items-center px-3 py-2 border border-yo-border text-sm font-medium rounded-md text-yo-txt-2 hover:bg-yo-raised"
