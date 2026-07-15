@@ -44,7 +44,6 @@ function DisputesModule() {
   const [reason, setReason] = useState<DisputeReason | "">("");
   const [priority, setPriority] = useState<"" | "LOW" | "MEDIUM" | "HIGH" | "CRITICAL">("");
   const [drawerId, setDrawerId] = useState<string | null>(null);
-  const [openModal, setOpenModal] = useState(false);
 
   const list = useMemo(() => {
     return MOCK_DISPUTES.filter((d) => {
