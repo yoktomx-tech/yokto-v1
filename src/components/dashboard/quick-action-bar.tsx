@@ -5,13 +5,25 @@ export function QuickActionBar() {
   return (
     <div className="sticky bottom-4 mt-8 z-20">
       <div className="mx-auto max-w-3xl rounded-full bg-yo-txt text-white shadow-xl flex items-center gap-1 p-1.5">
-        <Link
-          to="/transactions/new"
+        <a
+          href="/transactions/new"
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={(event) => {
+            event.preventDefault();
+            const popup = window.open("/transactions/new", "_blank", "width=1440,height=960");
+            if (popup) {
+              popup.opener = null;
+              popup.focus();
+              return;
+            }
+            window.location.assign("/transactions/new");
+          }}
           className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-full bg-yo-ac hover:bg-yo-ac-h text-white text-sm font-semibold transition"
         >
           <Plus className="size-4" />
           <span className="hidden sm:inline">Nueva transacción</span>
-        </Link>
+        </a>
         <Link
           to="/kyc"
           className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-full text-white/80 hover:text-white hover:bg-white/10 text-sm font-medium transition"
