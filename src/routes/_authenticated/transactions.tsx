@@ -161,7 +161,7 @@ function TransactionsList() {
         searchInputRef.current?.focus();
       } else if (e.key.toLowerCase() === "n") {
         e.preventDefault();
-        navigate({ to: "/transactions/new" });
+        window.open("/transactions/new", "_blank", "noopener,noreferrer");
       }
     };
     window.addEventListener("keydown", onKey);
@@ -252,13 +252,15 @@ function TransactionsList() {
                   <LayoutGrid className="h-4 w-4" />
                 </button>
               </div>
-              <Link
-                to="/transactions/new"
+              <a
+                href="/transactions/new"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 px-4 py-2 bg-yo-ac text-white text-sm font-medium rounded-md hover:bg-yo-ac-h transition-colors"
               >
                 <Plus className="h-4 w-4" />
                 Nueva operación
-              </Link>
+              </a>
             </>
           }
         />
