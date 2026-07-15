@@ -33,13 +33,15 @@ export function EmptyStateDashboard({ name }: { name: string }) {
         </div>
 
         <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
-          <Link
-            to="/transactions/new"
+          <a
+            href="/transactions/new"
+            target="_blank"
+            rel="noopener noreferrer"
             className="inline-flex items-center gap-2 rounded-md bg-yo-ac hover:bg-yo-ac-h text-white text-sm font-semibold px-5 py-2.5 shadow-sm transition"
           >
             Crear mi primera transacción
             <ArrowRight className="size-4" />
-          </Link>
+          </a>
         </div>
       </div>
     </div>
