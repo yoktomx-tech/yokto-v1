@@ -317,7 +317,7 @@ export function PayoutsSection({ role }: { role: ViewRole }) {
     if (!account) return;
     setBusy(true);
     try {
-      const { url } = await linkFn({ data: { returnUrl: window.location.href } });
+      const { url } = await linkFn();
       if (url) window.open(url, "_blank");
     } finally { setBusy(false); }
   }
