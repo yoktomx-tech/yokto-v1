@@ -357,6 +357,120 @@ export type Database = {
         }
         Relationships: []
       }
+      contract_signatures: {
+        Row: {
+          biometric_liveness_score: number | null
+          biometric_match_score: number | null
+          biometric_provider: string | null
+          biometric_selfie_path: string | null
+          contract_id: string
+          created_at: string
+          document_hash_sha256: string
+          efirma_algorithm: string | null
+          efirma_certificate_curp: string | null
+          efirma_certificate_rfc: string | null
+          efirma_certificate_serial: string | null
+          efirma_certificate_valid_from: string | null
+          efirma_certificate_valid_to: string | null
+          efirma_signature_b64: string | null
+          evidence: Json | null
+          geo_lat: number | null
+          geo_lng: number | null
+          id: string
+          ip_address: unknown
+          method: string
+          signature_png_path: string | null
+          signature_svg_path: string | null
+          signed_at: string | null
+          signer_name: string
+          signer_rfc: string | null
+          signer_role: string
+          signer_user_id: string
+          status: string
+          transaction_id: string
+          user_agent: string | null
+        }
+        Insert: {
+          biometric_liveness_score?: number | null
+          biometric_match_score?: number | null
+          biometric_provider?: string | null
+          biometric_selfie_path?: string | null
+          contract_id: string
+          created_at?: string
+          document_hash_sha256: string
+          efirma_algorithm?: string | null
+          efirma_certificate_curp?: string | null
+          efirma_certificate_rfc?: string | null
+          efirma_certificate_serial?: string | null
+          efirma_certificate_valid_from?: string | null
+          efirma_certificate_valid_to?: string | null
+          efirma_signature_b64?: string | null
+          evidence?: Json | null
+          geo_lat?: number | null
+          geo_lng?: number | null
+          id?: string
+          ip_address?: unknown
+          method: string
+          signature_png_path?: string | null
+          signature_svg_path?: string | null
+          signed_at?: string | null
+          signer_name: string
+          signer_rfc?: string | null
+          signer_role: string
+          signer_user_id: string
+          status?: string
+          transaction_id: string
+          user_agent?: string | null
+        }
+        Update: {
+          biometric_liveness_score?: number | null
+          biometric_match_score?: number | null
+          biometric_provider?: string | null
+          biometric_selfie_path?: string | null
+          contract_id?: string
+          created_at?: string
+          document_hash_sha256?: string
+          efirma_algorithm?: string | null
+          efirma_certificate_curp?: string | null
+          efirma_certificate_rfc?: string | null
+          efirma_certificate_serial?: string | null
+          efirma_certificate_valid_from?: string | null
+          efirma_certificate_valid_to?: string | null
+          efirma_signature_b64?: string | null
+          evidence?: Json | null
+          geo_lat?: number | null
+          geo_lng?: number | null
+          id?: string
+          ip_address?: unknown
+          method?: string
+          signature_png_path?: string | null
+          signature_svg_path?: string | null
+          signed_at?: string | null
+          signer_name?: string
+          signer_rfc?: string | null
+          signer_role?: string
+          signer_user_id?: string
+          status?: string
+          transaction_id?: string
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contract_signatures_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "transaction_contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_signatures_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       curp_verifications: {
         Row: {
           apellido_materno: string | null
@@ -1517,6 +1631,95 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "transaction_conditions_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      transaction_contracts: {
+        Row: {
+          already_signed: boolean
+          buyer_signature_method: string | null
+          created_at: string
+          created_by: string
+          editable_sections: Json | null
+          expires_at: string | null
+          generated_payload: Json | null
+          hash_original_sha256: string | null
+          hash_signed_sha256: string | null
+          id: string
+          requires_buyer_signature: boolean
+          requires_seller_signature: boolean
+          requires_yokto_signature: boolean
+          seller_signature_method: string | null
+          signature_order: string
+          source_type: string
+          status: string
+          storage_path_original: string | null
+          storage_path_signed: string | null
+          template_key: string | null
+          title: string
+          transaction_id: string
+          updated_at: string
+          version: string
+        }
+        Insert: {
+          already_signed?: boolean
+          buyer_signature_method?: string | null
+          created_at?: string
+          created_by: string
+          editable_sections?: Json | null
+          expires_at?: string | null
+          generated_payload?: Json | null
+          hash_original_sha256?: string | null
+          hash_signed_sha256?: string | null
+          id?: string
+          requires_buyer_signature?: boolean
+          requires_seller_signature?: boolean
+          requires_yokto_signature?: boolean
+          seller_signature_method?: string | null
+          signature_order?: string
+          source_type: string
+          status?: string
+          storage_path_original?: string | null
+          storage_path_signed?: string | null
+          template_key?: string | null
+          title: string
+          transaction_id: string
+          updated_at?: string
+          version?: string
+        }
+        Update: {
+          already_signed?: boolean
+          buyer_signature_method?: string | null
+          created_at?: string
+          created_by?: string
+          editable_sections?: Json | null
+          expires_at?: string | null
+          generated_payload?: Json | null
+          hash_original_sha256?: string | null
+          hash_signed_sha256?: string | null
+          id?: string
+          requires_buyer_signature?: boolean
+          requires_seller_signature?: boolean
+          requires_yokto_signature?: boolean
+          seller_signature_method?: string | null
+          signature_order?: string
+          source_type?: string
+          status?: string
+          storage_path_original?: string | null
+          storage_path_signed?: string | null
+          template_key?: string | null
+          title?: string
+          transaction_id?: string
+          updated_at?: string
+          version?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transaction_contracts_transaction_id_fkey"
             columns: ["transaction_id"]
             isOneToOne: false
             referencedRelation: "transactions"
