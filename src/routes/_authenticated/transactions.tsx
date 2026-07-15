@@ -162,14 +162,15 @@ function TransactionsList() {
       if (e.key === "/") {
         e.preventDefault();
         searchInputRef.current?.focus();
-      } else if (e.key.toLowerCase() === "n" && kycOk) {
+      } else if (e.key.toLowerCase() === "n") {
         e.preventDefault();
         navigate({ to: "/transactions/new" });
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [navigate, kycOk]);
+  }, [navigate]);
+
 
 
   // Filtering by tab + filters
