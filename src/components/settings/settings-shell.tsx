@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import {
   Settings, Shield, Monitor, Bell, Sliders, Lock, CreditCard,
   Plug, Webhook, KeyRound, Users, History, LifeBuoy, AlertTriangle,
+  Building2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -16,6 +17,7 @@ export type SettingsNavItem = {
 
 export const SETTINGS_NAV: SettingsNavItem[] = [
   { to: "/settings", label: "Resumen", icon: Settings },
+  { to: "/settings/organization", label: "Organización", icon: Building2 },
   { to: "/settings/security", label: "Seguridad", icon: Shield },
   { to: "/settings/sessions", label: "Sesiones activas", icon: Monitor },
   { to: "/settings/notifications", label: "Notificaciones", icon: Bell },
