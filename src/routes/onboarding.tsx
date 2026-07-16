@@ -646,6 +646,13 @@ function Step3Fiscal({ onSaved, onBack, setError, loading, setLoading }: {
     return () => clearTimeout(t);
   }, [rfcVerified, rfcBoxOpen]);
 
+  // Auto-cerrar el recuadro de e.firma tras 5s
+  useEffect(() => {
+    if (!efInfo || !efBoxOpen) return;
+    const t = setTimeout(() => setEfBoxOpen(false), 5000);
+    return () => clearTimeout(t);
+  }, [efInfo, efBoxOpen]);
+
   async function onRfcBlur() {
     if (!f.rfc) { setRfcCheck(null); setRfcVerified(null); return; }
     const norm = normalizeRfc(f.rfc);
