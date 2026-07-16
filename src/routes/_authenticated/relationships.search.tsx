@@ -13,7 +13,7 @@ export const Route = createFileRoute("/_authenticated/relationships/search")({
 
 function SearchPage() {
   const [q, setQ] = useState("");
-  const [criteria, setCriteria] = useState<"AUTO" | "RFC" | "CURP" | "EMAIL" | "YOKTO_ID" | "NAME">("AUTO");
+  const [criteria, setCriteria] = useState<"AUTO" | "RFC" | "CURP" | "EMAIL" | "YOKTO_ID" | "NAME" | "OP">("AUTO");
   const [submitted, setSubmitted] = useState(false);
 
   const results = useMemo(() => {
