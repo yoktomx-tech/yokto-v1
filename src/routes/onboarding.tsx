@@ -206,7 +206,7 @@ function OnboardingWizard() {
 // ─── Stepper ────────────────────────────────────────────────────────────────
 function Stepper({ active }: { active: StepId }) {
   return (
-    <ol className="grid grid-cols-5 gap-2" aria-label="Progreso de registro">
+    <ol className="grid grid-cols-6 gap-2" aria-label="Progreso de registro">
       {STEPS.map((s) => {
         const done = active > s.id;
         const current = active === s.id;
