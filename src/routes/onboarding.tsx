@@ -1022,6 +1022,20 @@ function Step3Fiscal({ onSaved, onBack, setError, loading, setLoading }: {
                   {regimenes.map((r) => <option key={r.code} value={r.code}>{r.label}</option>)}
                 </Field>
               </div>
+              {rfcVerified && rfcBoxOpen && (
+                <div className={cn(
+                  "mt-3 rounded-lg border p-3 text-[12.5px]",
+                  rfcVerified.match ? "border-yo-ok/40 bg-yo-ok/5 text-yo-txt" : "border-yo-danger/40 bg-yo-danger/5 text-yo-txt"
+                )}>
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <p className="font-semibold">{rfcVerified.match ? "RFC verificado en el SAT" : "Los datos vinculados al RFC no coinciden"}</p>
+                      <p className="mt-1 text-yo-txt-2"><span className="text-yo-txt-3">Nombre / Razón social:</span> {rfcVerified.nombreCompleto || rfcVerified.razonSocial || "—"}</p>
+                    </div>
+                    <button type="button" onClick={() => setRfcBoxOpen(false)} className="text-yo-txt-3 hover:text-yo-txt text-xs">Cerrar</button>
+                  </div>
+                </div>
+              )}
               {fillMode !== "manual" && (
                 <p className="mt-2 text-[11px] text-yo-txt-3">RFC extraído automáticamente del documento.</p>
               )}
