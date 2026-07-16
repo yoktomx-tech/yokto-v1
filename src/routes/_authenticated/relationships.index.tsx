@@ -269,7 +269,7 @@ function CounterpartyCard({ c }: { c: Counterparty }) {
         <Metric label="A tiempo" value={`${Math.round(c.metrics.onTimeRate * 100)}%`} />
       </div>
 
-      <div className="flex items-center justify-between text-[11px] text-yo-txt-3">
+      <div className="flex items-center justify-between text-[11px] text-yo-txt-3 flex-wrap gap-y-1">
         <span className="inline-flex items-center gap-1">
           {c.kycVerified
             ? <><CheckCircle2 className="size-3 text-emerald-600" /> KYC verificado</>
@@ -277,6 +277,10 @@ function CounterpartyCard({ c }: { c: Counterparty }) {
         </span>
         <span className="inline-flex items-center gap-1">
           <Briefcase className="size-3" /> {c.metrics.activeOps} activas · última interacción {relativeTime(c.lastInteractionAt)}
+        </span>
+        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-yo-bg border border-yo-border">
+          {(c.scope ?? "PERSONAL") === "TEAM" ? "Equipo" : "Personal"}
+          {c.ownerMember && c.ownerMember !== "Yo" && <> · {c.ownerMember}</>}
         </span>
         <ChevronRight className="size-4 text-yo-txt-3 group-hover:text-[#4F46E5]" />
       </div>
