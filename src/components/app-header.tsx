@@ -24,7 +24,7 @@ export function AppHeader({ email, userId }: { email?: string | null; section?: 
 
   return (
     <header className="sticky top-0 z-30 border-b border-yo-border bg-yo-surface/85 backdrop-blur-sm">
-      <div className="flex h-14 items-center gap-3 pl-14 md:pl-6 pr-4 md:pr-6">
+      <div className="flex h-16 items-center gap-3 pl-14 md:pl-6 pr-4 md:pr-6">
         <div className="shrink-0">
           <RoleSelectHeader />
         </div>
