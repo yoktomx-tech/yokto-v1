@@ -4,8 +4,8 @@ import { z } from "zod";
 import {
   Mail, Lock, Eye, EyeOff, ArrowRight, ArrowLeft, Loader2, Check,
   User as UserIcon, Building2, Upload, Trash2, FileText, ShieldCheck,
-  Landmark, AlertCircle, X, FileCheck2, KeyRound, PencilLine,
-  Smartphone, QrCode as QrIcon, RefreshCw, CheckCircle2,
+  AlertCircle, X, FileCheck2, KeyRound, PencilLine,
+  Smartphone, QrCode as QrIcon, RefreshCw, CheckCircle2, Copy, SkipForward,
 } from "lucide-react";
 import QRCode from "qrcode";
 import { startBiometricEnrollment, getMyBiometricEnrollment, cancelBiometricEnrollment } from "@/lib/biometric.functions";
@@ -14,10 +14,9 @@ import { useServerFn } from "@tanstack/react-start";
 import {
   checkEmailExists, validateRfcServer, getRfcRazonSocial, validateCurpNubarium, saveOnboardingStep,
   uploadKycDocument, listOwnKycDocuments, deleteOwnKycDocument,
-  registerClabe, startPennyTest, confirmPennyTest, submitKyc,
+  submitKyc,
   validateCsfNubarium, parseEfirma, validateFielSerialNubarium, lookupPostalCode,
 } from "@/lib/onboarding.functions";
-import { validateClabe, normalizeClabe, getBanco } from "@/lib/validations/clabe";
 import { validateRfc, normalizeRfc } from "@/lib/validations/rfc";
 import { validateCurp, normalizeCurp } from "@/lib/validations/curp";
 import { REGIMEN_FISICA, REGIMEN_MORAL, ESTADOS_MX } from "@/lib/validations/sat-catalogs";
@@ -28,7 +27,7 @@ export const Route = createFileRoute("/onboarding")({
   head: () => ({
     meta: [
       { title: "Registro — YOKTO" },
-      { name: "description", content: "Crea tu cuenta YOKTO y completa la verificación KYC en 5 pasos." },
+      { name: "description", content: "Crea tu cuenta YOKTO y completa la verificación KYC en 6 pasos." },
       { name: "robots", content: "noindex" },
     ],
   }),
@@ -36,14 +35,15 @@ export const Route = createFileRoute("/onboarding")({
 });
 
 type AccountType = "persona_fisica" | "persona_moral";
-type StepId = 1 | 2 | 3 | 4 | 5;
+type StepId = 1 | 2 | 3 | 4 | 5 | 6;
 
 const STEPS: Array<{ id: StepId; title: string; desc: string }> = [
-  { id: 1, title: "Cuenta",    desc: "Email y contraseña" },
-  { id: 2, title: "Tipo",      desc: "Persona física / moral" },
-  { id: 3, title: "Fiscal",    desc: "RFC y datos SAT" },
-  { id: 4, title: "Identidad", desc: "Documentos oficiales" },
-  { id: 5, title: "Bancario",  desc: "CLABE de cobro" },
+  { id: 1, title: "Cuenta",       desc: "Email y contraseña" },
+  { id: 2, title: "Tipo",         desc: "Persona física / moral" },
+  { id: 3, title: "Fiscal",       desc: "RFC y datos SAT" },
+  { id: 4, title: "Identidad",    desc: "Biométrico + documentos" },
+  { id: 5, title: "Token Móvil",  desc: "2FA autenticador" },
+  { id: 6, title: "Confirmación", desc: "Revisar y crear" },
 ];
 
 const LS_KEY = "yokto.onboarding.v1";
