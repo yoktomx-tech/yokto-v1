@@ -95,7 +95,7 @@ function ProfilePage() {
   const level = LEVEL_CFG[scoreProfile.level];
 
   const kycOk = profile?.kyc_status === "approved";
-  const name = displayName(profile);
+  const name = displayName(profile ?? null);
   const initials = (name || email || "U").split(" ").filter(Boolean).slice(0, 2).map((s) => s[0]).join("").toUpperCase();
   const isPM = profile?.account_type === "persona_moral";
 
