@@ -39,6 +39,7 @@ import { Route as AuthenticatedDisputesIndexRouteImport } from './routes/_authen
 import { Route as AuthenticatedCrmIndexRouteImport } from './routes/_authenticated/crm.index'
 import { Route as AuthenticatedAnalyticsIndexRouteImport } from './routes/_authenticated/analytics.index'
 import { Route as AuthenticatedTransactionsNewRouteImport } from './routes/_authenticated/transactions.new'
+import { Route as AuthenticatedTransactionsIdRouteImport } from './routes/_authenticated/transactions.$id'
 import { Route as AuthenticatedTeamsWorkflowsRouteImport } from './routes/_authenticated/teams.workflows'
 import { Route as AuthenticatedTeamsSettingsRouteImport } from './routes/_authenticated/teams.settings'
 import { Route as AuthenticatedTeamsReportsRouteImport } from './routes/_authenticated/teams.reports'
@@ -235,6 +236,12 @@ const AuthenticatedTransactionsNewRoute =
     path: '/new',
     getParentRoute: () => AuthenticatedTransactionsRoute,
   } as any)
+const AuthenticatedTransactionsIdRoute =
+  AuthenticatedTransactionsIdRouteImport.update({
+    id: '/$id',
+    path: '/$id',
+    getParentRoute: () => AuthenticatedTransactionsRoute,
+  } as any)
 const AuthenticatedTeamsWorkflowsRoute =
   AuthenticatedTeamsWorkflowsRouteImport.update({
     id: '/workflows',
@@ -425,9 +432,9 @@ const AuthenticatedAdminAnalyticsRoute =
   } as any)
 const AuthenticatedTransactionsIdIndexRoute =
   AuthenticatedTransactionsIdIndexRouteImport.update({
-    id: '/$id/',
-    path: '/$id/',
-    getParentRoute: () => AuthenticatedTransactionsRoute,
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedTransactionsIdRoute,
   } as any)
 const ApiPublicV1TransactionsRoute = ApiPublicV1TransactionsRouteImport.update({
   id: '/api/public/v1/transactions',
@@ -447,9 +454,9 @@ const ApiPublicHooksDisputeDeadlinesRoute =
   } as any)
 const AuthenticatedTransactionsIdExpedienteRoute =
   AuthenticatedTransactionsIdExpedienteRouteImport.update({
-    id: '/$id/expediente',
-    path: '/$id/expediente',
-    getParentRoute: () => AuthenticatedTransactionsRoute,
+    id: '/expediente',
+    path: '/expediente',
+    getParentRoute: () => AuthenticatedTransactionsIdRoute,
   } as any)
 const AuthenticatedSettingsOrganizationNewRoute =
   AuthenticatedSettingsOrganizationNewRouteImport.update({
@@ -520,6 +527,7 @@ export interface FileRoutesByFullPath {
   '/teams/reports': typeof AuthenticatedTeamsReportsRoute
   '/teams/settings': typeof AuthenticatedTeamsSettingsRoute
   '/teams/workflows': typeof AuthenticatedTeamsWorkflowsRoute
+  '/transactions/$id': typeof AuthenticatedTransactionsIdRouteWithChildren
   '/transactions/new': typeof AuthenticatedTransactionsNewRoute
   '/analytics/': typeof AuthenticatedAnalyticsIndexRoute
   '/crm/': typeof AuthenticatedCrmIndexRoute
@@ -657,6 +665,7 @@ export interface FileRoutesById {
   '/_authenticated/teams/reports': typeof AuthenticatedTeamsReportsRoute
   '/_authenticated/teams/settings': typeof AuthenticatedTeamsSettingsRoute
   '/_authenticated/teams/workflows': typeof AuthenticatedTeamsWorkflowsRoute
+  '/_authenticated/transactions/$id': typeof AuthenticatedTransactionsIdRouteWithChildren
   '/_authenticated/transactions/new': typeof AuthenticatedTransactionsNewRoute
   '/_authenticated/analytics/': typeof AuthenticatedAnalyticsIndexRoute
   '/_authenticated/crm/': typeof AuthenticatedCrmIndexRoute
@@ -729,6 +738,7 @@ export interface FileRouteTypes {
     | '/teams/reports'
     | '/teams/settings'
     | '/teams/workflows'
+    | '/transactions/$id'
     | '/transactions/new'
     | '/analytics/'
     | '/crm/'
@@ -865,6 +875,7 @@ export interface FileRouteTypes {
     | '/_authenticated/teams/reports'
     | '/_authenticated/teams/settings'
     | '/_authenticated/teams/workflows'
+    | '/_authenticated/transactions/$id'
     | '/_authenticated/transactions/new'
     | '/_authenticated/analytics/'
     | '/_authenticated/crm/'
@@ -1107,6 +1118,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedTransactionsNewRouteImport
       parentRoute: typeof AuthenticatedTransactionsRoute
     }
+    '/_authenticated/transactions/$id': {
+      id: '/_authenticated/transactions/$id'
+      path: '/$id'
+      fullPath: '/transactions/$id'
+      preLoaderRoute: typeof AuthenticatedTransactionsIdRouteImport
+      parentRoute: typeof AuthenticatedTransactionsRoute
+    }
     '/_authenticated/teams/workflows': {
       id: '/_authenticated/teams/workflows'
       path: '/workflows'
@@ -1333,10 +1351,10 @@ declare module '@tanstack/react-router' {
     }
     '/_authenticated/transactions/$id/': {
       id: '/_authenticated/transactions/$id/'
-      path: '/$id'
+      path: '/'
       fullPath: '/transactions/$id/'
       preLoaderRoute: typeof AuthenticatedTransactionsIdIndexRouteImport
-      parentRoute: typeof AuthenticatedTransactionsRoute
+      parentRoute: typeof AuthenticatedTransactionsIdRoute
     }
     '/api/public/v1/transactions': {
       id: '/api/public/v1/transactions'
@@ -1361,10 +1379,10 @@ declare module '@tanstack/react-router' {
     }
     '/_authenticated/transactions/$id/expediente': {
       id: '/_authenticated/transactions/$id/expediente'
-      path: '/$id/expediente'
+      path: '/expediente'
       fullPath: '/transactions/$id/expediente'
       preLoaderRoute: typeof AuthenticatedTransactionsIdExpedienteRouteImport
-      parentRoute: typeof AuthenticatedTransactionsRoute
+      parentRoute: typeof AuthenticatedTransactionsIdRoute
     }
     '/_authenticated/settings/organization/new': {
       id: '/_authenticated/settings/organization/new'
@@ -1531,21 +1549,36 @@ const AuthenticatedTeamsRouteChildren: AuthenticatedTeamsRouteChildren = {
 const AuthenticatedTeamsRouteWithChildren =
   AuthenticatedTeamsRoute._addFileChildren(AuthenticatedTeamsRouteChildren)
 
-interface AuthenticatedTransactionsRouteChildren {
-  AuthenticatedTransactionsNewRoute: typeof AuthenticatedTransactionsNewRoute
-  AuthenticatedTransactionsIndexRoute: typeof AuthenticatedTransactionsIndexRoute
+interface AuthenticatedTransactionsIdRouteChildren {
   AuthenticatedTransactionsIdExpedienteRoute: typeof AuthenticatedTransactionsIdExpedienteRoute
   AuthenticatedTransactionsIdIndexRoute: typeof AuthenticatedTransactionsIdIndexRoute
 }
 
-const AuthenticatedTransactionsRouteChildren: AuthenticatedTransactionsRouteChildren =
+const AuthenticatedTransactionsIdRouteChildren: AuthenticatedTransactionsIdRouteChildren =
   {
-    AuthenticatedTransactionsNewRoute: AuthenticatedTransactionsNewRoute,
-    AuthenticatedTransactionsIndexRoute: AuthenticatedTransactionsIndexRoute,
     AuthenticatedTransactionsIdExpedienteRoute:
       AuthenticatedTransactionsIdExpedienteRoute,
     AuthenticatedTransactionsIdIndexRoute:
       AuthenticatedTransactionsIdIndexRoute,
+  }
+
+const AuthenticatedTransactionsIdRouteWithChildren =
+  AuthenticatedTransactionsIdRoute._addFileChildren(
+    AuthenticatedTransactionsIdRouteChildren,
+  )
+
+interface AuthenticatedTransactionsRouteChildren {
+  AuthenticatedTransactionsIdRoute: typeof AuthenticatedTransactionsIdRouteWithChildren
+  AuthenticatedTransactionsNewRoute: typeof AuthenticatedTransactionsNewRoute
+  AuthenticatedTransactionsIndexRoute: typeof AuthenticatedTransactionsIndexRoute
+}
+
+const AuthenticatedTransactionsRouteChildren: AuthenticatedTransactionsRouteChildren =
+  {
+    AuthenticatedTransactionsIdRoute:
+      AuthenticatedTransactionsIdRouteWithChildren,
+    AuthenticatedTransactionsNewRoute: AuthenticatedTransactionsNewRoute,
+    AuthenticatedTransactionsIndexRoute: AuthenticatedTransactionsIndexRoute,
   }
 
 const AuthenticatedTransactionsRouteWithChildren =
