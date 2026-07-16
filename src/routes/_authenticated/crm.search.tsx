@@ -28,7 +28,7 @@ function SearchPage() {
   const notFound = submitted && q.trim() && results.length === 0;
 
   return (
-    <div className="p-4 md:p-6 flex flex-col gap-6 max-w-[1100px] mx-auto w-full">
+    <div className="flex flex-col gap-6">
       <div className="flex items-center gap-3">
         <Link to="/crm" className="h-8 w-8 grid place-items-center rounded-md border border-yo-border bg-white hover:bg-yo-raised text-yo-txt-2">
           <ArrowLeft className="size-4" />
