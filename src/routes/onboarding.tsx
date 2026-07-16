@@ -992,9 +992,10 @@ function Step3Fiscal({ onSaved, onBack, setError, loading, setLoading }: {
             <fieldset className="rounded-xl border border-yo-border p-4">
               <legend className="text-xs font-semibold uppercase tracking-widest text-yo-txt-2 px-1">Datos personales</legend>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-2">
-                <div className="sm:col-span-2">
-                  <Field id="full_name" label="Nombre completo" value={nombreCompleto} onChange={() => {}} disabled />
-                </div>
+                <Field id="first_name" label="Nombre(s)" value={f.first_name ?? ""} onChange={() => {}} disabled />
+                <Field id="last_name" label="Apellido paterno" value={f.last_name ?? ""} onChange={() => {}} disabled />
+                <Field id="second_last_name" label="Apellido materno" value={f.second_last_name ?? ""} onChange={() => {}} disabled />
+                <Field id="estado_nacimiento" label="Estado de nacimiento" value={curpVerified.estadoNacimiento || ""} onChange={() => {}} disabled />
                 <Field id="birth_date" label="Fecha de nacimiento" type="date" value={f.birth_date ?? ""} onChange={() => {}} disabled />
                 <Field id="sexo_display" label="Sexo" value={curpVerified.sexo} onChange={() => {}} disabled />
               </div>
