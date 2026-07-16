@@ -22,6 +22,7 @@ import { Route as AuthenticatedTransactionsRouteImport } from './routes/_authent
 import { Route as AuthenticatedTeamsRouteImport } from './routes/_authenticated/teams'
 import { Route as AuthenticatedScoreRouteImport } from './routes/_authenticated/score'
 import { Route as AuthenticatedReportsRouteImport } from './routes/_authenticated/reports'
+import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedPaymentsRouteImport } from './routes/_authenticated/payments'
 import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authenticated/notifications'
 import { Route as AuthenticatedKycRouteImport } from './routes/_authenticated/kyc'
@@ -81,6 +82,7 @@ import { Route as ApiPublicHooksVerificamexPennyTestRouteImport } from './routes
 import { Route as ApiPublicHooksDisputeDeadlinesRouteImport } from './routes/api/public/hooks/dispute-deadlines'
 import { Route as AuthenticatedTransactionsIdExpedienteRouteImport } from './routes/_authenticated/transactions.$id.expediente'
 import { Route as AuthenticatedSettingsOrganizationNewRouteImport } from './routes/_authenticated/settings.organization.new'
+import { Route as AuthenticatedProfileBankingVerifyRouteImport } from './routes/_authenticated/profile.banking.verify'
 import { Route as AuthenticatedComplianceBankAccountsNewRouteImport } from './routes/_authenticated/compliance.bank-accounts.new'
 import { Route as AuthenticatedAdminDisputesIdRouteImport } from './routes/_authenticated/admin.disputes.$id'
 
@@ -147,6 +149,11 @@ const AuthenticatedScoreRoute = AuthenticatedScoreRouteImport.update({
 const AuthenticatedReportsRoute = AuthenticatedReportsRouteImport.update({
   id: '/reports',
   path: '/reports',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedPaymentsRoute = AuthenticatedPaymentsRouteImport.update({
@@ -486,6 +493,12 @@ const AuthenticatedSettingsOrganizationNewRoute =
     path: '/new',
     getParentRoute: () => AuthenticatedSettingsOrganizationRoute,
   } as any)
+const AuthenticatedProfileBankingVerifyRoute =
+  AuthenticatedProfileBankingVerifyRouteImport.update({
+    id: '/banking/verify',
+    path: '/banking/verify',
+    getParentRoute: () => AuthenticatedProfileRoute,
+  } as any)
 const AuthenticatedComplianceBankAccountsNewRoute =
   AuthenticatedComplianceBankAccountsNewRouteImport.update({
     id: '/new',
@@ -517,6 +530,7 @@ export interface FileRoutesByFullPath {
   '/kyc': typeof AuthenticatedKycRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
   '/payments': typeof AuthenticatedPaymentsRouteWithChildren
+  '/profile': typeof AuthenticatedProfileRouteWithChildren
   '/reports': typeof AuthenticatedReportsRoute
   '/score': typeof AuthenticatedScoreRoute
   '/teams': typeof AuthenticatedTeamsRouteWithChildren
@@ -565,6 +579,7 @@ export interface FileRoutesByFullPath {
   '/transactions/': typeof AuthenticatedTransactionsIndexRoute
   '/admin/disputes/$id': typeof AuthenticatedAdminDisputesIdRoute
   '/compliance/bank-accounts/new': typeof AuthenticatedComplianceBankAccountsNewRoute
+  '/profile/banking/verify': typeof AuthenticatedProfileBankingVerifyRoute
   '/settings/organization/new': typeof AuthenticatedSettingsOrganizationNewRoute
   '/transactions/$id/expediente': typeof AuthenticatedTransactionsIdExpedienteRoute
   '/api/public/hooks/dispute-deadlines': typeof ApiPublicHooksDisputeDeadlinesRoute
@@ -589,6 +604,7 @@ export interface FileRoutesByTo {
   '/kyc': typeof AuthenticatedKycRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
   '/payments': typeof AuthenticatedPaymentsRouteWithChildren
+  '/profile': typeof AuthenticatedProfileRouteWithChildren
   '/reports': typeof AuthenticatedReportsRoute
   '/score': typeof AuthenticatedScoreRoute
   '/biometrico/$token': typeof BiometricoTokenRoute
@@ -633,6 +649,7 @@ export interface FileRoutesByTo {
   '/transactions': typeof AuthenticatedTransactionsIndexRoute
   '/admin/disputes/$id': typeof AuthenticatedAdminDisputesIdRoute
   '/compliance/bank-accounts/new': typeof AuthenticatedComplianceBankAccountsNewRoute
+  '/profile/banking/verify': typeof AuthenticatedProfileBankingVerifyRoute
   '/settings/organization/new': typeof AuthenticatedSettingsOrganizationNewRoute
   '/transactions/$id/expediente': typeof AuthenticatedTransactionsIdExpedienteRoute
   '/api/public/hooks/dispute-deadlines': typeof ApiPublicHooksDisputeDeadlinesRoute
@@ -662,6 +679,7 @@ export interface FileRoutesById {
   '/_authenticated/kyc': typeof AuthenticatedKycRoute
   '/_authenticated/notifications': typeof AuthenticatedNotificationsRoute
   '/_authenticated/payments': typeof AuthenticatedPaymentsRouteWithChildren
+  '/_authenticated/profile': typeof AuthenticatedProfileRouteWithChildren
   '/_authenticated/reports': typeof AuthenticatedReportsRoute
   '/_authenticated/score': typeof AuthenticatedScoreRoute
   '/_authenticated/teams': typeof AuthenticatedTeamsRouteWithChildren
@@ -710,6 +728,7 @@ export interface FileRoutesById {
   '/_authenticated/transactions/': typeof AuthenticatedTransactionsIndexRoute
   '/_authenticated/admin/disputes/$id': typeof AuthenticatedAdminDisputesIdRoute
   '/_authenticated/compliance/bank-accounts/new': typeof AuthenticatedComplianceBankAccountsNewRoute
+  '/_authenticated/profile/banking/verify': typeof AuthenticatedProfileBankingVerifyRoute
   '/_authenticated/settings/organization/new': typeof AuthenticatedSettingsOrganizationNewRoute
   '/_authenticated/transactions/$id/expediente': typeof AuthenticatedTransactionsIdExpedienteRoute
   '/api/public/hooks/dispute-deadlines': typeof ApiPublicHooksDisputeDeadlinesRoute
@@ -739,6 +758,7 @@ export interface FileRouteTypes {
     | '/kyc'
     | '/notifications'
     | '/payments'
+    | '/profile'
     | '/reports'
     | '/score'
     | '/teams'
@@ -787,6 +807,7 @@ export interface FileRouteTypes {
     | '/transactions/'
     | '/admin/disputes/$id'
     | '/compliance/bank-accounts/new'
+    | '/profile/banking/verify'
     | '/settings/organization/new'
     | '/transactions/$id/expediente'
     | '/api/public/hooks/dispute-deadlines'
@@ -811,6 +832,7 @@ export interface FileRouteTypes {
     | '/kyc'
     | '/notifications'
     | '/payments'
+    | '/profile'
     | '/reports'
     | '/score'
     | '/biometrico/$token'
@@ -855,6 +877,7 @@ export interface FileRouteTypes {
     | '/transactions'
     | '/admin/disputes/$id'
     | '/compliance/bank-accounts/new'
+    | '/profile/banking/verify'
     | '/settings/organization/new'
     | '/transactions/$id/expediente'
     | '/api/public/hooks/dispute-deadlines'
@@ -883,6 +906,7 @@ export interface FileRouteTypes {
     | '/_authenticated/kyc'
     | '/_authenticated/notifications'
     | '/_authenticated/payments'
+    | '/_authenticated/profile'
     | '/_authenticated/reports'
     | '/_authenticated/score'
     | '/_authenticated/teams'
@@ -931,6 +955,7 @@ export interface FileRouteTypes {
     | '/_authenticated/transactions/'
     | '/_authenticated/admin/disputes/$id'
     | '/_authenticated/compliance/bank-accounts/new'
+    | '/_authenticated/profile/banking/verify'
     | '/_authenticated/settings/organization/new'
     | '/_authenticated/transactions/$id/expediente'
     | '/api/public/hooks/dispute-deadlines'
@@ -1048,6 +1073,13 @@ declare module '@tanstack/react-router' {
       path: '/reports'
       fullPath: '/reports'
       preLoaderRoute: typeof AuthenticatedReportsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/profile': {
+      id: '/_authenticated/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof AuthenticatedProfileRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/payments': {
@@ -1463,6 +1495,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSettingsOrganizationNewRouteImport
       parentRoute: typeof AuthenticatedSettingsOrganizationRoute
     }
+    '/_authenticated/profile/banking/verify': {
+      id: '/_authenticated/profile/banking/verify'
+      path: '/banking/verify'
+      fullPath: '/profile/banking/verify'
+      preLoaderRoute: typeof AuthenticatedProfileBankingVerifyRouteImport
+      parentRoute: typeof AuthenticatedProfileRoute
+    }
     '/_authenticated/compliance/bank-accounts/new': {
       id: '/_authenticated/compliance/bank-accounts/new'
       path: '/new'
@@ -1601,6 +1640,18 @@ const AuthenticatedPaymentsRouteWithChildren =
     AuthenticatedPaymentsRouteChildren,
   )
 
+interface AuthenticatedProfileRouteChildren {
+  AuthenticatedProfileBankingVerifyRoute: typeof AuthenticatedProfileBankingVerifyRoute
+}
+
+const AuthenticatedProfileRouteChildren: AuthenticatedProfileRouteChildren = {
+  AuthenticatedProfileBankingVerifyRoute:
+    AuthenticatedProfileBankingVerifyRoute,
+}
+
+const AuthenticatedProfileRouteWithChildren =
+  AuthenticatedProfileRoute._addFileChildren(AuthenticatedProfileRouteChildren)
+
 interface AuthenticatedTeamsRouteChildren {
   AuthenticatedTeamsApiKeysRoute: typeof AuthenticatedTeamsApiKeysRoute
   AuthenticatedTeamsApprovalsRoute: typeof AuthenticatedTeamsApprovalsRoute
@@ -1710,6 +1761,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedKycRoute: typeof AuthenticatedKycRoute
   AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
   AuthenticatedPaymentsRoute: typeof AuthenticatedPaymentsRouteWithChildren
+  AuthenticatedProfileRoute: typeof AuthenticatedProfileRouteWithChildren
   AuthenticatedReportsRoute: typeof AuthenticatedReportsRoute
   AuthenticatedScoreRoute: typeof AuthenticatedScoreRoute
   AuthenticatedTeamsRoute: typeof AuthenticatedTeamsRouteWithChildren
@@ -1731,6 +1783,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedKycRoute: AuthenticatedKycRoute,
   AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,
   AuthenticatedPaymentsRoute: AuthenticatedPaymentsRouteWithChildren,
+  AuthenticatedProfileRoute: AuthenticatedProfileRouteWithChildren,
   AuthenticatedReportsRoute: AuthenticatedReportsRoute,
   AuthenticatedScoreRoute: AuthenticatedScoreRoute,
   AuthenticatedTeamsRoute: AuthenticatedTeamsRouteWithChildren,
