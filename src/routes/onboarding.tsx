@@ -277,6 +277,20 @@ function Step1Account({ initialEmail, onCredentials, setError, loading, setLoadi
     } finally { setCheckingEmail(false); }
   }
 
+  async function isPasswordBreached(pwd: string): Promise<boolean> {
+    try {
+      const buf = new TextEncoder().encode(pwd);
+      const digest = await crypto.subtle.digest("SHA-1", buf);
+      const hex = Array.from(new Uint8Array(digest)).map((b) => b.toString(16).padStart(2, "0")).join("").toUpperCase();
+      const prefix = hex.slice(0, 5);
+      const suffix = hex.slice(5);
+      const res = await fetch(`https://api.pwnedpasswords.com/range/${prefix}`, { headers: { "Add-Padding": "true" } });
+      if (!res.ok) return false;
+      const text = await res.text();
+      return text.split("\n").some((line) => line.split(":")[0]?.trim().toUpperCase() === suffix);
+    } catch { return false; }
+  }
+
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setError(null); setPwdError(null); setConfirmError(null);
@@ -288,10 +302,17 @@ function Step1Account({ initialEmail, onCredentials, setError, loading, setLoadi
     if (!terms) { setError("Debes aceptar los términos y el aviso de privacidad."); return; }
     if (emailError) return;
 
-    // Verificación final del email (por si no hubo blur)
+    // Verificación final del email y chequeo de fugas de contraseña (HIBP)
     setLoading(true);
     try {
-      const r = await checkEmail({ data: { email: email.toLowerCase() } });
+      const [pwned, r] = await Promise.all([
+        isPasswordBreached(password),
+        checkEmail({ data: { email: email.toLowerCase() } }),
+      ]);
+      if (pwned) {
+        setPwdError("Contraseña insegura. Está en listas de filtraciones conocidas, elige una diferente.");
+        return;
+      }
       if (r.exists) { setEmailError("Este correo ya tiene una cuenta. Inicia sesión."); return; }
       // Sin signUp aún: se difiere hasta Paso 3 para evitar cuentas huérfanas.
       onCredentials(email.toLowerCase(), password);
