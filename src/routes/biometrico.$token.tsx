@@ -72,7 +72,7 @@ function BiometricMobile() {
 
   return (
     <MobileShell>
-      <Progress phase={phase} enroll={enroll} />
+      {phase !== "intro" && <Progress phase={phase} enroll={enroll} />}
       {phase === "intro" && <Intro onStart={() => setPhase("id-choose")} enroll={enroll} />}
       {phase === "id-choose" && <IdChoose onChoose={() => setPhase("id-capture")} enroll={enroll} setEnroll={setEnroll} />}
       {phase === "id-capture" && (
