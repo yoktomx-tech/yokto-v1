@@ -39,13 +39,15 @@ function RelationshipsListPage() {
 
   const filtered = useMemo(() => {
     return MOCK_COUNTERPARTIES.filter((c) => {
-      if (tab === "FRECUENTES" && c.status !== "FRECUENTE") return false;
+      // "Clientes" = contrapartes que compran a este usuario → role SELLER/BOTH (contraparte vende, tú compras) o BUYER (contraparte compra)
+      // Conservador: usar rol de la contraparte como proxy
+      if (tab === "CLIENTES" && !(c.role === "BUYER" || c.role === "BOTH")) return false;
+      if (tab === "PROVEEDORES" && !(c.role === "SELLER" || c.role === "BOTH")) return false;
       if (tab === "COMPRADORES" && !(c.role === "BUYER" || c.role === "BOTH")) return false;
       if (tab === "VENDEDORES" && !(c.role === "SELLER" || c.role === "BOTH")) return false;
-      if (tab === "PAUSADAS" && c.status !== "PAUSADA") return false;
-      if (tab === "BLOQUEADAS" && c.status !== "BLOQUEADA") return false;
-      if (tab === "OCULTAS" && !c.hidden) return false;
-      if (tab !== "OCULTAS" && c.hidden) return false;
+      if (tab === "INVITACIONES" && c.source !== "INVITATION") return false;
+      if (tab === "CON_ALERTA" && !hasAlert(c)) return false;
+      if (tab !== "CON_ALERTA" && c.hidden) return false;
       if (sector !== "ALL" && !c.sectors.includes(sector)) return false;
       if (personType !== "ALL" && c.personType !== personType) return false;
       if (status !== "ALL" && c.status !== status) return false;
@@ -58,7 +60,7 @@ function RelationshipsListPage() {
     });
   }, [tab, q, sector, personType, status]);
 
-  const kpis = useMemo(() => computeMetrics(MOCK_COUNTERPARTIES), []);
+  const kpis = useMemo(() => computeMetrics(MOCK_COUNTERPARTIES, MOCK_INVITATIONS), []);
 
   return (
     <div className="p-4 md:p-6 flex flex-col gap-6 max-w-[1600px] mx-auto w-full">
