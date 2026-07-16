@@ -153,6 +153,11 @@ function RelationshipsListPage() {
           <option value="ALL">Todos</option>
           {Object.entries(STATUS_CFG).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
         </Select>
+        <Select value={scope} onChange={(v) => setScope(v as "ALL" | "PERSONAL" | "TEAM")} label="Alcance">
+          <option value="ALL">Todo</option>
+          <option value="PERSONAL">Personales</option>
+          <option value="TEAM">Del equipo</option>
+        </Select>
       </section>
 
       {/* List */}
