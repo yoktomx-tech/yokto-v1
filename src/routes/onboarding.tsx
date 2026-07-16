@@ -638,6 +638,13 @@ function Step3Fiscal({ onSaved, onBack, setError, loading, setLoading }: {
     return () => clearTimeout(t);
   }, [curpVerified, curpBoxOpen]);
 
+  // Auto-cerrar el recuadro de RFC tras 5s (mismo patrón que CURP)
+  useEffect(() => {
+    if (!rfcVerified || !rfcBoxOpen) return;
+    const t = setTimeout(() => setRfcBoxOpen(false), 5000);
+    return () => clearTimeout(t);
+  }, [rfcVerified, rfcBoxOpen]);
+
   async function onRfcBlur() {
     if (!f.rfc) { setRfcCheck(null); setRfcVerified(null); return; }
     const norm = normalizeRfc(f.rfc);
