@@ -9,8 +9,8 @@ import { NoCustodyBanner } from "@/components/payments/ui/no-custody-banner";
 import { InfoBox } from "@/components/tx/ui/info-box";
 import { cn } from "@/lib/utils";
 import {
-  MOCK_COUNTERPARTIES, SECTOR_CFG, STATUS_CFG, TRUST_CFG,
-  formatMoney, relativeTime, maskRfc, computeMetrics,
+  MOCK_COUNTERPARTIES, MOCK_INVITATIONS, SECTOR_CFG, STATUS_CFG, TRUST_CFG, COMPLIANCE_CFG,
+  formatMoney, relativeTime, maskRfc, computeMetrics, complianceLevelOf, hasAlert,
   type Counterparty, type RelationshipStatus, type SectorId,
 } from "@/lib/relationships-mock";
 
@@ -18,15 +18,15 @@ export const Route = createFileRoute("/_authenticated/relationships/")({
   component: RelationshipsListPage,
 });
 
-type TabKey = "TODAS" | "FRECUENTES" | "COMPRADORES" | "VENDEDORES" | "PAUSADAS" | "BLOQUEADAS" | "OCULTAS";
+type TabKey = "TODAS" | "CLIENTES" | "PROVEEDORES" | "COMPRADORES" | "VENDEDORES" | "INVITACIONES" | "CON_ALERTA";
 const TABS: { key: TabKey; label: string }[] = [
-  { key: "TODAS", label: "Todas" },
-  { key: "FRECUENTES", label: "Frecuentes" },
-  { key: "COMPRADORES", label: "Compradores" },
-  { key: "VENDEDORES", label: "Vendedores" },
-  { key: "PAUSADAS", label: "Pausadas" },
-  { key: "BLOQUEADAS", label: "Bloqueadas" },
-  { key: "OCULTAS", label: "Ocultas" },
+  { key: "TODAS",        label: "Todas" },
+  { key: "CLIENTES",     label: "Clientes" },
+  { key: "PROVEEDORES",  label: "Proveedores" },
+  { key: "COMPRADORES",  label: "Compradores" },
+  { key: "VENDEDORES",   label: "Vendedores" },
+  { key: "INVITACIONES", label: "Invitaciones" },
+  { key: "CON_ALERTA",   label: "Con alerta" },
 ];
 
 function RelationshipsListPage() {
@@ -39,13 +39,15 @@ function RelationshipsListPage() {
 
   const filtered = useMemo(() => {
     return MOCK_COUNTERPARTIES.filter((c) => {
-      if (tab === "FRECUENTES" && c.status !== "FRECUENTE") return false;
+      // "Clientes" = contrapartes que compran a este usuario → role SELLER/BOTH (contraparte vende, tú compras) o BUYER (contraparte compra)
+      // Conservador: usar rol de la contraparte como proxy
+      if (tab === "CLIENTES" && !(c.role === "BUYER" || c.role === "BOTH")) return false;
+      if (tab === "PROVEEDORES" && !(c.role === "SELLER" || c.role === "BOTH")) return false;
       if (tab === "COMPRADORES" && !(c.role === "BUYER" || c.role === "BOTH")) return false;
       if (tab === "VENDEDORES" && !(c.role === "SELLER" || c.role === "BOTH")) return false;
-      if (tab === "PAUSADAS" && c.status !== "PAUSADA") return false;
-      if (tab === "BLOQUEADAS" && c.status !== "BLOQUEADA") return false;
-      if (tab === "OCULTAS" && !c.hidden) return false;
-      if (tab !== "OCULTAS" && c.hidden) return false;
+      if (tab === "INVITACIONES" && c.source !== "INVITATION") return false;
+      if (tab === "CON_ALERTA" && !hasAlert(c)) return false;
+      if (tab !== "CON_ALERTA" && c.hidden) return false;
       if (sector !== "ALL" && !c.sectors.includes(sector)) return false;
       if (personType !== "ALL" && c.personType !== personType) return false;
       if (status !== "ALL" && c.status !== status) return false;
@@ -58,14 +60,14 @@ function RelationshipsListPage() {
     });
   }, [tab, q, sector, personType, status]);
 
-  const kpis = useMemo(() => computeMetrics(MOCK_COUNTERPARTIES), []);
+  const kpis = useMemo(() => computeMetrics(MOCK_COUNTERPARTIES, MOCK_INVITATIONS), []);
 
   return (
     <div className="p-4 md:p-6 flex flex-col gap-6 max-w-[1600px] mx-auto w-full">
       <PageHeader
         icon={Users}
-        title="CRM de contrapartes"
-        subtitle="Relaciones formadas a partir de operaciones, búsqueda verificada e invitaciones. YOKTO no crea contactos manuales."
+        title="Relaciones de Confianza"
+        subtitle="Contrapartes reales derivadas de operaciones, búsqueda verificada o invitaciones formales. YOKTO no permite crear contactos manuales."
         actions={
           <div className="flex items-center gap-2">
             <Link
@@ -86,12 +88,18 @@ function RelationshipsListPage() {
 
       <NoCustodyBanner />
 
-      {/* KPIs */}
+      {/* KPIs — según spec: Contrapartes, Ops activas, Volumen histórico, Invitaciones */}
       <section className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <KPI icon={<Users className="size-4" />} label="Contrapartes" value={String(kpis.totalCounterparties)} hint={`${kpis.activas} activas`} />
-        <KPI icon={<Star className="size-4" />} label="Frecuentes" value={String(kpis.frecuentes)} hint="Recurrencia >5 ops" />
-        <KPI icon={<Shield className="size-4" />} label="Trust promedio" value={`${kpis.trustPromedio}/100`} hint={`${kpis.kycVerified} con KYC`} />
-        <KPI icon={<TrendingUp className="size-4" />} label="Volumen histórico" value={formatMoney(kpis.volTotal)} hint={`${kpis.opsActivas} ops activas`} />
+        <KPI icon={<Users className="size-4" />} label="Contrapartes" value={String(kpis.totalCounterparties)} hint={`${kpis.activas} activas · ${kpis.kycVerified} con KYC`} />
+        <KPI icon={<Briefcase className="size-4" />} label="Operaciones activas" value={String(kpis.opsActivas)} hint={`${kpis.disputadas} con disputa histórica`} />
+        <KPI icon={<TrendingUp className="size-4" />} label="Volumen histórico" value={formatMoney(kpis.volTotal)} hint={`Trust promedio ${kpis.trustPromedio}/100`} />
+        <KPI
+          icon={<Send className="size-4" />}
+          label="Invitaciones"
+          value={`${kpis.invitacionesPendientes} pendientes`}
+          hint={kpis.invitacionesVencenHoy > 0 ? `${kpis.invitacionesVencenHoy} vence hoy` : `${kpis.conAlerta} con alerta`}
+          tone={kpis.invitacionesVencenHoy > 0 ? "warn" : undefined}
+        />
       </section>
 
       <InfoBox tone="info" title="Cómo se agregan contrapartes">
@@ -159,14 +167,14 @@ function RelationshipsListPage() {
   );
 }
 
-function KPI({ icon, label, value, hint }: { icon: React.ReactNode; label: string; value: string; hint?: string }) {
+function KPI({ icon, label, value, hint, tone }: { icon: React.ReactNode; label: string; value: string; hint?: string; tone?: "warn" }) {
   return (
-    <div className="bg-white border border-yo-border rounded-lg p-4">
+    <div className={cn("bg-white border rounded-lg p-4", tone === "warn" ? "border-[#F59E0B]" : "border-yo-border")}>
       <div className="flex items-center gap-2 text-yo-txt-2 text-[11px] uppercase tracking-wider font-medium">
-        <span className="text-[#4F46E5]">{icon}</span>{label}
+        <span className={tone === "warn" ? "text-[#B45309]" : "text-[#4F46E5]"}>{icon}</span>{label}
       </div>
       <div className="mt-1 text-[22px] font-bold text-yo-txt font-mono">{value}</div>
-      {hint && <div className="text-[11px] text-yo-txt-3">{hint}</div>}
+      {hint && <div className={cn("text-[11px]", tone === "warn" ? "text-[#B45309]" : "text-yo-txt-3")}>{hint}</div>}
     </div>
   );
 }
@@ -185,12 +193,17 @@ function Select({ value, onChange, label, children }: { value: string; onChange:
 function CounterpartyCard({ c }: { c: Counterparty }) {
   const status = STATUS_CFG[c.status];
   const trust = TRUST_CFG[c.trustLevel];
+  const comp = COMPLIANCE_CFG[complianceLevelOf(c)];
   const PersonIcon = c.personType === "PM" ? Building2 : User;
+  const alertActive = hasAlert(c);
   return (
     <Link
       to="/relationships/$counterpartyId"
       params={{ counterpartyId: c.id }}
-      className="group bg-white border border-yo-border rounded-lg p-4 hover:border-[#4F46E5] hover:shadow-sm transition-all flex flex-col gap-3"
+      className={cn(
+        "group bg-white border rounded-lg p-4 hover:shadow-sm transition-all flex flex-col gap-3",
+        alertActive ? "border-[#F59E0B]/50 hover:border-[#F59E0B]" : "border-yo-border hover:border-[#4F46E5]",
+      )}
     >
       <div className="flex items-start gap-3">
         <div className="size-11 rounded-lg bg-[#EEF2FF] text-[#4338CA] grid place-items-center shrink-0">
@@ -206,7 +219,10 @@ function CounterpartyCard({ c }: { c: Counterparty }) {
             <span>•</span>
             <span className="font-mono">{maskRfc(c.rfc, true)}</span>
             <span>•</span>
-            <span>{c.personType}</span>
+            <span>{c.personType === "PM" ? "Persona Moral" : c.personType === "PFAE" ? "PFAE" : "Persona Física"}</span>
+          </div>
+          <div className="mt-1 text-[11px] text-yo-txt-3">
+            Roles: {c.role === "BOTH" ? "Comprador y Vendedor" : c.role === "BUYER" ? "Comprador · Pagador" : "Vendedor · Beneficiario"}
           </div>
         </div>
         <span
@@ -219,6 +235,9 @@ function CounterpartyCard({ c }: { c: Counterparty }) {
       </div>
 
       <div className="flex flex-wrap gap-1.5">
+        <span className="text-[11px] px-2 py-0.5 rounded-full font-medium" style={{ background: comp.bg, color: comp.txt }}>
+          {comp.label}
+        </span>
         {c.sectors.map((s) => {
           const cfg = SECTOR_CFG[s];
           return (
@@ -231,6 +250,13 @@ function CounterpartyCard({ c }: { c: Counterparty }) {
           Trust {c.trustLevel} · {c.trustScore}
         </span>
       </div>
+
+      {alertActive && (
+        <div className="text-[11px] px-2 py-1 rounded-md bg-[#FFFBEB] text-[#B45309] inline-flex items-center gap-1.5">
+          <AlertTriangle className="size-3" />
+          {c.metrics.disputedOps > 0 ? "Disputas históricas" : c.status === "BLOQUEADA" ? "Contraparte bloqueada" : c.status === "PAUSADA" ? "Relación pausada" : "KYC pendiente"}
+        </div>
+      )}
 
       <div className="grid grid-cols-3 gap-2 text-center">
         <Metric label="Ops totales" value={String(c.metrics.totalOps)} />

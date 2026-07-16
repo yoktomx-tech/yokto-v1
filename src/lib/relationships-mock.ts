@@ -338,7 +338,31 @@ export function getDocRequestsFor(id: string) {
   return MOCK_DOC_REQUESTS.filter((d) => d.counterpartyId === id);
 }
 
-export function computeMetrics(all: Counterparty[]) {
+export type ComplianceLevel = "NUEVO" | "BASICO" | "VERIFICADO" | "CONFIABLE";
+
+export function complianceLevelOf(c: Counterparty): ComplianceLevel {
+  if (!c.kycVerified) return "NUEVO";
+  if (c.trustScore >= 85 && c.metrics.completedOps >= 5) return "CONFIABLE";
+  if (c.trustScore >= 70) return "VERIFICADO";
+  return "BASICO";
+}
+
+export const COMPLIANCE_CFG: Record<ComplianceLevel, { label: string; bg: string; txt: string }> = {
+  NUEVO:      { label: "Nuevo",       bg: "#F4F4F5", txt: "#3F3F46" },
+  BASICO:     { label: "Básico",      bg: "#FFFBEB", txt: "#B45309" },
+  VERIFICADO: { label: "Verificado",  bg: "#EEF2FF", txt: "#3730A3" },
+  CONFIABLE:  { label: "Confiable",   bg: "#ECFDF5", txt: "#047857" },
+};
+
+export function hasAlert(c: Counterparty): boolean {
+  return (
+    c.metrics.disputedOps > 0 && c.status !== "OCULTA"
+      ? true
+      : c.status === "BLOQUEADA" || c.status === "PAUSADA" || !c.kycVerified
+  );
+}
+
+export function computeMetrics(all: Counterparty[], invitations: Invitation[] = MOCK_INVITATIONS) {
   const totalCounterparties = all.length;
   const activas = all.filter((c) => c.status === "ACTIVA" || c.status === "FRECUENTE").length;
   const kycVerified = all.filter((c) => c.kycVerified).length;
@@ -347,5 +371,15 @@ export function computeMetrics(all: Counterparty[]) {
   const volTotal = all.reduce((s, c) => s + c.metrics.totalVolumeMxn, 0);
   const disputadas = all.reduce((s, c) => s + c.metrics.disputedOps, 0);
   const frecuentes = all.filter((c) => c.status === "FRECUENTE").length;
-  return { totalCounterparties, activas, kycVerified, trustPromedio, opsActivas, volTotal, disputadas, frecuentes };
+  const invitacionesPendientes = invitations.filter((i) => i.status === "PENDIENTE").length;
+  const invitacionesVencenHoy = invitations.filter((i) => {
+    if (i.status !== "PENDIENTE") return false;
+    const days = Math.round((new Date(i.expiresAt).getTime() - Date.now()) / 86400000);
+    return days <= 1 && days >= 0;
+  }).length;
+  const conAlerta = all.filter(hasAlert).length;
+  return {
+    totalCounterparties, activas, kycVerified, trustPromedio, opsActivas, volTotal,
+    disputadas, frecuentes, invitacionesPendientes, invitacionesVencenHoy, conAlerta,
+  };
 }
