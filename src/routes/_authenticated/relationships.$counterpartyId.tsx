@@ -396,18 +396,80 @@ function TabPagos({ c }: { c: Counterparty }) {
 }
 
 function TabDisputas({ c }: { c: Counterparty }) {
-  if (c.metrics.disputedOps === 0) {
-    return <EmptyBlock text="Sin disputas registradas con esta contraparte." icon={<CheckCircle2 className="size-6 text-emerald-600" />} />;
-  }
+  const activas = 0; // mock: activas del módulo Disputas
+  const historicas = c.metrics.disputedOps;
+  const montoHistorico = Math.round(c.metrics.avgTicketMxn * historicas * 0.6);
+  const resultado = historicas === 0 ? "Sin antecedentes" : `${historicas} resuelta${historicas === 1 ? "" : "s"} por acuerdo`;
+
   return (
-    <Card title="Historial de disputas">
-      <div className="text-sm text-yo-txt-2">
-        {c.metrics.disputedOps} disputa{c.metrics.disputedOps === 1 ? "" : "s"} registrada{c.metrics.disputedOps === 1 ? "" : "s"}. Consulta el módulo Disputas para el detalle.
-      </div>
-      <Link to="/disputes" className="mt-3 inline-flex items-center gap-1 text-[12px] font-semibold text-[#4F46E5] hover:underline">
-        Abrir módulo Disputas <ExternalLink className="size-3" />
-      </Link>
-    </Card>
+    <div className="grid gap-4">
+      <Card title="Historial de incidencias">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <RiskStat label="Disputas activas"     value={String(activas)}     tone={activas > 0 ? "warn" : "ok"} />
+          <RiskStat label="Disputas históricas"  value={String(historicas)}  tone={historicas > 0 ? "info" : "ok"} />
+          <RiskStat label="Resultado histórico"  value={resultado} textOnly />
+          <RiskStat label="Monto histórico disputado" value={formatMoney(montoHistorico)} textOnly />
+        </div>
+        <p className="mt-3 text-[11px] text-yo-txt-3">
+          Estos indicadores son informativos y no constituyen una calificación crediticia ni una lista de exclusión. YOKTO no publica listas negras.
+        </p>
+      </Card>
+
+      <Card title="Alertas operativas">
+        {historicas === 0 && !c.kycVerified && (
+          <AlertRow tone="warn" text="KYC incompleto en el expediente compartido." />
+        )}
+        {historicas > 0 && (
+          <AlertRow tone="warn" text="Existen disputas históricas cerradas por acuerdo entre las partes." />
+        )}
+        {c.status === "PAUSADA" && (
+          <AlertRow tone="warn" text="Relación pausada por el usuario titular." />
+        )}
+        {historicas === 0 && c.kycVerified && c.status !== "PAUSADA" && (
+          <div className="text-sm text-yo-txt-2">Sin alertas operativas actualmente registradas.</div>
+        )}
+      </Card>
+
+      <Card
+        title="Disputas relacionadas"
+        action={
+          <Link to="/disputes" className="text-[12px] font-semibold text-[#4F46E5] hover:underline inline-flex items-center gap-1">
+            Abrir módulo Disputas <ExternalLink className="size-3" />
+          </Link>
+        }
+      >
+        {historicas === 0 ? (
+          <EmptyBlock text="No hay disputas relacionadas con esta contraparte." icon={<CheckCircle2 className="size-6 text-emerald-600" />} />
+        ) : (
+          <div className="text-sm text-yo-txt-2">
+            {historicas} disputa{historicas === 1 ? "" : "s"} vinculada{historicas === 1 ? "" : "s"} a operaciones cerradas. Consulta el módulo Disputas para el expediente completo.
+          </div>
+        )}
+      </Card>
+    </div>
+  );
+}
+
+function RiskStat({ label, value, tone, textOnly }: { label: string; value: string; tone?: "ok" | "warn" | "info"; textOnly?: boolean }) {
+  const toneCls =
+    tone === "warn" ? "text-[#B45309]" :
+    tone === "info" ? "text-[#3730A3]" :
+    tone === "ok"   ? "text-emerald-700" :
+    "text-yo-txt";
+  return (
+    <div className="bg-yo-bg border border-yo-border rounded-md p-3">
+      <div className="text-[10px] uppercase tracking-wider text-yo-txt-3 font-semibold">{label}</div>
+      <div className={cn("mt-1 font-semibold", textOnly ? "text-[13px]" : "text-[20px] font-mono", toneCls)}>{value}</div>
+    </div>
+  );
+}
+
+function AlertRow({ tone, text }: { tone: "warn" | "info"; text: string }) {
+  const cls = tone === "warn" ? "bg-[#FFFBEB] text-[#B45309] border-[#FDE68A]" : "bg-[#EEF2FF] text-[#3730A3] border-[#C7D2FE]";
+  return (
+    <div className={cn("border rounded-md px-3 py-2 text-[12px] inline-flex items-center gap-2 mb-2", cls)}>
+      <AlertTriangle className="size-3.5" /> {text}
+    </div>
   );
 }
 
