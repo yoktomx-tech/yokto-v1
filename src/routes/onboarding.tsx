@@ -638,6 +638,13 @@ function Step3Fiscal({ onSaved, onBack, setError, loading, setLoading }: {
     return () => clearTimeout(t);
   }, [curpVerified, curpBoxOpen]);
 
+  // Auto-cerrar el recuadro de RFC tras 5s (mismo patrón que CURP)
+  useEffect(() => {
+    if (!rfcVerified || !rfcBoxOpen) return;
+    const t = setTimeout(() => setRfcBoxOpen(false), 5000);
+    return () => clearTimeout(t);
+  }, [rfcVerified, rfcBoxOpen]);
+
   async function onRfcBlur() {
     if (!f.rfc) { setRfcCheck(null); setRfcVerified(null); return; }
     const norm = normalizeRfc(f.rfc);
@@ -940,26 +947,21 @@ function Step3Fiscal({ onSaved, onBack, setError, loading, setLoading }: {
 
           {/* --- Manual: CURP + RENAPO --- */}
           {fillMode === "manual" && (
-            <div className="rounded-xl border border-yo-border bg-yo-raised/40 p-4 flex flex-col gap-3">
-              <div>
-                <label className="text-xs font-semibold uppercase tracking-widest text-yo-txt-2">CURP (18 caracteres)</label>
-                <p className="mt-1 text-xs text-yo-txt-3">Consulta oficial en RENAPO para autocompletar tus datos personales.</p>
-              </div>
-              <div className="flex-1 w-full">
-                <Field id="curp" label="" value={f.curp ?? ""} onChange={onCurpChange}
-                  required uppercase maxLength={18} error={curpError}
-                  trailing={
-                    curpChecking ? <Loader2 className="size-4 animate-spin text-yo-txt-3" /> :
-                    curpVerified ? <Check className="size-4 text-yo-ok" /> :
-                    undefined
-                  } />
-                <p className="mt-1 text-[11px] text-yo-txt-3">
-                  {curpChecking ? "Consultando RENAPO…" :
-                   curpVerified ? "Validada automáticamente en RENAPO." :
-                   "La validación se ejecuta automáticamente al capturar los 18 caracteres."}
-                </p>
-              </div>
-
+            <div className="rounded-xl border border-yo-border bg-yo-raised/40 p-4 flex flex-col gap-2">
+              <p className="text-xs text-yo-txt-3">Consulta oficial en RENAPO para autocompletar tus datos personales.</p>
+              <Field id="curp" label="CURP (18 caracteres)" value={f.curp ?? ""} onChange={onCurpChange}
+                required uppercase maxLength={18} error={curpError}
+                trailing={
+                  curpChecking ? <Loader2 className="size-4 animate-spin text-yo-txt-3" /> :
+                  curpVerified ? <Check className="size-4 text-yo-ok" /> :
+                  undefined
+                }
+                hint={
+                  curpChecking ? "Consultando RENAPO…" :
+                  curpVerified ? "Validada automáticamente en RENAPO." :
+                  "La validación se ejecuta automáticamente al capturar los 18 caracteres."
+                }
+              />
             </div>
           )}
 
@@ -997,9 +999,10 @@ function Step3Fiscal({ onSaved, onBack, setError, loading, setLoading }: {
             <fieldset className="rounded-xl border border-yo-border p-4">
               <legend className="text-xs font-semibold uppercase tracking-widest text-yo-txt-2 px-1">Datos personales</legend>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-2">
-                <div className="sm:col-span-2">
-                  <Field id="full_name" label="Nombre completo" value={nombreCompleto} onChange={() => {}} disabled />
-                </div>
+                <Field id="first_name" label="Nombre(s)" value={f.first_name ?? ""} onChange={() => {}} disabled />
+                <Field id="last_name" label="Apellido paterno" value={f.last_name ?? ""} onChange={() => {}} disabled />
+                <Field id="second_last_name" label="Apellido materno" value={f.second_last_name ?? ""} onChange={() => {}} disabled />
+                <Field id="estado_nacimiento" label="Estado de nacimiento" value={curpVerified.estadoNacimiento || ""} onChange={() => {}} disabled />
                 <Field id="birth_date" label="Fecha de nacimiento" type="date" value={f.birth_date ?? ""} onChange={() => {}} disabled />
                 <Field id="sexo_display" label="Sexo" value={curpVerified.sexo} onChange={() => {}} disabled />
               </div>
@@ -1029,12 +1032,25 @@ function Step3Fiscal({ onSaved, onBack, setError, loading, setLoading }: {
                   rfcVerified.match ? "border-yo-ok/40 bg-yo-ok/5 text-yo-txt" : "border-yo-danger/40 bg-yo-danger/5 text-yo-txt"
                 )}>
                   <div className="flex items-start justify-between gap-2">
-                    <div>
+                    <div className="flex-1">
                       <p className="font-semibold">{rfcVerified.match ? "RFC verificado en el SAT" : "Los datos vinculados al RFC no coinciden"}</p>
                       <p className="mt-1 text-yo-txt-2"><span className="text-yo-txt-3">Nombre / Razón social:</span> {rfcVerified.nombreCompleto || rfcVerified.razonSocial || "—"}</p>
+                      <p className={cn("mt-1 text-[11px]", rfcVerified.match ? "text-yo-ok" : "text-yo-danger")}>
+                        {rfcVerified.match ? "El nombre coincide con los datos personales." : "El nombre no coincide con los datos personales capturados."}
+                      </p>
                     </div>
                     <button type="button" onClick={() => setRfcBoxOpen(false)} className="text-yo-txt-3 hover:text-yo-txt text-xs">Cerrar</button>
                   </div>
+                  <p className="mt-2 text-[11px] text-yo-txt-3">Este recuadro se cerrará automáticamente en 5 segundos.</p>
+                </div>
+              )}
+              {rfcVerified && !rfcBoxOpen && (
+                <div className="mt-3 inline-flex items-center gap-2 text-xs">
+                  <Check className={cn("size-3.5", rfcVerified.match ? "text-yo-ok" : "text-yo-danger")} />
+                  <span className={rfcVerified.match ? "text-yo-ok" : "text-yo-danger"}>
+                    {rfcVerified.match ? "RFC validado" : "RFC no coincide"} — {rfcVerified.nombreCompleto || rfcVerified.razonSocial || "—"}
+                  </span>
+                  <button type="button" onClick={() => setRfcBoxOpen(true)} className="underline text-yo-txt-3 hover:text-yo-txt">Ver detalle</button>
                 </div>
               )}
               {fillMode !== "manual" && (
@@ -1064,12 +1080,25 @@ function Step3Fiscal({ onSaved, onBack, setError, loading, setLoading }: {
               rfcVerified.match ? "border-yo-ok/40 bg-yo-ok/5 text-yo-txt" : "border-yo-danger/40 bg-yo-danger/5 text-yo-txt"
             )}>
               <div className="flex items-start justify-between gap-2">
-                <div>
+                <div className="flex-1">
                   <p className="font-semibold">{rfcVerified.match ? "RFC verificado en el SAT" : "Los datos vinculados al RFC no coinciden"}</p>
                   <p className="mt-1 text-yo-txt-2"><span className="text-yo-txt-3">Razón social:</span> {rfcVerified.razonSocial || rfcVerified.nombreCompleto || "—"}</p>
+                  <p className={cn("mt-1 text-[11px]", rfcVerified.match ? "text-yo-ok" : "text-yo-danger")}>
+                    {rfcVerified.match ? "La razón social coincide con la capturada." : "La razón social no coincide con la capturada."}
+                  </p>
                 </div>
                 <button type="button" onClick={() => setRfcBoxOpen(false)} className="text-yo-txt-3 hover:text-yo-txt text-xs">Cerrar</button>
               </div>
+              <p className="mt-2 text-[11px] text-yo-txt-3">Este recuadro se cerrará automáticamente en 5 segundos.</p>
+            </div>
+          )}
+          {rfcVerified && !rfcBoxOpen && (
+            <div className="inline-flex items-center gap-2 text-xs">
+              <Check className={cn("size-3.5", rfcVerified.match ? "text-yo-ok" : "text-yo-danger")} />
+              <span className={rfcVerified.match ? "text-yo-ok" : "text-yo-danger"}>
+                {rfcVerified.match ? "RFC validado" : "RFC no coincide"} — {rfcVerified.razonSocial || rfcVerified.nombreCompleto || "—"}
+              </span>
+              <button type="button" onClick={() => setRfcBoxOpen(true)} className="underline text-yo-txt-3 hover:text-yo-txt">Ver detalle</button>
             </div>
           )}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
