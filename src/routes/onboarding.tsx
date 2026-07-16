@@ -179,7 +179,13 @@ function OnboardingWizard() {
             />
           )}
           {step === 5 && session && (
-            <Step5Bank
+            <Step5MFA
+              onDone={() => goNext(6)} onBack={goPrev}
+              setError={setError} loading={loading} setLoading={setLoading}
+            />
+          )}
+          {step === 6 && session && (
+            <Step6Review
               onFinished={() => navigate({ to: "/onboarding/pendiente" })} onBack={goPrev}
               setError={setError} loading={loading} setLoading={setLoading}
             />
