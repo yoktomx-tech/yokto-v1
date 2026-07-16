@@ -79,8 +79,6 @@ export type Counterparty = {
   starred?: boolean;
   hidden?: boolean;
   source: "OPERATION" | "SEARCH" | "INVITATION";
-  scope?: "PERSONAL" | "TEAM";
-  ownerMember?: string; // nombre del miembro creador (para filtro Team)
 };
 
 export type Invitation = {
@@ -148,8 +146,6 @@ export const MOCK_COUNTERPARTIES: Counterparty[] = [
     metrics: { totalOps: 34, activeOps: 3, completedOps: 30, disputedOps: 1, totalVolumeMxn: 12_450_000, avgTicketMxn: 366_000, onTimeRate: 0.97, complianceRate: 0.98 },
     starred: true,
     source: "OPERATION",
-    scope: "TEAM",
-    ownerMember: "María López",
   },
   {
     id: "cp-01a2b3c4-2222-4a1b-8c2d-000000000002",
@@ -172,8 +168,6 @@ export const MOCK_COUNTERPARTIES: Counterparty[] = [
     lastInteractionAt: daysAgo(9),
     metrics: { totalOps: 12, activeOps: 2, completedOps: 9, disputedOps: 1, totalVolumeMxn: 8_900_000, avgTicketMxn: 742_000, onTimeRate: 0.88, complianceRate: 0.91 },
     source: "OPERATION",
-    scope: "TEAM",
-    ownerMember: "Diego Ortiz",
   },
   {
     id: "cp-01a2b3c4-3333-4a1b-8c2d-000000000003",
@@ -196,8 +190,6 @@ export const MOCK_COUNTERPARTIES: Counterparty[] = [
     lastInteractionAt: daysAgo(14),
     metrics: { totalOps: 8, activeOps: 1, completedOps: 7, disputedOps: 0, totalVolumeMxn: 640_000, avgTicketMxn: 80_000, onTimeRate: 0.94, complianceRate: 0.96 },
     source: "OPERATION",
-    scope: "PERSONAL",
-    ownerMember: "Yo",
   },
   {
     id: "cp-01a2b3c4-4444-4a1b-8c2d-000000000004",
@@ -219,8 +211,6 @@ export const MOCK_COUNTERPARTIES: Counterparty[] = [
     lastInteractionAt: daysAgo(31),
     metrics: { totalOps: 4, activeOps: 0, completedOps: 4, disputedOps: 0, totalVolumeMxn: 1_820_000, avgTicketMxn: 455_000, onTimeRate: 0.82, complianceRate: 0.85 },
     source: "SEARCH",
-    scope: "PERSONAL",
-    ownerMember: "Yo",
   },
   {
     id: "cp-01a2b3c4-5555-4a1b-8c2d-000000000005",
@@ -242,8 +232,6 @@ export const MOCK_COUNTERPARTIES: Counterparty[] = [
     lastInteractionAt: daysAgo(62),
     metrics: { totalOps: 6, activeOps: 0, completedOps: 5, disputedOps: 1, totalVolumeMxn: 3_150_000, avgTicketMxn: 525_000, onTimeRate: 0.71, complianceRate: 0.74 },
     source: "OPERATION",
-    scope: "TEAM",
-    ownerMember: "María López",
   },
   {
     id: "cp-01a2b3c4-6666-4a1b-8c2d-000000000006",
@@ -265,8 +253,6 @@ export const MOCK_COUNTERPARTIES: Counterparty[] = [
     lastInteractionAt: daysAgo(38),
     metrics: { totalOps: 2, activeOps: 0, completedOps: 1, disputedOps: 1, totalVolumeMxn: 780_000, avgTicketMxn: 390_000, onTimeRate: 0.5, complianceRate: 0.55 },
     source: "INVITATION",
-    scope: "PERSONAL",
-    ownerMember: "Yo",
   },
 ];
 
