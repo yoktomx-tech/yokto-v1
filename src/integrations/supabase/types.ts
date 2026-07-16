@@ -1573,6 +1573,7 @@ export type Database = {
           last_name: string | null
           legal_name: string | null
           legal_rep: Json | null
+          mfa_status: string
           onboarding_completed: boolean
           onboarding_step: number
           phone: string | null
@@ -1614,6 +1615,7 @@ export type Database = {
           last_name?: string | null
           legal_name?: string | null
           legal_rep?: Json | null
+          mfa_status?: string
           onboarding_completed?: boolean
           onboarding_step?: number
           phone?: string | null
@@ -1655,6 +1657,7 @@ export type Database = {
           last_name?: string | null
           legal_name?: string | null
           legal_rep?: Json | null
+          mfa_status?: string
           onboarding_completed?: boolean
           onboarding_step?: number
           phone?: string | null
