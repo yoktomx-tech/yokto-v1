@@ -638,15 +638,32 @@ function Step3Fiscal({ onSaved, onBack, setError, loading, setLoading }: {
   }, [curpVerified, curpBoxOpen]);
 
   async function onRfcBlur() {
-    if (!f.rfc) return setRfcCheck(null);
+    if (!f.rfc) { setRfcCheck(null); setRfcVerified(null); return; }
     const norm = normalizeRfc(f.rfc);
     set("rfc", norm);
-    const local = validateRfc(norm, tipo === "persona_fisica" ? "PF" : "PM");
-    if (!local.valid) { setRfcCheck({ ok: false, msg: local.error ?? "RFC inválido" }); return; }
+    const expected = tipo === "persona_fisica" ? "PF" : "PM";
+    const local = validateRfc(norm, expected);
+    if (!local.valid) { setRfcCheck({ ok: false, msg: local.error ?? "RFC inválido" }); setRfcVerified(null); return; }
     setRfcChecking(true);
     try {
-      const r = await validateRfcFn({ data: { rfc: norm, expected: tipo === "persona_fisica" ? "PF" : "PM" } });
-      setRfcCheck({ ok: r.valid, msg: r.valid ? "RFC con formato válido" : (r.error ?? "RFC inválido") });
+      const r = await getRfcRazonSocialFn({ data: { rfc: norm, expected } });
+      // Comparar nombre completo si es PF y ya se validó CURP
+      const normalize = (s: string) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase().replace(/\s+/g, " ").trim();
+      const expectedName = tipo === "persona_fisica"
+        ? normalize([f.first_name, f.last_name, f.second_last_name].filter(Boolean).join(" "))
+        : normalize(f.legal_name ?? "");
+      const gotName = normalize(r.nombreCompleto);
+      const match = !expectedName || !gotName ? true : (expectedName === gotName || gotName.includes(expectedName) || expectedName.includes(gotName));
+      setRfcVerified({
+        tipo: r.tipo, razonSocial: r.razonSocial, nombres: r.nombres,
+        apellidoPaterno: r.apellidoPaterno, apellidoMaterno: r.apellidoMaterno,
+        nombreCompleto: r.nombreCompleto, match,
+      });
+      setRfcBoxOpen(true);
+      setRfcCheck({ ok: match, msg: match ? "RFC verificado en el SAT" : "Los datos vinculados al RFC no coinciden" });
+    } catch (e) {
+      setRfcCheck({ ok: false, msg: e instanceof Error ? e.message : "No se pudo verificar el RFC" });
+      setRfcVerified(null);
     } finally { setRfcChecking(false); }
   }
   function onCurpChange(v: string) {
