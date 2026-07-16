@@ -9,8 +9,8 @@ import { NoCustodyBanner } from "@/components/payments/ui/no-custody-banner";
 import { InfoBox } from "@/components/tx/ui/info-box";
 import { cn } from "@/lib/utils";
 import {
-  MOCK_COUNTERPARTIES, SECTOR_CFG, STATUS_CFG, TRUST_CFG,
-  formatMoney, relativeTime, maskRfc, computeMetrics,
+  MOCK_COUNTERPARTIES, MOCK_INVITATIONS, SECTOR_CFG, STATUS_CFG, TRUST_CFG, COMPLIANCE_CFG,
+  formatMoney, relativeTime, maskRfc, computeMetrics, complianceLevelOf, hasAlert,
   type Counterparty, type RelationshipStatus, type SectorId,
 } from "@/lib/relationships-mock";
 
@@ -18,15 +18,15 @@ export const Route = createFileRoute("/_authenticated/relationships/")({
   component: RelationshipsListPage,
 });
 
-type TabKey = "TODAS" | "FRECUENTES" | "COMPRADORES" | "VENDEDORES" | "PAUSADAS" | "BLOQUEADAS" | "OCULTAS";
+type TabKey = "TODAS" | "CLIENTES" | "PROVEEDORES" | "COMPRADORES" | "VENDEDORES" | "INVITACIONES" | "CON_ALERTA";
 const TABS: { key: TabKey; label: string }[] = [
-  { key: "TODAS", label: "Todas" },
-  { key: "FRECUENTES", label: "Frecuentes" },
-  { key: "COMPRADORES", label: "Compradores" },
-  { key: "VENDEDORES", label: "Vendedores" },
-  { key: "PAUSADAS", label: "Pausadas" },
-  { key: "BLOQUEADAS", label: "Bloqueadas" },
-  { key: "OCULTAS", label: "Ocultas" },
+  { key: "TODAS",        label: "Todas" },
+  { key: "CLIENTES",     label: "Clientes" },
+  { key: "PROVEEDORES",  label: "Proveedores" },
+  { key: "COMPRADORES",  label: "Compradores" },
+  { key: "VENDEDORES",   label: "Vendedores" },
+  { key: "INVITACIONES", label: "Invitaciones" },
+  { key: "CON_ALERTA",   label: "Con alerta" },
 ];
 
 function RelationshipsListPage() {
