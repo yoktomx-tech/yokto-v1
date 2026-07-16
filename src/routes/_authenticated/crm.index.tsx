@@ -63,11 +63,11 @@ function RelationshipsListPage() {
   const kpis = useMemo(() => computeMetrics(MOCK_COUNTERPARTIES, MOCK_INVITATIONS), []);
 
   return (
-    <div className="p-4 md:p-6 flex flex-col gap-6 max-w-[1600px] mx-auto w-full">
+    <div className="flex flex-col gap-6">
       <PageHeader
         icon={Users}
-        title="Relaciones de Confianza"
-        subtitle="Contrapartes reales derivadas de operaciones, búsqueda verificada o invitaciones formales. YOKTO no permite crear contactos manuales."
+        title="CRM"
+        subtitle="Contrapartes verificadas de tus operaciones, búsquedas e invitaciones."
         actions={
           <div className="flex items-center gap-2">
             <Link
@@ -86,8 +86,6 @@ function RelationshipsListPage() {
         }
       />
 
-      <NoCustodyBanner />
-
       {/* KPIs — según spec: Contrapartes, Ops activas, Volumen histórico, Invitaciones */}
       <section className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <KPI icon={<Users className="size-4" />} label="Contrapartes" value={String(kpis.totalCounterparties)} hint={`${kpis.activas} activas · ${kpis.kycVerified} con KYC`} />
@@ -102,10 +100,6 @@ function RelationshipsListPage() {
         />
       </section>
 
-      <InfoBox tone="info" title="Cómo se agregan contrapartes">
-        Toda relación proviene de una operación cerrada, una búsqueda por RFC/CURP/YOKTO ID o una invitación formal aceptada.
-        No es posible dar de alta contactos manualmente — así garantizamos identidad verificada en ambos extremos.
-      </InfoBox>
 
       {/* Tabs */}
       <div className="border-b border-yo-border overflow-x-auto">
