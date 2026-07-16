@@ -1680,8 +1680,7 @@ function Step4Biometric({ onDone, onBack, setError }: {
           <ol className="text-sm text-yo-txt-2 flex flex-col gap-2">
             <StepLine ok={!!status?.curp_match} active={!status?.curp_match}>Captura de identificación (INE/Pasaporte) + CURP</StepLine>
             <StepLine ok={!!status?.face_match_ok} active={!!status?.curp_match && !status?.face_match_ok}>Selfie y prueba de vida (match ≥ 99.9%)</StepLine>
-            <StepLine ok={!!status?.address_doc_ok} active={!!status?.face_match_ok && !status?.address_doc_ok}>Comprobante de domicilio (≤ 3 meses)</StepLine>
-            <StepLine ok={finished} active={!!status?.address_doc_ok && !finished}>Lista nominal + confirmación</StepLine>
+            <StepLine ok={finished} active={!!status?.face_match_ok && !finished}>Lista nominal + confirmación</StepLine>
           </ol>
 
           {status && (
