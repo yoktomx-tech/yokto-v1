@@ -193,12 +193,17 @@ function Select({ value, onChange, label, children }: { value: string; onChange:
 function CounterpartyCard({ c }: { c: Counterparty }) {
   const status = STATUS_CFG[c.status];
   const trust = TRUST_CFG[c.trustLevel];
+  const comp = COMPLIANCE_CFG[complianceLevelOf(c)];
   const PersonIcon = c.personType === "PM" ? Building2 : User;
+  const alertActive = hasAlert(c);
   return (
     <Link
       to="/relationships/$counterpartyId"
       params={{ counterpartyId: c.id }}
-      className="group bg-white border border-yo-border rounded-lg p-4 hover:border-[#4F46E5] hover:shadow-sm transition-all flex flex-col gap-3"
+      className={cn(
+        "group bg-white border rounded-lg p-4 hover:shadow-sm transition-all flex flex-col gap-3",
+        alertActive ? "border-[#F59E0B]/50 hover:border-[#F59E0B]" : "border-yo-border hover:border-[#4F46E5]",
+      )}
     >
       <div className="flex items-start gap-3">
         <div className="size-11 rounded-lg bg-[#EEF2FF] text-[#4338CA] grid place-items-center shrink-0">
@@ -214,7 +219,10 @@ function CounterpartyCard({ c }: { c: Counterparty }) {
             <span>•</span>
             <span className="font-mono">{maskRfc(c.rfc, true)}</span>
             <span>•</span>
-            <span>{c.personType}</span>
+            <span>{c.personType === "PM" ? "Persona Moral" : c.personType === "PFAE" ? "PFAE" : "Persona Física"}</span>
+          </div>
+          <div className="mt-1 text-[11px] text-yo-txt-3">
+            Roles: {c.role === "BOTH" ? "Comprador y Vendedor" : c.role === "BUYER" ? "Comprador · Pagador" : "Vendedor · Beneficiario"}
           </div>
         </div>
         <span
@@ -227,6 +235,9 @@ function CounterpartyCard({ c }: { c: Counterparty }) {
       </div>
 
       <div className="flex flex-wrap gap-1.5">
+        <span className="text-[11px] px-2 py-0.5 rounded-full font-medium" style={{ background: comp.bg, color: comp.txt }}>
+          {comp.label}
+        </span>
         {c.sectors.map((s) => {
           const cfg = SECTOR_CFG[s];
           return (
@@ -239,6 +250,13 @@ function CounterpartyCard({ c }: { c: Counterparty }) {
           Trust {c.trustLevel} · {c.trustScore}
         </span>
       </div>
+
+      {alertActive && (
+        <div className="text-[11px] px-2 py-1 rounded-md bg-[#FFFBEB] text-[#B45309] inline-flex items-center gap-1.5">
+          <AlertTriangle className="size-3" />
+          {c.metrics.disputedOps > 0 ? "Disputas históricas" : c.status === "BLOQUEADA" ? "Contraparte bloqueada" : c.status === "PAUSADA" ? "Relación pausada" : "KYC pendiente"}
+        </div>
+      )}
 
       <div className="grid grid-cols-3 gap-2 text-center">
         <Metric label="Ops totales" value={String(c.metrics.totalOps)} />
