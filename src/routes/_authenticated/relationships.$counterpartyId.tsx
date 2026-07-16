@@ -123,6 +123,10 @@ function CounterpartyDetailPage() {
       </div>
 
       {showRequestDoc && <RequestDocumentDialog c={counterparty} onClose={() => setShowRequestDoc(false)} />}
+
+      <p className="text-[11px] text-yo-txt-3 text-center pt-2 border-t border-yo-border">
+        Algunos datos pueden estar ocultos por privacidad. La información visible depende de tu relación operativa, permisos y documentos compartidos dentro de YOKTO.
+      </p>
     </div>
   );
 }
