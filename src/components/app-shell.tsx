@@ -2,7 +2,7 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import { useState } from "react";
 import {
   LayoutDashboard, Briefcase, PackageCheck, AlertTriangle, Banknote,
-  Users, Users2, Star, Menu, X, ClipboardCheck, BarChart3,
+  Users, Users2, Star, Menu, X, ClipboardCheck, BarChart3, Landmark,
 } from "lucide-react";
 import { YoktoLogo } from "@/components/logo";
 import { OrgSwitcher } from "@/components/org-switcher";
@@ -20,6 +20,7 @@ const SELLER_NAV: NavItem[] = [
   { to: "/cumplimiento", icon: PackageCheck,     label: "Cumplimiento" },
   { to: "/disputes",     icon: AlertTriangle,   label: "Disputas" },
   { to: "/payments",     icon: Banknote,        label: "Pagos y retenciones" },
+  { to: "/compliance/bank-accounts", icon: Landmark, label: "Cuentas bancarias" },
   { to: "/analytics",    icon: BarChart3,       label: "Analytics" },
   { to: "/crm", icon: Users,           label: "Relaciones" },
   { to: "/teams",        icon: Users2,          label: "Equipo" },
