@@ -58,6 +58,7 @@ import { Route as AuthenticatedDisputesIdRouteImport } from './routes/_authentic
 import { Route as AuthenticatedCrmSearchRouteImport } from './routes/_authenticated/crm.search'
 import { Route as AuthenticatedCrmInvitationsRouteImport } from './routes/_authenticated/crm.invitations'
 import { Route as AuthenticatedCrmCounterpartyIdRouteImport } from './routes/_authenticated/crm.$counterpartyId'
+import { Route as AuthenticatedComplianceBankAccountsRouteImport } from './routes/_authenticated/compliance.bank-accounts'
 import { Route as AuthenticatedAnalyticsSectoresRouteImport } from './routes/_authenticated/analytics.sectores'
 import { Route as AuthenticatedAnalyticsPerfilCumplimientoRouteImport } from './routes/_authenticated/analytics.perfil-cumplimiento'
 import { Route as AuthenticatedAnalyticsPagosRouteImport } from './routes/_authenticated/analytics.pagos'
@@ -73,12 +74,14 @@ import { Route as AuthenticatedAnalyticsAprobacionesRouteImport } from './routes
 import { Route as AuthenticatedAdminDisputesRouteImport } from './routes/_authenticated/admin.disputes'
 import { Route as AuthenticatedAdminAnalyticsRouteImport } from './routes/_authenticated/admin.analytics'
 import { Route as AuthenticatedTransactionsIdIndexRouteImport } from './routes/_authenticated/transactions.$id.index'
+import { Route as AuthenticatedComplianceBankAccountsIndexRouteImport } from './routes/_authenticated/compliance.bank-accounts.index'
 import { Route as ApiPublicV1TransactionsRouteImport } from './routes/api/public/v1.transactions'
 import { Route as ApiPublicStripeWebhookRouteImport } from './routes/api/public/stripe.webhook'
 import { Route as ApiPublicHooksVerificamexPennyTestRouteImport } from './routes/api/public/hooks/verificamex-penny-test'
 import { Route as ApiPublicHooksDisputeDeadlinesRouteImport } from './routes/api/public/hooks/dispute-deadlines'
 import { Route as AuthenticatedTransactionsIdExpedienteRouteImport } from './routes/_authenticated/transactions.$id.expediente'
 import { Route as AuthenticatedSettingsOrganizationNewRouteImport } from './routes/_authenticated/settings.organization.new'
+import { Route as AuthenticatedComplianceBankAccountsNewRouteImport } from './routes/_authenticated/compliance.bank-accounts.new'
 import { Route as AuthenticatedAdminDisputesIdRouteImport } from './routes/_authenticated/admin.disputes.$id'
 
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
@@ -347,6 +350,12 @@ const AuthenticatedCrmCounterpartyIdRoute =
     path: '/$counterpartyId',
     getParentRoute: () => AuthenticatedCrmRoute,
   } as any)
+const AuthenticatedComplianceBankAccountsRoute =
+  AuthenticatedComplianceBankAccountsRouteImport.update({
+    id: '/compliance/bank-accounts',
+    path: '/compliance/bank-accounts',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedAnalyticsSectoresRoute =
   AuthenticatedAnalyticsSectoresRouteImport.update({
     id: '/sectores',
@@ -437,6 +446,12 @@ const AuthenticatedTransactionsIdIndexRoute =
     path: '/',
     getParentRoute: () => AuthenticatedTransactionsIdRoute,
   } as any)
+const AuthenticatedComplianceBankAccountsIndexRoute =
+  AuthenticatedComplianceBankAccountsIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedComplianceBankAccountsRoute,
+  } as any)
 const ApiPublicV1TransactionsRoute = ApiPublicV1TransactionsRouteImport.update({
   id: '/api/public/v1/transactions',
   path: '/api/public/v1/transactions',
@@ -470,6 +485,12 @@ const AuthenticatedSettingsOrganizationNewRoute =
     id: '/new',
     path: '/new',
     getParentRoute: () => AuthenticatedSettingsOrganizationRoute,
+  } as any)
+const AuthenticatedComplianceBankAccountsNewRoute =
+  AuthenticatedComplianceBankAccountsNewRouteImport.update({
+    id: '/new',
+    path: '/new',
+    getParentRoute: () => AuthenticatedComplianceBankAccountsRoute,
   } as any)
 const AuthenticatedAdminDisputesIdRoute =
   AuthenticatedAdminDisputesIdRouteImport.update({
@@ -516,6 +537,7 @@ export interface FileRoutesByFullPath {
   '/analytics/pagos': typeof AuthenticatedAnalyticsPagosRoute
   '/analytics/perfil-cumplimiento': typeof AuthenticatedAnalyticsPerfilCumplimientoRoute
   '/analytics/sectores': typeof AuthenticatedAnalyticsSectoresRoute
+  '/compliance/bank-accounts': typeof AuthenticatedComplianceBankAccountsRouteWithChildren
   '/crm/$counterpartyId': typeof AuthenticatedCrmCounterpartyIdRoute
   '/crm/invitations': typeof AuthenticatedCrmInvitationsRoute
   '/crm/search': typeof AuthenticatedCrmSearchRoute
@@ -542,12 +564,14 @@ export interface FileRoutesByFullPath {
   '/teams/': typeof AuthenticatedTeamsIndexRoute
   '/transactions/': typeof AuthenticatedTransactionsIndexRoute
   '/admin/disputes/$id': typeof AuthenticatedAdminDisputesIdRoute
+  '/compliance/bank-accounts/new': typeof AuthenticatedComplianceBankAccountsNewRoute
   '/settings/organization/new': typeof AuthenticatedSettingsOrganizationNewRoute
   '/transactions/$id/expediente': typeof AuthenticatedTransactionsIdExpedienteRoute
   '/api/public/hooks/dispute-deadlines': typeof ApiPublicHooksDisputeDeadlinesRoute
   '/api/public/hooks/verificamex-penny-test': typeof ApiPublicHooksVerificamexPennyTestRoute
   '/api/public/stripe/webhook': typeof ApiPublicStripeWebhookRoute
   '/api/public/v1/transactions': typeof ApiPublicV1TransactionsRoute
+  '/compliance/bank-accounts/': typeof AuthenticatedComplianceBankAccountsIndexRoute
   '/transactions/$id/': typeof AuthenticatedTransactionsIdIndexRoute
 }
 export interface FileRoutesByTo {
@@ -608,12 +632,14 @@ export interface FileRoutesByTo {
   '/teams': typeof AuthenticatedTeamsIndexRoute
   '/transactions': typeof AuthenticatedTransactionsIndexRoute
   '/admin/disputes/$id': typeof AuthenticatedAdminDisputesIdRoute
+  '/compliance/bank-accounts/new': typeof AuthenticatedComplianceBankAccountsNewRoute
   '/settings/organization/new': typeof AuthenticatedSettingsOrganizationNewRoute
   '/transactions/$id/expediente': typeof AuthenticatedTransactionsIdExpedienteRoute
   '/api/public/hooks/dispute-deadlines': typeof ApiPublicHooksDisputeDeadlinesRoute
   '/api/public/hooks/verificamex-penny-test': typeof ApiPublicHooksVerificamexPennyTestRoute
   '/api/public/stripe/webhook': typeof ApiPublicStripeWebhookRoute
   '/api/public/v1/transactions': typeof ApiPublicV1TransactionsRoute
+  '/compliance/bank-accounts': typeof AuthenticatedComplianceBankAccountsIndexRoute
   '/transactions/$id': typeof AuthenticatedTransactionsIdIndexRoute
 }
 export interface FileRoutesById {
@@ -656,6 +682,7 @@ export interface FileRoutesById {
   '/_authenticated/analytics/pagos': typeof AuthenticatedAnalyticsPagosRoute
   '/_authenticated/analytics/perfil-cumplimiento': typeof AuthenticatedAnalyticsPerfilCumplimientoRoute
   '/_authenticated/analytics/sectores': typeof AuthenticatedAnalyticsSectoresRoute
+  '/_authenticated/compliance/bank-accounts': typeof AuthenticatedComplianceBankAccountsRouteWithChildren
   '/_authenticated/crm/$counterpartyId': typeof AuthenticatedCrmCounterpartyIdRoute
   '/_authenticated/crm/invitations': typeof AuthenticatedCrmInvitationsRoute
   '/_authenticated/crm/search': typeof AuthenticatedCrmSearchRoute
@@ -682,12 +709,14 @@ export interface FileRoutesById {
   '/_authenticated/teams/': typeof AuthenticatedTeamsIndexRoute
   '/_authenticated/transactions/': typeof AuthenticatedTransactionsIndexRoute
   '/_authenticated/admin/disputes/$id': typeof AuthenticatedAdminDisputesIdRoute
+  '/_authenticated/compliance/bank-accounts/new': typeof AuthenticatedComplianceBankAccountsNewRoute
   '/_authenticated/settings/organization/new': typeof AuthenticatedSettingsOrganizationNewRoute
   '/_authenticated/transactions/$id/expediente': typeof AuthenticatedTransactionsIdExpedienteRoute
   '/api/public/hooks/dispute-deadlines': typeof ApiPublicHooksDisputeDeadlinesRoute
   '/api/public/hooks/verificamex-penny-test': typeof ApiPublicHooksVerificamexPennyTestRoute
   '/api/public/stripe/webhook': typeof ApiPublicStripeWebhookRoute
   '/api/public/v1/transactions': typeof ApiPublicV1TransactionsRoute
+  '/_authenticated/compliance/bank-accounts/': typeof AuthenticatedComplianceBankAccountsIndexRoute
   '/_authenticated/transactions/$id/': typeof AuthenticatedTransactionsIdIndexRoute
 }
 export interface FileRouteTypes {
@@ -730,6 +759,7 @@ export interface FileRouteTypes {
     | '/analytics/pagos'
     | '/analytics/perfil-cumplimiento'
     | '/analytics/sectores'
+    | '/compliance/bank-accounts'
     | '/crm/$counterpartyId'
     | '/crm/invitations'
     | '/crm/search'
@@ -756,12 +786,14 @@ export interface FileRouteTypes {
     | '/teams/'
     | '/transactions/'
     | '/admin/disputes/$id'
+    | '/compliance/bank-accounts/new'
     | '/settings/organization/new'
     | '/transactions/$id/expediente'
     | '/api/public/hooks/dispute-deadlines'
     | '/api/public/hooks/verificamex-penny-test'
     | '/api/public/stripe/webhook'
     | '/api/public/v1/transactions'
+    | '/compliance/bank-accounts/'
     | '/transactions/$id/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -822,12 +854,14 @@ export interface FileRouteTypes {
     | '/teams'
     | '/transactions'
     | '/admin/disputes/$id'
+    | '/compliance/bank-accounts/new'
     | '/settings/organization/new'
     | '/transactions/$id/expediente'
     | '/api/public/hooks/dispute-deadlines'
     | '/api/public/hooks/verificamex-penny-test'
     | '/api/public/stripe/webhook'
     | '/api/public/v1/transactions'
+    | '/compliance/bank-accounts'
     | '/transactions/$id'
   id:
     | '__root__'
@@ -869,6 +903,7 @@ export interface FileRouteTypes {
     | '/_authenticated/analytics/pagos'
     | '/_authenticated/analytics/perfil-cumplimiento'
     | '/_authenticated/analytics/sectores'
+    | '/_authenticated/compliance/bank-accounts'
     | '/_authenticated/crm/$counterpartyId'
     | '/_authenticated/crm/invitations'
     | '/_authenticated/crm/search'
@@ -895,12 +930,14 @@ export interface FileRouteTypes {
     | '/_authenticated/teams/'
     | '/_authenticated/transactions/'
     | '/_authenticated/admin/disputes/$id'
+    | '/_authenticated/compliance/bank-accounts/new'
     | '/_authenticated/settings/organization/new'
     | '/_authenticated/transactions/$id/expediente'
     | '/api/public/hooks/dispute-deadlines'
     | '/api/public/hooks/verificamex-penny-test'
     | '/api/public/stripe/webhook'
     | '/api/public/v1/transactions'
+    | '/_authenticated/compliance/bank-accounts/'
     | '/_authenticated/transactions/$id/'
   fileRoutesById: FileRoutesById
 }
@@ -1265,6 +1302,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCrmCounterpartyIdRouteImport
       parentRoute: typeof AuthenticatedCrmRoute
     }
+    '/_authenticated/compliance/bank-accounts': {
+      id: '/_authenticated/compliance/bank-accounts'
+      path: '/compliance/bank-accounts'
+      fullPath: '/compliance/bank-accounts'
+      preLoaderRoute: typeof AuthenticatedComplianceBankAccountsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/analytics/sectores': {
       id: '/_authenticated/analytics/sectores'
       path: '/sectores'
@@ -1370,6 +1414,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedTransactionsIdIndexRouteImport
       parentRoute: typeof AuthenticatedTransactionsIdRoute
     }
+    '/_authenticated/compliance/bank-accounts/': {
+      id: '/_authenticated/compliance/bank-accounts/'
+      path: '/'
+      fullPath: '/compliance/bank-accounts/'
+      preLoaderRoute: typeof AuthenticatedComplianceBankAccountsIndexRouteImport
+      parentRoute: typeof AuthenticatedComplianceBankAccountsRoute
+    }
     '/api/public/v1/transactions': {
       id: '/api/public/v1/transactions'
       path: '/api/public/v1/transactions'
@@ -1411,6 +1462,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/settings/organization/new'
       preLoaderRoute: typeof AuthenticatedSettingsOrganizationNewRouteImport
       parentRoute: typeof AuthenticatedSettingsOrganizationRoute
+    }
+    '/_authenticated/compliance/bank-accounts/new': {
+      id: '/_authenticated/compliance/bank-accounts/new'
+      path: '/new'
+      fullPath: '/compliance/bank-accounts/new'
+      preLoaderRoute: typeof AuthenticatedComplianceBankAccountsNewRouteImport
+      parentRoute: typeof AuthenticatedComplianceBankAccountsRoute
     }
     '/_authenticated/admin/disputes/$id': {
       id: '/_authenticated/admin/disputes/$id'
@@ -1607,6 +1665,24 @@ const AuthenticatedTransactionsRouteWithChildren =
     AuthenticatedTransactionsRouteChildren,
   )
 
+interface AuthenticatedComplianceBankAccountsRouteChildren {
+  AuthenticatedComplianceBankAccountsNewRoute: typeof AuthenticatedComplianceBankAccountsNewRoute
+  AuthenticatedComplianceBankAccountsIndexRoute: typeof AuthenticatedComplianceBankAccountsIndexRoute
+}
+
+const AuthenticatedComplianceBankAccountsRouteChildren: AuthenticatedComplianceBankAccountsRouteChildren =
+  {
+    AuthenticatedComplianceBankAccountsNewRoute:
+      AuthenticatedComplianceBankAccountsNewRoute,
+    AuthenticatedComplianceBankAccountsIndexRoute:
+      AuthenticatedComplianceBankAccountsIndexRoute,
+  }
+
+const AuthenticatedComplianceBankAccountsRouteWithChildren =
+  AuthenticatedComplianceBankAccountsRoute._addFileChildren(
+    AuthenticatedComplianceBankAccountsRouteChildren,
+  )
+
 interface AuthenticatedSettingsOrganizationRouteChildren {
   AuthenticatedSettingsOrganizationNewRoute: typeof AuthenticatedSettingsOrganizationNewRoute
 }
@@ -1638,6 +1714,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedScoreRoute: typeof AuthenticatedScoreRoute
   AuthenticatedTeamsRoute: typeof AuthenticatedTeamsRouteWithChildren
   AuthenticatedTransactionsRoute: typeof AuthenticatedTransactionsRouteWithChildren
+  AuthenticatedComplianceBankAccountsRoute: typeof AuthenticatedComplianceBankAccountsRouteWithChildren
   AuthenticatedOnboardingPendienteRoute: typeof AuthenticatedOnboardingPendienteRoute
   AuthenticatedSettingsOrganizationRoute: typeof AuthenticatedSettingsOrganizationRouteWithChildren
 }
@@ -1658,6 +1735,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedScoreRoute: AuthenticatedScoreRoute,
   AuthenticatedTeamsRoute: AuthenticatedTeamsRouteWithChildren,
   AuthenticatedTransactionsRoute: AuthenticatedTransactionsRouteWithChildren,
+  AuthenticatedComplianceBankAccountsRoute:
+    AuthenticatedComplianceBankAccountsRouteWithChildren,
   AuthenticatedOnboardingPendienteRoute: AuthenticatedOnboardingPendienteRoute,
   AuthenticatedSettingsOrganizationRoute:
     AuthenticatedSettingsOrganizationRouteWithChildren,
