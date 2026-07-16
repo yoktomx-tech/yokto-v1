@@ -72,6 +72,7 @@ import { Route as AuthenticatedAnalyticsContratosRouteImport } from './routes/_a
 import { Route as AuthenticatedAnalyticsAprobacionesRouteImport } from './routes/_authenticated/analytics.aprobaciones'
 import { Route as AuthenticatedAdminDisputesRouteImport } from './routes/_authenticated/admin.disputes'
 import { Route as AuthenticatedAdminAnalyticsRouteImport } from './routes/_authenticated/admin.analytics'
+import { Route as AuthenticatedTransactionsIdIndexRouteImport } from './routes/_authenticated/transactions.$id.index'
 import { Route as ApiPublicV1TransactionsRouteImport } from './routes/api/public/v1.transactions'
 import { Route as ApiPublicStripeWebhookRouteImport } from './routes/api/public/stripe.webhook'
 import { Route as ApiPublicHooksDisputeDeadlinesRouteImport } from './routes/api/public/hooks/dispute-deadlines'
@@ -429,6 +430,12 @@ const AuthenticatedAdminAnalyticsRoute =
     path: '/analytics',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedTransactionsIdIndexRoute =
+  AuthenticatedTransactionsIdIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedTransactionsIdRoute,
+  } as any)
 const ApiPublicV1TransactionsRoute = ApiPublicV1TransactionsRouteImport.update({
   id: '/api/public/v1/transactions',
   path: '/api/public/v1/transactions',
@@ -533,6 +540,7 @@ export interface FileRoutesByFullPath {
   '/api/public/hooks/dispute-deadlines': typeof ApiPublicHooksDisputeDeadlinesRoute
   '/api/public/stripe/webhook': typeof ApiPublicStripeWebhookRoute
   '/api/public/v1/transactions': typeof ApiPublicV1TransactionsRoute
+  '/transactions/$id/': typeof AuthenticatedTransactionsIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -585,7 +593,6 @@ export interface FileRoutesByTo {
   '/teams/reports': typeof AuthenticatedTeamsReportsRoute
   '/teams/settings': typeof AuthenticatedTeamsSettingsRoute
   '/teams/workflows': typeof AuthenticatedTeamsWorkflowsRoute
-  '/transactions/$id': typeof AuthenticatedTransactionsIdRouteWithChildren
   '/transactions/new': typeof AuthenticatedTransactionsNewRoute
   '/analytics': typeof AuthenticatedAnalyticsIndexRoute
   '/crm': typeof AuthenticatedCrmIndexRoute
@@ -598,6 +605,7 @@ export interface FileRoutesByTo {
   '/api/public/hooks/dispute-deadlines': typeof ApiPublicHooksDisputeDeadlinesRoute
   '/api/public/stripe/webhook': typeof ApiPublicStripeWebhookRoute
   '/api/public/v1/transactions': typeof ApiPublicV1TransactionsRoute
+  '/transactions/$id': typeof AuthenticatedTransactionsIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -670,6 +678,7 @@ export interface FileRoutesById {
   '/api/public/hooks/dispute-deadlines': typeof ApiPublicHooksDisputeDeadlinesRoute
   '/api/public/stripe/webhook': typeof ApiPublicStripeWebhookRoute
   '/api/public/v1/transactions': typeof ApiPublicV1TransactionsRoute
+  '/_authenticated/transactions/$id/': typeof AuthenticatedTransactionsIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -742,6 +751,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/dispute-deadlines'
     | '/api/public/stripe/webhook'
     | '/api/public/v1/transactions'
+    | '/transactions/$id/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -794,7 +804,6 @@ export interface FileRouteTypes {
     | '/teams/reports'
     | '/teams/settings'
     | '/teams/workflows'
-    | '/transactions/$id'
     | '/transactions/new'
     | '/analytics'
     | '/crm'
@@ -807,6 +816,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/dispute-deadlines'
     | '/api/public/stripe/webhook'
     | '/api/public/v1/transactions'
+    | '/transactions/$id'
   id:
     | '__root__'
     | '/'
@@ -878,6 +888,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/dispute-deadlines'
     | '/api/public/stripe/webhook'
     | '/api/public/v1/transactions'
+    | '/_authenticated/transactions/$id/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -1338,6 +1349,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminAnalyticsRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/transactions/$id/': {
+      id: '/_authenticated/transactions/$id/'
+      path: '/'
+      fullPath: '/transactions/$id/'
+      preLoaderRoute: typeof AuthenticatedTransactionsIdIndexRouteImport
+      parentRoute: typeof AuthenticatedTransactionsIdRoute
+    }
     '/api/public/v1/transactions': {
       id: '/api/public/v1/transactions'
       path: '/api/public/v1/transactions'
@@ -1533,12 +1551,15 @@ const AuthenticatedTeamsRouteWithChildren =
 
 interface AuthenticatedTransactionsIdRouteChildren {
   AuthenticatedTransactionsIdExpedienteRoute: typeof AuthenticatedTransactionsIdExpedienteRoute
+  AuthenticatedTransactionsIdIndexRoute: typeof AuthenticatedTransactionsIdIndexRoute
 }
 
 const AuthenticatedTransactionsIdRouteChildren: AuthenticatedTransactionsIdRouteChildren =
   {
     AuthenticatedTransactionsIdExpedienteRoute:
       AuthenticatedTransactionsIdExpedienteRoute,
+    AuthenticatedTransactionsIdIndexRoute:
+      AuthenticatedTransactionsIdIndexRoute,
   }
 
 const AuthenticatedTransactionsIdRouteWithChildren =
