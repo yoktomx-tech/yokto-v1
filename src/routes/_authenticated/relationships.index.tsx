@@ -167,14 +167,14 @@ function RelationshipsListPage() {
   );
 }
 
-function KPI({ icon, label, value, hint }: { icon: React.ReactNode; label: string; value: string; hint?: string }) {
+function KPI({ icon, label, value, hint, tone }: { icon: React.ReactNode; label: string; value: string; hint?: string; tone?: "warn" }) {
   return (
-    <div className="bg-white border border-yo-border rounded-lg p-4">
+    <div className={cn("bg-white border rounded-lg p-4", tone === "warn" ? "border-[#F59E0B]" : "border-yo-border")}>
       <div className="flex items-center gap-2 text-yo-txt-2 text-[11px] uppercase tracking-wider font-medium">
-        <span className="text-[#4F46E5]">{icon}</span>{label}
+        <span className={tone === "warn" ? "text-[#B45309]" : "text-[#4F46E5]"}>{icon}</span>{label}
       </div>
       <div className="mt-1 text-[22px] font-bold text-yo-txt font-mono">{value}</div>
-      {hint && <div className="text-[11px] text-yo-txt-3">{hint}</div>}
+      {hint && <div className={cn("text-[11px]", tone === "warn" ? "text-[#B45309]" : "text-yo-txt-3")}>{hint}</div>}
     </div>
   );
 }
