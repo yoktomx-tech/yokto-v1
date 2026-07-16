@@ -1,0 +1,1 @@
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS mfa_status text NOT NULL DEFAULT 'not_configured' CHECK (mfa_status IN ('not_configured','pending','enabled'));
