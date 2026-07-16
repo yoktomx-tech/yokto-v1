@@ -1,9 +1,8 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   LayoutDashboard, Briefcase, PackageCheck, AlertTriangle, Banknote,
   Users, Users2, Star, Menu, X, ClipboardCheck, BarChart3, Landmark,
-  PanelLeftClose, PanelLeftOpen,
 } from "lucide-react";
 import { YoktoLogo } from "@/components/logo";
 import { OrgSwitcher } from "@/components/org-switcher";
@@ -40,49 +39,20 @@ const BUYER_NAV: NavItem[] = [
   { to: "/score",        icon: Star,            label: "Score de confianza" },
 ];
 
-const COLLAPSED_KEY = "yokto:sidebar:collapsed";
-
 export function AppShell({ children }: { children: React.ReactNode; sgyScore?: number; displayName?: string }) {
   const pathname = useRouterState({ select: (r) => r.location.pathname });
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [collapsed, setCollapsed] = useState(false);
-  const { role } = useViewRole();
+  const { role, setRole } = useViewRole();
   const { userId, email } = useAuthUser();
-
-  useEffect(() => {
-    try {
-      const v = localStorage.getItem(COLLAPSED_KEY);
-      if (v === "1") setCollapsed(true);
-    } catch {}
-  }, []);
-
-  const toggleCollapsed = () => {
-    setCollapsed((c) => {
-      const next = !c;
-      try { localStorage.setItem(COLLAPSED_KEY, next ? "1" : "0"); } catch {}
-      return next;
-    });
-  };
 
   const nav = role === "seller" ? SELLER_NAV : BUYER_NAV;
   const profile = getMockProfile(role);
 
+  const nav_ = nav;
   return (
     <div className="min-h-dvh flex bg-yo-bg">
-      <aside
-        className={cn(
-          "hidden md:flex shrink-0 flex-col border-r border-yo-border bg-yo-surface sticky top-0 h-dvh transition-[width] duration-200",
-          collapsed ? "w-14" : "md:w-60 lg:w-64"
-        )}
-      >
-        <SidebarContent
-          pathname={pathname}
-          nav={nav}
-          score={profile.score}
-          level={profile.level}
-          collapsed={collapsed}
-          onToggleCollapsed={toggleCollapsed}
-        />
+      <aside className="hidden md:flex md:w-60 lg:w-64 shrink-0 flex-col border-r border-yo-border bg-yo-surface sticky top-0 h-dvh">
+        <SidebarContent pathname={pathname} nav={nav_} score={profile.score} level={profile.level} />
       </aside>
 
 
@@ -126,15 +96,13 @@ export function AppShell({ children }: { children: React.ReactNode; sgyScore?: n
 }
 
 function SidebarContent({
-  pathname, nav, score, level, onNavigate, collapsed, onToggleCollapsed,
+  pathname, nav, score, level, onNavigate,
 }: {
   pathname: string;
   nav: NavItem[];
   score: number;
   level: import("@/lib/score-mock").ComplianceLevel;
   onNavigate?: () => void;
-  collapsed?: boolean;
-  onToggleCollapsed?: () => void;
 }) {
   const cfg = LEVEL_CFG[level];
   const tone = TONE_CLASSES[cfg.tone];
@@ -142,29 +110,14 @@ function SidebarContent({
 
   return (
     <>
-      <div className={cn(
-        "border-b border-yo-border flex items-center",
-        collapsed ? "px-2 py-3 justify-center" : "px-5 py-5 justify-between gap-2"
-      )}>
-        {!collapsed && (
-          <Link to="/dashboard" onClick={onNavigate} className="inline-flex items-center justify-center flex-1">
-            <YoktoLogo variant="dark" className="h-6 w-auto" />
-          </Link>
-        )}
-        {onToggleCollapsed && (
-          <button
-            onClick={onToggleCollapsed}
-            className="size-8 grid place-items-center rounded-md text-yo-txt-2 hover:text-yo-txt hover:bg-yo-raised transition"
-            aria-label={collapsed ? "Expandir menú" : "Retraer menú"}
-            title={collapsed ? "Expandir menú" : "Retraer menú"}
-          >
-            {collapsed ? <PanelLeftOpen className="size-4" /> : <PanelLeftClose className="size-4" />}
-          </button>
-        )}
+      <div className="px-5 py-5 border-b border-yo-border flex justify-center">
+        <Link to="/dashboard" onClick={onNavigate} className="inline-flex items-center justify-center">
+          <YoktoLogo variant="dark" className="h-6 w-auto" />
+        </Link>
       </div>
 
 
-      <nav className={cn("flex-1 overflow-y-auto space-y-0.5", collapsed ? "p-2" : "p-3")}>
+      <nav className="flex-1 overflow-y-auto p-3 space-y-0.5">
         {nav.map((item) => {
           const active = pathname === item.to || pathname.startsWith(item.to + "/");
           const Icon = item.icon;
@@ -173,68 +126,51 @@ function SidebarContent({
               key={item.to}
               to={item.to}
               onClick={onNavigate}
-              title={collapsed ? item.label : undefined}
               className={cn(
-                "flex items-center rounded-md text-[13px] font-medium transition",
-                collapsed ? "justify-center p-2" : "gap-3 px-3 py-2",
+                "flex items-center gap-3 px-3 py-2 rounded-md text-[13px] font-medium transition",
                 active
                   ? "bg-yo-ac-bg text-yo-ac-txt"
                   : "text-yo-txt-2 hover:text-yo-txt hover:bg-yo-raised"
               )}
             >
               <Icon className={cn("size-4 shrink-0", active ? "text-yo-ac" : "text-yo-txt-3")} />
-              {!collapsed && <span className="truncate">{item.label}</span>}
+              <span className="truncate">{item.label}</span>
             </Link>
           );
         })}
       </nav>
 
-      {collapsed ? (
-        <div className="border-t border-yo-border p-2 flex flex-col items-center gap-2">
+      <div className="border-t border-yo-border p-3 space-y-3">
+        <div>
+          <p className="px-1 text-[10px] uppercase tracking-[0.14em] font-semibold text-yo-txt-3 mb-1.5">Espacio de trabajo</p>
+          <OrgSwitcher />
+        </div>
+
+        <div>
+          <p className="px-1 text-[10px] uppercase tracking-[0.14em] font-semibold text-yo-txt-3 mb-1.5">Perfil de cumplimiento</p>
           <Link
             to="/score"
             onClick={onNavigate}
-            title={`Score ${score}/100 · ${cfg.label}`}
-            className="size-10 grid place-items-center rounded-md border border-yo-border bg-yo-bg hover:bg-yo-raised transition"
+            className="block rounded-md border border-yo-border bg-yo-bg p-3 hover:bg-yo-raised transition"
           >
-            <span className="text-[11px] font-bold text-yo-txt tabular-nums">{score}</span>
+            <div className="flex items-center justify-between mb-1.5">
+              <div className="flex items-center gap-1.5">
+                <Star className="size-3.5 text-yo-ac" />
+                <span className="text-[11px] font-medium text-yo-txt-2">Score</span>
+              </div>
+              <span className={cn("text-[10px] font-semibold px-1.5 py-0.5 rounded", tone.bg, tone.text)}>{cfg.label}</span>
+            </div>
+            <div className="flex items-baseline gap-1 mb-1.5">
+              <span className="text-lg font-bold text-yo-txt tabular-nums">{score}</span>
+              <span className="text-[10px] text-yo-txt-3">/ 100</span>
+            </div>
+            <div className="h-1 w-full rounded-full bg-yo-border overflow-hidden">
+              <div className={cn("h-full rounded-full transition-all", tone.dot)} style={{ width: `${pct}%` }} />
+            </div>
           </Link>
-          <div className="h-1 w-8 rounded-full bg-yo-border overflow-hidden">
-            <div className={cn("h-full rounded-full", tone.dot)} style={{ width: `${pct}%` }} />
-          </div>
         </div>
-      ) : (
-        <div className="border-t border-yo-border p-3 space-y-3">
-          <div>
-            <p className="px-1 text-[10px] uppercase tracking-[0.14em] font-semibold text-yo-txt-3 mb-1.5">Espacio de trabajo</p>
-            <OrgSwitcher />
-          </div>
-
-          <div>
-            <p className="px-1 text-[10px] uppercase tracking-[0.14em] font-semibold text-yo-txt-3 mb-1.5">Perfil de cumplimiento</p>
-            <Link
-              to="/score"
-              onClick={onNavigate}
-              className="block rounded-md border border-yo-border bg-yo-bg p-3 hover:bg-yo-raised transition"
-            >
-              <div className="flex items-center justify-between mb-1.5">
-                <div className="flex items-center gap-1.5">
-                  <Star className="size-3.5 text-yo-ac" />
-                  <span className="text-[11px] font-medium text-yo-txt-2">Score</span>
-                </div>
-                <span className={cn("text-[10px] font-semibold px-1.5 py-0.5 rounded", tone.bg, tone.text)}>{cfg.label}</span>
-              </div>
-              <div className="flex items-baseline gap-1 mb-1.5">
-                <span className="text-lg font-bold text-yo-txt tabular-nums">{score}</span>
-                <span className="text-[10px] text-yo-txt-3">/ 100</span>
-              </div>
-              <div className="h-1 w-full rounded-full bg-yo-border overflow-hidden">
-                <div className={cn("h-full rounded-full transition-all", tone.dot)} style={{ width: `${pct}%` }} />
-              </div>
-            </Link>
-          </div>
-        </div>
-      )}
+      </div>
     </>
   );
 }
+
