@@ -940,28 +940,21 @@ function Step3Fiscal({ onSaved, onBack, setError, loading, setLoading }: {
 
           {/* --- Manual: CURP + RENAPO --- */}
           {fillMode === "manual" && (
-            <div className="rounded-xl border border-yo-border bg-yo-raised/40 p-4 flex flex-col gap-3">
-              <div>
-                <label className="text-xs font-semibold uppercase tracking-widest text-yo-txt-2">
-                  CURP (18 caracteres) <span className="text-yo-danger">*</span>
-                </label>
-                <p className="mt-1 text-xs text-yo-txt-3">Consulta oficial en RENAPO para autocompletar tus datos personales.</p>
-              </div>
-              <div className="flex-1 w-full">
-                <Field id="curp" label="" value={f.curp ?? ""} onChange={onCurpChange}
-                  required uppercase maxLength={18} error={curpError}
-                  trailing={
-                    curpChecking ? <Loader2 className="size-4 animate-spin text-yo-txt-3" /> :
-                    curpVerified ? <Check className="size-4 text-yo-ok" /> :
-                    undefined
-                  } />
-                <p className="mt-1 text-[11px] text-yo-txt-3">
-                  {curpChecking ? "Consultando RENAPO…" :
-                   curpVerified ? "Validada automáticamente en RENAPO." :
-                   "La validación se ejecuta automáticamente al capturar los 18 caracteres."}
-                </p>
-              </div>
-
+            <div className="rounded-xl border border-yo-border bg-yo-raised/40 p-4 flex flex-col gap-2">
+              <p className="text-xs text-yo-txt-3">Consulta oficial en RENAPO para autocompletar tus datos personales.</p>
+              <Field id="curp" label="CURP (18 caracteres)" value={f.curp ?? ""} onChange={onCurpChange}
+                required uppercase maxLength={18} error={curpError}
+                trailing={
+                  curpChecking ? <Loader2 className="size-4 animate-spin text-yo-txt-3" /> :
+                  curpVerified ? <Check className="size-4 text-yo-ok" /> :
+                  undefined
+                }
+                hint={
+                  curpChecking ? "Consultando RENAPO…" :
+                  curpVerified ? "Validada automáticamente en RENAPO." :
+                  "La validación se ejecuta automáticamente al capturar los 18 caracteres."
+                }
+              />
             </div>
           )}
 
