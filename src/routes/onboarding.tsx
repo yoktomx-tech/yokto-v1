@@ -1080,12 +1080,25 @@ function Step3Fiscal({ onSaved, onBack, setError, loading, setLoading }: {
               rfcVerified.match ? "border-yo-ok/40 bg-yo-ok/5 text-yo-txt" : "border-yo-danger/40 bg-yo-danger/5 text-yo-txt"
             )}>
               <div className="flex items-start justify-between gap-2">
-                <div>
+                <div className="flex-1">
                   <p className="font-semibold">{rfcVerified.match ? "RFC verificado en el SAT" : "Los datos vinculados al RFC no coinciden"}</p>
                   <p className="mt-1 text-yo-txt-2"><span className="text-yo-txt-3">Razón social:</span> {rfcVerified.razonSocial || rfcVerified.nombreCompleto || "—"}</p>
+                  <p className={cn("mt-1 text-[11px]", rfcVerified.match ? "text-yo-ok" : "text-yo-danger")}>
+                    {rfcVerified.match ? "La razón social coincide con la capturada." : "La razón social no coincide con la capturada."}
+                  </p>
                 </div>
                 <button type="button" onClick={() => setRfcBoxOpen(false)} className="text-yo-txt-3 hover:text-yo-txt text-xs">Cerrar</button>
               </div>
+              <p className="mt-2 text-[11px] text-yo-txt-3">Este recuadro se cerrará automáticamente en 5 segundos.</p>
+            </div>
+          )}
+          {rfcVerified && !rfcBoxOpen && (
+            <div className="inline-flex items-center gap-2 text-xs">
+              <Check className={cn("size-3.5", rfcVerified.match ? "text-yo-ok" : "text-yo-danger")} />
+              <span className={rfcVerified.match ? "text-yo-ok" : "text-yo-danger"}>
+                {rfcVerified.match ? "RFC validado" : "RFC no coincide"} — {rfcVerified.razonSocial || rfcVerified.nombreCompleto || "—"}
+              </span>
+              <button type="button" onClick={() => setRfcBoxOpen(true)} className="underline text-yo-txt-3 hover:text-yo-txt">Ver detalle</button>
             </div>
           )}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
