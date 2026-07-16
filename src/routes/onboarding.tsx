@@ -1619,8 +1619,8 @@ function Step4Biometric({ onDone, onBack, setError }: {
     pending: "Esperando escaneo del QR…",
     id_captured: "Validando identificación…",
     id_verified: "Identificación validada. Continúa con selfie.",
-    face_verified: "Rostro verificado. Continúa con comprobante.",
-    address_verified: "Comprobante validado. Confirmando enrolamiento.",
+    face_verified: "Rostro verificado. Confirmando enrolamiento.",
+    address_verified: "Confirmando enrolamiento…",
     completed: "Enrolamiento completado.",
   };
 
