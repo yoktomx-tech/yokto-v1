@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
@@ -14,8 +14,7 @@ import { FundingWizard } from "@/components/payments/funding-wizard";
 import { ReleaseCalendar } from "@/components/payments/release-calendar";
 import { matchesTab, type TabId, type PaymentRow } from "@/lib/payments-catalog";
 import { PageHeader } from "@/components/page-header";
-import { Banknote, Plus, Download, BookOpen, FileText } from "lucide-react";
-import { exportPaymentsCsv } from "@/lib/payments-csv";
+import { Banknote, RefreshCw } from "lucide-react";
 import { usePaymentsRealtime } from "@/hooks/use-payments-realtime";
 import { PaymentsSectionTabs, type SectionId } from "@/components/payments/payments-section-tabs";
 import {
@@ -78,33 +77,15 @@ function PaymentsPage() {
           title="Centro de Pagos"
           subtitle={`Vista ${role === "buyer" ? "de comprador" : "de vendedor"} — pagos, retenciones y liberaciones procesados por la pasarela.`}
           actions={
-            <div className="flex items-center gap-2">
-              <Link to="/payments/ledger" className="inline-flex items-center gap-1.5 px-3 py-2 bg-yo-card border border-yo-border text-yo-t1 text-sm font-medium rounded-md hover:bg-yo-hover">
-                <BookOpen className="size-4" /> Ledger completo
-              </Link>
-              <Link to="/payments/fiscal" className="inline-flex items-center gap-1.5 px-3 py-2 bg-yo-card border border-yo-border text-yo-t1 text-sm font-medium rounded-md hover:bg-yo-hover">
-                <FileText className="size-4" /> Fiscales
-              </Link>
-              <button
-                onClick={() => exportPaymentsCsv(rows)}
-                disabled={rows.length === 0}
-                className="inline-flex items-center gap-1.5 px-3 py-2 bg-yo-card border border-yo-border text-yo-t1 text-sm font-medium rounded-md hover:bg-yo-hover disabled:opacity-50"
-              >
-                <Download className="size-4" /> Exportar CSV
-              </button>
-              {role === "buyer" && (
-                <button
-                  onClick={() => setFundingOpen(true)}
-                  className="inline-flex items-center gap-1.5 px-3 py-2 bg-yo-ac text-white text-sm font-medium rounded-md hover:bg-yo-ac-h"
-                >
-                  <Plus className="size-4" /> Fondear transacción
-                </button>
-              )}
-            </div>
+            <button
+              onClick={() => qc.invalidateQueries({ queryKey: ["payments-center"] })}
+              disabled={isLoading}
+              className="inline-flex items-center gap-1.5 px-3 py-2 bg-yo-card border border-yo-border text-yo-t1 text-sm font-medium rounded-md hover:bg-yo-hover disabled:opacity-50"
+            >
+              <RefreshCw className={`size-4 ${isLoading ? "animate-spin" : ""}`} /> Actualizar
+            </button>
           }
         />
-
-        <NoCustodyBanner />
 
         <PaymentsSectionTabs active={section} onChange={setSection} isAdmin={isAdmin} counts={counts} />
 
@@ -123,6 +104,8 @@ function PaymentsPage() {
         {section === "ledger"       && <LedgerSection />}
         {section === "conciliacion" && <ConciliacionSection rows={rows} />}
         {section === "webhooks" && isAdmin && <WebhooksSection />}
+
+        <NoCustodyBanner />
       </div>
       <FundingWizard
         open={fundingOpen}
