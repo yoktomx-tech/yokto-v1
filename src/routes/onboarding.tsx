@@ -199,7 +199,7 @@ function Field(props: {
   return (
     <div className="flex flex-col gap-1.5">
       <label htmlFor={id} className="text-xs font-medium text-yo-txt-2">
-        {label}{required && <span className="text-yo-err"> *</span>}
+        {label}{required && <span className="text-yo-err" aria-hidden="true">*</span>}
       </label>
       <div className={
         "group flex items-center gap-2.5 rounded-md border h-11 px-3 transition bg-yo-surface " +
