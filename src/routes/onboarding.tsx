@@ -86,6 +86,25 @@ function OnboardingWizard() {
   const goNext = (n: StepId) => { setError(null); setStep(n); };
   const goPrev = () => { setError(null); if (step > 1) setStep((step - 1) as StepId); };
 
+  const handleCancelOnboarding = async () => {
+    if (!session) return;
+    const ok = window.confirm(
+      "¿Cancelar y borrar tu cuenta en curso?\n\nSe eliminarán todos los datos capturados (identidad, fiscal, biométrico). Esta acción no se puede deshacer."
+    );
+    if (!ok) return;
+    setLoading(true);
+    try {
+      const { error: rpcErr } = await supabase.rpc("cancel_my_onboarding");
+      if (rpcErr) throw rpcErr;
+      await supabase.auth.signOut();
+      try { localStorage.removeItem(LS_KEY); } catch { /* noop */ }
+      navigate({ to: "/auth" });
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "No se pudo cancelar el registro.");
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-dvh bg-yo-bg text-yo-txt">
       <header className="border-b border-yo-border bg-yo-surface">
@@ -100,6 +119,26 @@ function OnboardingWizard() {
       </header>
 
       <main className="mx-auto max-w-3xl px-5 py-10">
+        {session && (
+          <div className="mb-4 flex flex-col gap-2 rounded-md border border-yo-border bg-yo-surface px-3.5 py-2.5 text-sm sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-start gap-2 text-yo-txt-2">
+              <AlertCircle className="size-4 mt-0.5 shrink-0 text-yo-warn" />
+              <span>
+                <span className="font-medium text-yo-txt">Borrador de registro.</span>{" "}
+                Si no completas el proceso, tu cuenta se eliminará automáticamente en <strong>24 horas</strong>.
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={handleCancelOnboarding}
+              disabled={loading}
+              className="shrink-0 text-xs font-medium text-yo-err hover:underline disabled:opacity-50"
+            >
+              Cancelar y borrar mi cuenta
+            </button>
+          </div>
+        )}
+
         <Stepper active={step} />
 
         {error && (
