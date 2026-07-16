@@ -2293,6 +2293,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      cancel_my_onboarding: { Args: never; Returns: undefined }
       cleanup_abandoned_onboarding: { Args: never; Returns: number }
       has_org_role: {
         Args: {
