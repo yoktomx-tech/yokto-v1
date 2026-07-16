@@ -20,6 +20,7 @@ const SELLER_NAV: NavItem[] = [
   { to: "/cumplimiento", icon: PackageCheck,     label: "Cumplimiento" },
   { to: "/disputes",     icon: AlertTriangle,   label: "Disputas" },
   { to: "/payments",     icon: Banknote,        label: "Pagos y retenciones" },
+  { to: "/compliance/bank-accounts", icon: Landmark, label: "Cuentas bancarias" },
   { to: "/analytics",    icon: BarChart3,       label: "Analytics" },
   { to: "/crm", icon: Users,           label: "Relaciones" },
   { to: "/teams",        icon: Users2,          label: "Equipo" },
