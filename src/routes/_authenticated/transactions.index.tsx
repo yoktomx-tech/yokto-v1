@@ -13,7 +13,7 @@ import { TransactionCardMobile } from "@/components/tx/transaction-card-mobile";
 import { EmptyState } from "@/components/tx/ui";
 import { buildDemoTxRows } from "@/lib/operation-examples";
 
-import { InfoBox } from "@/components/tx/ui/info-box";
+
 
 type SearchParams = {
   tab?: TabId;
@@ -279,10 +279,6 @@ function TransactionsList() {
         {/* Filters */}
         <TransactionsFilters ref={searchInputRef} value={filters} onChange={setFilters} />
 
-        <InfoBox tone="info" title="Lo que ves aquí">
-          Cada fila refleja el estado de verificación de una operación. Las acciones (fondear, aprobar hito, liberar)
-          se ejecutan en la pasarela a través de YOKTO conforme a las condiciones pactadas.
-        </InfoBox>
 
         {/* Tabs */}
         <TransactionsTabs active={tab} onChange={setTab} role={role} counts={tabCounts} />
