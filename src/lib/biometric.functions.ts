@@ -206,7 +206,15 @@ export const submitBiometricId = createServerFn({ method: "POST" })
       throw new Error("No se pudo contactar al servicio OCR");
     }
 
-    const ok = String(payload.estatus ?? "") === "OK";
+    // Nubarium a veces devuelve `estatus: "OK"` explícito y a veces sólo devuelve los datos
+    // sin ese campo. Consideramos éxito si estatus === "OK" o si extrajimos los campos clave.
+    const estatusRaw = String(payload.estatus ?? "").toUpperCase();
+    const pr = payload as Record<string, unknown>;
+    const curpCandidate = String(pr.curp ?? pr.CURP ?? "").trim();
+    const nombreCandidate = String(pr.nombres ?? pr.nombre ?? pr.givenName ?? "").trim();
+    const hasCoreData = curpCandidate.length >= 16 || nombreCandidate.length > 0;
+    const explicitError = estatusRaw && estatusRaw !== "OK";
+    const ok = httpStatus === 200 && !explicitError && (estatusRaw === "OK" || hasCoreData);
     await logApi(admin, enrollment.id, enrollment.user_id, "ocr/obtener_datos_id", httpStatus, ok, { id_type: data.id_type }, payload);
     if (!ok) {
       const mensaje = String(payload.mensaje ?? payload.message ?? "").trim();
