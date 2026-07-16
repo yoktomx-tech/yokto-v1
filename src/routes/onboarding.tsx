@@ -535,6 +535,11 @@ function Step3Fiscal({ onSaved, onBack, setError, loading, setLoading }: {
     sexo: string; fechaNacimiento: string | null; estadoNacimiento: string; estatusCurp: string;
   }>(null);
   const [curpBoxOpen, setCurpBoxOpen] = useState(true);
+  // RFC Nubarium verification
+  const [rfcVerified, setRfcVerified] = useState<null | {
+    tipo: "PF" | "PM"; razonSocial: string; nombres: string; apellidoPaterno: string; apellidoMaterno: string; nombreCompleto: string; match: boolean;
+  }>(null);
+  const [rfcBoxOpen, setRfcBoxOpen] = useState(true);
 
   // Fiscal-fill flow
   const [fillMode, setFillMode] = useState<FillMode>(null);
