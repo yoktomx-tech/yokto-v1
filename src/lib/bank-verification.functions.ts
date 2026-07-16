@@ -127,9 +127,14 @@ export const createBankAccountAndStartPennyTest = createServerFn({ method: "POST
 
     if (!res.ok) {
       const errTxt = await res.text().catch(() => "");
-      // Marcar como ERROR
+      const keyHint = `${apiKey.slice(0, 4)}…${apiKey.slice(-4)} (len ${apiKey.length})`;
+      console.error("[verificamex] penny-test failed", { status: res.status, body: errTxt, keyHint, query: data.query });
       await supabase.from("bank_accounts").update({ verification_status: "ERROR" }).eq("id", bankAccount.id);
-      throw new Error(`No se pudo iniciar la validación bancaria (${res.status}). ${errTxt.slice(0, 120)}`);
+      const hint =
+        res.status === 417
+          ? " El proveedor rechazó el recurso. Suele indicar que la API key no corresponde al entorno (prueba vs producción) o que la CLABE/tarjeta no existe en el entorno de la key."
+          : "";
+      throw new Error(`No se pudo iniciar la validación bancaria (${res.status}).${hint} ${errTxt.slice(0, 200)}`);
     }
 
     const json = await res.json();
