@@ -22,6 +22,7 @@ import { Route as AuthenticatedTransactionsRouteImport } from './routes/_authent
 import { Route as AuthenticatedTeamsRouteImport } from './routes/_authenticated/teams'
 import { Route as AuthenticatedScoreRouteImport } from './routes/_authenticated/score'
 import { Route as AuthenticatedReportsRouteImport } from './routes/_authenticated/reports'
+import { Route as AuthenticatedRelationshipsRouteImport } from './routes/_authenticated/relationships'
 import { Route as AuthenticatedPaymentsRouteImport } from './routes/_authenticated/payments'
 import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authenticated/notifications'
 import { Route as AuthenticatedKycRouteImport } from './routes/_authenticated/kyc'
@@ -35,6 +36,7 @@ import { Route as AuthenticatedAnalyticsRouteImport } from './routes/_authentica
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedTransactionsIndexRouteImport } from './routes/_authenticated/transactions.index'
 import { Route as AuthenticatedTeamsIndexRouteImport } from './routes/_authenticated/teams.index'
+import { Route as AuthenticatedRelationshipsIndexRouteImport } from './routes/_authenticated/relationships.index'
 import { Route as AuthenticatedDisputesIndexRouteImport } from './routes/_authenticated/disputes.index'
 import { Route as AuthenticatedAnalyticsIndexRouteImport } from './routes/_authenticated/analytics.index'
 import { Route as AuthenticatedTransactionsNewRouteImport } from './routes/_authenticated/transactions.new'
@@ -48,6 +50,9 @@ import { Route as AuthenticatedTeamsAuditRouteImport } from './routes/_authentic
 import { Route as AuthenticatedTeamsApprovalsRouteImport } from './routes/_authenticated/teams.approvals'
 import { Route as AuthenticatedTeamsApiKeysRouteImport } from './routes/_authenticated/teams.api-keys'
 import { Route as AuthenticatedSettingsOrganizationRouteImport } from './routes/_authenticated/settings.organization'
+import { Route as AuthenticatedRelationshipsSearchRouteImport } from './routes/_authenticated/relationships.search'
+import { Route as AuthenticatedRelationshipsInvitationsRouteImport } from './routes/_authenticated/relationships.invitations'
+import { Route as AuthenticatedRelationshipsCounterpartyIdRouteImport } from './routes/_authenticated/relationships.$counterpartyId'
 import { Route as AuthenticatedPaymentsLedgerRouteImport } from './routes/_authenticated/payments.ledger'
 import { Route as AuthenticatedPaymentsFiscalRouteImport } from './routes/_authenticated/payments.fiscal'
 import { Route as AuthenticatedPaymentsIdRouteImport } from './routes/_authenticated/payments.$id'
@@ -140,6 +145,12 @@ const AuthenticatedReportsRoute = AuthenticatedReportsRouteImport.update({
   path: '/reports',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedRelationshipsRoute =
+  AuthenticatedRelationshipsRouteImport.update({
+    id: '/relationships',
+    path: '/relationships',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedPaymentsRoute = AuthenticatedPaymentsRouteImport.update({
   id: '/payments',
   path: '/payments',
@@ -208,6 +219,12 @@ const AuthenticatedTeamsIndexRoute = AuthenticatedTeamsIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthenticatedTeamsRoute,
 } as any)
+const AuthenticatedRelationshipsIndexRoute =
+  AuthenticatedRelationshipsIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedRelationshipsRoute,
+  } as any)
 const AuthenticatedDisputesIndexRoute =
   AuthenticatedDisputesIndexRouteImport.update({
     id: '/',
@@ -284,6 +301,24 @@ const AuthenticatedSettingsOrganizationRoute =
     id: '/settings/organization',
     path: '/settings/organization',
     getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedRelationshipsSearchRoute =
+  AuthenticatedRelationshipsSearchRouteImport.update({
+    id: '/search',
+    path: '/search',
+    getParentRoute: () => AuthenticatedRelationshipsRoute,
+  } as any)
+const AuthenticatedRelationshipsInvitationsRoute =
+  AuthenticatedRelationshipsInvitationsRouteImport.update({
+    id: '/invitations',
+    path: '/invitations',
+    getParentRoute: () => AuthenticatedRelationshipsRoute,
+  } as any)
+const AuthenticatedRelationshipsCounterpartyIdRoute =
+  AuthenticatedRelationshipsCounterpartyIdRouteImport.update({
+    id: '/$counterpartyId',
+    path: '/$counterpartyId',
+    getParentRoute: () => AuthenticatedRelationshipsRoute,
   } as any)
 const AuthenticatedPaymentsLedgerRoute =
   AuthenticatedPaymentsLedgerRouteImport.update({
@@ -456,6 +491,7 @@ export interface FileRoutesByFullPath {
   '/kyc': typeof AuthenticatedKycRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
   '/payments': typeof AuthenticatedPaymentsRouteWithChildren
+  '/relationships': typeof AuthenticatedRelationshipsRouteWithChildren
   '/reports': typeof AuthenticatedReportsRoute
   '/score': typeof AuthenticatedScoreRoute
   '/teams': typeof AuthenticatedTeamsRouteWithChildren
@@ -482,6 +518,9 @@ export interface FileRoutesByFullPath {
   '/payments/$id': typeof AuthenticatedPaymentsIdRoute
   '/payments/fiscal': typeof AuthenticatedPaymentsFiscalRoute
   '/payments/ledger': typeof AuthenticatedPaymentsLedgerRoute
+  '/relationships/$counterpartyId': typeof AuthenticatedRelationshipsCounterpartyIdRoute
+  '/relationships/invitations': typeof AuthenticatedRelationshipsInvitationsRoute
+  '/relationships/search': typeof AuthenticatedRelationshipsSearchRoute
   '/settings/organization': typeof AuthenticatedSettingsOrganizationRouteWithChildren
   '/teams/api-keys': typeof AuthenticatedTeamsApiKeysRoute
   '/teams/approvals': typeof AuthenticatedTeamsApprovalsRoute
@@ -495,6 +534,7 @@ export interface FileRoutesByFullPath {
   '/transactions/new': typeof AuthenticatedTransactionsNewRoute
   '/analytics/': typeof AuthenticatedAnalyticsIndexRoute
   '/disputes/': typeof AuthenticatedDisputesIndexRoute
+  '/relationships/': typeof AuthenticatedRelationshipsIndexRoute
   '/teams/': typeof AuthenticatedTeamsIndexRoute
   '/transactions/': typeof AuthenticatedTransactionsIndexRoute
   '/admin/disputes/$id': typeof AuthenticatedAdminDisputesIdRoute
@@ -544,6 +584,9 @@ export interface FileRoutesByTo {
   '/payments/$id': typeof AuthenticatedPaymentsIdRoute
   '/payments/fiscal': typeof AuthenticatedPaymentsFiscalRoute
   '/payments/ledger': typeof AuthenticatedPaymentsLedgerRoute
+  '/relationships/$counterpartyId': typeof AuthenticatedRelationshipsCounterpartyIdRoute
+  '/relationships/invitations': typeof AuthenticatedRelationshipsInvitationsRoute
+  '/relationships/search': typeof AuthenticatedRelationshipsSearchRoute
   '/settings/organization': typeof AuthenticatedSettingsOrganizationRouteWithChildren
   '/teams/api-keys': typeof AuthenticatedTeamsApiKeysRoute
   '/teams/approvals': typeof AuthenticatedTeamsApprovalsRoute
@@ -557,6 +600,7 @@ export interface FileRoutesByTo {
   '/transactions/new': typeof AuthenticatedTransactionsNewRoute
   '/analytics': typeof AuthenticatedAnalyticsIndexRoute
   '/disputes': typeof AuthenticatedDisputesIndexRoute
+  '/relationships': typeof AuthenticatedRelationshipsIndexRoute
   '/teams': typeof AuthenticatedTeamsIndexRoute
   '/transactions': typeof AuthenticatedTransactionsIndexRoute
   '/admin/disputes/$id': typeof AuthenticatedAdminDisputesIdRoute
@@ -586,6 +630,7 @@ export interface FileRoutesById {
   '/_authenticated/kyc': typeof AuthenticatedKycRoute
   '/_authenticated/notifications': typeof AuthenticatedNotificationsRoute
   '/_authenticated/payments': typeof AuthenticatedPaymentsRouteWithChildren
+  '/_authenticated/relationships': typeof AuthenticatedRelationshipsRouteWithChildren
   '/_authenticated/reports': typeof AuthenticatedReportsRoute
   '/_authenticated/score': typeof AuthenticatedScoreRoute
   '/_authenticated/teams': typeof AuthenticatedTeamsRouteWithChildren
@@ -612,6 +657,9 @@ export interface FileRoutesById {
   '/_authenticated/payments/$id': typeof AuthenticatedPaymentsIdRoute
   '/_authenticated/payments/fiscal': typeof AuthenticatedPaymentsFiscalRoute
   '/_authenticated/payments/ledger': typeof AuthenticatedPaymentsLedgerRoute
+  '/_authenticated/relationships/$counterpartyId': typeof AuthenticatedRelationshipsCounterpartyIdRoute
+  '/_authenticated/relationships/invitations': typeof AuthenticatedRelationshipsInvitationsRoute
+  '/_authenticated/relationships/search': typeof AuthenticatedRelationshipsSearchRoute
   '/_authenticated/settings/organization': typeof AuthenticatedSettingsOrganizationRouteWithChildren
   '/_authenticated/teams/api-keys': typeof AuthenticatedTeamsApiKeysRoute
   '/_authenticated/teams/approvals': typeof AuthenticatedTeamsApprovalsRoute
@@ -625,6 +673,7 @@ export interface FileRoutesById {
   '/_authenticated/transactions/new': typeof AuthenticatedTransactionsNewRoute
   '/_authenticated/analytics/': typeof AuthenticatedAnalyticsIndexRoute
   '/_authenticated/disputes/': typeof AuthenticatedDisputesIndexRoute
+  '/_authenticated/relationships/': typeof AuthenticatedRelationshipsIndexRoute
   '/_authenticated/teams/': typeof AuthenticatedTeamsIndexRoute
   '/_authenticated/transactions/': typeof AuthenticatedTransactionsIndexRoute
   '/_authenticated/admin/disputes/$id': typeof AuthenticatedAdminDisputesIdRoute
@@ -654,6 +703,7 @@ export interface FileRouteTypes {
     | '/kyc'
     | '/notifications'
     | '/payments'
+    | '/relationships'
     | '/reports'
     | '/score'
     | '/teams'
@@ -680,6 +730,9 @@ export interface FileRouteTypes {
     | '/payments/$id'
     | '/payments/fiscal'
     | '/payments/ledger'
+    | '/relationships/$counterpartyId'
+    | '/relationships/invitations'
+    | '/relationships/search'
     | '/settings/organization'
     | '/teams/api-keys'
     | '/teams/approvals'
@@ -693,6 +746,7 @@ export interface FileRouteTypes {
     | '/transactions/new'
     | '/analytics/'
     | '/disputes/'
+    | '/relationships/'
     | '/teams/'
     | '/transactions/'
     | '/admin/disputes/$id'
@@ -742,6 +796,9 @@ export interface FileRouteTypes {
     | '/payments/$id'
     | '/payments/fiscal'
     | '/payments/ledger'
+    | '/relationships/$counterpartyId'
+    | '/relationships/invitations'
+    | '/relationships/search'
     | '/settings/organization'
     | '/teams/api-keys'
     | '/teams/approvals'
@@ -755,6 +812,7 @@ export interface FileRouteTypes {
     | '/transactions/new'
     | '/analytics'
     | '/disputes'
+    | '/relationships'
     | '/teams'
     | '/transactions'
     | '/admin/disputes/$id'
@@ -783,6 +841,7 @@ export interface FileRouteTypes {
     | '/_authenticated/kyc'
     | '/_authenticated/notifications'
     | '/_authenticated/payments'
+    | '/_authenticated/relationships'
     | '/_authenticated/reports'
     | '/_authenticated/score'
     | '/_authenticated/teams'
@@ -809,6 +868,9 @@ export interface FileRouteTypes {
     | '/_authenticated/payments/$id'
     | '/_authenticated/payments/fiscal'
     | '/_authenticated/payments/ledger'
+    | '/_authenticated/relationships/$counterpartyId'
+    | '/_authenticated/relationships/invitations'
+    | '/_authenticated/relationships/search'
     | '/_authenticated/settings/organization'
     | '/_authenticated/teams/api-keys'
     | '/_authenticated/teams/approvals'
@@ -822,6 +884,7 @@ export interface FileRouteTypes {
     | '/_authenticated/transactions/new'
     | '/_authenticated/analytics/'
     | '/_authenticated/disputes/'
+    | '/_authenticated/relationships/'
     | '/_authenticated/teams/'
     | '/_authenticated/transactions/'
     | '/_authenticated/admin/disputes/$id'
@@ -940,6 +1003,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedReportsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/relationships': {
+      id: '/_authenticated/relationships'
+      path: '/relationships'
+      fullPath: '/relationships'
+      preLoaderRoute: typeof AuthenticatedRelationshipsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/payments': {
       id: '/_authenticated/payments'
       path: '/payments'
@@ -1031,6 +1101,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedTeamsIndexRouteImport
       parentRoute: typeof AuthenticatedTeamsRoute
     }
+    '/_authenticated/relationships/': {
+      id: '/_authenticated/relationships/'
+      path: '/'
+      fullPath: '/relationships/'
+      preLoaderRoute: typeof AuthenticatedRelationshipsIndexRouteImport
+      parentRoute: typeof AuthenticatedRelationshipsRoute
+    }
     '/_authenticated/disputes/': {
       id: '/_authenticated/disputes/'
       path: '/'
@@ -1121,6 +1198,27 @@ declare module '@tanstack/react-router' {
       fullPath: '/settings/organization'
       preLoaderRoute: typeof AuthenticatedSettingsOrganizationRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/relationships/search': {
+      id: '/_authenticated/relationships/search'
+      path: '/search'
+      fullPath: '/relationships/search'
+      preLoaderRoute: typeof AuthenticatedRelationshipsSearchRouteImport
+      parentRoute: typeof AuthenticatedRelationshipsRoute
+    }
+    '/_authenticated/relationships/invitations': {
+      id: '/_authenticated/relationships/invitations'
+      path: '/invitations'
+      fullPath: '/relationships/invitations'
+      preLoaderRoute: typeof AuthenticatedRelationshipsInvitationsRouteImport
+      parentRoute: typeof AuthenticatedRelationshipsRoute
+    }
+    '/_authenticated/relationships/$counterpartyId': {
+      id: '/_authenticated/relationships/$counterpartyId'
+      path: '/$counterpartyId'
+      fullPath: '/relationships/$counterpartyId'
+      preLoaderRoute: typeof AuthenticatedRelationshipsCounterpartyIdRouteImport
+      parentRoute: typeof AuthenticatedRelationshipsRoute
     }
     '/_authenticated/payments/ledger': {
       id: '/_authenticated/payments/ledger'
@@ -1411,6 +1509,29 @@ const AuthenticatedPaymentsRouteWithChildren =
     AuthenticatedPaymentsRouteChildren,
   )
 
+interface AuthenticatedRelationshipsRouteChildren {
+  AuthenticatedRelationshipsCounterpartyIdRoute: typeof AuthenticatedRelationshipsCounterpartyIdRoute
+  AuthenticatedRelationshipsInvitationsRoute: typeof AuthenticatedRelationshipsInvitationsRoute
+  AuthenticatedRelationshipsSearchRoute: typeof AuthenticatedRelationshipsSearchRoute
+  AuthenticatedRelationshipsIndexRoute: typeof AuthenticatedRelationshipsIndexRoute
+}
+
+const AuthenticatedRelationshipsRouteChildren: AuthenticatedRelationshipsRouteChildren =
+  {
+    AuthenticatedRelationshipsCounterpartyIdRoute:
+      AuthenticatedRelationshipsCounterpartyIdRoute,
+    AuthenticatedRelationshipsInvitationsRoute:
+      AuthenticatedRelationshipsInvitationsRoute,
+    AuthenticatedRelationshipsSearchRoute:
+      AuthenticatedRelationshipsSearchRoute,
+    AuthenticatedRelationshipsIndexRoute: AuthenticatedRelationshipsIndexRoute,
+  }
+
+const AuthenticatedRelationshipsRouteWithChildren =
+  AuthenticatedRelationshipsRoute._addFileChildren(
+    AuthenticatedRelationshipsRouteChildren,
+  )
+
 interface AuthenticatedTeamsRouteChildren {
   AuthenticatedTeamsApiKeysRoute: typeof AuthenticatedTeamsApiKeysRoute
   AuthenticatedTeamsApprovalsRoute: typeof AuthenticatedTeamsApprovalsRoute
@@ -1499,6 +1620,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedKycRoute: typeof AuthenticatedKycRoute
   AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
   AuthenticatedPaymentsRoute: typeof AuthenticatedPaymentsRouteWithChildren
+  AuthenticatedRelationshipsRoute: typeof AuthenticatedRelationshipsRouteWithChildren
   AuthenticatedReportsRoute: typeof AuthenticatedReportsRoute
   AuthenticatedScoreRoute: typeof AuthenticatedScoreRoute
   AuthenticatedTeamsRoute: typeof AuthenticatedTeamsRouteWithChildren
@@ -1519,6 +1641,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedKycRoute: AuthenticatedKycRoute,
   AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,
   AuthenticatedPaymentsRoute: AuthenticatedPaymentsRouteWithChildren,
+  AuthenticatedRelationshipsRoute: AuthenticatedRelationshipsRouteWithChildren,
   AuthenticatedReportsRoute: AuthenticatedReportsRoute,
   AuthenticatedScoreRoute: AuthenticatedScoreRoute,
   AuthenticatedTeamsRoute: AuthenticatedTeamsRouteWithChildren,
