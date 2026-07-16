@@ -209,7 +209,11 @@ export const submitBiometricId = createServerFn({ method: "POST" })
     const ok = String(payload.estatus ?? "") === "OK";
     await logApi(admin, enrollment.id, enrollment.user_id, "ocr/obtener_datos_id", httpStatus, ok, { id_type: data.id_type }, payload);
     if (!ok) {
-      const msg = String(payload.mensaje ?? "No se pudieron leer los datos del documento. Repite la captura.");
+      const mensaje = String(payload.mensaje ?? payload.message ?? "").trim();
+      const codigo = String(payload.codigo ?? payload.code ?? "").trim();
+      const base = mensaje || "No se pudieron leer los datos del documento. Repite la captura asegurando buena luz y enfoque.";
+      const suffix = [codigo && `código ${codigo}`, httpStatus && `HTTP ${httpStatus}`].filter(Boolean).join(" · ");
+      const msg = suffix ? `${base} (${suffix})` : base;
       await admin.from("biometric_enrollments").update({ last_error: msg, status: "pending" }).eq("id", enrollment.id);
       throw new Error(msg);
     }

@@ -219,7 +219,7 @@ function IdCapture({ token, enroll, onDone, onError }: { token: string; enroll: 
   async function capture() {
     const shot = await cam.snap();
     if (!shot) return;
-    if (side === "front") { setFront(shot); if (enroll?.id_type === "ine") setSide("back"); }
+    if (side === "front") setFront(shot);
     else setBack(shot);
   }
 
