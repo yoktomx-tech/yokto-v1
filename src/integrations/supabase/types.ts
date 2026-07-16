@@ -133,6 +133,163 @@ export type Database = {
         }
         Relationships: []
       }
+      bank_account_penny_tests: {
+        Row: {
+          bank_account_id: string
+          created_at: string
+          decision_reasons: string[] | null
+          finished_at: string | null
+          id: string
+          name_receiver: string | null
+          name_similarity: number | null
+          provider: string
+          provider_status: string | null
+          provider_uuid: string
+          query_masked: string
+          raw_response: Json | null
+          rfc_curp_match: string | null
+          rfc_curp_receiver: string | null
+          status: string
+          type: string
+          updated_at: string
+          user_id: string
+          webhook_events: Json
+        }
+        Insert: {
+          bank_account_id: string
+          created_at?: string
+          decision_reasons?: string[] | null
+          finished_at?: string | null
+          id?: string
+          name_receiver?: string | null
+          name_similarity?: number | null
+          provider?: string
+          provider_status?: string | null
+          provider_uuid: string
+          query_masked: string
+          raw_response?: Json | null
+          rfc_curp_match?: string | null
+          rfc_curp_receiver?: string | null
+          status?: string
+          type: string
+          updated_at?: string
+          user_id: string
+          webhook_events?: Json
+        }
+        Update: {
+          bank_account_id?: string
+          created_at?: string
+          decision_reasons?: string[] | null
+          finished_at?: string | null
+          id?: string
+          name_receiver?: string | null
+          name_similarity?: number | null
+          provider?: string
+          provider_status?: string | null
+          provider_uuid?: string
+          query_masked?: string
+          raw_response?: Json | null
+          rfc_curp_match?: string | null
+          rfc_curp_receiver?: string | null
+          status?: string
+          type?: string
+          updated_at?: string
+          user_id?: string
+          webhook_events?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bank_account_penny_tests_bank_account_id_fkey"
+            columns: ["bank_account_id"]
+            isOneToOne: false
+            referencedRelation: "bank_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bank_accounts: {
+        Row: {
+          account_type: string
+          archived_at: string | null
+          bank_institution_clave: string | null
+          bank_name: string | null
+          can_receive_payouts: boolean
+          can_receive_refunds: boolean
+          created_at: string
+          created_by: string
+          holder_expected_curp: string | null
+          holder_expected_name: string
+          holder_expected_rfc: string | null
+          id: string
+          is_primary: boolean
+          owner_org_id: string | null
+          owner_user_id: string | null
+          query_hash: string
+          query_last4: string
+          query_masked: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          updated_at: string
+          verification_status: string
+        }
+        Insert: {
+          account_type: string
+          archived_at?: string | null
+          bank_institution_clave?: string | null
+          bank_name?: string | null
+          can_receive_payouts?: boolean
+          can_receive_refunds?: boolean
+          created_at?: string
+          created_by: string
+          holder_expected_curp?: string | null
+          holder_expected_name: string
+          holder_expected_rfc?: string | null
+          id?: string
+          is_primary?: boolean
+          owner_org_id?: string | null
+          owner_user_id?: string | null
+          query_hash: string
+          query_last4: string
+          query_masked: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          updated_at?: string
+          verification_status?: string
+        }
+        Update: {
+          account_type?: string
+          archived_at?: string | null
+          bank_institution_clave?: string | null
+          bank_name?: string | null
+          can_receive_payouts?: boolean
+          can_receive_refunds?: boolean
+          created_at?: string
+          created_by?: string
+          holder_expected_curp?: string | null
+          holder_expected_name?: string
+          holder_expected_rfc?: string | null
+          id?: string
+          is_primary?: boolean
+          owner_org_id?: string | null
+          owner_user_id?: string | null
+          query_hash?: string
+          query_last4?: string
+          query_masked?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          updated_at?: string
+          verification_status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bank_accounts_owner_org_id_fkey"
+            columns: ["owner_org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       biometric_api_logs: {
         Row: {
           created_at: string
