@@ -16,11 +16,9 @@ export const Route = createFileRoute("/_authenticated/crm/")({
   component: RelationshipsListPage,
 });
 
-type TabKey = "TODAS" | "CLIENTES" | "PROVEEDORES" | "COMPRADORES" | "VENDEDORES" | "INVITACIONES" | "CON_ALERTA";
+type TabKey = "TODAS" | "COMPRADORES" | "VENDEDORES" | "INVITACIONES" | "CON_ALERTA";
 const TABS: { key: TabKey; label: string }[] = [
   { key: "TODAS",        label: "Todas" },
-  { key: "CLIENTES",     label: "Clientes" },
-  { key: "PROVEEDORES",  label: "Proveedores" },
   { key: "COMPRADORES",  label: "Compradores" },
   { key: "VENDEDORES",   label: "Vendedores" },
   { key: "INVITACIONES", label: "Invitaciones" },
