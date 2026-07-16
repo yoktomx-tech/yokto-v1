@@ -94,7 +94,7 @@ const TABS: { key: TabKey; label: string }[] = [
   { key: "auditoria", label: "Auditoría" },
 ];
 
-export const Route = createFileRoute("/_authenticated/transactions/$id")({
+export const Route = createFileRoute("/_authenticated/transactions/$id/")({
   head: () => ({ meta: [{ title: "Transacción — YOKTO" }, { name: "robots", content: "noindex" }] }),
   component: TxDetail,
 });
