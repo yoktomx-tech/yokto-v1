@@ -20,6 +20,7 @@ import { Route as InvitationsTokenRouteImport } from './routes/invitations.$toke
 import { Route as BiometricoTokenRouteImport } from './routes/biometrico.$token'
 import { Route as AuthenticatedTransactionsRouteImport } from './routes/_authenticated/transactions'
 import { Route as AuthenticatedTeamsRouteImport } from './routes/_authenticated/teams'
+import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedScoreRouteImport } from './routes/_authenticated/score'
 import { Route as AuthenticatedReportsRouteImport } from './routes/_authenticated/reports'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
@@ -36,6 +37,7 @@ import { Route as AuthenticatedAnalyticsRouteImport } from './routes/_authentica
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedTransactionsIndexRouteImport } from './routes/_authenticated/transactions.index'
 import { Route as AuthenticatedTeamsIndexRouteImport } from './routes/_authenticated/teams.index'
+import { Route as AuthenticatedSettingsIndexRouteImport } from './routes/_authenticated/settings.index'
 import { Route as AuthenticatedDisputesIndexRouteImport } from './routes/_authenticated/disputes.index'
 import { Route as AuthenticatedCrmIndexRouteImport } from './routes/_authenticated/crm.index'
 import { Route as AuthenticatedAnalyticsIndexRouteImport } from './routes/_authenticated/analytics.index'
@@ -49,7 +51,20 @@ import { Route as AuthenticatedTeamsIntegrationsRouteImport } from './routes/_au
 import { Route as AuthenticatedTeamsAuditRouteImport } from './routes/_authenticated/teams.audit'
 import { Route as AuthenticatedTeamsApprovalsRouteImport } from './routes/_authenticated/teams.approvals'
 import { Route as AuthenticatedTeamsApiKeysRouteImport } from './routes/_authenticated/teams.api-keys'
+import { Route as AuthenticatedSettingsWebhooksRouteImport } from './routes/_authenticated/settings.webhooks'
+import { Route as AuthenticatedSettingsTeamRouteImport } from './routes/_authenticated/settings.team'
+import { Route as AuthenticatedSettingsSupportRouteImport } from './routes/_authenticated/settings.support'
+import { Route as AuthenticatedSettingsSessionsRouteImport } from './routes/_authenticated/settings.sessions'
+import { Route as AuthenticatedSettingsSecurityRouteImport } from './routes/_authenticated/settings.security'
+import { Route as AuthenticatedSettingsPrivacyRouteImport } from './routes/_authenticated/settings.privacy'
+import { Route as AuthenticatedSettingsPreferencesRouteImport } from './routes/_authenticated/settings.preferences'
 import { Route as AuthenticatedSettingsOrganizationRouteImport } from './routes/_authenticated/settings.organization'
+import { Route as AuthenticatedSettingsNotificationsRouteImport } from './routes/_authenticated/settings.notifications'
+import { Route as AuthenticatedSettingsIntegrationsRouteImport } from './routes/_authenticated/settings.integrations'
+import { Route as AuthenticatedSettingsDangerZoneRouteImport } from './routes/_authenticated/settings.danger-zone'
+import { Route as AuthenticatedSettingsBillingRouteImport } from './routes/_authenticated/settings.billing'
+import { Route as AuthenticatedSettingsAuditRouteImport } from './routes/_authenticated/settings.audit'
+import { Route as AuthenticatedSettingsApiKeysRouteImport } from './routes/_authenticated/settings.api-keys'
 import { Route as AuthenticatedPaymentsLedgerRouteImport } from './routes/_authenticated/payments.ledger'
 import { Route as AuthenticatedPaymentsFiscalRouteImport } from './routes/_authenticated/payments.fiscal'
 import { Route as AuthenticatedPaymentsIdRouteImport } from './routes/_authenticated/payments.$id'
@@ -141,6 +156,11 @@ const AuthenticatedTeamsRoute = AuthenticatedTeamsRouteImport.update({
   path: '/teams',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedScoreRoute = AuthenticatedScoreRouteImport.update({
   id: '/score',
   path: '/score',
@@ -224,6 +244,12 @@ const AuthenticatedTeamsIndexRoute = AuthenticatedTeamsIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthenticatedTeamsRoute,
 } as any)
+const AuthenticatedSettingsIndexRoute =
+  AuthenticatedSettingsIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedSettingsRoute,
+  } as any)
 const AuthenticatedDisputesIndexRoute =
   AuthenticatedDisputesIndexRouteImport.update({
     id: '/',
@@ -300,11 +326,89 @@ const AuthenticatedTeamsApiKeysRoute =
     path: '/api-keys',
     getParentRoute: () => AuthenticatedTeamsRoute,
   } as any)
+const AuthenticatedSettingsWebhooksRoute =
+  AuthenticatedSettingsWebhooksRouteImport.update({
+    id: '/webhooks',
+    path: '/webhooks',
+    getParentRoute: () => AuthenticatedSettingsRoute,
+  } as any)
+const AuthenticatedSettingsTeamRoute =
+  AuthenticatedSettingsTeamRouteImport.update({
+    id: '/team',
+    path: '/team',
+    getParentRoute: () => AuthenticatedSettingsRoute,
+  } as any)
+const AuthenticatedSettingsSupportRoute =
+  AuthenticatedSettingsSupportRouteImport.update({
+    id: '/support',
+    path: '/support',
+    getParentRoute: () => AuthenticatedSettingsRoute,
+  } as any)
+const AuthenticatedSettingsSessionsRoute =
+  AuthenticatedSettingsSessionsRouteImport.update({
+    id: '/sessions',
+    path: '/sessions',
+    getParentRoute: () => AuthenticatedSettingsRoute,
+  } as any)
+const AuthenticatedSettingsSecurityRoute =
+  AuthenticatedSettingsSecurityRouteImport.update({
+    id: '/security',
+    path: '/security',
+    getParentRoute: () => AuthenticatedSettingsRoute,
+  } as any)
+const AuthenticatedSettingsPrivacyRoute =
+  AuthenticatedSettingsPrivacyRouteImport.update({
+    id: '/privacy',
+    path: '/privacy',
+    getParentRoute: () => AuthenticatedSettingsRoute,
+  } as any)
+const AuthenticatedSettingsPreferencesRoute =
+  AuthenticatedSettingsPreferencesRouteImport.update({
+    id: '/preferences',
+    path: '/preferences',
+    getParentRoute: () => AuthenticatedSettingsRoute,
+  } as any)
 const AuthenticatedSettingsOrganizationRoute =
   AuthenticatedSettingsOrganizationRouteImport.update({
-    id: '/settings/organization',
-    path: '/settings/organization',
-    getParentRoute: () => AuthenticatedRouteRoute,
+    id: '/organization',
+    path: '/organization',
+    getParentRoute: () => AuthenticatedSettingsRoute,
+  } as any)
+const AuthenticatedSettingsNotificationsRoute =
+  AuthenticatedSettingsNotificationsRouteImport.update({
+    id: '/notifications',
+    path: '/notifications',
+    getParentRoute: () => AuthenticatedSettingsRoute,
+  } as any)
+const AuthenticatedSettingsIntegrationsRoute =
+  AuthenticatedSettingsIntegrationsRouteImport.update({
+    id: '/integrations',
+    path: '/integrations',
+    getParentRoute: () => AuthenticatedSettingsRoute,
+  } as any)
+const AuthenticatedSettingsDangerZoneRoute =
+  AuthenticatedSettingsDangerZoneRouteImport.update({
+    id: '/danger-zone',
+    path: '/danger-zone',
+    getParentRoute: () => AuthenticatedSettingsRoute,
+  } as any)
+const AuthenticatedSettingsBillingRoute =
+  AuthenticatedSettingsBillingRouteImport.update({
+    id: '/billing',
+    path: '/billing',
+    getParentRoute: () => AuthenticatedSettingsRoute,
+  } as any)
+const AuthenticatedSettingsAuditRoute =
+  AuthenticatedSettingsAuditRouteImport.update({
+    id: '/audit',
+    path: '/audit',
+    getParentRoute: () => AuthenticatedSettingsRoute,
+  } as any)
+const AuthenticatedSettingsApiKeysRoute =
+  AuthenticatedSettingsApiKeysRouteImport.update({
+    id: '/api-keys',
+    path: '/api-keys',
+    getParentRoute: () => AuthenticatedSettingsRoute,
   } as any)
 const AuthenticatedPaymentsLedgerRoute =
   AuthenticatedPaymentsLedgerRouteImport.update({
@@ -533,6 +637,7 @@ export interface FileRoutesByFullPath {
   '/profile': typeof AuthenticatedProfileRouteWithChildren
   '/reports': typeof AuthenticatedReportsRoute
   '/score': typeof AuthenticatedScoreRoute
+  '/settings': typeof AuthenticatedSettingsRouteWithChildren
   '/teams': typeof AuthenticatedTeamsRouteWithChildren
   '/transactions': typeof AuthenticatedTransactionsRouteWithChildren
   '/biometrico/$token': typeof BiometricoTokenRoute
@@ -561,7 +666,20 @@ export interface FileRoutesByFullPath {
   '/payments/$id': typeof AuthenticatedPaymentsIdRoute
   '/payments/fiscal': typeof AuthenticatedPaymentsFiscalRoute
   '/payments/ledger': typeof AuthenticatedPaymentsLedgerRoute
+  '/settings/api-keys': typeof AuthenticatedSettingsApiKeysRoute
+  '/settings/audit': typeof AuthenticatedSettingsAuditRoute
+  '/settings/billing': typeof AuthenticatedSettingsBillingRoute
+  '/settings/danger-zone': typeof AuthenticatedSettingsDangerZoneRoute
+  '/settings/integrations': typeof AuthenticatedSettingsIntegrationsRoute
+  '/settings/notifications': typeof AuthenticatedSettingsNotificationsRoute
   '/settings/organization': typeof AuthenticatedSettingsOrganizationRouteWithChildren
+  '/settings/preferences': typeof AuthenticatedSettingsPreferencesRoute
+  '/settings/privacy': typeof AuthenticatedSettingsPrivacyRoute
+  '/settings/security': typeof AuthenticatedSettingsSecurityRoute
+  '/settings/sessions': typeof AuthenticatedSettingsSessionsRoute
+  '/settings/support': typeof AuthenticatedSettingsSupportRoute
+  '/settings/team': typeof AuthenticatedSettingsTeamRoute
+  '/settings/webhooks': typeof AuthenticatedSettingsWebhooksRoute
   '/teams/api-keys': typeof AuthenticatedTeamsApiKeysRoute
   '/teams/approvals': typeof AuthenticatedTeamsApprovalsRoute
   '/teams/audit': typeof AuthenticatedTeamsAuditRoute
@@ -575,6 +693,7 @@ export interface FileRoutesByFullPath {
   '/analytics/': typeof AuthenticatedAnalyticsIndexRoute
   '/crm/': typeof AuthenticatedCrmIndexRoute
   '/disputes/': typeof AuthenticatedDisputesIndexRoute
+  '/settings/': typeof AuthenticatedSettingsIndexRoute
   '/teams/': typeof AuthenticatedTeamsIndexRoute
   '/transactions/': typeof AuthenticatedTransactionsIndexRoute
   '/admin/disputes/$id': typeof AuthenticatedAdminDisputesIdRoute
@@ -632,7 +751,20 @@ export interface FileRoutesByTo {
   '/payments/$id': typeof AuthenticatedPaymentsIdRoute
   '/payments/fiscal': typeof AuthenticatedPaymentsFiscalRoute
   '/payments/ledger': typeof AuthenticatedPaymentsLedgerRoute
+  '/settings/api-keys': typeof AuthenticatedSettingsApiKeysRoute
+  '/settings/audit': typeof AuthenticatedSettingsAuditRoute
+  '/settings/billing': typeof AuthenticatedSettingsBillingRoute
+  '/settings/danger-zone': typeof AuthenticatedSettingsDangerZoneRoute
+  '/settings/integrations': typeof AuthenticatedSettingsIntegrationsRoute
+  '/settings/notifications': typeof AuthenticatedSettingsNotificationsRoute
   '/settings/organization': typeof AuthenticatedSettingsOrganizationRouteWithChildren
+  '/settings/preferences': typeof AuthenticatedSettingsPreferencesRoute
+  '/settings/privacy': typeof AuthenticatedSettingsPrivacyRoute
+  '/settings/security': typeof AuthenticatedSettingsSecurityRoute
+  '/settings/sessions': typeof AuthenticatedSettingsSessionsRoute
+  '/settings/support': typeof AuthenticatedSettingsSupportRoute
+  '/settings/team': typeof AuthenticatedSettingsTeamRoute
+  '/settings/webhooks': typeof AuthenticatedSettingsWebhooksRoute
   '/teams/api-keys': typeof AuthenticatedTeamsApiKeysRoute
   '/teams/approvals': typeof AuthenticatedTeamsApprovalsRoute
   '/teams/audit': typeof AuthenticatedTeamsAuditRoute
@@ -645,6 +777,7 @@ export interface FileRoutesByTo {
   '/analytics': typeof AuthenticatedAnalyticsIndexRoute
   '/crm': typeof AuthenticatedCrmIndexRoute
   '/disputes': typeof AuthenticatedDisputesIndexRoute
+  '/settings': typeof AuthenticatedSettingsIndexRoute
   '/teams': typeof AuthenticatedTeamsIndexRoute
   '/transactions': typeof AuthenticatedTransactionsIndexRoute
   '/admin/disputes/$id': typeof AuthenticatedAdminDisputesIdRoute
@@ -682,6 +815,7 @@ export interface FileRoutesById {
   '/_authenticated/profile': typeof AuthenticatedProfileRouteWithChildren
   '/_authenticated/reports': typeof AuthenticatedReportsRoute
   '/_authenticated/score': typeof AuthenticatedScoreRoute
+  '/_authenticated/settings': typeof AuthenticatedSettingsRouteWithChildren
   '/_authenticated/teams': typeof AuthenticatedTeamsRouteWithChildren
   '/_authenticated/transactions': typeof AuthenticatedTransactionsRouteWithChildren
   '/biometrico/$token': typeof BiometricoTokenRoute
@@ -710,7 +844,20 @@ export interface FileRoutesById {
   '/_authenticated/payments/$id': typeof AuthenticatedPaymentsIdRoute
   '/_authenticated/payments/fiscal': typeof AuthenticatedPaymentsFiscalRoute
   '/_authenticated/payments/ledger': typeof AuthenticatedPaymentsLedgerRoute
+  '/_authenticated/settings/api-keys': typeof AuthenticatedSettingsApiKeysRoute
+  '/_authenticated/settings/audit': typeof AuthenticatedSettingsAuditRoute
+  '/_authenticated/settings/billing': typeof AuthenticatedSettingsBillingRoute
+  '/_authenticated/settings/danger-zone': typeof AuthenticatedSettingsDangerZoneRoute
+  '/_authenticated/settings/integrations': typeof AuthenticatedSettingsIntegrationsRoute
+  '/_authenticated/settings/notifications': typeof AuthenticatedSettingsNotificationsRoute
   '/_authenticated/settings/organization': typeof AuthenticatedSettingsOrganizationRouteWithChildren
+  '/_authenticated/settings/preferences': typeof AuthenticatedSettingsPreferencesRoute
+  '/_authenticated/settings/privacy': typeof AuthenticatedSettingsPrivacyRoute
+  '/_authenticated/settings/security': typeof AuthenticatedSettingsSecurityRoute
+  '/_authenticated/settings/sessions': typeof AuthenticatedSettingsSessionsRoute
+  '/_authenticated/settings/support': typeof AuthenticatedSettingsSupportRoute
+  '/_authenticated/settings/team': typeof AuthenticatedSettingsTeamRoute
+  '/_authenticated/settings/webhooks': typeof AuthenticatedSettingsWebhooksRoute
   '/_authenticated/teams/api-keys': typeof AuthenticatedTeamsApiKeysRoute
   '/_authenticated/teams/approvals': typeof AuthenticatedTeamsApprovalsRoute
   '/_authenticated/teams/audit': typeof AuthenticatedTeamsAuditRoute
@@ -724,6 +871,7 @@ export interface FileRoutesById {
   '/_authenticated/analytics/': typeof AuthenticatedAnalyticsIndexRoute
   '/_authenticated/crm/': typeof AuthenticatedCrmIndexRoute
   '/_authenticated/disputes/': typeof AuthenticatedDisputesIndexRoute
+  '/_authenticated/settings/': typeof AuthenticatedSettingsIndexRoute
   '/_authenticated/teams/': typeof AuthenticatedTeamsIndexRoute
   '/_authenticated/transactions/': typeof AuthenticatedTransactionsIndexRoute
   '/_authenticated/admin/disputes/$id': typeof AuthenticatedAdminDisputesIdRoute
@@ -761,6 +909,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/reports'
     | '/score'
+    | '/settings'
     | '/teams'
     | '/transactions'
     | '/biometrico/$token'
@@ -789,7 +938,20 @@ export interface FileRouteTypes {
     | '/payments/$id'
     | '/payments/fiscal'
     | '/payments/ledger'
+    | '/settings/api-keys'
+    | '/settings/audit'
+    | '/settings/billing'
+    | '/settings/danger-zone'
+    | '/settings/integrations'
+    | '/settings/notifications'
     | '/settings/organization'
+    | '/settings/preferences'
+    | '/settings/privacy'
+    | '/settings/security'
+    | '/settings/sessions'
+    | '/settings/support'
+    | '/settings/team'
+    | '/settings/webhooks'
     | '/teams/api-keys'
     | '/teams/approvals'
     | '/teams/audit'
@@ -803,6 +965,7 @@ export interface FileRouteTypes {
     | '/analytics/'
     | '/crm/'
     | '/disputes/'
+    | '/settings/'
     | '/teams/'
     | '/transactions/'
     | '/admin/disputes/$id'
@@ -860,7 +1023,20 @@ export interface FileRouteTypes {
     | '/payments/$id'
     | '/payments/fiscal'
     | '/payments/ledger'
+    | '/settings/api-keys'
+    | '/settings/audit'
+    | '/settings/billing'
+    | '/settings/danger-zone'
+    | '/settings/integrations'
+    | '/settings/notifications'
     | '/settings/organization'
+    | '/settings/preferences'
+    | '/settings/privacy'
+    | '/settings/security'
+    | '/settings/sessions'
+    | '/settings/support'
+    | '/settings/team'
+    | '/settings/webhooks'
     | '/teams/api-keys'
     | '/teams/approvals'
     | '/teams/audit'
@@ -873,6 +1049,7 @@ export interface FileRouteTypes {
     | '/analytics'
     | '/crm'
     | '/disputes'
+    | '/settings'
     | '/teams'
     | '/transactions'
     | '/admin/disputes/$id'
@@ -909,6 +1086,7 @@ export interface FileRouteTypes {
     | '/_authenticated/profile'
     | '/_authenticated/reports'
     | '/_authenticated/score'
+    | '/_authenticated/settings'
     | '/_authenticated/teams'
     | '/_authenticated/transactions'
     | '/biometrico/$token'
@@ -937,7 +1115,20 @@ export interface FileRouteTypes {
     | '/_authenticated/payments/$id'
     | '/_authenticated/payments/fiscal'
     | '/_authenticated/payments/ledger'
+    | '/_authenticated/settings/api-keys'
+    | '/_authenticated/settings/audit'
+    | '/_authenticated/settings/billing'
+    | '/_authenticated/settings/danger-zone'
+    | '/_authenticated/settings/integrations'
+    | '/_authenticated/settings/notifications'
     | '/_authenticated/settings/organization'
+    | '/_authenticated/settings/preferences'
+    | '/_authenticated/settings/privacy'
+    | '/_authenticated/settings/security'
+    | '/_authenticated/settings/sessions'
+    | '/_authenticated/settings/support'
+    | '/_authenticated/settings/team'
+    | '/_authenticated/settings/webhooks'
     | '/_authenticated/teams/api-keys'
     | '/_authenticated/teams/approvals'
     | '/_authenticated/teams/audit'
@@ -951,6 +1142,7 @@ export interface FileRouteTypes {
     | '/_authenticated/analytics/'
     | '/_authenticated/crm/'
     | '/_authenticated/disputes/'
+    | '/_authenticated/settings/'
     | '/_authenticated/teams/'
     | '/_authenticated/transactions/'
     | '/_authenticated/admin/disputes/$id'
@@ -1059,6 +1251,13 @@ declare module '@tanstack/react-router' {
       path: '/teams'
       fullPath: '/teams'
       preLoaderRoute: typeof AuthenticatedTeamsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/settings': {
+      id: '/_authenticated/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof AuthenticatedSettingsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/score': {
@@ -1173,6 +1372,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedTeamsIndexRouteImport
       parentRoute: typeof AuthenticatedTeamsRoute
     }
+    '/_authenticated/settings/': {
+      id: '/_authenticated/settings/'
+      path: '/'
+      fullPath: '/settings/'
+      preLoaderRoute: typeof AuthenticatedSettingsIndexRouteImport
+      parentRoute: typeof AuthenticatedSettingsRoute
+    }
     '/_authenticated/disputes/': {
       id: '/_authenticated/disputes/'
       path: '/'
@@ -1264,12 +1470,103 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedTeamsApiKeysRouteImport
       parentRoute: typeof AuthenticatedTeamsRoute
     }
+    '/_authenticated/settings/webhooks': {
+      id: '/_authenticated/settings/webhooks'
+      path: '/webhooks'
+      fullPath: '/settings/webhooks'
+      preLoaderRoute: typeof AuthenticatedSettingsWebhooksRouteImport
+      parentRoute: typeof AuthenticatedSettingsRoute
+    }
+    '/_authenticated/settings/team': {
+      id: '/_authenticated/settings/team'
+      path: '/team'
+      fullPath: '/settings/team'
+      preLoaderRoute: typeof AuthenticatedSettingsTeamRouteImport
+      parentRoute: typeof AuthenticatedSettingsRoute
+    }
+    '/_authenticated/settings/support': {
+      id: '/_authenticated/settings/support'
+      path: '/support'
+      fullPath: '/settings/support'
+      preLoaderRoute: typeof AuthenticatedSettingsSupportRouteImport
+      parentRoute: typeof AuthenticatedSettingsRoute
+    }
+    '/_authenticated/settings/sessions': {
+      id: '/_authenticated/settings/sessions'
+      path: '/sessions'
+      fullPath: '/settings/sessions'
+      preLoaderRoute: typeof AuthenticatedSettingsSessionsRouteImport
+      parentRoute: typeof AuthenticatedSettingsRoute
+    }
+    '/_authenticated/settings/security': {
+      id: '/_authenticated/settings/security'
+      path: '/security'
+      fullPath: '/settings/security'
+      preLoaderRoute: typeof AuthenticatedSettingsSecurityRouteImport
+      parentRoute: typeof AuthenticatedSettingsRoute
+    }
+    '/_authenticated/settings/privacy': {
+      id: '/_authenticated/settings/privacy'
+      path: '/privacy'
+      fullPath: '/settings/privacy'
+      preLoaderRoute: typeof AuthenticatedSettingsPrivacyRouteImport
+      parentRoute: typeof AuthenticatedSettingsRoute
+    }
+    '/_authenticated/settings/preferences': {
+      id: '/_authenticated/settings/preferences'
+      path: '/preferences'
+      fullPath: '/settings/preferences'
+      preLoaderRoute: typeof AuthenticatedSettingsPreferencesRouteImport
+      parentRoute: typeof AuthenticatedSettingsRoute
+    }
     '/_authenticated/settings/organization': {
       id: '/_authenticated/settings/organization'
-      path: '/settings/organization'
+      path: '/organization'
       fullPath: '/settings/organization'
       preLoaderRoute: typeof AuthenticatedSettingsOrganizationRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+      parentRoute: typeof AuthenticatedSettingsRoute
+    }
+    '/_authenticated/settings/notifications': {
+      id: '/_authenticated/settings/notifications'
+      path: '/notifications'
+      fullPath: '/settings/notifications'
+      preLoaderRoute: typeof AuthenticatedSettingsNotificationsRouteImport
+      parentRoute: typeof AuthenticatedSettingsRoute
+    }
+    '/_authenticated/settings/integrations': {
+      id: '/_authenticated/settings/integrations'
+      path: '/integrations'
+      fullPath: '/settings/integrations'
+      preLoaderRoute: typeof AuthenticatedSettingsIntegrationsRouteImport
+      parentRoute: typeof AuthenticatedSettingsRoute
+    }
+    '/_authenticated/settings/danger-zone': {
+      id: '/_authenticated/settings/danger-zone'
+      path: '/danger-zone'
+      fullPath: '/settings/danger-zone'
+      preLoaderRoute: typeof AuthenticatedSettingsDangerZoneRouteImport
+      parentRoute: typeof AuthenticatedSettingsRoute
+    }
+    '/_authenticated/settings/billing': {
+      id: '/_authenticated/settings/billing'
+      path: '/billing'
+      fullPath: '/settings/billing'
+      preLoaderRoute: typeof AuthenticatedSettingsBillingRouteImport
+      parentRoute: typeof AuthenticatedSettingsRoute
+    }
+    '/_authenticated/settings/audit': {
+      id: '/_authenticated/settings/audit'
+      path: '/audit'
+      fullPath: '/settings/audit'
+      preLoaderRoute: typeof AuthenticatedSettingsAuditRouteImport
+      parentRoute: typeof AuthenticatedSettingsRoute
+    }
+    '/_authenticated/settings/api-keys': {
+      id: '/_authenticated/settings/api-keys'
+      path: '/api-keys'
+      fullPath: '/settings/api-keys'
+      preLoaderRoute: typeof AuthenticatedSettingsApiKeysRouteImport
+      parentRoute: typeof AuthenticatedSettingsRoute
     }
     '/_authenticated/payments/ledger': {
       id: '/_authenticated/payments/ledger'
@@ -1652,6 +1949,65 @@ const AuthenticatedProfileRouteChildren: AuthenticatedProfileRouteChildren = {
 const AuthenticatedProfileRouteWithChildren =
   AuthenticatedProfileRoute._addFileChildren(AuthenticatedProfileRouteChildren)
 
+interface AuthenticatedSettingsOrganizationRouteChildren {
+  AuthenticatedSettingsOrganizationNewRoute: typeof AuthenticatedSettingsOrganizationNewRoute
+}
+
+const AuthenticatedSettingsOrganizationRouteChildren: AuthenticatedSettingsOrganizationRouteChildren =
+  {
+    AuthenticatedSettingsOrganizationNewRoute:
+      AuthenticatedSettingsOrganizationNewRoute,
+  }
+
+const AuthenticatedSettingsOrganizationRouteWithChildren =
+  AuthenticatedSettingsOrganizationRoute._addFileChildren(
+    AuthenticatedSettingsOrganizationRouteChildren,
+  )
+
+interface AuthenticatedSettingsRouteChildren {
+  AuthenticatedSettingsApiKeysRoute: typeof AuthenticatedSettingsApiKeysRoute
+  AuthenticatedSettingsAuditRoute: typeof AuthenticatedSettingsAuditRoute
+  AuthenticatedSettingsBillingRoute: typeof AuthenticatedSettingsBillingRoute
+  AuthenticatedSettingsDangerZoneRoute: typeof AuthenticatedSettingsDangerZoneRoute
+  AuthenticatedSettingsIntegrationsRoute: typeof AuthenticatedSettingsIntegrationsRoute
+  AuthenticatedSettingsNotificationsRoute: typeof AuthenticatedSettingsNotificationsRoute
+  AuthenticatedSettingsOrganizationRoute: typeof AuthenticatedSettingsOrganizationRouteWithChildren
+  AuthenticatedSettingsPreferencesRoute: typeof AuthenticatedSettingsPreferencesRoute
+  AuthenticatedSettingsPrivacyRoute: typeof AuthenticatedSettingsPrivacyRoute
+  AuthenticatedSettingsSecurityRoute: typeof AuthenticatedSettingsSecurityRoute
+  AuthenticatedSettingsSessionsRoute: typeof AuthenticatedSettingsSessionsRoute
+  AuthenticatedSettingsSupportRoute: typeof AuthenticatedSettingsSupportRoute
+  AuthenticatedSettingsTeamRoute: typeof AuthenticatedSettingsTeamRoute
+  AuthenticatedSettingsWebhooksRoute: typeof AuthenticatedSettingsWebhooksRoute
+  AuthenticatedSettingsIndexRoute: typeof AuthenticatedSettingsIndexRoute
+}
+
+const AuthenticatedSettingsRouteChildren: AuthenticatedSettingsRouteChildren = {
+  AuthenticatedSettingsApiKeysRoute: AuthenticatedSettingsApiKeysRoute,
+  AuthenticatedSettingsAuditRoute: AuthenticatedSettingsAuditRoute,
+  AuthenticatedSettingsBillingRoute: AuthenticatedSettingsBillingRoute,
+  AuthenticatedSettingsDangerZoneRoute: AuthenticatedSettingsDangerZoneRoute,
+  AuthenticatedSettingsIntegrationsRoute:
+    AuthenticatedSettingsIntegrationsRoute,
+  AuthenticatedSettingsNotificationsRoute:
+    AuthenticatedSettingsNotificationsRoute,
+  AuthenticatedSettingsOrganizationRoute:
+    AuthenticatedSettingsOrganizationRouteWithChildren,
+  AuthenticatedSettingsPreferencesRoute: AuthenticatedSettingsPreferencesRoute,
+  AuthenticatedSettingsPrivacyRoute: AuthenticatedSettingsPrivacyRoute,
+  AuthenticatedSettingsSecurityRoute: AuthenticatedSettingsSecurityRoute,
+  AuthenticatedSettingsSessionsRoute: AuthenticatedSettingsSessionsRoute,
+  AuthenticatedSettingsSupportRoute: AuthenticatedSettingsSupportRoute,
+  AuthenticatedSettingsTeamRoute: AuthenticatedSettingsTeamRoute,
+  AuthenticatedSettingsWebhooksRoute: AuthenticatedSettingsWebhooksRoute,
+  AuthenticatedSettingsIndexRoute: AuthenticatedSettingsIndexRoute,
+}
+
+const AuthenticatedSettingsRouteWithChildren =
+  AuthenticatedSettingsRoute._addFileChildren(
+    AuthenticatedSettingsRouteChildren,
+  )
+
 interface AuthenticatedTeamsRouteChildren {
   AuthenticatedTeamsApiKeysRoute: typeof AuthenticatedTeamsApiKeysRoute
   AuthenticatedTeamsApprovalsRoute: typeof AuthenticatedTeamsApprovalsRoute
@@ -1734,21 +2090,6 @@ const AuthenticatedComplianceBankAccountsRouteWithChildren =
     AuthenticatedComplianceBankAccountsRouteChildren,
   )
 
-interface AuthenticatedSettingsOrganizationRouteChildren {
-  AuthenticatedSettingsOrganizationNewRoute: typeof AuthenticatedSettingsOrganizationNewRoute
-}
-
-const AuthenticatedSettingsOrganizationRouteChildren: AuthenticatedSettingsOrganizationRouteChildren =
-  {
-    AuthenticatedSettingsOrganizationNewRoute:
-      AuthenticatedSettingsOrganizationNewRoute,
-  }
-
-const AuthenticatedSettingsOrganizationRouteWithChildren =
-  AuthenticatedSettingsOrganizationRoute._addFileChildren(
-    AuthenticatedSettingsOrganizationRouteChildren,
-  )
-
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
   AuthenticatedAnalyticsRoute: typeof AuthenticatedAnalyticsRouteWithChildren
@@ -1764,11 +2105,11 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRouteWithChildren
   AuthenticatedReportsRoute: typeof AuthenticatedReportsRoute
   AuthenticatedScoreRoute: typeof AuthenticatedScoreRoute
+  AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRouteWithChildren
   AuthenticatedTeamsRoute: typeof AuthenticatedTeamsRouteWithChildren
   AuthenticatedTransactionsRoute: typeof AuthenticatedTransactionsRouteWithChildren
   AuthenticatedComplianceBankAccountsRoute: typeof AuthenticatedComplianceBankAccountsRouteWithChildren
   AuthenticatedOnboardingPendienteRoute: typeof AuthenticatedOnboardingPendienteRoute
-  AuthenticatedSettingsOrganizationRoute: typeof AuthenticatedSettingsOrganizationRouteWithChildren
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -1786,13 +2127,12 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedProfileRoute: AuthenticatedProfileRouteWithChildren,
   AuthenticatedReportsRoute: AuthenticatedReportsRoute,
   AuthenticatedScoreRoute: AuthenticatedScoreRoute,
+  AuthenticatedSettingsRoute: AuthenticatedSettingsRouteWithChildren,
   AuthenticatedTeamsRoute: AuthenticatedTeamsRouteWithChildren,
   AuthenticatedTransactionsRoute: AuthenticatedTransactionsRouteWithChildren,
   AuthenticatedComplianceBankAccountsRoute:
     AuthenticatedComplianceBankAccountsRouteWithChildren,
   AuthenticatedOnboardingPendienteRoute: AuthenticatedOnboardingPendienteRoute,
-  AuthenticatedSettingsOrganizationRoute:
-    AuthenticatedSettingsOrganizationRouteWithChildren,
 }
 
 const AuthenticatedRouteRouteWithChildren =
