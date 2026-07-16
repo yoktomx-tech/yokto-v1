@@ -16,11 +16,9 @@ export const Route = createFileRoute("/_authenticated/crm/")({
   component: RelationshipsListPage,
 });
 
-type TabKey = "TODAS" | "CLIENTES" | "PROVEEDORES" | "COMPRADORES" | "VENDEDORES" | "INVITACIONES" | "CON_ALERTA";
+type TabKey = "TODAS" | "COMPRADORES" | "VENDEDORES" | "INVITACIONES" | "CON_ALERTA";
 const TABS: { key: TabKey; label: string }[] = [
   { key: "TODAS",        label: "Todas" },
-  { key: "CLIENTES",     label: "Clientes" },
-  { key: "PROVEEDORES",  label: "Proveedores" },
   { key: "COMPRADORES",  label: "Compradores" },
   { key: "VENDEDORES",   label: "Vendedores" },
   { key: "INVITACIONES", label: "Invitaciones" },
@@ -37,10 +35,9 @@ function RelationshipsListPage() {
 
   const filtered = useMemo(() => {
     return MOCK_COUNTERPARTIES.filter((c) => {
-      // "Clientes" = contrapartes que compran a este usuario → role SELLER/BOTH (contraparte vende, tú compras) o BUYER (contraparte compra)
-      // Conservador: usar rol de la contraparte como proxy
-      if (tab === "CLIENTES" && !(c.role === "BUYER" || c.role === "BOTH")) return false;
-      if (tab === "PROVEEDORES" && !(c.role === "SELLER" || c.role === "BOTH")) return false;
+      // Compradores/Vendedores por rol de contraparte
+      if (tab === "COMPRADORES" && !(c.role === "BUYER" || c.role === "BOTH")) return false;
+      if (tab === "VENDEDORES" && !(c.role === "SELLER" || c.role === "BOTH")) return false;
       if (tab === "COMPRADORES" && !(c.role === "BUYER" || c.role === "BOTH")) return false;
       if (tab === "VENDEDORES" && !(c.role === "SELLER" || c.role === "BOTH")) return false;
       if (tab === "INVITACIONES" && c.source !== "INVITATION") return false;
