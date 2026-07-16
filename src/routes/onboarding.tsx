@@ -564,6 +564,7 @@ function Step3Fiscal({ onSaved, onBack, setError, loading, setLoading }: {
 
   const save = useServerFn(saveOnboardingStep);
   const validateRfcFn = useServerFn(validateRfcServer);
+  const getRfcRazonSocialFn = useServerFn(getRfcRazonSocial);
   const validateCurpFn = useServerFn(validateCurpNubarium);
   const validateCsfFn = useServerFn(validateCsfNubarium);
   const parseEfirmaFn = useServerFn(parseEfirma);
