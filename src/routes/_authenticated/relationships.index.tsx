@@ -36,11 +36,10 @@ function RelationshipsListPage() {
   const [sector, setSector] = useState<SectorId | "ALL">("ALL");
   const [personType, setPersonType] = useState<"ALL" | "PF" | "PFAE" | "PM">("ALL");
   const [status, setStatus] = useState<"ALL" | RelationshipStatus>("ALL");
+  const [scope, setScope] = useState<"ALL" | "PERSONAL" | "TEAM">("ALL");
 
   const filtered = useMemo(() => {
     return MOCK_COUNTERPARTIES.filter((c) => {
-      // "Clientes" = contrapartes que compran a este usuario → role SELLER/BOTH (contraparte vende, tú compras) o BUYER (contraparte compra)
-      // Conservador: usar rol de la contraparte como proxy
       if (tab === "CLIENTES" && !(c.role === "BUYER" || c.role === "BOTH")) return false;
       if (tab === "PROVEEDORES" && !(c.role === "SELLER" || c.role === "BOTH")) return false;
       if (tab === "COMPRADORES" && !(c.role === "BUYER" || c.role === "BOTH")) return false;
@@ -51,14 +50,15 @@ function RelationshipsListPage() {
       if (sector !== "ALL" && !c.sectors.includes(sector)) return false;
       if (personType !== "ALL" && c.personType !== personType) return false;
       if (status !== "ALL" && c.status !== status) return false;
+      if (scope !== "ALL" && (c.scope ?? "PERSONAL") !== scope) return false;
       if (q.trim()) {
         const s = q.toLowerCase();
-        const hay = `${c.displayName} ${c.legalName ?? ""} ${c.rfc} ${c.email} ${c.yoktoId}`.toLowerCase();
+        const hay = `${c.displayName} ${c.legalName ?? ""} ${c.rfc} ${c.email} ${c.yoktoId} ${c.ownerMember ?? ""}`.toLowerCase();
         if (!hay.includes(s)) return false;
       }
       return true;
     });
-  }, [tab, q, sector, personType, status]);
+  }, [tab, q, sector, personType, status, scope]);
 
   const kpis = useMemo(() => computeMetrics(MOCK_COUNTERPARTIES, MOCK_INVITATIONS), []);
 
@@ -152,6 +152,11 @@ function RelationshipsListPage() {
         <Select value={status} onChange={(v) => setStatus(v as "ALL" | RelationshipStatus)} label="Estado">
           <option value="ALL">Todos</option>
           {Object.entries(STATUS_CFG).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
+        </Select>
+        <Select value={scope} onChange={(v) => setScope(v as "ALL" | "PERSONAL" | "TEAM")} label="Alcance">
+          <option value="ALL">Todo</option>
+          <option value="PERSONAL">Personales</option>
+          <option value="TEAM">Del equipo</option>
         </Select>
       </section>
 
@@ -264,7 +269,7 @@ function CounterpartyCard({ c }: { c: Counterparty }) {
         <Metric label="A tiempo" value={`${Math.round(c.metrics.onTimeRate * 100)}%`} />
       </div>
 
-      <div className="flex items-center justify-between text-[11px] text-yo-txt-3">
+      <div className="flex items-center justify-between text-[11px] text-yo-txt-3 flex-wrap gap-y-1">
         <span className="inline-flex items-center gap-1">
           {c.kycVerified
             ? <><CheckCircle2 className="size-3 text-emerald-600" /> KYC verificado</>
@@ -272,6 +277,10 @@ function CounterpartyCard({ c }: { c: Counterparty }) {
         </span>
         <span className="inline-flex items-center gap-1">
           <Briefcase className="size-3" /> {c.metrics.activeOps} activas · última interacción {relativeTime(c.lastInteractionAt)}
+        </span>
+        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-yo-bg border border-yo-border">
+          {(c.scope ?? "PERSONAL") === "TEAM" ? "Equipo" : "Personal"}
+          {c.ownerMember && c.ownerMember !== "Yo" && <> · {c.ownerMember}</>}
         </span>
         <ChevronRight className="size-4 text-yo-txt-3 group-hover:text-[#4F46E5]" />
       </div>
