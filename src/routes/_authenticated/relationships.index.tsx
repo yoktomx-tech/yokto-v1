@@ -36,11 +36,10 @@ function RelationshipsListPage() {
   const [sector, setSector] = useState<SectorId | "ALL">("ALL");
   const [personType, setPersonType] = useState<"ALL" | "PF" | "PFAE" | "PM">("ALL");
   const [status, setStatus] = useState<"ALL" | RelationshipStatus>("ALL");
+  const [scope, setScope] = useState<"ALL" | "PERSONAL" | "TEAM">("ALL");
 
   const filtered = useMemo(() => {
     return MOCK_COUNTERPARTIES.filter((c) => {
-      // "Clientes" = contrapartes que compran a este usuario → role SELLER/BOTH (contraparte vende, tú compras) o BUYER (contraparte compra)
-      // Conservador: usar rol de la contraparte como proxy
       if (tab === "CLIENTES" && !(c.role === "BUYER" || c.role === "BOTH")) return false;
       if (tab === "PROVEEDORES" && !(c.role === "SELLER" || c.role === "BOTH")) return false;
       if (tab === "COMPRADORES" && !(c.role === "BUYER" || c.role === "BOTH")) return false;
@@ -51,14 +50,15 @@ function RelationshipsListPage() {
       if (sector !== "ALL" && !c.sectors.includes(sector)) return false;
       if (personType !== "ALL" && c.personType !== personType) return false;
       if (status !== "ALL" && c.status !== status) return false;
+      if (scope !== "ALL" && (c.scope ?? "PERSONAL") !== scope) return false;
       if (q.trim()) {
         const s = q.toLowerCase();
-        const hay = `${c.displayName} ${c.legalName ?? ""} ${c.rfc} ${c.email} ${c.yoktoId}`.toLowerCase();
+        const hay = `${c.displayName} ${c.legalName ?? ""} ${c.rfc} ${c.email} ${c.yoktoId} ${c.ownerMember ?? ""}`.toLowerCase();
         if (!hay.includes(s)) return false;
       }
       return true;
     });
-  }, [tab, q, sector, personType, status]);
+  }, [tab, q, sector, personType, status, scope]);
 
   const kpis = useMemo(() => computeMetrics(MOCK_COUNTERPARTIES, MOCK_INVITATIONS), []);
 
