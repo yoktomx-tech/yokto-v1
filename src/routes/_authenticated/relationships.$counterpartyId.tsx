@@ -191,7 +191,7 @@ function CounterpartyHeader({
               <MenuItem icon={<Send className="size-4" />} label="Solicitar CFDI" onClick={() => toast.success("Solicitud de CFDI enviada")} />
               <MenuItem icon={<Send className="size-4" />} label="Solicitar REP" onClick={() => toast.success("Solicitud de REP enviada")} />
               <MenuItem icon={<EyeOff className="size-4" />} label="Ocultar de lista principal" onClick={() => toast("Contraparte oculta")} />
-              <MenuItem icon={<XCircle className="size-4" />} label="Bloquear contraparte" tone="danger" onClick={() => toast.error("Contraparte bloqueada")} />
+              <MenuItem icon={<XCircle className="size-4" />} label="Pausar relación" tone="danger" onClick={() => toast("Relación pausada")} />
             </div>
           )}
         </div>
