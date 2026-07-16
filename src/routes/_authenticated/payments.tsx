@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
@@ -15,7 +15,6 @@ import { ReleaseCalendar } from "@/components/payments/release-calendar";
 import { matchesTab, type TabId, type PaymentRow } from "@/lib/payments-catalog";
 import { PageHeader } from "@/components/page-header";
 import { Banknote, RefreshCw } from "lucide-react";
-import { exportPaymentsCsv } from "@/lib/payments-csv";
 import { usePaymentsRealtime } from "@/hooks/use-payments-realtime";
 import { PaymentsSectionTabs, type SectionId } from "@/components/payments/payments-section-tabs";
 import {
@@ -105,6 +104,8 @@ function PaymentsPage() {
         {section === "ledger"       && <LedgerSection />}
         {section === "conciliacion" && <ConciliacionSection rows={rows} />}
         {section === "webhooks" && isAdmin && <WebhooksSection />}
+
+        <NoCustodyBanner />
       </div>
       <FundingWizard
         open={fundingOpen}
