@@ -49,7 +49,7 @@ function InvitationsPage() {
         />
       </div>
 
-      <InfoBox tone="warning" title="Sólo invitaciones formales">
+      <InfoBox tone="warn" title="Sólo invitaciones formales">
         No se pueden crear contactos manuales. Toda contraparte se materializa por operación cerrada, resultado de búsqueda o aceptación de una invitación con email verificado.
       </InfoBox>
 
