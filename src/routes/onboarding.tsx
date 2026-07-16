@@ -1058,6 +1058,20 @@ function Step3Fiscal({ onSaved, onBack, setError, loading, setLoading }: {
             <Field id="incorporation_date" label="Fecha de constitución" type="date"
               value={f.incorporation_date ?? ""} onChange={(v) => set("incorporation_date", v)} />
           </div>
+          {rfcVerified && rfcBoxOpen && (
+            <div className={cn(
+              "rounded-lg border p-3 text-[12.5px]",
+              rfcVerified.match ? "border-yo-ok/40 bg-yo-ok/5 text-yo-txt" : "border-yo-danger/40 bg-yo-danger/5 text-yo-txt"
+            )}>
+              <div className="flex items-start justify-between gap-2">
+                <div>
+                  <p className="font-semibold">{rfcVerified.match ? "RFC verificado en el SAT" : "Los datos vinculados al RFC no coinciden"}</p>
+                  <p className="mt-1 text-yo-txt-2"><span className="text-yo-txt-3">Razón social:</span> {rfcVerified.razonSocial || rfcVerified.nombreCompleto || "—"}</p>
+                </div>
+                <button type="button" onClick={() => setRfcBoxOpen(false)} className="text-yo-txt-3 hover:text-yo-txt text-xs">Cerrar</button>
+              </div>
+            </div>
+          )}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <Field as="select" id="regimen_fiscal" label="Régimen fiscal (SAT)" value={f.regimen_fiscal ?? ""} onChange={(v) => set("regimen_fiscal", v)} required>
               <option value="">Selecciona…</option>
