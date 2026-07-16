@@ -421,7 +421,7 @@ export const confirmBiometricEnrollment = createServerFn({ method: "POST" })
   .inputValidator((i: unknown) => z.object({ token: z.string().min(10) }).parse(i))
   .handler(async ({ data }) => {
     const { admin, enrollment } = await loadByToken(data.token);
-    if (enrollment.status !== "address_verified") {
+    if (enrollment.status !== "address_verified" && enrollment.status !== "face_verified") {
       throw new Error("Faltan pasos por completar");
     }
 
