@@ -12,7 +12,7 @@ import { startBiometricEnrollment, getMyBiometricEnrollment, cancelBiometricEnro
 import { supabase } from "@/integrations/supabase/client";
 import { useServerFn } from "@tanstack/react-start";
 import {
-  checkEmailExists, validateRfcServer, validateCurpNubarium, saveOnboardingStep,
+  checkEmailExists, validateRfcServer, getRfcRazonSocial, validateCurpNubarium, saveOnboardingStep,
   uploadKycDocument, listOwnKycDocuments, deleteOwnKycDocument,
   registerClabe, startPennyTest, confirmPennyTest, submitKyc,
   validateCsfNubarium, parseEfirma, validateFielSerialNubarium, lookupPostalCode,
