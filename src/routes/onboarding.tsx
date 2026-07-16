@@ -1032,12 +1032,25 @@ function Step3Fiscal({ onSaved, onBack, setError, loading, setLoading }: {
                   rfcVerified.match ? "border-yo-ok/40 bg-yo-ok/5 text-yo-txt" : "border-yo-danger/40 bg-yo-danger/5 text-yo-txt"
                 )}>
                   <div className="flex items-start justify-between gap-2">
-                    <div>
+                    <div className="flex-1">
                       <p className="font-semibold">{rfcVerified.match ? "RFC verificado en el SAT" : "Los datos vinculados al RFC no coinciden"}</p>
                       <p className="mt-1 text-yo-txt-2"><span className="text-yo-txt-3">Nombre / Razón social:</span> {rfcVerified.nombreCompleto || rfcVerified.razonSocial || "—"}</p>
+                      <p className={cn("mt-1 text-[11px]", rfcVerified.match ? "text-yo-ok" : "text-yo-danger")}>
+                        {rfcVerified.match ? "El nombre coincide con los datos personales." : "El nombre no coincide con los datos personales capturados."}
+                      </p>
                     </div>
                     <button type="button" onClick={() => setRfcBoxOpen(false)} className="text-yo-txt-3 hover:text-yo-txt text-xs">Cerrar</button>
                   </div>
+                  <p className="mt-2 text-[11px] text-yo-txt-3">Este recuadro se cerrará automáticamente en 5 segundos.</p>
+                </div>
+              )}
+              {rfcVerified && !rfcBoxOpen && (
+                <div className="mt-3 inline-flex items-center gap-2 text-xs">
+                  <Check className={cn("size-3.5", rfcVerified.match ? "text-yo-ok" : "text-yo-danger")} />
+                  <span className={rfcVerified.match ? "text-yo-ok" : "text-yo-danger"}>
+                    {rfcVerified.match ? "RFC validado" : "RFC no coincide"} — {rfcVerified.nombreCompleto || rfcVerified.razonSocial || "—"}
+                  </span>
+                  <button type="button" onClick={() => setRfcBoxOpen(true)} className="underline text-yo-txt-3 hover:text-yo-txt">Ver detalle</button>
                 </div>
               )}
               {fillMode !== "manual" && (
