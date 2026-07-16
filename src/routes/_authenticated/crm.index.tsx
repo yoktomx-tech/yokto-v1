@@ -5,8 +5,6 @@ import {
   TrendingUp, AlertTriangle, Briefcase, CheckCircle2, Building2, User,
 } from "lucide-react";
 import { PageHeader } from "@/components/page-header";
-import { NoCustodyBanner } from "@/components/payments/ui/no-custody-banner";
-import { InfoBox } from "@/components/tx/ui/info-box";
 import { cn } from "@/lib/utils";
 import {
   MOCK_COUNTERPARTIES, MOCK_INVITATIONS, SECTOR_CFG, STATUS_CFG, TRUST_CFG, COMPLIANCE_CFG,
@@ -14,7 +12,7 @@ import {
   type Counterparty, type RelationshipStatus, type SectorId,
 } from "@/lib/relationships-mock";
 
-export const Route = createFileRoute("/_authenticated/relationships/")({
+export const Route = createFileRoute("/_authenticated/crm/")({
   component: RelationshipsListPage,
 });
 
@@ -63,21 +61,21 @@ function RelationshipsListPage() {
   const kpis = useMemo(() => computeMetrics(MOCK_COUNTERPARTIES, MOCK_INVITATIONS), []);
 
   return (
-    <div className="p-4 md:p-6 flex flex-col gap-6 max-w-[1600px] mx-auto w-full">
+    <div className="flex flex-col gap-6">
       <PageHeader
         icon={Users}
-        title="Relaciones de Confianza"
-        subtitle="Contrapartes reales derivadas de operaciones, búsqueda verificada o invitaciones formales. YOKTO no permite crear contactos manuales."
+        title="CRM"
+        subtitle="Contrapartes verificadas de tus operaciones, búsquedas e invitaciones."
         actions={
           <div className="flex items-center gap-2">
             <Link
-              to="/relationships/invitations"
+              to="/crm/invitations"
               className="h-9 px-3 inline-flex items-center gap-2 rounded-md border border-yo-border bg-white text-sm font-medium text-yo-txt hover:bg-yo-raised"
             >
               <Send className="size-4" /> Invitaciones
             </Link>
             <Link
-              to="/relationships/search"
+              to="/crm/search"
               className="h-9 px-3 inline-flex items-center gap-2 rounded-md bg-[#4F46E5] text-white text-sm font-semibold hover:bg-[#4338CA]"
             >
               <Search className="size-4" /> Buscar contraparte
@@ -85,8 +83,6 @@ function RelationshipsListPage() {
           </div>
         }
       />
-
-      <NoCustodyBanner />
 
       {/* KPIs — según spec: Contrapartes, Ops activas, Volumen histórico, Invitaciones */}
       <section className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -102,10 +98,6 @@ function RelationshipsListPage() {
         />
       </section>
 
-      <InfoBox tone="info" title="Cómo se agregan contrapartes">
-        Toda relación proviene de una operación cerrada, una búsqueda por RFC/CURP/YOKTO ID o una invitación formal aceptada.
-        No es posible dar de alta contactos manualmente — así garantizamos identidad verificada en ambos extremos.
-      </InfoBox>
 
       {/* Tabs */}
       <div className="border-b border-yo-border overflow-x-auto">
@@ -157,7 +149,7 @@ function RelationshipsListPage() {
 
       {/* List */}
       {filtered.length === 0 ? (
-        <EmptyState onSearch={() => navigate({ to: "/relationships/search" })} />
+        <EmptyState onSearch={() => navigate({ to: "/crm/search" })} />
       ) : (
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-3">
           {filtered.map((c) => <CounterpartyCard key={c.id} c={c} />)}
@@ -198,7 +190,7 @@ function CounterpartyCard({ c }: { c: Counterparty }) {
   const alertActive = hasAlert(c);
   return (
     <Link
-      to="/relationships/$counterpartyId"
+      to="/crm/$counterpartyId"
       params={{ counterpartyId: c.id }}
       className={cn(
         "group bg-white border rounded-lg p-4 hover:shadow-sm transition-all flex flex-col gap-3",
@@ -302,7 +294,7 @@ function EmptyState({ onSearch }: { onSearch: () => void }) {
         <button onClick={onSearch} className="h-9 px-3 inline-flex items-center gap-2 rounded-md bg-[#4F46E5] text-white text-sm font-medium hover:bg-[#4338CA]">
           <Search className="size-4" /> Buscar contraparte
         </button>
-        <Link to="/relationships/invitations" className="h-9 px-3 inline-flex items-center gap-2 rounded-md border border-yo-border bg-white text-sm font-medium text-yo-txt hover:bg-yo-raised">
+        <Link to="/crm/invitations" className="h-9 px-3 inline-flex items-center gap-2 rounded-md border border-yo-border bg-white text-sm font-medium text-yo-txt hover:bg-yo-raised">
           <Send className="size-4" /> Invitar contraparte
         </Link>
       </div>

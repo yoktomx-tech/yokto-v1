@@ -15,7 +15,7 @@ import {
   type Counterparty, type Interaction, type DocumentRequest,
 } from "@/lib/relationships-mock";
 
-export const Route = createFileRoute("/_authenticated/relationships/$counterpartyId")({
+export const Route = createFileRoute("/_authenticated/crm/$counterpartyId")({
   loader: ({ params }) => {
     const c = getCounterparty(params.counterpartyId);
     if (!c) throw notFound();
@@ -31,7 +31,7 @@ function NotFoundView() {
       <div className="bg-white border border-yo-border rounded-lg p-8 text-center">
         <h2 className="text-lg font-semibold text-yo-txt">Contraparte no disponible</h2>
         <p className="text-sm text-yo-txt-2 mt-1">Puede haber sido ocultada o no tienes permisos para verla.</p>
-        <Link to="/relationships" className="mt-4 inline-flex h-9 px-3 rounded-md bg-[#4F46E5] text-white text-sm font-medium">Volver al CRM</Link>
+        <Link to="/crm" className="mt-4 inline-flex h-9 px-3 rounded-md bg-[#4F46E5] text-white text-sm font-medium">Volver al CRM</Link>
       </div>
     </div>
   );
@@ -59,13 +59,13 @@ function CounterpartyDetailPage() {
   const docs = useMemo(() => getDocRequestsFor(counterparty.id), [counterparty.id]);
 
   return (
-    <div className="p-4 md:p-6 flex flex-col gap-6 max-w-[1600px] mx-auto w-full">
+    <div className="flex flex-col gap-6">
       <div className="flex items-center gap-3">
-        <Link to="/relationships" className="h-8 w-8 grid place-items-center rounded-md border border-yo-border bg-white hover:bg-yo-raised text-yo-txt-2">
+        <Link to="/crm" className="h-8 w-8 grid place-items-center rounded-md border border-yo-border bg-white hover:bg-yo-raised text-yo-txt-2">
           <ArrowLeft className="size-4" />
         </Link>
         <div className="text-[11px] text-yo-txt-3 flex items-center gap-1 font-mono">
-          <Link to="/relationships" className="hover:text-yo-txt">CRM</Link>
+          <Link to="/crm" className="hover:text-yo-txt">CRM</Link>
           <span>/</span>
           <span className="text-yo-txt">{counterparty.yoktoId}</span>
         </div>
