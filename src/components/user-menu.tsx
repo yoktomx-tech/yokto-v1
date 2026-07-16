@@ -59,7 +59,7 @@ export function UserMenu({ email }: { email?: string | null }) {
             </div>
           )}
           <Link
-            to="/onboarding/pendiente"
+            to="/profile"
             onClick={() => setOpen(false)}
             className="flex items-center gap-2 px-3 py-2 text-[13px] text-yo-txt hover:bg-yo-raised"
           >
