@@ -556,6 +556,7 @@ function Step3Fiscal({ onSaved, onBack, setError, loading, setLoading }: {
   const [efCer, setEfCer] = useState<File | null>(null);
   const [efKey, setEfKey] = useState<File | null>(null);
   const [efPass, setEfPass] = useState("");
+  const [efBoxOpen, setEfBoxOpen] = useState(true);
 
   // Postal code (Copomex) — se muestra sólo tras consulta exitosa
   const [cpBusy, setCpBusy] = useState(false);
