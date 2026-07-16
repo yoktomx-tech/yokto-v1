@@ -5,8 +5,6 @@ import {
   TrendingUp, AlertTriangle, Briefcase, CheckCircle2, Building2, User,
 } from "lucide-react";
 import { PageHeader } from "@/components/page-header";
-import { NoCustodyBanner } from "@/components/payments/ui/no-custody-banner";
-import { InfoBox } from "@/components/tx/ui/info-box";
 import { cn } from "@/lib/utils";
 import {
   MOCK_COUNTERPARTIES, MOCK_INVITATIONS, SECTOR_CFG, STATUS_CFG, TRUST_CFG, COMPLIANCE_CFG,
