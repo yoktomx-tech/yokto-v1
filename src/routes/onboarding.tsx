@@ -942,7 +942,9 @@ function Step3Fiscal({ onSaved, onBack, setError, loading, setLoading }: {
           {fillMode === "manual" && (
             <div className="rounded-xl border border-yo-border bg-yo-raised/40 p-4 flex flex-col gap-3">
               <div>
-                <label className="text-xs font-semibold uppercase tracking-widest text-yo-txt-2">CURP (18 caracteres)</label>
+                <label className="text-xs font-semibold uppercase tracking-widest text-yo-txt-2">
+                  CURP (18 caracteres) <span className="text-yo-danger">*</span>
+                </label>
                 <p className="mt-1 text-xs text-yo-txt-3">Consulta oficial en RENAPO para autocompletar tus datos personales.</p>
               </div>
               <div className="flex-1 w-full">
