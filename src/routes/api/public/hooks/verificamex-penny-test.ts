@@ -33,7 +33,7 @@ export const Route = createFileRoute("/api/public/hooks/verificamex-penny-test")
         if (!record) return new Response("Penny test not found", { status: 404 });
 
         const events = Array.isArray(record.webhook_events) ? record.webhook_events : [];
-        events.push({ received_at: new Date().toISOString(), payload });
+        events.push({ received_at: new Date().toISOString(), payload: JSON.parse(JSON.stringify(payload)) });
 
         const providerStatus = penny.status ?? "UNKNOWN";
         if (providerStatus !== "FINISHED") {
@@ -43,8 +43,8 @@ export const Route = createFileRoute("/api/public/hooks/verificamex-penny-test")
             .update({
               status: mapped === "ERROR" ? "ERROR" : "WAITING_RESULT",
               provider_status: providerStatus,
-              webhook_events: events,
-              raw_response: payload,
+              webhook_events: events as never,
+              raw_response: JSON.parse(JSON.stringify(payload)),
             })
             .eq("id", record.id);
           if (mapped === "ERROR") {
@@ -76,8 +76,8 @@ export const Route = createFileRoute("/api/public/hooks/verificamex-penny-test")
             rfc_curp_match: decision.rfc_curp_match,
             decision_reasons: decision.reasons,
             finished_at: new Date().toISOString(),
-            webhook_events: events,
-            raw_response: payload,
+            webhook_events: events as never,
+            raw_response: JSON.parse(JSON.stringify(payload)),
           })
           .eq("id", record.id);
 

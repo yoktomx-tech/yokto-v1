@@ -75,6 +75,7 @@ import { Route as AuthenticatedAdminAnalyticsRouteImport } from './routes/_authe
 import { Route as AuthenticatedTransactionsIdIndexRouteImport } from './routes/_authenticated/transactions.$id.index'
 import { Route as ApiPublicV1TransactionsRouteImport } from './routes/api/public/v1.transactions'
 import { Route as ApiPublicStripeWebhookRouteImport } from './routes/api/public/stripe.webhook'
+import { Route as ApiPublicHooksVerificamexPennyTestRouteImport } from './routes/api/public/hooks/verificamex-penny-test'
 import { Route as ApiPublicHooksDisputeDeadlinesRouteImport } from './routes/api/public/hooks/dispute-deadlines'
 import { Route as AuthenticatedTransactionsIdExpedienteRouteImport } from './routes/_authenticated/transactions.$id.expediente'
 import { Route as AuthenticatedSettingsOrganizationNewRouteImport } from './routes/_authenticated/settings.organization.new'
@@ -446,6 +447,12 @@ const ApiPublicStripeWebhookRoute = ApiPublicStripeWebhookRouteImport.update({
   path: '/api/public/stripe/webhook',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicHooksVerificamexPennyTestRoute =
+  ApiPublicHooksVerificamexPennyTestRouteImport.update({
+    id: '/api/public/hooks/verificamex-penny-test',
+    path: '/api/public/hooks/verificamex-penny-test',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicHooksDisputeDeadlinesRoute =
   ApiPublicHooksDisputeDeadlinesRouteImport.update({
     id: '/api/public/hooks/dispute-deadlines',
@@ -538,6 +545,7 @@ export interface FileRoutesByFullPath {
   '/settings/organization/new': typeof AuthenticatedSettingsOrganizationNewRoute
   '/transactions/$id/expediente': typeof AuthenticatedTransactionsIdExpedienteRoute
   '/api/public/hooks/dispute-deadlines': typeof ApiPublicHooksDisputeDeadlinesRoute
+  '/api/public/hooks/verificamex-penny-test': typeof ApiPublicHooksVerificamexPennyTestRoute
   '/api/public/stripe/webhook': typeof ApiPublicStripeWebhookRoute
   '/api/public/v1/transactions': typeof ApiPublicV1TransactionsRoute
   '/transactions/$id/': typeof AuthenticatedTransactionsIdIndexRoute
@@ -603,6 +611,7 @@ export interface FileRoutesByTo {
   '/settings/organization/new': typeof AuthenticatedSettingsOrganizationNewRoute
   '/transactions/$id/expediente': typeof AuthenticatedTransactionsIdExpedienteRoute
   '/api/public/hooks/dispute-deadlines': typeof ApiPublicHooksDisputeDeadlinesRoute
+  '/api/public/hooks/verificamex-penny-test': typeof ApiPublicHooksVerificamexPennyTestRoute
   '/api/public/stripe/webhook': typeof ApiPublicStripeWebhookRoute
   '/api/public/v1/transactions': typeof ApiPublicV1TransactionsRoute
   '/transactions/$id': typeof AuthenticatedTransactionsIdIndexRoute
@@ -676,6 +685,7 @@ export interface FileRoutesById {
   '/_authenticated/settings/organization/new': typeof AuthenticatedSettingsOrganizationNewRoute
   '/_authenticated/transactions/$id/expediente': typeof AuthenticatedTransactionsIdExpedienteRoute
   '/api/public/hooks/dispute-deadlines': typeof ApiPublicHooksDisputeDeadlinesRoute
+  '/api/public/hooks/verificamex-penny-test': typeof ApiPublicHooksVerificamexPennyTestRoute
   '/api/public/stripe/webhook': typeof ApiPublicStripeWebhookRoute
   '/api/public/v1/transactions': typeof ApiPublicV1TransactionsRoute
   '/_authenticated/transactions/$id/': typeof AuthenticatedTransactionsIdIndexRoute
@@ -749,6 +759,7 @@ export interface FileRouteTypes {
     | '/settings/organization/new'
     | '/transactions/$id/expediente'
     | '/api/public/hooks/dispute-deadlines'
+    | '/api/public/hooks/verificamex-penny-test'
     | '/api/public/stripe/webhook'
     | '/api/public/v1/transactions'
     | '/transactions/$id/'
@@ -814,6 +825,7 @@ export interface FileRouteTypes {
     | '/settings/organization/new'
     | '/transactions/$id/expediente'
     | '/api/public/hooks/dispute-deadlines'
+    | '/api/public/hooks/verificamex-penny-test'
     | '/api/public/stripe/webhook'
     | '/api/public/v1/transactions'
     | '/transactions/$id'
@@ -886,6 +898,7 @@ export interface FileRouteTypes {
     | '/_authenticated/settings/organization/new'
     | '/_authenticated/transactions/$id/expediente'
     | '/api/public/hooks/dispute-deadlines'
+    | '/api/public/hooks/verificamex-penny-test'
     | '/api/public/stripe/webhook'
     | '/api/public/v1/transactions'
     | '/_authenticated/transactions/$id/'
@@ -902,6 +915,7 @@ export interface RootRouteChildren {
   BiometricoTokenRoute: typeof BiometricoTokenRoute
   InvitationsTokenRoute: typeof InvitationsTokenRoute
   ApiPublicHooksDisputeDeadlinesRoute: typeof ApiPublicHooksDisputeDeadlinesRoute
+  ApiPublicHooksVerificamexPennyTestRoute: typeof ApiPublicHooksVerificamexPennyTestRoute
   ApiPublicStripeWebhookRoute: typeof ApiPublicStripeWebhookRoute
   ApiPublicV1TransactionsRoute: typeof ApiPublicV1TransactionsRoute
 }
@@ -1370,6 +1384,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicStripeWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/verificamex-penny-test': {
+      id: '/api/public/hooks/verificamex-penny-test'
+      path: '/api/public/hooks/verificamex-penny-test'
+      fullPath: '/api/public/hooks/verificamex-penny-test'
+      preLoaderRoute: typeof ApiPublicHooksVerificamexPennyTestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/dispute-deadlines': {
       id: '/api/public/hooks/dispute-deadlines'
       path: '/api/public/hooks/dispute-deadlines'
@@ -1656,19 +1677,11 @@ const rootRouteChildren: RootRouteChildren = {
   BiometricoTokenRoute: BiometricoTokenRoute,
   InvitationsTokenRoute: InvitationsTokenRoute,
   ApiPublicHooksDisputeDeadlinesRoute: ApiPublicHooksDisputeDeadlinesRoute,
+  ApiPublicHooksVerificamexPennyTestRoute:
+    ApiPublicHooksVerificamexPennyTestRoute,
   ApiPublicStripeWebhookRoute: ApiPublicStripeWebhookRoute,
   ApiPublicV1TransactionsRoute: ApiPublicV1TransactionsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
