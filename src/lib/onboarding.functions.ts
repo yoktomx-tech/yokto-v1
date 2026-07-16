@@ -711,12 +711,20 @@ export const parseEfirma = createServerFn({ method: "POST" })
     const rfcMatch = raw.match(/\b([A-ZÑ&]{3,4}\d{6}[A-Z0-9]{3})\b/i);
     const curpMatch = raw.match(/\b([A-Z]{4}\d{6}[HM][A-Z]{5}[A-Z0-9]\d)\b/i);
 
-    // Serial number (hex → decimal string as SAT uses)
+    // Serial number: SAT codifica el serial de 20 dígitos como bytes ASCII
+    // dentro del INTEGER del certificado. Decodificar hex → bytes → ASCII.
     const serialHex = cert.serialNumber; // hex string
-    // SAT serials are 20-digit ASCII; convert hex → BigInt → string
     let serialSat = "";
-    try { serialSat = BigInt("0x" + serialHex).toString(); } catch { serialSat = serialHex; }
-    // pad to 20 if it looks like SAT
+    try {
+      const clean = serialHex.replace(/^00/, ""); // quitar byte de signo si aplica
+      const bytes = clean.match(/.{2}/g) ?? [];
+      const ascii = bytes.map((b) => String.fromCharCode(parseInt(b, 16))).join("");
+      if (/^\d{16,25}$/.test(ascii)) {
+        serialSat = ascii;
+      } else {
+        serialSat = BigInt("0x" + serialHex).toString();
+      }
+    } catch { serialSat = serialHex; }
     if (/^\d+$/.test(serialSat) && serialSat.length < 20) serialSat = serialSat.padStart(20, "0");
 
     return {
