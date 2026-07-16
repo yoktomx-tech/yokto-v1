@@ -3,11 +3,11 @@ import { useServerFn } from "@tanstack/react-start";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Camera, CheckCircle2, XCircle, Loader2, ShieldCheck, IdCard,
-  ScanFace, FileText, ArrowRight, RefreshCw, Video, AlertTriangle, Check,
+  ScanFace, ArrowRight, RefreshCw, Video, AlertTriangle, Check,
 } from "lucide-react";
 import {
   getEnrollmentByToken, submitBiometricId, submitBiometricSelfie,
-  submitBiometricAddressDoc, confirmBiometricEnrollment, cancelBiometricEnrollment,
+  confirmBiometricEnrollment, cancelBiometricEnrollment,
 } from "@/lib/biometric.functions";
 import { YoktoLogo } from "@/components/logo";
 
@@ -17,7 +17,8 @@ export const Route = createFileRoute("/biometrico/$token")({
 });
 
 type Enrollment = Awaited<ReturnType<typeof getEnrollmentByToken>>;
-type Phase = "intro" | "id-choose" | "id-capture" | "selfie" | "address" | "review" | "done" | "error";
+type IdResult = { ocr_curp: string | null; profile_curp: string | null; curp_match: boolean | null; renapo_ok: boolean | null; status: string };
+type Phase = "intro" | "id-choose" | "id-capture" | "id-result" | "selfie" | "review" | "done" | "cancelled" | "error";
 
 function fileToBase64(file: File | Blob): Promise<{ base64: string; mime: string }> {
   return new Promise((resolve, reject) => {
@@ -38,6 +39,7 @@ function BiometricMobile() {
   const cancel = useServerFn(cancelBiometricEnrollment);
   const [enroll, setEnroll] = useState<Enrollment | null>(null);
   const [phase, setPhase] = useState<Phase>("intro");
+  const [idResult, setIdResult] = useState<IdResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -48,10 +50,8 @@ function BiometricMobile() {
       setError(null);
       if (e.status === "completed") setPhase("done");
       else if (phase === "intro" && e.status !== "pending") {
-        // reanudar
         if (e.status === "id_captured" || e.status === "id_verified") setPhase(e.status === "id_verified" ? "selfie" : "id-choose");
-        else if (e.status === "face_verified") setPhase("address");
-        else if (e.status === "address_verified") setPhase("review");
+        else if (e.status === "face_verified" || e.status === "address_verified") setPhase("review");
       }
     } catch (err) {
       setError((err as Error).message);
@@ -61,27 +61,47 @@ function BiometricMobile() {
 
   useEffect(() => { void refresh(); /* eslint-disable-next-line */ }, []);
 
+  async function doCancel() {
+    try { await cancel({ data: { token } }); } catch { /* ignore */ }
+    setPhase("cancelled");
+  }
+
   if (loading) return <MobileShell><Center><Loader2 className="size-6 animate-spin" /></Center></MobileShell>;
   if (phase === "error" || !enroll) return <MobileShell><ErrorCard msg={error ?? "Sesión no válida"} /></MobileShell>;
+  if (phase === "cancelled") return <MobileShell><Cancelled /></MobileShell>;
 
   return (
     <MobileShell>
       <Progress phase={phase} enroll={enroll} />
       {phase === "intro" && <Intro onStart={() => setPhase("id-choose")} enroll={enroll} />}
       {phase === "id-choose" && <IdChoose onChoose={() => setPhase("id-capture")} enroll={enroll} setEnroll={setEnroll} />}
-      {phase === "id-capture" && <IdCapture token={token} enroll={enroll} onDone={() => { void refresh(); setPhase("selfie"); }} onError={setError} />}
-      {phase === "selfie" && <SelfieCapture token={token} onDone={() => { void refresh(); setPhase("address"); }} onError={setError} />}
-      {phase === "address" && <AddressCapture token={token} onDone={() => { void refresh(); setPhase("review"); }} onError={setError} />}
+      {phase === "id-capture" && (
+        <IdCapture
+          token={token}
+          enroll={enroll}
+          onDone={async (res) => { setIdResult(res); await refresh(); setPhase("id-result"); }}
+          onError={setError}
+        />
+      )}
+      {phase === "id-result" && idResult && (
+        <IdResultScreen
+          result={idResult}
+          enroll={enroll}
+          onRetry={() => { setIdResult(null); setError(null); setPhase("id-capture"); }}
+          onContinue={() => { setError(null); setPhase("selfie"); }}
+          onCancel={doCancel}
+        />
+      )}
+      {phase === "selfie" && <SelfieCapture token={token} onDone={() => { void refresh(); setPhase("review"); }} onError={setError} />}
       {phase === "review" && <Review token={token} enroll={enroll} onDone={() => { void refresh(); setPhase("done"); }} onError={setError} />}
       {phase === "done" && <Done />}
-      {error && (
+      {error && phase !== "id-result" && (
         <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800 flex gap-2">
           <AlertTriangle className="size-4 shrink-0 mt-0.5" /> <span>{error}</span>
         </div>
       )}
-      {phase !== "done" && phase !== "intro" && (
-        <button onClick={async () => { await cancel({ data: { token } }); setPhase("error"); setError("Enrolamiento cancelado"); }}
-          className="text-xs text-yo-txt-3 underline mt-2">Cancelar biométrico</button>
+      {phase !== "done" && phase !== "intro" && phase !== "id-result" && (
+        <button onClick={doCancel} className="text-xs text-yo-txt-3 underline mt-2">Cancelar biométrico</button>
       )}
     </MobileShell>
   );
@@ -105,15 +125,23 @@ function ErrorCard({ msg }: { msg: string }) {
     <p className="text-sm text-red-800">{msg}</p>
   </div>;
 }
+function Cancelled() {
+  return (
+    <div className="rounded-xl border border-yo-border bg-yo-surface p-6 text-center">
+      <XCircle className="size-10 mx-auto text-yo-txt-3 mb-2" />
+      <h2 className="text-lg font-bold">Enrolamiento cancelado</h2>
+      <p className="text-sm text-yo-txt-2 mt-1">Ya puedes cerrar esta ventana. Vuelve a tu computadora para generar un nuevo código si deseas reintentar.</p>
+    </div>
+  );
+}
 function Progress({ phase, enroll }: { phase: Phase; enroll: Enrollment }) {
   const steps = [
-    { k: "id", label: "ID", ok: !!enroll?.curp_match, active: phase === "id-choose" || phase === "id-capture" },
+    { k: "id", label: "ID", ok: !!enroll?.curp_match, active: phase === "id-choose" || phase === "id-capture" || phase === "id-result" },
     { k: "face", label: "Rostro", ok: !!enroll?.face_match_ok, active: phase === "selfie" },
-    { k: "addr", label: "Domicilio", ok: !!enroll?.address_doc_ok, active: phase === "address" },
     { k: "done", label: "Confirmar", ok: phase === "done", active: phase === "review" },
   ];
   return (
-    <ol className="grid grid-cols-4 gap-1 text-[11px]">
+    <ol className="grid grid-cols-3 gap-1 text-[11px]">
       {steps.map((s, i) => (
         <li key={s.k} className={"flex flex-col items-center gap-1 " + (s.ok ? "text-yo-ok" : s.active ? "text-yo-ac" : "text-yo-txt-3")}>
           <span className={"grid place-items-center size-7 rounded-full border text-[11px] font-semibold " +
@@ -140,7 +168,6 @@ function Intro({ onStart, enroll }: { onStart: () => void; enroll: Enrollment })
       <ol className="text-sm text-yo-txt-2 flex flex-col gap-3">
         <li className="flex gap-3"><IdCard className="size-5 text-yo-ac shrink-0" /> <span>Toma una foto clara de tu <b>INE o pasaporte</b>.</span></li>
         <li className="flex gap-3"><ScanFace className="size-5 text-yo-ac shrink-0" /> <span>Graba un <b>selfie corto</b> moviendo la cara.</span></li>
-        <li className="flex gap-3"><FileText className="size-5 text-yo-ac shrink-0" /> <span>Sube tu <b>comprobante de domicilio</b> (max 3 meses).</span></li>
       </ol>
       <p className="text-[11px] text-yo-txt-3">
         Al continuar aceptas el tratamiento de tus datos biométricos con el fin exclusivo de verificar tu identidad.
@@ -173,10 +200,11 @@ function IdChoose({ onChoose, enroll, setEnroll }: { onChoose: () => void; enrol
 
 // ─── Camera capture (front-facing or environment) ────────────────────────────
 function useCamera(facing: "user" | "environment") {
-  const videoRef = useRef<HTMLVideoElement | null>(null);
   const [ready, setReady] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
+  const videoElRef = useRef<HTMLVideoElement | null>(null);
+
   useEffect(() => {
     let active = true;
     (async () => {
@@ -187,28 +215,43 @@ function useCamera(facing: "user" | "environment") {
         });
         if (!active) { s.getTracks().forEach((t) => t.stop()); return; }
         streamRef.current = s;
-        if (videoRef.current) { videoRef.current.srcObject = s; await videoRef.current.play(); setReady(true); }
+        if (videoElRef.current) {
+          videoElRef.current.srcObject = s;
+          try { await videoElRef.current.play(); } catch { /* ignore */ }
+        }
+        setReady(true);
       } catch (e) {
         setErr("No se pudo acceder a la cámara: " + (e as Error).message);
       }
     })();
-    return () => { active = false; streamRef.current?.getTracks().forEach((t) => t.stop()); };
+    return () => { active = false; streamRef.current?.getTracks().forEach((t) => t.stop()); streamRef.current = null; setReady(false); };
   }, [facing]);
+
+  // Callback ref: re-attach stream whenever the <video> element remounts.
+  const videoRef = useCallback((el: HTMLVideoElement | null) => {
+    videoElRef.current = el;
+    if (el && streamRef.current) {
+      el.srcObject = streamRef.current;
+      el.play().catch(() => {});
+    }
+  }, []);
+
   const snap = useCallback(async (): Promise<{ base64: string; mime: string } | null> => {
-    const v = videoRef.current;
-    if (!v || !ready) return null;
+    const v = videoElRef.current;
+    if (!v || !streamRef.current) return null;
     const canvas = document.createElement("canvas");
     canvas.width = v.videoWidth; canvas.height = v.videoHeight;
     canvas.getContext("2d")?.drawImage(v, 0, 0);
     const blob: Blob | null = await new Promise((r) => canvas.toBlob(r, "image/jpeg", 0.85));
     if (!blob) return null;
     return fileToBase64(blob);
-  }, [ready]);
+  }, []);
+
   return { videoRef, ready, err, snap, streamRef };
 }
 
 // ─── ID capture with framing guide ───────────────────────────────────────────
-function IdCapture({ token, enroll, onDone, onError }: { token: string; enroll: Enrollment; onDone: () => void; onError: (m: string | null) => void }) {
+function IdCapture({ token, enroll, onDone, onError }: { token: string; enroll: Enrollment; onDone: (res: IdResult) => void; onError: (m: string | null) => void }) {
   const cam = useCamera("environment");
   const submit = useServerFn(submitBiometricId);
   const [side, setSide] = useState<"front" | "back">("front");
@@ -227,12 +270,12 @@ function IdCapture({ token, enroll, onDone, onError }: { token: string; enroll: 
     if (!front) return;
     setBusy(true); onError(null);
     try {
-      await submit({ data: {
+      const res = await submit({ data: {
         token, id_type: (enroll?.id_type ?? "ine") as "ine" | "passport",
         front_base64: front.base64, front_mime: front.mime,
         back_base64: back?.base64, back_mime: back?.mime,
       } });
-      onDone();
+      onDone(res as IdResult);
     } catch (e) { onError((e as Error).message); }
     finally { setBusy(false); }
   }
@@ -246,10 +289,9 @@ function IdCapture({ token, enroll, onDone, onError }: { token: string; enroll: 
       <p className="text-xs text-yo-txt-3">Coloca la identificación dentro del recuadro. Evita reflejos.</p>
 
       <div className="relative aspect-[85/54] rounded-xl overflow-hidden bg-black">
-        {shot ? (
+        <video ref={cam.videoRef} className={"absolute inset-0 w-full h-full object-cover " + (shot ? "invisible" : "")} muted playsInline autoPlay />
+        {shot && (
           <img src={`data:${shot.mime};base64,${shot.base64}`} alt="Captura" className="absolute inset-0 w-full h-full object-cover" />
-        ) : (
-          <video ref={cam.videoRef} className="absolute inset-0 w-full h-full object-cover" muted playsInline />
         )}
         <div className="absolute inset-3 border-2 border-yo-ac/80 rounded-lg pointer-events-none" />
       </div>
@@ -280,6 +322,69 @@ function IdCapture({ token, enroll, onDone, onError }: { token: string; enroll: 
           </button>
         )}
       </div>
+    </div>
+  );
+}
+
+// ─── ID validation result ────────────────────────────────────────────────────
+function IdResultScreen({ result, enroll, onRetry, onContinue, onCancel }: {
+  result: IdResult; enroll: Enrollment;
+  onRetry: () => void; onContinue: () => void; onCancel: () => void;
+}) {
+  const match = result.curp_match === true;
+  const noCurpProfile = !result.profile_curp;
+  const ocr = (enroll?.ocr_data ?? {}) as Record<string, unknown>;
+  const nombre = String(ocr.nombre ?? [ocr.nombres, ocr.apellidoPaterno, ocr.apellidoMaterno].filter(Boolean).join(" ")).trim();
+
+  return (
+    <div className="flex flex-col gap-4">
+      <div className={"rounded-xl border p-5 text-center " + (match ? "border-yo-ok/40 bg-yo-ok-bg" : "border-red-200 bg-red-50")}>
+        {match ? <CheckCircle2 className="size-10 mx-auto text-yo-ok mb-2" /> : <XCircle className="size-10 mx-auto text-red-600 mb-2" />}
+        <h2 className="text-lg font-bold">
+          {match ? "Identificación válida" : noCurpProfile ? "No podemos comparar la CURP" : "Los datos no coinciden"}
+        </h2>
+        <p className={"text-sm mt-1 " + (match ? "text-yo-txt-2" : "text-red-800")}>
+          {match
+            ? "Los datos del documento coinciden con la CURP registrada en tu onboarding."
+            : noCurpProfile
+              ? "No hay una CURP registrada en tu perfil para comparar. Cancela y captura tu CURP en el onboarding antes de continuar."
+              : "La CURP leída en tu identificación no coincide con la registrada en el onboarding."}
+        </p>
+      </div>
+
+      <div className="rounded-xl border border-yo-border bg-yo-surface divide-y divide-yo-border text-sm">
+        <Row k="Nombre en el documento" v={nombre || "—"} />
+        <Row k="CURP en el documento" v={result.ocr_curp ?? "—"} mono />
+        <Row k="CURP en tu perfil" v={result.profile_curp ?? "—"} mono />
+        <Row k="Validación RENAPO" v={result.renapo_ok == null ? "—" : result.renapo_ok ? "OK" : "Sin coincidencia"} />
+        <Row k="Coincidencia" v={match ? "Sí" : "No"} tone={match ? "ok" : "err"} />
+      </div>
+
+      <div className="flex flex-col gap-2">
+        {match ? (
+          <button onClick={onContinue}
+            className="h-11 rounded-md bg-yo-ac hover:bg-yo-ac-h text-white text-sm font-semibold inline-flex items-center justify-center gap-1.5">
+            <ArrowRight className="size-4" /> Continuar con selfie
+          </button>
+        ) : (
+          <button onClick={onRetry}
+            className="h-11 rounded-md bg-yo-txt text-white text-sm font-semibold inline-flex items-center justify-center gap-1.5">
+            <RefreshCw className="size-4" /> Repetir captura
+          </button>
+        )}
+        <button onClick={onCancel} className="h-11 rounded-md border border-yo-border text-sm font-semibold">
+          Cancelar enrolamiento
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function Row({ k, v, mono, tone }: { k: string; v: string; mono?: boolean; tone?: "ok" | "err" }) {
+  return (
+    <div className="flex justify-between gap-3 px-3 py-2">
+      <span className="text-yo-txt-3">{k}</span>
+      <span className={"font-medium text-right " + (mono ? "font-mono " : "") + (tone === "ok" ? "text-yo-ok " : tone === "err" ? "text-red-700 " : "")}>{v}</span>
     </div>
   );
 }
@@ -330,10 +435,9 @@ function SelfieCapture({ token, onDone, onError }: { token: string; onDone: () =
       <h2 className="text-lg font-bold">Selfie y prueba de vida</h2>
       <p className="text-xs text-yo-txt-3">Al grabar, mueve suavemente la cabeza de un lado a otro durante 3 segundos.</p>
       <div className="relative aspect-square rounded-xl overflow-hidden bg-black">
-        {selfie ? (
+        <video ref={cam.videoRef} className={"absolute inset-0 w-full h-full object-cover scale-x-[-1] " + (selfie ? "invisible" : "")} muted playsInline autoPlay />
+        {selfie && (
           <img src={`data:${selfie.mime};base64,${selfie.base64}`} alt="Selfie" className="absolute inset-0 w-full h-full object-cover" />
-        ) : (
-          <video ref={cam.videoRef} className="absolute inset-0 w-full h-full object-cover scale-x-[-1]" muted playsInline />
         )}
         <div className="absolute inset-6 rounded-full border-2 border-yo-ac/80 pointer-events-none" />
         {recording && <span className="absolute top-3 left-3 bg-red-600 text-white text-[11px] px-2 py-0.5 rounded-full animate-pulse">REC</span>}
@@ -357,63 +461,6 @@ function SelfieCapture({ token, onDone, onError }: { token: string; onDone: () =
   );
 }
 
-// ─── Address doc ─────────────────────────────────────────────────────────────
-const DOC_OPTS: Array<{ v: "cfe" | "telmex" | "izzi" | "totalplay" | "megacable" | "agua" | "gas" | "predial" | "banco" | "otro"; label: string }> = [
-  { v: "cfe", label: "CFE (luz)" },
-  { v: "telmex", label: "Telmex" },
-  { v: "izzi", label: "izzi" },
-  { v: "totalplay", label: "Totalplay" },
-  { v: "megacable", label: "Megacable" },
-  { v: "agua", label: "Agua" },
-  { v: "gas", label: "Gas natural" },
-  { v: "predial", label: "Predial" },
-  { v: "banco", label: "Estado de cuenta bancario" },
-  { v: "otro", label: "Otro" },
-];
-
-function AddressCapture({ token, onDone, onError }: { token: string; onDone: () => void; onError: (m: string | null) => void }) {
-  const submit = useServerFn(submitBiometricAddressDoc);
-  const [type, setType] = useState<typeof DOC_OPTS[number]["v"]>("cfe");
-  const [file, setFile] = useState<{ base64: string; mime: string; name: string } | null>(null);
-  const [busy, setBusy] = useState(false);
-
-  async function pick(f: File) {
-    if (f.size > 8 * 1024 * 1024) { onError("Archivo mayor a 8 MB"); return; }
-    const { base64, mime } = await fileToBase64(f);
-    setFile({ base64, mime, name: f.name });
-  }
-
-  async function send() {
-    if (!file) return;
-    setBusy(true); onError(null);
-    try {
-      await submit({ data: { token, doc_type: type, file_base64: file.base64, file_mime: file.mime } });
-      onDone();
-    } catch (e) { onError((e as Error).message); }
-    finally { setBusy(false); }
-  }
-
-  return (
-    <div className="flex flex-col gap-3">
-      <h2 className="text-lg font-bold">Comprobante de domicilio</h2>
-      <p className="text-xs text-yo-txt-3">Vigencia máxima 3 meses. JPG, PNG o PDF.</p>
-      <label className="text-xs font-semibold">Tipo de documento</label>
-      <select value={type} onChange={(e) => setType(e.target.value as typeof type)} className="h-11 rounded-md border border-yo-border bg-background px-3 text-sm">
-        {DOC_OPTS.map((o) => <option key={o.v} value={o.v}>{o.label}</option>)}
-      </select>
-      <label className="inline-flex items-center justify-center gap-2 h-11 rounded-md border border-dashed border-yo-border text-sm cursor-pointer">
-        <Camera className="size-4" /> {file ? file.name : "Tomar foto o subir archivo"}
-        <input type="file" accept="image/*,application/pdf" capture="environment" className="hidden"
-          onChange={(e) => { const f = e.target.files?.[0]; if (f) void pick(f); }} />
-      </label>
-      <button onClick={send} disabled={!file || busy}
-        className="h-11 rounded-md bg-yo-ac hover:bg-yo-ac-h text-white text-sm font-semibold inline-flex items-center justify-center gap-1.5 disabled:opacity-50">
-        {busy ? <Loader2 className="size-4 animate-spin" /> : <ArrowRight className="size-4" />} Enviar y validar
-      </button>
-    </div>
-  );
-}
-
 // ─── Review ──────────────────────────────────────────────────────────────────
 function Review({ token, enroll, onDone, onError }: { token: string; enroll: Enrollment; onDone: () => void; onError: (m: string | null) => void }) {
   const confirm = useServerFn(confirmBiometricEnrollment);
@@ -427,7 +474,6 @@ function Review({ token, enroll, onDone, onError }: { token: string; enroll: Enr
     ["CURP en perfil", curp ?? "—"],
     ["CURP coincide", enroll?.curp_match ? "Sí" : "No"],
     ["Match facial", enroll?.face_score != null ? `${Number(enroll.face_score).toFixed(2)} %` : "—"],
-    ["Comprobante", enroll?.address_doc_ok ? "Aprobado" : "—"],
   ];
   async function send() {
     setBusy(true); onError(null);
