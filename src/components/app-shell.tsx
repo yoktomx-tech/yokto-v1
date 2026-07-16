@@ -21,7 +21,7 @@ const SELLER_NAV: NavItem[] = [
   { to: "/disputes",     icon: AlertTriangle,   label: "Disputas" },
   { to: "/payments",     icon: Banknote,        label: "Pagos y retenciones" },
   { to: "/analytics",    icon: BarChart3,       label: "Analytics" },
-  { to: "/relationships", icon: Users,           label: "Relaciones" },
+  { to: "/crm", icon: Users,           label: "Relaciones" },
   { to: "/teams",        icon: Users2,          label: "Equipo" },
   { to: "/score",        icon: Star,            label: "Score de confianza" },
 ];
@@ -33,7 +33,7 @@ const BUYER_NAV: NavItem[] = [
   { to: "/disputes",     icon: AlertTriangle,   label: "Disputas" },
   { to: "/payments",     icon: Banknote,        label: "Pagos y retenciones" },
   { to: "/analytics",    icon: BarChart3,       label: "Analytics" },
-  { to: "/relationships", icon: Users,           label: "Relaciones" },
+  { to: "/crm", icon: Users,           label: "Relaciones" },
   { to: "/teams",        icon: Users2,          label: "Equipo" },
   { to: "/score",        icon: Star,            label: "Score de confianza" },
 ];

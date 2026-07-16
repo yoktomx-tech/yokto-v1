@@ -7,7 +7,7 @@ import {
   MOCK_COUNTERPARTIES, SECTOR_CFG, TRUST_CFG, maskRfc, maskEmail, type Counterparty,
 } from "@/lib/relationships-mock";
 
-export const Route = createFileRoute("/_authenticated/relationships/search")({
+export const Route = createFileRoute("/_authenticated/crm/search")({
   component: SearchPage,
 });
 
@@ -30,7 +30,7 @@ function SearchPage() {
   return (
     <div className="p-4 md:p-6 flex flex-col gap-6 max-w-[1100px] mx-auto w-full">
       <div className="flex items-center gap-3">
-        <Link to="/relationships" className="h-8 w-8 grid place-items-center rounded-md border border-yo-border bg-white hover:bg-yo-raised text-yo-txt-2">
+        <Link to="/crm" className="h-8 w-8 grid place-items-center rounded-md border border-yo-border bg-white hover:bg-yo-raised text-yo-txt-2">
           <ArrowLeft className="size-4" />
         </Link>
         <PageHeader
@@ -108,7 +108,7 @@ function ResultRow({ c }: { c: Counterparty }) {
   const Icon = c.personType === "PM" ? Building2 : User;
   return (
     <Link
-      to="/relationships/$counterpartyId"
+      to="/crm/$counterpartyId"
       params={{ counterpartyId: c.id }}
       className="bg-white border border-yo-border rounded-lg p-4 flex items-center gap-4 hover:border-[#4F46E5] hover:shadow-sm transition-all"
     >
@@ -156,7 +156,7 @@ function NotFoundBlock({ query }: { query: string }) {
         No encontramos una contraparte registrada para <span className="font-mono">{query}</span>. Puedes enviarle una invitación formal para que se registre y quede vinculada a tu red.
       </p>
       <Link
-        to="/relationships/invitations"
+        to="/crm/invitations"
         className="mt-4 inline-flex items-center gap-2 h-10 px-4 rounded-md bg-[#4F46E5] text-white text-sm font-semibold hover:bg-[#4338CA]"
       >
         <Send className="size-4" /> Invitar contraparte
