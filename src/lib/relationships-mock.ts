@@ -79,6 +79,8 @@ export type Counterparty = {
   starred?: boolean;
   hidden?: boolean;
   source: "OPERATION" | "SEARCH" | "INVITATION";
+  scope?: "PERSONAL" | "TEAM";
+  ownerMember?: string; // nombre del miembro creador (para filtro Team)
 };
 
 export type Invitation = {
