@@ -794,6 +794,7 @@ function Step3Fiscal({ onSaved, onBack, setError, loading, setLoading }: {
         setF((p) => ({ ...p, rfc: parsed.rfc || p.rfc }));
       }
       setEfInfo({ ...parsed, vigente });
+      setEfBoxOpen(true);
       setRfcCheck({ ok: true, msg: "RFC extraído de tu e.firma" });
     } catch (e) {
       setEfErr(e instanceof Error ? e.message : "No se pudo procesar la e.firma");
