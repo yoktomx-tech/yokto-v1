@@ -12,7 +12,7 @@ import { TransactionsTable, type TxRow } from "@/components/tx/transactions-tabl
 import { TransactionCardMobile } from "@/components/tx/transaction-card-mobile";
 import { EmptyState } from "@/components/tx/ui";
 import { buildDemoTxRows } from "@/lib/operation-examples";
-import { NoCustodyBanner } from "@/components/payments/ui/no-custody-banner";
+
 import { InfoBox } from "@/components/tx/ui/info-box";
 
 type SearchParams = {
