@@ -272,11 +272,6 @@ function TransactionsList() {
           }
         />
 
-        <NoCustodyBanner
-          message={role === "buyer"
-            ? "YOKTO verifica el cumplimiento de las condiciones pactadas. Los fondos son retenidos y liberados por la pasarela certificada de cada operación — YOKTO no custodia dinero."
-            : "YOKTO verifica el cumplimiento acordado y ordena las liberaciones a la pasarela cuando corresponde. Los pagos que recibes son procesados por la pasarela, no por YOKTO."}
-        />
 
         {/* Metrics */}
         <TransactionsMetricsGrid role={role} data={metrics} />
