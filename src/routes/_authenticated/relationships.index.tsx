@@ -66,8 +66,8 @@ function RelationshipsListPage() {
     <div className="p-4 md:p-6 flex flex-col gap-6 max-w-[1600px] mx-auto w-full">
       <PageHeader
         icon={Users}
-        title="CRM de contrapartes"
-        subtitle="Relaciones formadas a partir de operaciones, búsqueda verificada e invitaciones. YOKTO no crea contactos manuales."
+        title="Relaciones de Confianza"
+        subtitle="Contrapartes reales derivadas de operaciones, búsqueda verificada o invitaciones formales. YOKTO no permite crear contactos manuales."
         actions={
           <div className="flex items-center gap-2">
             <Link
@@ -88,12 +88,18 @@ function RelationshipsListPage() {
 
       <NoCustodyBanner />
 
-      {/* KPIs */}
+      {/* KPIs — según spec: Contrapartes, Ops activas, Volumen histórico, Invitaciones */}
       <section className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <KPI icon={<Users className="size-4" />} label="Contrapartes" value={String(kpis.totalCounterparties)} hint={`${kpis.activas} activas`} />
-        <KPI icon={<Star className="size-4" />} label="Frecuentes" value={String(kpis.frecuentes)} hint="Recurrencia >5 ops" />
-        <KPI icon={<Shield className="size-4" />} label="Trust promedio" value={`${kpis.trustPromedio}/100`} hint={`${kpis.kycVerified} con KYC`} />
-        <KPI icon={<TrendingUp className="size-4" />} label="Volumen histórico" value={formatMoney(kpis.volTotal)} hint={`${kpis.opsActivas} ops activas`} />
+        <KPI icon={<Users className="size-4" />} label="Contrapartes" value={String(kpis.totalCounterparties)} hint={`${kpis.activas} activas · ${kpis.kycVerified} con KYC`} />
+        <KPI icon={<Briefcase className="size-4" />} label="Operaciones activas" value={String(kpis.opsActivas)} hint={`${kpis.disputadas} con disputa histórica`} />
+        <KPI icon={<TrendingUp className="size-4" />} label="Volumen histórico" value={formatMoney(kpis.volTotal)} hint={`Trust promedio ${kpis.trustPromedio}/100`} />
+        <KPI
+          icon={<Send className="size-4" />}
+          label="Invitaciones"
+          value={`${kpis.invitacionesPendientes} pendientes`}
+          hint={kpis.invitacionesVencenHoy > 0 ? `${kpis.invitacionesVencenHoy} vence hoy` : `${kpis.conAlerta} con alerta`}
+          tone={kpis.invitacionesVencenHoy > 0 ? "warn" : undefined}
+        />
       </section>
 
       <InfoBox tone="info" title="Cómo se agregan contrapartes">
