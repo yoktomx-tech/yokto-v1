@@ -46,7 +46,7 @@ function SearchPage() {
 
       <section className="bg-white border border-yo-border rounded-lg p-4 flex flex-col gap-3">
         <div className="flex flex-wrap items-center gap-2">
-          {(["AUTO", "RFC", "CURP", "EMAIL", "YOKTO_ID", "NAME"] as const).map((k) => (
+          {(["AUTO", "RFC", "CURP", "EMAIL", "YOKTO_ID", "NAME", "OP"] as const).map((k) => (
             <button
               key={k}
               onClick={() => setCriteria(k)}
@@ -54,7 +54,7 @@ function SearchPage() {
                 ? "bg-[#EEF2FF] border-[#4F46E5] text-[#3730A3] font-semibold"
                 : "bg-white border-yo-border text-yo-txt-2 hover:text-yo-txt")}
             >
-              {k === "AUTO" ? "Autodetectar" : k === "YOKTO_ID" ? "YOKTO ID" : k === "NAME" ? "Nombre / Razón social" : k}
+              {k === "AUTO" ? "Autodetectar" : k === "YOKTO_ID" ? "YOKTO ID" : k === "NAME" ? "Nombre / Razón social" : k === "OP" ? "Número de operación" : k}
             </button>
           ))}
         </div>
