@@ -315,7 +315,12 @@ function TabOperaciones({ c }: { c: Counterparty }) {
     { id: "YOKTO-2026-00287", status: "in_progress", amount: 740_000, at: "hace 12 días" },
     { id: "YOKTO-2026-00201", status: "released",  amount: 305_000, at: "hace 45 días" },
   ].slice(0, Math.min(3, c.metrics.totalOps));
-  if (rows.length === 0) return <EmptyBlock text="Aún no hay operaciones registradas con esta contraparte." />;
+  if (rows.length === 0) return (
+    <EmptyBlock
+      text="Aún no tienes operaciones con esta contraparte. Puedes iniciar una operación protegida o enviarle una invitación para completar su perfil."
+      icon={<Briefcase className="size-5" />}
+    />
+  );
   return (
     <Card title="Operaciones vinculadas">
       <div className="divide-y divide-yo-border">
