@@ -32,6 +32,64 @@ export const validateRfcServer = createServerFn({ method: "POST" })
     return { ...check, activo: null as boolean | null };
   });
 
+// ---------- 2a. Obtener Razón Social / Nombre desde RFC (Nubarium) ----------
+export const getRfcRazonSocial = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) => z.object({
+    rfc: z.string().min(12).max(13),
+    expected: z.enum(["PF", "PM"]).optional(),
+  }).parse(i))
+  .handler(async ({ data }) => {
+    const local = validateRfc(data.rfc, data.expected);
+    if (!local.valid) throw new Error(local.error ?? "RFC inválido");
+
+    const user = process.env.NUBARIUM_USER;
+    const pass = process.env.NUBARIUM_PASSWORD;
+    if (!user || !pass) throw new Error("Credenciales de Nubarium no configuradas");
+    const auth = Buffer.from(`${user}:${pass}`).toString("base64");
+    const rfc = data.rfc.toUpperCase();
+
+    let res: Response;
+    try {
+      res = await fetch("https://sat.nubarium.com/sat/v1/obtener-razonsocial", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Authorization": `Basic ${auth}` },
+        body: JSON.stringify({ rfc }),
+      });
+    } catch {
+      throw new Error("No se pudo contactar al servicio SAT (Nubarium)");
+    }
+
+    let payload: Record<string, unknown> = {};
+    try { payload = (await res.json()) as Record<string, unknown>; } catch { /* ignore */ }
+
+    const estatus = String(payload.estatus ?? "");
+    if (estatus !== "OK") {
+      const msg = typeof payload.mensaje === "string" ? payload.mensaje : "RFC no encontrado en el SAT";
+      throw new Error(msg);
+    }
+
+    const razonSocial = String(payload.razonSocial ?? payload.nombre ?? "");
+    const nombres = String(payload.nombres ?? payload.nombre ?? "");
+    const apellidoPaterno = String(payload.apellidoPaterno ?? "");
+    const apellidoMaterno = String(payload.apellidoMaterno ?? "");
+    // tipo persona: si el RFC tiene 13 caracteres → PF, 12 → PM
+    const tipo: "PF" | "PM" = rfc.length === 13 ? "PF" : "PM";
+
+    return {
+      valid: true,
+      rfc,
+      tipo,
+      razonSocial: tipo === "PM" ? (razonSocial || nombres) : "",
+      nombres: tipo === "PF" ? (nombres || razonSocial) : "",
+      apellidoPaterno,
+      apellidoMaterno,
+      nombreCompleto: tipo === "PF"
+        ? [nombres || razonSocial, apellidoPaterno, apellidoMaterno].filter(Boolean).join(" ").trim()
+        : (razonSocial || nombres),
+    };
+  });
+
 // ---------- 2b. Validar CURP contra Nubarium (RENAPO) ----------
 function parseNubariumDate(s: string | undefined | null): string | null {
   if (!s) return null;
@@ -216,7 +274,7 @@ const step3PfSchema = z.object({
   birth_date: z.string().optional().nullable(), // YYYY-MM-DD
   rfc: z.string(),
   curp: z.string(),
-  regimen_fiscal: z.string().min(3),
+  regimen_fiscal: z.string({ required_error: "Selecciona un régimen fiscal" }).min(1, "Selecciona un régimen fiscal"),
   uso_cfdi_default: z.string().optional().nullable(),
 }).merge(domicilioSchema);
 
@@ -226,7 +284,7 @@ const step3PmSchema = z.object({
   legal_name: z.string().min(3),
   trade_name: z.string().optional().nullable(),
   rfc: z.string(),
-  regimen_fiscal: z.string().min(3),
+  regimen_fiscal: z.string({ required_error: "Selecciona un régimen fiscal" }).min(1, "Selecciona un régimen fiscal"),
   uso_cfdi_default: z.string().optional().nullable(),
   incorporation_date: z.string().optional().nullable(),
   legal_rep: z.object({

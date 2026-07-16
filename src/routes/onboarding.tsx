@@ -12,7 +12,7 @@ import { startBiometricEnrollment, getMyBiometricEnrollment, cancelBiometricEnro
 import { supabase } from "@/integrations/supabase/client";
 import { useServerFn } from "@tanstack/react-start";
 import {
-  checkEmailExists, validateRfcServer, validateCurpNubarium, saveOnboardingStep,
+  checkEmailExists, validateRfcServer, getRfcRazonSocial, validateCurpNubarium, saveOnboardingStep,
   uploadKycDocument, listOwnKycDocuments, deleteOwnKycDocument,
   registerClabe, startPennyTest, confirmPennyTest, submitKyc,
   validateCsfNubarium, parseEfirma, validateFielSerialNubarium, lookupPostalCode,
@@ -22,6 +22,7 @@ import { validateRfc, normalizeRfc } from "@/lib/validations/rfc";
 import { validateCurp, normalizeCurp } from "@/lib/validations/curp";
 import { REGIMEN_FISICA, REGIMEN_MORAL, ESTADOS_MX } from "@/lib/validations/sat-catalogs";
 import { YoktoLogo } from "@/components/logo";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/onboarding")({
   head: () => ({
@@ -199,7 +200,7 @@ function Field(props: {
   return (
     <div className="flex flex-col gap-1.5">
       <label htmlFor={id} className="text-xs font-medium text-yo-txt-2">
-        {label}{required && <span className="text-yo-err"> *</span>}
+        {label}{required && <span className="text-yo-err" aria-hidden="true">*</span>}
       </label>
       <div className={
         "group flex items-center gap-2.5 rounded-md border h-11 px-3 transition bg-yo-surface " +
@@ -277,6 +278,20 @@ function Step1Account({ initialEmail, onCredentials, setError, loading, setLoadi
     } finally { setCheckingEmail(false); }
   }
 
+  async function isPasswordBreached(pwd: string): Promise<boolean> {
+    try {
+      const buf = new TextEncoder().encode(pwd);
+      const digest = await crypto.subtle.digest("SHA-1", buf);
+      const hex = Array.from(new Uint8Array(digest)).map((b) => b.toString(16).padStart(2, "0")).join("").toUpperCase();
+      const prefix = hex.slice(0, 5);
+      const suffix = hex.slice(5);
+      const res = await fetch(`https://api.pwnedpasswords.com/range/${prefix}`, { headers: { "Add-Padding": "true" } });
+      if (!res.ok) return false;
+      const text = await res.text();
+      return text.split("\n").some((line) => line.split(":")[0]?.trim().toUpperCase() === suffix);
+    } catch { return false; }
+  }
+
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setError(null); setPwdError(null); setConfirmError(null);
@@ -288,10 +303,17 @@ function Step1Account({ initialEmail, onCredentials, setError, loading, setLoadi
     if (!terms) { setError("Debes aceptar los términos y el aviso de privacidad."); return; }
     if (emailError) return;
 
-    // Verificación final del email (por si no hubo blur)
+    // Verificación final del email y chequeo de fugas de contraseña (HIBP)
     setLoading(true);
     try {
-      const r = await checkEmail({ data: { email: email.toLowerCase() } });
+      const [pwned, r] = await Promise.all([
+        isPasswordBreached(password),
+        checkEmail({ data: { email: email.toLowerCase() } }),
+      ]);
+      if (pwned) {
+        setPwdError("Contraseña insegura. Está en listas de filtraciones conocidas, elige una diferente.");
+        return;
+      }
       if (r.exists) { setEmailError("Este correo ya tiene una cuenta. Inicia sesión."); return; }
       // Sin signUp aún: se difiere hasta Paso 3 para evitar cuentas huérfanas.
       onCredentials(email.toLowerCase(), password);
@@ -514,6 +536,11 @@ function Step3Fiscal({ onSaved, onBack, setError, loading, setLoading }: {
     sexo: string; fechaNacimiento: string | null; estadoNacimiento: string; estatusCurp: string;
   }>(null);
   const [curpBoxOpen, setCurpBoxOpen] = useState(true);
+  // RFC Nubarium verification
+  const [rfcVerified, setRfcVerified] = useState<null | {
+    tipo: "PF" | "PM"; razonSocial: string; nombres: string; apellidoPaterno: string; apellidoMaterno: string; nombreCompleto: string; match: boolean;
+  }>(null);
+  const [rfcBoxOpen, setRfcBoxOpen] = useState(true);
 
   // Fiscal-fill flow
   const [fillMode, setFillMode] = useState<FillMode>(null);
@@ -538,6 +565,7 @@ function Step3Fiscal({ onSaved, onBack, setError, loading, setLoading }: {
 
   const save = useServerFn(saveOnboardingStep);
   const validateRfcFn = useServerFn(validateRfcServer);
+  const getRfcRazonSocialFn = useServerFn(getRfcRazonSocial);
   const validateCurpFn = useServerFn(validateCurpNubarium);
   const validateCsfFn = useServerFn(validateCsfNubarium);
   const parseEfirmaFn = useServerFn(parseEfirma);
@@ -611,15 +639,32 @@ function Step3Fiscal({ onSaved, onBack, setError, loading, setLoading }: {
   }, [curpVerified, curpBoxOpen]);
 
   async function onRfcBlur() {
-    if (!f.rfc) return setRfcCheck(null);
+    if (!f.rfc) { setRfcCheck(null); setRfcVerified(null); return; }
     const norm = normalizeRfc(f.rfc);
     set("rfc", norm);
-    const local = validateRfc(norm, tipo === "persona_fisica" ? "PF" : "PM");
-    if (!local.valid) { setRfcCheck({ ok: false, msg: local.error ?? "RFC inválido" }); return; }
+    const expected = tipo === "persona_fisica" ? "PF" : "PM";
+    const local = validateRfc(norm, expected);
+    if (!local.valid) { setRfcCheck({ ok: false, msg: local.error ?? "RFC inválido" }); setRfcVerified(null); return; }
     setRfcChecking(true);
     try {
-      const r = await validateRfcFn({ data: { rfc: norm, expected: tipo === "persona_fisica" ? "PF" : "PM" } });
-      setRfcCheck({ ok: r.valid, msg: r.valid ? "RFC con formato válido" : (r.error ?? "RFC inválido") });
+      const r = await getRfcRazonSocialFn({ data: { rfc: norm, expected } });
+      // Comparar nombre completo si es PF y ya se validó CURP
+      const normalize = (s: string) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase().replace(/\s+/g, " ").trim();
+      const expectedName = tipo === "persona_fisica"
+        ? normalize([f.first_name, f.last_name, f.second_last_name].filter(Boolean).join(" "))
+        : normalize(f.legal_name ?? "");
+      const gotName = normalize(r.nombreCompleto);
+      const match = !expectedName || !gotName ? true : (expectedName === gotName || gotName.includes(expectedName) || expectedName.includes(gotName));
+      setRfcVerified({
+        tipo: r.tipo, razonSocial: r.razonSocial, nombres: r.nombres,
+        apellidoPaterno: r.apellidoPaterno, apellidoMaterno: r.apellidoMaterno,
+        nombreCompleto: r.nombreCompleto, match,
+      });
+      setRfcBoxOpen(true);
+      setRfcCheck({ ok: match, msg: match ? "RFC verificado en el SAT" : "Los datos vinculados al RFC no coinciden" });
+    } catch (e) {
+      setRfcCheck({ ok: false, msg: e instanceof Error ? e.message : "No se pudo verificar el RFC" });
+      setRfcVerified(null);
     } finally { setRfcChecking(false); }
   }
   function onCurpChange(v: string) {
@@ -978,6 +1023,20 @@ function Step3Fiscal({ onSaved, onBack, setError, loading, setLoading }: {
                   {regimenes.map((r) => <option key={r.code} value={r.code}>{r.label}</option>)}
                 </Field>
               </div>
+              {rfcVerified && rfcBoxOpen && (
+                <div className={cn(
+                  "mt-3 rounded-lg border p-3 text-[12.5px]",
+                  rfcVerified.match ? "border-yo-ok/40 bg-yo-ok/5 text-yo-txt" : "border-yo-danger/40 bg-yo-danger/5 text-yo-txt"
+                )}>
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <p className="font-semibold">{rfcVerified.match ? "RFC verificado en el SAT" : "Los datos vinculados al RFC no coinciden"}</p>
+                      <p className="mt-1 text-yo-txt-2"><span className="text-yo-txt-3">Nombre / Razón social:</span> {rfcVerified.nombreCompleto || rfcVerified.razonSocial || "—"}</p>
+                    </div>
+                    <button type="button" onClick={() => setRfcBoxOpen(false)} className="text-yo-txt-3 hover:text-yo-txt text-xs">Cerrar</button>
+                  </div>
+                </div>
+              )}
               {fillMode !== "manual" && (
                 <p className="mt-2 text-[11px] text-yo-txt-3">RFC extraído automáticamente del documento.</p>
               )}
@@ -999,6 +1058,20 @@ function Step3Fiscal({ onSaved, onBack, setError, loading, setLoading }: {
             <Field id="incorporation_date" label="Fecha de constitución" type="date"
               value={f.incorporation_date ?? ""} onChange={(v) => set("incorporation_date", v)} />
           </div>
+          {rfcVerified && rfcBoxOpen && (
+            <div className={cn(
+              "rounded-lg border p-3 text-[12.5px]",
+              rfcVerified.match ? "border-yo-ok/40 bg-yo-ok/5 text-yo-txt" : "border-yo-danger/40 bg-yo-danger/5 text-yo-txt"
+            )}>
+              <div className="flex items-start justify-between gap-2">
+                <div>
+                  <p className="font-semibold">{rfcVerified.match ? "RFC verificado en el SAT" : "Los datos vinculados al RFC no coinciden"}</p>
+                  <p className="mt-1 text-yo-txt-2"><span className="text-yo-txt-3">Razón social:</span> {rfcVerified.razonSocial || rfcVerified.nombreCompleto || "—"}</p>
+                </div>
+                <button type="button" onClick={() => setRfcBoxOpen(false)} className="text-yo-txt-3 hover:text-yo-txt text-xs">Cerrar</button>
+              </div>
+            </div>
+          )}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <Field as="select" id="regimen_fiscal" label="Régimen fiscal (SAT)" value={f.regimen_fiscal ?? ""} onChange={(v) => set("regimen_fiscal", v)} required>
               <option value="">Selecciona…</option>
