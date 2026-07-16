@@ -274,7 +274,7 @@ const step3PfSchema = z.object({
   birth_date: z.string().optional().nullable(), // YYYY-MM-DD
   rfc: z.string(),
   curp: z.string(),
-  regimen_fiscal: z.string().min(3),
+  regimen_fiscal: z.string({ required_error: "Selecciona un régimen fiscal" }).min(1, "Selecciona un régimen fiscal"),
   uso_cfdi_default: z.string().optional().nullable(),
 }).merge(domicilioSchema);
 
@@ -284,7 +284,7 @@ const step3PmSchema = z.object({
   legal_name: z.string().min(3),
   trade_name: z.string().optional().nullable(),
   rfc: z.string(),
-  regimen_fiscal: z.string().min(3),
+  regimen_fiscal: z.string({ required_error: "Selecciona un régimen fiscal" }).min(1, "Selecciona un régimen fiscal"),
   uso_cfdi_default: z.string().optional().nullable(),
   incorporation_date: z.string().optional().nullable(),
   legal_rep: z.object({
