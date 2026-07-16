@@ -1474,128 +1474,346 @@ function DocUploader({ type, label, doc, onUpload, onRemove, required, disabled 
   );
 }
 
-// ─── STEP 5 — CLABE + Penny-test ─────────────────────────────────────────────
-function Step5Bank({ onFinished, onBack, setError, loading, setLoading }: {
-  onFinished: () => void; onBack: () => void;
+// ─── STEP 5 — Token Móvil (MFA TOTP) ─────────────────────────────────────────
+function Step5MFA({ onDone, onBack, setError, loading, setLoading }: {
+  onDone: () => void; onBack: () => void;
   setError: (s: string | null) => void; loading: boolean; setLoading: (b: boolean) => void;
 }) {
-  const [clabe, setClabe] = useState("");
-  const [clabeErr, setClabeErr] = useState<string | null>(null);
-  const [banco, setBanco] = useState<string | null>(null);
-  const [verId, setVerId] = useState<string | null>(null);
-  const [mockCode, setMockCode] = useState<string | null>(null);
+  const [enrolling, setEnrolling] = useState(true);
+  const [factorId, setFactorId] = useState<string | null>(null);
+  const [secret, setSecret] = useState<string>("");
+  const [qrDataUrl, setQrDataUrl] = useState<string>("");
+  const [otpUri, setOtpUri] = useState<string>("");
   const [code, setCode] = useState("");
-  const [confirmed, setConfirmed] = useState(false);
+  const [verified, setVerified] = useState(false);
+  const [copied, setCopied] = useState(false);
 
-  const registerFn = useServerFn(registerClabe);
-  const startFn = useServerFn(startPennyTest);
-  const confirmFn = useServerFn(confirmPennyTest);
-  const submitFn = useServerFn(submitKyc);
+  // Limpia factores TOTP previos "unverified" para evitar el error de límite/duplicados,
+  // luego enrola un nuevo factor y genera el QR.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      setEnrolling(true); setError(null);
+      try {
+        const { data: list } = await supabase.auth.mfa.listFactors();
+        const stale = (list?.totp ?? []).filter((f) => f.status !== "verified");
+        for (const f of stale) {
+          try { await supabase.auth.mfa.unenroll({ factorId: f.id }); } catch { /* ignore */ }
+        }
+        const { data, error } = await supabase.auth.mfa.enroll({
+          factorType: "totp",
+          friendlyName: `YOKTO-${Date.now()}`,
+        });
+        if (error) throw error;
+        if (cancelled) return;
+        setFactorId(data.id);
+        setSecret(data.totp.secret);
+        setOtpUri(data.totp.uri);
+        const png = await QRCode.toDataURL(data.totp.uri, {
+          margin: 1, width: 240, color: { dark: "#0A0A0A", light: "#FFFFFF" },
+        });
+        if (!cancelled) setQrDataUrl(png);
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "No se pudo generar el código QR de 2FA.");
+      } finally {
+        if (!cancelled) setEnrolling(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [setError]);
 
-  function onClabeChange(v: string) {
-    const c = normalizeClabe(v).slice(0, 18);
-    setClabe(c);
-    setBanco(getBanco(c));
-    if (c.length === 18) {
-      const r = validateClabe(c);
-      setClabeErr(r.valid ? null : (r.error ?? null));
-    } else setClabeErr(null);
-  }
-
-  async function registerAndStart() {
-    setError(null);
-    const r = validateClabe(clabe);
-    if (!r.valid) { setClabeErr(r.error ?? "CLABE inválida"); return; }
-    setLoading(true);
+  async function verify() {
+    if (!factorId || code.length !== 6) return;
+    setLoading(true); setError(null);
     try {
-      const row = await registerFn({ data: { clabe } });
-      setVerId(row.id);
-      const p = await startFn({ data: { clabe_verification_id: row.id } });
-      setMockCode(p.mockCode);
+      const { data: ch, error: chErr } = await supabase.auth.mfa.challenge({ factorId });
+      if (chErr) throw chErr;
+      const { error: vErr } = await supabase.auth.mfa.verify({ factorId, challengeId: ch.id, code });
+      if (vErr) throw vErr;
+      const { data: userRes } = await supabase.auth.getUser();
+      if (userRes.user?.id) {
+        await supabase.from("profiles").update({ mfa_status: "enabled" }).eq("id", userRes.user.id);
+      }
+      setVerified(true);
+      setTimeout(() => onDone(), 700);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Error");
+      setError(e instanceof Error ? e.message : "Código incorrecto. Intenta de nuevo.");
     } finally { setLoading(false); }
   }
 
-  async function confirm() {
-    if (!verId) return;
-    setError(null); setLoading(true);
+  async function skipForNow() {
+    setLoading(true); setError(null);
     try {
-      await confirmFn({ data: { clabe_verification_id: verId, code } });
-      setConfirmed(true);
+      if (factorId) {
+        try { await supabase.auth.mfa.unenroll({ factorId }); } catch { /* ignore */ }
+      }
+      const { data: userRes } = await supabase.auth.getUser();
+      if (userRes.user?.id) {
+        await supabase.from("profiles").update({ mfa_status: "pending" }).eq("id", userRes.user.id);
+      }
+      onDone();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Código incorrecto");
+      setError(e instanceof Error ? e.message : "No se pudo omitir la configuración.");
     } finally { setLoading(false); }
   }
 
-  async function finish() {
-    setError(null); setLoading(true);
-    try { await submitFn({}); onFinished(); }
-    catch (e) { setError(e instanceof Error ? e.message : "Error al enviar KYC"); }
-    finally { setLoading(false); }
+  async function copySecret() {
+    try {
+      await navigator.clipboard.writeText(secret);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch { /* ignore */ }
   }
 
   return (
     <div className="flex flex-col gap-5">
       <div>
-        <h2 className="text-2xl font-bold tracking-tight">Cuenta bancaria de cobro</h2>
+        <h2 className="text-2xl font-bold tracking-tight">Token Móvil (2FA)</h2>
         <p className="mt-1 text-sm text-yo-txt-2">
-          Registra la CLABE donde recibirás los fondos liberados. Debe estar a nombre del titular fiscal.
+          Añade una segunda capa de seguridad. Escanea el código con <strong>Google Authenticator</strong>,{" "}
+          <strong>Microsoft Authenticator</strong> o cualquier app compatible con TOTP.
         </p>
       </div>
 
-      <Field id="clabe" label="CLABE interbancaria (18 dígitos)" value={clabe} onChange={onClabeChange}
-        required maxLength={18} inputMode="numeric" error={clabeErr}
-        hint={banco ? `Banco identificado: ${banco}` : undefined}
-        icon={<Landmark className="size-4" />} disabled={!!verId} />
-
-      {!verId && (
-        <button onClick={registerAndStart} disabled={loading || clabe.length !== 18 || !!clabeErr}
-          className="self-start inline-flex items-center gap-2 min-h-10 px-4 rounded-md bg-yo-txt text-white text-sm font-semibold hover:bg-yo-txt/90 disabled:opacity-50">
-          {loading ? <Loader2 className="size-4 animate-spin" /> : "Validar y enviar depósito de prueba"}
-        </button>
-      )}
-
-      {verId && !confirmed && (
-        <div className="rounded-xl border border-yo-ac/25 bg-yo-ac-bg p-4 flex flex-col gap-3">
-          <p className="text-sm text-yo-ac-txt font-medium">
-            <ShieldCheck className="inline size-4 mr-1" />
-            Depósito de $0.01 MXN enviado con referencia MOCK. Ingresa el código de 4 dígitos para confirmar tu titularidad.
-          </p>
-          {mockCode && (
-            <p className="text-xs text-yo-txt-2 bg-yo-surface border border-yo-border rounded-md px-2.5 py-1.5">
-              <span className="font-semibold text-yo-warn">MODO SIMULACIÓN:</span> tu código de prueba es <span className="font-mono font-bold">{mockCode}</span> (en producción llegaría por tu estado de cuenta / SMS).
-            </p>
-          )}
-          <div className="flex items-end gap-3">
-            <div className="max-w-[160px]">
-              <Field id="code" label="Código de 4 dígitos" value={code} onChange={(v) => setCode(v.replace(/\D/g, "").slice(0, 4))}
-                inputMode="numeric" maxLength={4} placeholder="0000" />
+      <div className="grid md:grid-cols-2 gap-5">
+        {/* QR + secreto */}
+        <div className="rounded-xl border border-yo-border bg-yo-surface p-5 flex flex-col items-center gap-4">
+          {enrolling || !qrDataUrl ? (
+            <div className="aspect-square w-full max-w-[240px] grid place-items-center bg-yo-raised rounded-lg">
+              <Loader2 className="size-6 animate-spin text-yo-txt-3" />
             </div>
-            <button onClick={confirm} disabled={loading || code.length !== 4}
-              className="min-h-10 px-4 rounded-md bg-yo-ac hover:bg-yo-ac-h text-white text-sm font-semibold disabled:opacity-50">
-              {loading ? <Loader2 className="size-4 animate-spin" /> : "Confirmar"}
+          ) : verified ? (
+            <div className="aspect-square w-full max-w-[240px] grid place-items-center bg-yo-ok-bg rounded-lg text-center px-4">
+              <div>
+                <CheckCircle2 className="size-10 mx-auto text-yo-ok mb-2" />
+                <p className="text-sm font-semibold">Token verificado</p>
+              </div>
+            </div>
+          ) : (
+            <img src={qrDataUrl} alt="Código QR para configurar 2FA" className="w-full max-w-[240px] aspect-square" />
+          )}
+
+          {secret && !verified && (
+            <div className="w-full">
+              <p className="text-[11px] uppercase tracking-widest font-semibold text-yo-txt-3 mb-1.5">
+                ¿No puedes escanear? Ingresa el código manual:
+              </p>
+              <div className="flex items-center gap-2 rounded-md border border-yo-border bg-yo-raised px-3 py-2">
+                <code className="flex-1 text-xs font-mono tracking-wider break-all text-yo-txt">{secret}</code>
+                <button onClick={copySecret} type="button"
+                  className="inline-flex items-center gap-1 text-xs font-semibold text-yo-ac hover:text-yo-ac-h">
+                  {copied ? <><Check className="size-3.5" /> Copiado</> : <><Copy className="size-3.5" /> Copiar</>}
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Instrucciones + verificación */}
+        <div className="rounded-xl border border-yo-border bg-yo-surface p-5 flex flex-col gap-4">
+          <div className="flex items-start gap-3">
+            <Smartphone className="size-5 text-yo-ac mt-0.5" />
+            <div>
+              <p className="text-sm font-semibold">Configuración en 3 pasos</p>
+              <ol className="mt-2 text-xs text-yo-txt-2 flex flex-col gap-1.5 list-decimal list-inside">
+                <li>Abre tu app autenticadora en el teléfono.</li>
+                <li>Escanea el QR o pega el código manual.</li>
+                <li>Ingresa el código de 6 dígitos que aparece en la app.</li>
+              </ol>
+            </div>
+          </div>
+
+          <div className="border-t border-yo-border pt-4">
+            <Field id="mfa-code" label="Código de 6 dígitos" value={code}
+              onChange={(v) => setCode(v.replace(/\D/g, "").slice(0, 6))}
+              inputMode="numeric" maxLength={6} placeholder="000000"
+              icon={<KeyRound className="size-4" />} disabled={verified || enrolling} />
+            <button onClick={verify} disabled={loading || verified || enrolling || code.length !== 6}
+              className="mt-3 w-full inline-flex items-center justify-center gap-2 min-h-10 rounded-md bg-yo-ac hover:bg-yo-ac-h text-white text-sm font-semibold disabled:opacity-50">
+              {loading ? <Loader2 className="size-4 animate-spin" /> : <>Verificar y activar 2FA <ShieldCheck className="size-4" /></>}
             </button>
           </div>
-        </div>
-      )}
 
-      {confirmed && (
-        <div className="rounded-xl border border-yo-ok/30 bg-yo-ok-bg p-4 text-sm text-yo-ok">
-          <Check className="inline size-4 mr-1.5" />
-          CLABE verificada. Lista para envío a revisión KYC.
+          <div className="rounded-md bg-yo-warn-bg border border-yo-warn/20 px-3 py-2 text-[11px] text-yo-warn">
+            Puedes omitir este paso y activarlo más tarde desde <strong>Configuración → Seguridad</strong>.
+            Tu cuenta quedará marcada como <strong>2FA pendiente</strong>.
+          </div>
         </div>
-      )}
+      </div>
 
       <div className="flex items-center justify-between pt-2">
-        <button type="button" onClick={onBack} className="inline-flex items-center gap-1.5 text-sm text-yo-txt-2 hover:text-yo-txt">
+        <button type="button" onClick={onBack} disabled={loading}
+          className="inline-flex items-center gap-1.5 text-sm text-yo-txt-2 hover:text-yo-txt disabled:opacity-50">
           <ArrowLeft className="size-4" /> Regresar
         </button>
-        <button onClick={finish} disabled={!confirmed || loading}
+        <div className="flex items-center gap-3">
+          <button type="button" onClick={skipForNow} disabled={loading || verified}
+            className="inline-flex items-center gap-1.5 min-h-10 px-4 rounded-md border border-yo-border text-sm font-medium text-yo-txt-2 hover:bg-yo-raised disabled:opacity-50">
+            <SkipForward className="size-4" /> Omitir por ahora
+          </button>
+          {verified && (
+            <button onClick={onDone}
+              className="inline-flex items-center gap-2 min-h-10 px-5 rounded-md bg-yo-ac hover:bg-yo-ac-h text-white text-sm font-semibold">
+              Continuar <ArrowRight className="size-4" />
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── STEP 6 — Confirmación (revisar y crear usuario) ─────────────────────────
+type ReviewProfile = {
+  email: string | null;
+  account_type: string | null;
+  first_name: string | null;
+  last_name: string | null;
+  second_last_name: string | null;
+  legal_name: string | null;
+  rfc: string | null;
+  curp: string | null;
+  regimen_fiscal: string | null;
+  fiscal_postal_code: string | null;
+  fiscal_estado: string | null;
+  fiscal_municipio: string | null;
+  mfa_status: string | null;
+};
+
+function Step6Review({ onFinished, onBack, setError, loading, setLoading }: {
+  onFinished: () => void; onBack: () => void;
+  setError: (s: string | null) => void; loading: boolean; setLoading: (b: boolean) => void;
+}) {
+  const [profile, setProfile] = useState<ReviewProfile | null>(null);
+  const [docsCount, setDocsCount] = useState<number>(0);
+  const [bioDone, setBioDone] = useState<boolean>(false);
+  const [accepted, setAccepted] = useState(false);
+  const submitFn = useServerFn(submitKyc);
+  const listDocsFn = useServerFn(listOwnKycDocuments);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const { data: u } = await supabase.auth.getUser();
+        const uid = u.user?.id; if (!uid) return;
+        const [{ data: p }, { data: bio }, docs] = await Promise.all([
+          supabase.from("profiles")
+            .select("email, account_type, first_name, last_name, second_last_name, legal_name, rfc, curp, regimen_fiscal, fiscal_postal_code, fiscal_estado, fiscal_municipio, mfa_status")
+            .eq("id", uid).maybeSingle(),
+          supabase.from("biometric_enrollments").select("status").eq("user_id", uid).order("created_at", { ascending: false }).limit(1).maybeSingle(),
+          listDocsFn({}).catch(() => []),
+        ]);
+        setProfile((p as ReviewProfile) ?? null);
+        setBioDone(bio?.status === "completed");
+        setDocsCount(Array.isArray(docs) ? docs.length : 0);
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "No se pudo cargar el resumen");
+      }
+    })();
+  }, [listDocsFn, setError]);
+
+  async function finish() {
+    if (!accepted) { setError("Confirma que la información es correcta."); return; }
+    setError(null); setLoading(true);
+    try {
+      await submitFn({});
+      onFinished();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "No se pudo enviar a verificación.");
+    } finally { setLoading(false); }
+  }
+
+  const isPF = profile?.account_type === "persona_fisica";
+  const nombreCompleto = isPF
+    ? [profile?.first_name, profile?.last_name, profile?.second_last_name].filter(Boolean).join(" ")
+    : (profile?.legal_name ?? "—");
+  const mfa = profile?.mfa_status ?? "not_configured";
+
+  return (
+    <div className="flex flex-col gap-5">
+      <div>
+        <h2 className="text-2xl font-bold tracking-tight">Revisa y confirma</h2>
+        <p className="mt-1 text-sm text-yo-txt-2">
+          Verifica que todo esté correcto. Al aceptar, enviaremos tu expediente a verificación KYC.
+        </p>
+      </div>
+
+      <div className="grid gap-3">
+        <ReviewSection title="Cuenta" icon={<Mail className="size-4" />}>
+          <ReviewRow k="Correo" v={profile?.email ?? "—"} />
+          <ReviewRow k="Tipo" v={isPF ? "Persona Física" : profile?.account_type === "persona_moral" ? "Persona Moral" : "—"} />
+        </ReviewSection>
+
+        <ReviewSection title="Datos fiscales" icon={<FileText className="size-4" />}>
+          <ReviewRow k={isPF ? "Nombre completo" : "Razón social"} v={nombreCompleto || "—"} />
+          <ReviewRow k="RFC" v={profile?.rfc ?? "—"} mono />
+          {isPF && <ReviewRow k="CURP" v={profile?.curp ?? "—"} mono />}
+          <ReviewRow k="Régimen fiscal" v={profile?.regimen_fiscal ?? "—"} />
+          <ReviewRow
+            k="Domicilio fiscal"
+            v={[profile?.fiscal_municipio, profile?.fiscal_estado, profile?.fiscal_postal_code].filter(Boolean).join(", ") || "—"}
+          />
+        </ReviewSection>
+
+        <ReviewSection title="Identidad" icon={<ShieldCheck className="size-4" />}>
+          <ReviewRow
+            k="Enrolamiento biométrico"
+            v={bioDone ? "Completado" : "Pendiente"}
+            tone={bioDone ? "ok" : "warn"}
+          />
+          <ReviewRow k="Documentos entregados" v={`${docsCount} archivo(s)`} />
+        </ReviewSection>
+
+        <ReviewSection title="Token Móvil (2FA)" icon={<KeyRound className="size-4" />}>
+          <ReviewRow
+            k="Estado"
+            v={mfa === "enabled" ? "Habilitado" : mfa === "pending" ? "Pendiente (configurar después)" : "No configurado"}
+            tone={mfa === "enabled" ? "ok" : mfa === "pending" ? "warn" : undefined}
+          />
+        </ReviewSection>
+      </div>
+
+      <label className="flex items-start gap-2.5 text-sm text-yo-txt-2 cursor-pointer border border-yo-border rounded-md p-3 bg-yo-surface">
+        <input type="checkbox" checked={accepted} onChange={(e) => setAccepted(e.target.checked)}
+          className="mt-0.5 size-4 rounded border-yo-border text-yo-ac focus:ring-yo-ac" />
+        <span>
+          Confirmo que la información capturada es <strong>verdadera y completa</strong>, y autorizo a YOKTO a
+          validarla contra fuentes oficiales (SAT, RENAPO, listas nominales) para completar mi verificación KYC.
+        </span>
+      </label>
+
+      <div className="flex items-center justify-between pt-2">
+        <button type="button" onClick={onBack} disabled={loading}
+          className="inline-flex items-center gap-1.5 text-sm text-yo-txt-2 hover:text-yo-txt disabled:opacity-50">
+          <ArrowLeft className="size-4" /> Regresar
+        </button>
+        <button onClick={finish} disabled={!accepted || loading}
           className="inline-flex items-center gap-2 min-h-10 px-5 rounded-md bg-yo-ac hover:bg-yo-ac-h text-white text-sm font-semibold disabled:opacity-50">
-          {loading ? <Loader2 className="size-4 animate-spin" /> : "Enviar a verificación"}
+          {loading ? <Loader2 className="size-4 animate-spin" /> : <>Aceptar y crear mi usuario <Check className="size-4" /></>}
         </button>
       </div>
+    </div>
+  );
+}
+
+function ReviewSection({ title, icon, children }: { title: string; icon: React.ReactNode; children: React.ReactNode }) {
+  return (
+    <div className="rounded-xl border border-yo-border bg-yo-surface overflow-hidden">
+      <div className="flex items-center gap-2 px-4 py-2.5 bg-yo-raised border-b border-yo-border">
+        <span className="text-yo-ac">{icon}</span>
+        <p className="text-xs uppercase tracking-widest font-semibold text-yo-txt">{title}</p>
+      </div>
+      <div className="divide-y divide-yo-border">{children}</div>
+    </div>
+  );
+}
+
+function ReviewRow({ k, v, mono, tone }: { k: string; v: string; mono?: boolean; tone?: "ok" | "warn" }) {
+  const toneCls = tone === "ok" ? "text-yo-ok" : tone === "warn" ? "text-yo-warn" : "text-yo-txt";
+  return (
+    <div className="flex items-center justify-between gap-3 px-4 py-2.5 text-sm">
+      <span className="text-yo-txt-3">{k}</span>
+      <span className={cn("font-medium text-right", mono && "font-mono tracking-wider", toneCls)}>{v}</span>
     </div>
   );
 }
