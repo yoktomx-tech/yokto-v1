@@ -47,6 +47,11 @@ import {
   type ComplianceProfile,
 } from "@/lib/score-mock";
 import { cn } from "@/lib/utils";
+import { Link } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
+import { useQuery } from "@tanstack/react-query";
+import { useCurrentOrg } from "@/hooks/use-current-org";
+import { getPldOverview } from "@/lib/pld.functions";
 
 export const Route = createFileRoute("/_authenticated/score")({
   head: () => ({
