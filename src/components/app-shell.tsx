@@ -2,7 +2,7 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import { useState } from "react";
 import {
   LayoutDashboard, Briefcase, PackageCheck, AlertTriangle, Banknote,
-  Users, Users2, Star, Menu, X, ClipboardCheck, BarChart3, Landmark, Settings, ShieldCheck,
+  Users, Users2, Star, Menu, X, ClipboardCheck, BarChart3, Landmark, Settings,
 } from "lucide-react";
 import { YoktoLogo } from "@/components/logo";
 import { OrgSwitcher } from "@/components/org-switcher";
@@ -25,7 +25,6 @@ const SELLER_NAV: NavItem[] = [
   { to: "/crm", icon: Users,           label: "Relaciones" },
   { to: "/teams",        icon: Users2,          label: "Equipo" },
   { to: "/score",        icon: Star,            label: "Score de confianza" },
-  { to: "/pld",          icon: ShieldCheck,     label: "PLD/FT" },
   { to: "/settings",     icon: Settings,        label: "Configuración" },
 ];
 
@@ -39,7 +38,6 @@ const BUYER_NAV: NavItem[] = [
   { to: "/crm", icon: Users,           label: "Relaciones" },
   { to: "/teams",        icon: Users2,          label: "Equipo" },
   { to: "/score",        icon: Star,            label: "Score de confianza" },
-  { to: "/pld",          icon: ShieldCheck,     label: "PLD/FT" },
   { to: "/settings",     icon: Settings,        label: "Configuración" },
 ];
 
