@@ -14,6 +14,7 @@ import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as BackofficeRouteImport } from './routes/_backoffice'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as InvitationsTokenRouteImport } from './routes/invitations.$token'
@@ -34,6 +35,7 @@ import { Route as AuthenticatedCrmRouteImport } from './routes/_authenticated/cr
 import { Route as AuthenticatedApprovalsRouteImport } from './routes/_authenticated/approvals'
 import { Route as AuthenticatedApiClientsRouteImport } from './routes/_authenticated/api-clients'
 import { Route as AuthenticatedAnalyticsRouteImport } from './routes/_authenticated/analytics'
+import { Route as BackofficeAdminIndexRouteImport } from './routes/_backoffice/admin.index'
 import { Route as AuthenticatedTransactionsIndexRouteImport } from './routes/_authenticated/transactions.index'
 import { Route as AuthenticatedTeamsIndexRouteImport } from './routes/_authenticated/teams.index'
 import { Route as AuthenticatedSettingsIndexRouteImport } from './routes/_authenticated/settings.index'
@@ -41,6 +43,15 @@ import { Route as AuthenticatedPldIndexRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedDisputesIndexRouteImport } from './routes/_authenticated/disputes.index'
 import { Route as AuthenticatedCrmIndexRouteImport } from './routes/_authenticated/crm.index'
 import { Route as AuthenticatedAnalyticsIndexRouteImport } from './routes/_authenticated/analytics.index'
+import { Route as BackofficeAdminSupportRouteImport } from './routes/_backoffice/admin.support'
+import { Route as BackofficeAdminRolesRouteImport } from './routes/_backoffice/admin.roles'
+import { Route as BackofficeAdminKycRouteImport } from './routes/_backoffice/admin.kyc'
+import { Route as BackofficeAdminHealthRouteImport } from './routes/_backoffice/admin.health'
+import { Route as BackofficeAdminFinanzasRouteImport } from './routes/_backoffice/admin.finanzas'
+import { Route as BackofficeAdminDisputasRouteImport } from './routes/_backoffice/admin.disputas'
+import { Route as BackofficeAdminConfigRouteImport } from './routes/_backoffice/admin.config'
+import { Route as BackofficeAdminComplianceRouteImport } from './routes/_backoffice/admin.compliance'
+import { Route as BackofficeAdminAuditRouteImport } from './routes/_backoffice/admin.audit'
 import { Route as AuthenticatedTransactionsNewRouteImport } from './routes/_authenticated/transactions.new'
 import { Route as AuthenticatedTransactionsIdRouteImport } from './routes/_authenticated/transactions.$id'
 import { Route as AuthenticatedTeamsWorkflowsRouteImport } from './routes/_authenticated/teams.workflows'
@@ -88,12 +99,14 @@ import { Route as AuthenticatedAnalyticsCustomRouteImport } from './routes/_auth
 import { Route as AuthenticatedAnalyticsCumplimientoRouteImport } from './routes/_authenticated/analytics.cumplimiento'
 import { Route as AuthenticatedAnalyticsContratosRouteImport } from './routes/_authenticated/analytics.contratos'
 import { Route as AuthenticatedAnalyticsAprobacionesRouteImport } from './routes/_authenticated/analytics.aprobaciones'
+import { Route as BackofficeAdminDocumentosIndexRouteImport } from './routes/_backoffice/admin.documentos.index'
 import { Route as AuthenticatedTransactionsIdIndexRouteImport } from './routes/_authenticated/transactions.$id.index'
 import { Route as AuthenticatedComplianceBankAccountsIndexRouteImport } from './routes/_authenticated/compliance.bank-accounts.index'
 import { Route as ApiPublicV1TransactionsRouteImport } from './routes/api/public/v1.transactions'
 import { Route as ApiPublicStripeWebhookRouteImport } from './routes/api/public/stripe.webhook'
 import { Route as ApiPublicHooksVerificamexPennyTestRouteImport } from './routes/api/public/hooks/verificamex-penny-test'
 import { Route as ApiPublicHooksDisputeDeadlinesRouteImport } from './routes/api/public/hooks/dispute-deadlines'
+import { Route as BackofficeAdminDocumentosReviewIdRouteImport } from './routes/_backoffice/admin.documentos.$reviewId'
 import { Route as AuthenticatedTransactionsIdExpedienteRouteImport } from './routes/_authenticated/transactions.$id.expediente'
 import { Route as AuthenticatedSettingsOrganizationNewRouteImport } from './routes/_authenticated/settings.organization.new'
 import { Route as AuthenticatedProfileBankingVerifyRouteImport } from './routes/_authenticated/profile.banking.verify'
@@ -122,6 +135,10 @@ const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BackofficeRoute = BackofficeRouteImport.update({
+  id: '/_backoffice',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
@@ -226,6 +243,11 @@ const AuthenticatedAnalyticsRoute = AuthenticatedAnalyticsRouteImport.update({
   path: '/analytics',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const BackofficeAdminIndexRoute = BackofficeAdminIndexRouteImport.update({
+  id: '/admin/',
+  path: '/admin/',
+  getParentRoute: () => BackofficeRoute,
+} as any)
 const AuthenticatedTransactionsIndexRoute =
   AuthenticatedTransactionsIndexRouteImport.update({
     id: '/',
@@ -265,6 +287,52 @@ const AuthenticatedAnalyticsIndexRoute =
     path: '/',
     getParentRoute: () => AuthenticatedAnalyticsRoute,
   } as any)
+const BackofficeAdminSupportRoute = BackofficeAdminSupportRouteImport.update({
+  id: '/admin/support',
+  path: '/admin/support',
+  getParentRoute: () => BackofficeRoute,
+} as any)
+const BackofficeAdminRolesRoute = BackofficeAdminRolesRouteImport.update({
+  id: '/admin/roles',
+  path: '/admin/roles',
+  getParentRoute: () => BackofficeRoute,
+} as any)
+const BackofficeAdminKycRoute = BackofficeAdminKycRouteImport.update({
+  id: '/admin/kyc',
+  path: '/admin/kyc',
+  getParentRoute: () => BackofficeRoute,
+} as any)
+const BackofficeAdminHealthRoute = BackofficeAdminHealthRouteImport.update({
+  id: '/admin/health',
+  path: '/admin/health',
+  getParentRoute: () => BackofficeRoute,
+} as any)
+const BackofficeAdminFinanzasRoute = BackofficeAdminFinanzasRouteImport.update({
+  id: '/admin/finanzas',
+  path: '/admin/finanzas',
+  getParentRoute: () => BackofficeRoute,
+} as any)
+const BackofficeAdminDisputasRoute = BackofficeAdminDisputasRouteImport.update({
+  id: '/admin/disputas',
+  path: '/admin/disputas',
+  getParentRoute: () => BackofficeRoute,
+} as any)
+const BackofficeAdminConfigRoute = BackofficeAdminConfigRouteImport.update({
+  id: '/admin/config',
+  path: '/admin/config',
+  getParentRoute: () => BackofficeRoute,
+} as any)
+const BackofficeAdminComplianceRoute =
+  BackofficeAdminComplianceRouteImport.update({
+    id: '/admin/compliance',
+    path: '/admin/compliance',
+    getParentRoute: () => BackofficeRoute,
+  } as any)
+const BackofficeAdminAuditRoute = BackofficeAdminAuditRouteImport.update({
+  id: '/admin/audit',
+  path: '/admin/audit',
+  getParentRoute: () => BackofficeRoute,
+} as any)
 const AuthenticatedTransactionsNewRoute =
   AuthenticatedTransactionsNewRouteImport.update({
     id: '/new',
@@ -543,6 +611,12 @@ const AuthenticatedAnalyticsAprobacionesRoute =
     path: '/aprobaciones',
     getParentRoute: () => AuthenticatedAnalyticsRoute,
   } as any)
+const BackofficeAdminDocumentosIndexRoute =
+  BackofficeAdminDocumentosIndexRouteImport.update({
+    id: '/admin/documentos/',
+    path: '/admin/documentos/',
+    getParentRoute: () => BackofficeRoute,
+  } as any)
 const AuthenticatedTransactionsIdIndexRoute =
   AuthenticatedTransactionsIdIndexRouteImport.update({
     id: '/',
@@ -576,6 +650,12 @@ const ApiPublicHooksDisputeDeadlinesRoute =
     id: '/api/public/hooks/dispute-deadlines',
     path: '/api/public/hooks/dispute-deadlines',
     getParentRoute: () => rootRouteImport,
+  } as any)
+const BackofficeAdminDocumentosReviewIdRoute =
+  BackofficeAdminDocumentosReviewIdRouteImport.update({
+    id: '/admin/documentos/$reviewId',
+    path: '/admin/documentos/$reviewId',
+    getParentRoute: () => BackofficeRoute,
   } as any)
 const AuthenticatedTransactionsIdExpedienteRoute =
   AuthenticatedTransactionsIdExpedienteRouteImport.update({
@@ -674,6 +754,15 @@ export interface FileRoutesByFullPath {
   '/teams/workflows': typeof AuthenticatedTeamsWorkflowsRoute
   '/transactions/$id': typeof AuthenticatedTransactionsIdRouteWithChildren
   '/transactions/new': typeof AuthenticatedTransactionsNewRoute
+  '/admin/audit': typeof BackofficeAdminAuditRoute
+  '/admin/compliance': typeof BackofficeAdminComplianceRoute
+  '/admin/config': typeof BackofficeAdminConfigRoute
+  '/admin/disputas': typeof BackofficeAdminDisputasRoute
+  '/admin/finanzas': typeof BackofficeAdminFinanzasRoute
+  '/admin/health': typeof BackofficeAdminHealthRoute
+  '/admin/kyc': typeof BackofficeAdminKycRoute
+  '/admin/roles': typeof BackofficeAdminRolesRoute
+  '/admin/support': typeof BackofficeAdminSupportRoute
   '/analytics/': typeof AuthenticatedAnalyticsIndexRoute
   '/crm/': typeof AuthenticatedCrmIndexRoute
   '/disputes/': typeof AuthenticatedDisputesIndexRoute
@@ -681,16 +770,19 @@ export interface FileRoutesByFullPath {
   '/settings/': typeof AuthenticatedSettingsIndexRoute
   '/teams/': typeof AuthenticatedTeamsIndexRoute
   '/transactions/': typeof AuthenticatedTransactionsIndexRoute
+  '/admin/': typeof BackofficeAdminIndexRoute
   '/compliance/bank-accounts/new': typeof AuthenticatedComplianceBankAccountsNewRoute
   '/profile/banking/verify': typeof AuthenticatedProfileBankingVerifyRoute
   '/settings/organization/new': typeof AuthenticatedSettingsOrganizationNewRoute
   '/transactions/$id/expediente': typeof AuthenticatedTransactionsIdExpedienteRoute
+  '/admin/documentos/$reviewId': typeof BackofficeAdminDocumentosReviewIdRoute
   '/api/public/hooks/dispute-deadlines': typeof ApiPublicHooksDisputeDeadlinesRoute
   '/api/public/hooks/verificamex-penny-test': typeof ApiPublicHooksVerificamexPennyTestRoute
   '/api/public/stripe/webhook': typeof ApiPublicStripeWebhookRoute
   '/api/public/v1/transactions': typeof ApiPublicV1TransactionsRoute
   '/compliance/bank-accounts/': typeof AuthenticatedComplianceBankAccountsIndexRoute
   '/transactions/$id/': typeof AuthenticatedTransactionsIdIndexRoute
+  '/admin/documentos/': typeof BackofficeAdminDocumentosIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -756,6 +848,15 @@ export interface FileRoutesByTo {
   '/teams/settings': typeof AuthenticatedTeamsSettingsRoute
   '/teams/workflows': typeof AuthenticatedTeamsWorkflowsRoute
   '/transactions/new': typeof AuthenticatedTransactionsNewRoute
+  '/admin/audit': typeof BackofficeAdminAuditRoute
+  '/admin/compliance': typeof BackofficeAdminComplianceRoute
+  '/admin/config': typeof BackofficeAdminConfigRoute
+  '/admin/disputas': typeof BackofficeAdminDisputasRoute
+  '/admin/finanzas': typeof BackofficeAdminFinanzasRoute
+  '/admin/health': typeof BackofficeAdminHealthRoute
+  '/admin/kyc': typeof BackofficeAdminKycRoute
+  '/admin/roles': typeof BackofficeAdminRolesRoute
+  '/admin/support': typeof BackofficeAdminSupportRoute
   '/analytics': typeof AuthenticatedAnalyticsIndexRoute
   '/crm': typeof AuthenticatedCrmIndexRoute
   '/disputes': typeof AuthenticatedDisputesIndexRoute
@@ -763,21 +864,25 @@ export interface FileRoutesByTo {
   '/settings': typeof AuthenticatedSettingsIndexRoute
   '/teams': typeof AuthenticatedTeamsIndexRoute
   '/transactions': typeof AuthenticatedTransactionsIndexRoute
+  '/admin': typeof BackofficeAdminIndexRoute
   '/compliance/bank-accounts/new': typeof AuthenticatedComplianceBankAccountsNewRoute
   '/profile/banking/verify': typeof AuthenticatedProfileBankingVerifyRoute
   '/settings/organization/new': typeof AuthenticatedSettingsOrganizationNewRoute
   '/transactions/$id/expediente': typeof AuthenticatedTransactionsIdExpedienteRoute
+  '/admin/documentos/$reviewId': typeof BackofficeAdminDocumentosReviewIdRoute
   '/api/public/hooks/dispute-deadlines': typeof ApiPublicHooksDisputeDeadlinesRoute
   '/api/public/hooks/verificamex-penny-test': typeof ApiPublicHooksVerificamexPennyTestRoute
   '/api/public/stripe/webhook': typeof ApiPublicStripeWebhookRoute
   '/api/public/v1/transactions': typeof ApiPublicV1TransactionsRoute
   '/compliance/bank-accounts': typeof AuthenticatedComplianceBankAccountsIndexRoute
   '/transactions/$id': typeof AuthenticatedTransactionsIdIndexRoute
+  '/admin/documentos': typeof BackofficeAdminDocumentosIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/_backoffice': typeof BackofficeRouteWithChildren
   '/auth': typeof AuthRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/onboarding': typeof OnboardingRoute
@@ -848,6 +953,15 @@ export interface FileRoutesById {
   '/_authenticated/teams/workflows': typeof AuthenticatedTeamsWorkflowsRoute
   '/_authenticated/transactions/$id': typeof AuthenticatedTransactionsIdRouteWithChildren
   '/_authenticated/transactions/new': typeof AuthenticatedTransactionsNewRoute
+  '/_backoffice/admin/audit': typeof BackofficeAdminAuditRoute
+  '/_backoffice/admin/compliance': typeof BackofficeAdminComplianceRoute
+  '/_backoffice/admin/config': typeof BackofficeAdminConfigRoute
+  '/_backoffice/admin/disputas': typeof BackofficeAdminDisputasRoute
+  '/_backoffice/admin/finanzas': typeof BackofficeAdminFinanzasRoute
+  '/_backoffice/admin/health': typeof BackofficeAdminHealthRoute
+  '/_backoffice/admin/kyc': typeof BackofficeAdminKycRoute
+  '/_backoffice/admin/roles': typeof BackofficeAdminRolesRoute
+  '/_backoffice/admin/support': typeof BackofficeAdminSupportRoute
   '/_authenticated/analytics/': typeof AuthenticatedAnalyticsIndexRoute
   '/_authenticated/crm/': typeof AuthenticatedCrmIndexRoute
   '/_authenticated/disputes/': typeof AuthenticatedDisputesIndexRoute
@@ -855,16 +969,19 @@ export interface FileRoutesById {
   '/_authenticated/settings/': typeof AuthenticatedSettingsIndexRoute
   '/_authenticated/teams/': typeof AuthenticatedTeamsIndexRoute
   '/_authenticated/transactions/': typeof AuthenticatedTransactionsIndexRoute
+  '/_backoffice/admin/': typeof BackofficeAdminIndexRoute
   '/_authenticated/compliance/bank-accounts/new': typeof AuthenticatedComplianceBankAccountsNewRoute
   '/_authenticated/profile/banking/verify': typeof AuthenticatedProfileBankingVerifyRoute
   '/_authenticated/settings/organization/new': typeof AuthenticatedSettingsOrganizationNewRoute
   '/_authenticated/transactions/$id/expediente': typeof AuthenticatedTransactionsIdExpedienteRoute
+  '/_backoffice/admin/documentos/$reviewId': typeof BackofficeAdminDocumentosReviewIdRoute
   '/api/public/hooks/dispute-deadlines': typeof ApiPublicHooksDisputeDeadlinesRoute
   '/api/public/hooks/verificamex-penny-test': typeof ApiPublicHooksVerificamexPennyTestRoute
   '/api/public/stripe/webhook': typeof ApiPublicStripeWebhookRoute
   '/api/public/v1/transactions': typeof ApiPublicV1TransactionsRoute
   '/_authenticated/compliance/bank-accounts/': typeof AuthenticatedComplianceBankAccountsIndexRoute
   '/_authenticated/transactions/$id/': typeof AuthenticatedTransactionsIdIndexRoute
+  '/_backoffice/admin/documentos/': typeof BackofficeAdminDocumentosIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -940,6 +1057,15 @@ export interface FileRouteTypes {
     | '/teams/workflows'
     | '/transactions/$id'
     | '/transactions/new'
+    | '/admin/audit'
+    | '/admin/compliance'
+    | '/admin/config'
+    | '/admin/disputas'
+    | '/admin/finanzas'
+    | '/admin/health'
+    | '/admin/kyc'
+    | '/admin/roles'
+    | '/admin/support'
     | '/analytics/'
     | '/crm/'
     | '/disputes/'
@@ -947,16 +1073,19 @@ export interface FileRouteTypes {
     | '/settings/'
     | '/teams/'
     | '/transactions/'
+    | '/admin/'
     | '/compliance/bank-accounts/new'
     | '/profile/banking/verify'
     | '/settings/organization/new'
     | '/transactions/$id/expediente'
+    | '/admin/documentos/$reviewId'
     | '/api/public/hooks/dispute-deadlines'
     | '/api/public/hooks/verificamex-penny-test'
     | '/api/public/stripe/webhook'
     | '/api/public/v1/transactions'
     | '/compliance/bank-accounts/'
     | '/transactions/$id/'
+    | '/admin/documentos/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -1022,6 +1151,15 @@ export interface FileRouteTypes {
     | '/teams/settings'
     | '/teams/workflows'
     | '/transactions/new'
+    | '/admin/audit'
+    | '/admin/compliance'
+    | '/admin/config'
+    | '/admin/disputas'
+    | '/admin/finanzas'
+    | '/admin/health'
+    | '/admin/kyc'
+    | '/admin/roles'
+    | '/admin/support'
     | '/analytics'
     | '/crm'
     | '/disputes'
@@ -1029,20 +1167,24 @@ export interface FileRouteTypes {
     | '/settings'
     | '/teams'
     | '/transactions'
+    | '/admin'
     | '/compliance/bank-accounts/new'
     | '/profile/banking/verify'
     | '/settings/organization/new'
     | '/transactions/$id/expediente'
+    | '/admin/documentos/$reviewId'
     | '/api/public/hooks/dispute-deadlines'
     | '/api/public/hooks/verificamex-penny-test'
     | '/api/public/stripe/webhook'
     | '/api/public/v1/transactions'
     | '/compliance/bank-accounts'
     | '/transactions/$id'
+    | '/admin/documentos'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
+    | '/_backoffice'
     | '/auth'
     | '/forgot-password'
     | '/onboarding'
@@ -1113,6 +1255,15 @@ export interface FileRouteTypes {
     | '/_authenticated/teams/workflows'
     | '/_authenticated/transactions/$id'
     | '/_authenticated/transactions/new'
+    | '/_backoffice/admin/audit'
+    | '/_backoffice/admin/compliance'
+    | '/_backoffice/admin/config'
+    | '/_backoffice/admin/disputas'
+    | '/_backoffice/admin/finanzas'
+    | '/_backoffice/admin/health'
+    | '/_backoffice/admin/kyc'
+    | '/_backoffice/admin/roles'
+    | '/_backoffice/admin/support'
     | '/_authenticated/analytics/'
     | '/_authenticated/crm/'
     | '/_authenticated/disputes/'
@@ -1120,21 +1271,25 @@ export interface FileRouteTypes {
     | '/_authenticated/settings/'
     | '/_authenticated/teams/'
     | '/_authenticated/transactions/'
+    | '/_backoffice/admin/'
     | '/_authenticated/compliance/bank-accounts/new'
     | '/_authenticated/profile/banking/verify'
     | '/_authenticated/settings/organization/new'
     | '/_authenticated/transactions/$id/expediente'
+    | '/_backoffice/admin/documentos/$reviewId'
     | '/api/public/hooks/dispute-deadlines'
     | '/api/public/hooks/verificamex-penny-test'
     | '/api/public/stripe/webhook'
     | '/api/public/v1/transactions'
     | '/_authenticated/compliance/bank-accounts/'
     | '/_authenticated/transactions/$id/'
+    | '/_backoffice/admin/documentos/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  BackofficeRoute: typeof BackofficeRouteWithChildren
   AuthRoute: typeof AuthRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   OnboardingRoute: typeof OnboardingRoute
@@ -1183,6 +1338,13 @@ declare module '@tanstack/react-router' {
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_backoffice': {
+      id: '/_backoffice'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof BackofficeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated': {
@@ -1325,6 +1487,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAnalyticsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_backoffice/admin/': {
+      id: '/_backoffice/admin/'
+      path: '/admin'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof BackofficeAdminIndexRouteImport
+      parentRoute: typeof BackofficeRoute
+    }
     '/_authenticated/transactions/': {
       id: '/_authenticated/transactions/'
       path: '/'
@@ -1373,6 +1542,69 @@ declare module '@tanstack/react-router' {
       fullPath: '/analytics/'
       preLoaderRoute: typeof AuthenticatedAnalyticsIndexRouteImport
       parentRoute: typeof AuthenticatedAnalyticsRoute
+    }
+    '/_backoffice/admin/support': {
+      id: '/_backoffice/admin/support'
+      path: '/admin/support'
+      fullPath: '/admin/support'
+      preLoaderRoute: typeof BackofficeAdminSupportRouteImport
+      parentRoute: typeof BackofficeRoute
+    }
+    '/_backoffice/admin/roles': {
+      id: '/_backoffice/admin/roles'
+      path: '/admin/roles'
+      fullPath: '/admin/roles'
+      preLoaderRoute: typeof BackofficeAdminRolesRouteImport
+      parentRoute: typeof BackofficeRoute
+    }
+    '/_backoffice/admin/kyc': {
+      id: '/_backoffice/admin/kyc'
+      path: '/admin/kyc'
+      fullPath: '/admin/kyc'
+      preLoaderRoute: typeof BackofficeAdminKycRouteImport
+      parentRoute: typeof BackofficeRoute
+    }
+    '/_backoffice/admin/health': {
+      id: '/_backoffice/admin/health'
+      path: '/admin/health'
+      fullPath: '/admin/health'
+      preLoaderRoute: typeof BackofficeAdminHealthRouteImport
+      parentRoute: typeof BackofficeRoute
+    }
+    '/_backoffice/admin/finanzas': {
+      id: '/_backoffice/admin/finanzas'
+      path: '/admin/finanzas'
+      fullPath: '/admin/finanzas'
+      preLoaderRoute: typeof BackofficeAdminFinanzasRouteImport
+      parentRoute: typeof BackofficeRoute
+    }
+    '/_backoffice/admin/disputas': {
+      id: '/_backoffice/admin/disputas'
+      path: '/admin/disputas'
+      fullPath: '/admin/disputas'
+      preLoaderRoute: typeof BackofficeAdminDisputasRouteImport
+      parentRoute: typeof BackofficeRoute
+    }
+    '/_backoffice/admin/config': {
+      id: '/_backoffice/admin/config'
+      path: '/admin/config'
+      fullPath: '/admin/config'
+      preLoaderRoute: typeof BackofficeAdminConfigRouteImport
+      parentRoute: typeof BackofficeRoute
+    }
+    '/_backoffice/admin/compliance': {
+      id: '/_backoffice/admin/compliance'
+      path: '/admin/compliance'
+      fullPath: '/admin/compliance'
+      preLoaderRoute: typeof BackofficeAdminComplianceRouteImport
+      parentRoute: typeof BackofficeRoute
+    }
+    '/_backoffice/admin/audit': {
+      id: '/_backoffice/admin/audit'
+      path: '/admin/audit'
+      fullPath: '/admin/audit'
+      preLoaderRoute: typeof BackofficeAdminAuditRouteImport
+      parentRoute: typeof BackofficeRoute
     }
     '/_authenticated/transactions/new': {
       id: '/_authenticated/transactions/new'
@@ -1703,6 +1935,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAnalyticsAprobacionesRouteImport
       parentRoute: typeof AuthenticatedAnalyticsRoute
     }
+    '/_backoffice/admin/documentos/': {
+      id: '/_backoffice/admin/documentos/'
+      path: '/admin/documentos'
+      fullPath: '/admin/documentos/'
+      preLoaderRoute: typeof BackofficeAdminDocumentosIndexRouteImport
+      parentRoute: typeof BackofficeRoute
+    }
     '/_authenticated/transactions/$id/': {
       id: '/_authenticated/transactions/$id/'
       path: '/'
@@ -1744,6 +1983,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/public/hooks/dispute-deadlines'
       preLoaderRoute: typeof ApiPublicHooksDisputeDeadlinesRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_backoffice/admin/documentos/$reviewId': {
+      id: '/_backoffice/admin/documentos/$reviewId'
+      path: '/admin/documentos/$reviewId'
+      fullPath: '/admin/documentos/$reviewId'
+      preLoaderRoute: typeof BackofficeAdminDocumentosReviewIdRouteImport
+      parentRoute: typeof BackofficeRoute
     }
     '/_authenticated/transactions/$id/expediente': {
       id: '/_authenticated/transactions/$id/expediente'
@@ -2073,9 +2319,45 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
 const AuthenticatedRouteRouteWithChildren =
   AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
+interface BackofficeRouteChildren {
+  BackofficeAdminAuditRoute: typeof BackofficeAdminAuditRoute
+  BackofficeAdminComplianceRoute: typeof BackofficeAdminComplianceRoute
+  BackofficeAdminConfigRoute: typeof BackofficeAdminConfigRoute
+  BackofficeAdminDisputasRoute: typeof BackofficeAdminDisputasRoute
+  BackofficeAdminFinanzasRoute: typeof BackofficeAdminFinanzasRoute
+  BackofficeAdminHealthRoute: typeof BackofficeAdminHealthRoute
+  BackofficeAdminKycRoute: typeof BackofficeAdminKycRoute
+  BackofficeAdminRolesRoute: typeof BackofficeAdminRolesRoute
+  BackofficeAdminSupportRoute: typeof BackofficeAdminSupportRoute
+  BackofficeAdminIndexRoute: typeof BackofficeAdminIndexRoute
+  BackofficeAdminDocumentosReviewIdRoute: typeof BackofficeAdminDocumentosReviewIdRoute
+  BackofficeAdminDocumentosIndexRoute: typeof BackofficeAdminDocumentosIndexRoute
+}
+
+const BackofficeRouteChildren: BackofficeRouteChildren = {
+  BackofficeAdminAuditRoute: BackofficeAdminAuditRoute,
+  BackofficeAdminComplianceRoute: BackofficeAdminComplianceRoute,
+  BackofficeAdminConfigRoute: BackofficeAdminConfigRoute,
+  BackofficeAdminDisputasRoute: BackofficeAdminDisputasRoute,
+  BackofficeAdminFinanzasRoute: BackofficeAdminFinanzasRoute,
+  BackofficeAdminHealthRoute: BackofficeAdminHealthRoute,
+  BackofficeAdminKycRoute: BackofficeAdminKycRoute,
+  BackofficeAdminRolesRoute: BackofficeAdminRolesRoute,
+  BackofficeAdminSupportRoute: BackofficeAdminSupportRoute,
+  BackofficeAdminIndexRoute: BackofficeAdminIndexRoute,
+  BackofficeAdminDocumentosReviewIdRoute:
+    BackofficeAdminDocumentosReviewIdRoute,
+  BackofficeAdminDocumentosIndexRoute: BackofficeAdminDocumentosIndexRoute,
+}
+
+const BackofficeRouteWithChildren = BackofficeRoute._addFileChildren(
+  BackofficeRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  BackofficeRoute: BackofficeRouteWithChildren,
   AuthRoute: AuthRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
   OnboardingRoute: OnboardingRoute,
