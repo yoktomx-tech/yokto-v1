@@ -199,7 +199,7 @@ function OnboardingWizard() {
           )}
           {step === 6 && session && (
             <Step6Review
-              onFinished={() => navigate({ to: "/onboarding/pendiente" })} onBack={goPrev}
+              onFinished={() => { sessionStorage.setItem("yokto.onboarding.intentional_exit", "1"); navigate({ to: "/onboarding/pendiente" }); }} onBack={goPrev}
               setError={setError} loading={loading} setLoading={setLoading}
             />
           )}
