@@ -191,23 +191,30 @@ function OnboardingWizard() {
             />
           )}
           {step === 4 && session && (
-            <Step4Biometric
-              onDone={() => goNext(5)} onBack={goPrev}
+            <Step4AccountKind
+              onSaved={() => goNext(5)} onBack={goPrev}
               setError={setError}
             />
           )}
           {step === 5 && session && (
-            <Step5MFA
+            <Step4Biometric
               onDone={() => goNext(6)} onBack={goPrev}
-              setError={setError} loading={loading} setLoading={setLoading}
+              setError={setError}
             />
           )}
           {step === 6 && session && (
+            <Step5MFA
+              onDone={() => goNext(7)} onBack={goPrev}
+              setError={setError} loading={loading} setLoading={setLoading}
+            />
+          )}
+          {step === 7 && session && (
             <Step6Review
               onFinished={() => { sessionStorage.setItem("yokto.onboarding.intentional_exit", "1"); navigate({ to: "/onboarding/pendiente" }); }} onBack={goPrev}
               setError={setError} loading={loading} setLoading={setLoading}
             />
           )}
+
           {step > 2 && !session && (
             <div className="text-sm text-yo-txt-2">
               Debes iniciar sesión para continuar.
