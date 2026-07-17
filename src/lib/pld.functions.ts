@@ -4,6 +4,10 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { evaluatePldRisk, stubScreening, type PldQuestionnaireInput } from "@/lib/pld-engine";
 
+// Cast helper — evita fricción con tipos generados de Json / enums.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const asJson = (v: unknown): any => v as any;
+
 const questionnaireSchema = z.object({
   org_id: z.string().uuid(),
   actividad_economica: z.string().min(3).max(200),
