@@ -935,6 +935,86 @@ export type Database = {
           },
         ]
       }
+      document_review_queue: {
+        Row: {
+          asignado_a: string | null
+          confianza_ia: number | null
+          created_at: string
+          decision: string | null
+          document_id: string | null
+          estado: string
+          evidence_id: string | null
+          expected_values: Json | null
+          extracted_values: Json | null
+          hito_id: string | null
+          ia_summary: string | null
+          id: string
+          motivo_revision: string
+          notas_revision: string | null
+          prioridad: string
+          revisado_at: string | null
+          revisado_por: string | null
+          sector: string | null
+          tipo: string
+          transaction_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          asignado_a?: string | null
+          confianza_ia?: number | null
+          created_at?: string
+          decision?: string | null
+          document_id?: string | null
+          estado?: string
+          evidence_id?: string | null
+          expected_values?: Json | null
+          extracted_values?: Json | null
+          hito_id?: string | null
+          ia_summary?: string | null
+          id?: string
+          motivo_revision: string
+          notas_revision?: string | null
+          prioridad?: string
+          revisado_at?: string | null
+          revisado_por?: string | null
+          sector?: string | null
+          tipo: string
+          transaction_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          asignado_a?: string | null
+          confianza_ia?: number | null
+          created_at?: string
+          decision?: string | null
+          document_id?: string | null
+          estado?: string
+          evidence_id?: string | null
+          expected_values?: Json | null
+          extracted_values?: Json | null
+          hito_id?: string | null
+          ia_summary?: string | null
+          id?: string
+          motivo_revision?: string
+          notas_revision?: string | null
+          prioridad?: string
+          revisado_at?: string | null
+          revisado_por?: string | null
+          sector?: string | null
+          tipo?: string
+          transaction_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_review_queue_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       fiscal_documents: {
         Row: {
           aceptado_at: string | null
@@ -1136,6 +1216,135 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      internal_access_log: {
+        Row: {
+          created_at: string
+          id: string
+          ip: unknown
+          metodo: string | null
+          rol_usado: Database["public"]["Enums"]["internal_role"] | null
+          ruta: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          ip?: unknown
+          metodo?: string | null
+          rol_usado?: Database["public"]["Enums"]["internal_role"] | null
+          ruta: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          ip?: unknown
+          metodo?: string | null
+          rol_usado?: Database["public"]["Enums"]["internal_role"] | null
+          ruta?: string
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      internal_action_log: {
+        Row: {
+          accion: string
+          created_at: string
+          detalle_json: Json | null
+          entidad_id: string | null
+          entidad_tipo: string | null
+          id: string
+          ip: unknown
+          motivo: string | null
+          recurso: string
+          rol_usado: Database["public"]["Enums"]["internal_role"]
+          snapshot_antes: Json | null
+          snapshot_despues: Json | null
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          accion: string
+          created_at?: string
+          detalle_json?: Json | null
+          entidad_id?: string | null
+          entidad_tipo?: string | null
+          id?: string
+          ip?: unknown
+          motivo?: string | null
+          recurso: string
+          rol_usado: Database["public"]["Enums"]["internal_role"]
+          snapshot_antes?: Json | null
+          snapshot_despues?: Json | null
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          accion?: string
+          created_at?: string
+          detalle_json?: Json | null
+          entidad_id?: string | null
+          entidad_tipo?: string | null
+          id?: string
+          ip?: unknown
+          motivo?: string | null
+          recurso?: string
+          rol_usado?: Database["public"]["Enums"]["internal_role"]
+          snapshot_antes?: Json | null
+          snapshot_despues?: Json | null
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      internal_role_assignments: {
+        Row: {
+          activo: boolean
+          asignado_por: string
+          created_at: string
+          expira_at: string | null
+          id: string
+          motivo: string
+          motivo_revocacion: string | null
+          revocado_at: string | null
+          revocado_por: string | null
+          rol: Database["public"]["Enums"]["internal_role"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          activo?: boolean
+          asignado_por: string
+          created_at?: string
+          expira_at?: string | null
+          id?: string
+          motivo: string
+          motivo_revocacion?: string | null
+          revocado_at?: string | null
+          revocado_por?: string | null
+          rol: Database["public"]["Enums"]["internal_role"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          activo?: boolean
+          asignado_por?: string
+          created_at?: string
+          expira_at?: string | null
+          id?: string
+          motivo?: string
+          motivo_revocacion?: string | null
+          revocado_at?: string | null
+          revocado_por?: string | null
+          rol?: Database["public"]["Enums"]["internal_role"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       invitations: {
         Row: {
@@ -2628,6 +2837,10 @@ export type Database = {
     Functions: {
       cancel_my_onboarding: { Args: never; Returns: undefined }
       cleanup_abandoned_onboarding: { Args: never; Returns: number }
+      get_active_internal_role: {
+        Args: { _user_id: string }
+        Returns: Database["public"]["Enums"]["internal_role"]
+      }
       has_org_role: {
         Args: {
           _org_id: string
@@ -2675,6 +2888,14 @@ export type Database = {
         | "comercio"
         | "manufactura"
         | "otro"
+      internal_role:
+        | "YOKTO_SUPER_ADMIN"
+        | "ANALISTA_KYC"
+        | "ANALISTA_DOCUMENTAL"
+        | "OFICIAL_CUMPLIMIENTO"
+        | "AGENTE_ESCROW"
+        | "AGENTE_SOPORTE"
+        | "ANALISTA_FINANCIERO"
       kyb_status: "not_started" | "in_review" | "approved" | "rejected"
       kyc_document_type:
         | "ine"
@@ -2888,6 +3109,15 @@ export const Constants = {
         "comercio",
         "manufactura",
         "otro",
+      ],
+      internal_role: [
+        "YOKTO_SUPER_ADMIN",
+        "ANALISTA_KYC",
+        "ANALISTA_DOCUMENTAL",
+        "OFICIAL_CUMPLIMIENTO",
+        "AGENTE_ESCROW",
+        "AGENTE_SOPORTE",
+        "ANALISTA_FINANCIERO",
       ],
       kyb_status: ["not_started", "in_review", "approved", "rejected"],
       kyc_document_type: [
