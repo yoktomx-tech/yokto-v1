@@ -34,7 +34,6 @@ import { Route as AuthenticatedCrmRouteImport } from './routes/_authenticated/cr
 import { Route as AuthenticatedApprovalsRouteImport } from './routes/_authenticated/approvals'
 import { Route as AuthenticatedApiClientsRouteImport } from './routes/_authenticated/api-clients'
 import { Route as AuthenticatedAnalyticsRouteImport } from './routes/_authenticated/analytics'
-import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedTransactionsIndexRouteImport } from './routes/_authenticated/transactions.index'
 import { Route as AuthenticatedTeamsIndexRouteImport } from './routes/_authenticated/teams.index'
 import { Route as AuthenticatedSettingsIndexRouteImport } from './routes/_authenticated/settings.index'
@@ -89,8 +88,6 @@ import { Route as AuthenticatedAnalyticsCustomRouteImport } from './routes/_auth
 import { Route as AuthenticatedAnalyticsCumplimientoRouteImport } from './routes/_authenticated/analytics.cumplimiento'
 import { Route as AuthenticatedAnalyticsContratosRouteImport } from './routes/_authenticated/analytics.contratos'
 import { Route as AuthenticatedAnalyticsAprobacionesRouteImport } from './routes/_authenticated/analytics.aprobaciones'
-import { Route as AuthenticatedAdminDisputesRouteImport } from './routes/_authenticated/admin.disputes'
-import { Route as AuthenticatedAdminAnalyticsRouteImport } from './routes/_authenticated/admin.analytics'
 import { Route as AuthenticatedTransactionsIdIndexRouteImport } from './routes/_authenticated/transactions.$id.index'
 import { Route as AuthenticatedComplianceBankAccountsIndexRouteImport } from './routes/_authenticated/compliance.bank-accounts.index'
 import { Route as ApiPublicV1TransactionsRouteImport } from './routes/api/public/v1.transactions'
@@ -101,7 +98,6 @@ import { Route as AuthenticatedTransactionsIdExpedienteRouteImport } from './rou
 import { Route as AuthenticatedSettingsOrganizationNewRouteImport } from './routes/_authenticated/settings.organization.new'
 import { Route as AuthenticatedProfileBankingVerifyRouteImport } from './routes/_authenticated/profile.banking.verify'
 import { Route as AuthenticatedComplianceBankAccountsNewRouteImport } from './routes/_authenticated/compliance.bank-accounts.new'
-import { Route as AuthenticatedAdminDisputesIdRouteImport } from './routes/_authenticated/admin.disputes.$id'
 
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
@@ -228,11 +224,6 @@ const AuthenticatedApiClientsRoute = AuthenticatedApiClientsRouteImport.update({
 const AuthenticatedAnalyticsRoute = AuthenticatedAnalyticsRouteImport.update({
   id: '/analytics',
   path: '/analytics',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
-  id: '/admin',
-  path: '/admin',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedTransactionsIndexRoute =
@@ -552,18 +543,6 @@ const AuthenticatedAnalyticsAprobacionesRoute =
     path: '/aprobaciones',
     getParentRoute: () => AuthenticatedAnalyticsRoute,
   } as any)
-const AuthenticatedAdminDisputesRoute =
-  AuthenticatedAdminDisputesRouteImport.update({
-    id: '/disputes',
-    path: '/disputes',
-    getParentRoute: () => AuthenticatedAdminRoute,
-  } as any)
-const AuthenticatedAdminAnalyticsRoute =
-  AuthenticatedAdminAnalyticsRouteImport.update({
-    id: '/analytics',
-    path: '/analytics',
-    getParentRoute: () => AuthenticatedAdminRoute,
-  } as any)
 const AuthenticatedTransactionsIdIndexRoute =
   AuthenticatedTransactionsIdIndexRouteImport.update({
     id: '/',
@@ -622,12 +601,6 @@ const AuthenticatedComplianceBankAccountsNewRoute =
     path: '/new',
     getParentRoute: () => AuthenticatedComplianceBankAccountsRoute,
   } as any)
-const AuthenticatedAdminDisputesIdRoute =
-  AuthenticatedAdminDisputesIdRouteImport.update({
-    id: '/$id',
-    path: '/$id',
-    getParentRoute: () => AuthenticatedAdminDisputesRoute,
-  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -636,7 +609,6 @@ export interface FileRoutesByFullPath {
   '/onboarding': typeof OnboardingRoute
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
-  '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/analytics': typeof AuthenticatedAnalyticsRouteWithChildren
   '/api-clients': typeof AuthenticatedApiClientsRoute
   '/approvals': typeof AuthenticatedApprovalsRoute
@@ -655,8 +627,6 @@ export interface FileRoutesByFullPath {
   '/transactions': typeof AuthenticatedTransactionsRouteWithChildren
   '/biometrico/$token': typeof BiometricoTokenRoute
   '/invitations/$token': typeof InvitationsTokenRoute
-  '/admin/analytics': typeof AuthenticatedAdminAnalyticsRoute
-  '/admin/disputes': typeof AuthenticatedAdminDisputesRouteWithChildren
   '/analytics/aprobaciones': typeof AuthenticatedAnalyticsAprobacionesRoute
   '/analytics/contratos': typeof AuthenticatedAnalyticsContratosRoute
   '/analytics/cumplimiento': typeof AuthenticatedAnalyticsCumplimientoRoute
@@ -711,7 +681,6 @@ export interface FileRoutesByFullPath {
   '/settings/': typeof AuthenticatedSettingsIndexRoute
   '/teams/': typeof AuthenticatedTeamsIndexRoute
   '/transactions/': typeof AuthenticatedTransactionsIndexRoute
-  '/admin/disputes/$id': typeof AuthenticatedAdminDisputesIdRoute
   '/compliance/bank-accounts/new': typeof AuthenticatedComplianceBankAccountsNewRoute
   '/profile/banking/verify': typeof AuthenticatedProfileBankingVerifyRoute
   '/settings/organization/new': typeof AuthenticatedSettingsOrganizationNewRoute
@@ -730,7 +699,6 @@ export interface FileRoutesByTo {
   '/onboarding': typeof OnboardingRoute
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
-  '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/api-clients': typeof AuthenticatedApiClientsRoute
   '/approvals': typeof AuthenticatedApprovalsRoute
   '/cumplimiento': typeof AuthenticatedCumplimientoRoute
@@ -743,8 +711,6 @@ export interface FileRoutesByTo {
   '/score': typeof AuthenticatedScoreRoute
   '/biometrico/$token': typeof BiometricoTokenRoute
   '/invitations/$token': typeof InvitationsTokenRoute
-  '/admin/analytics': typeof AuthenticatedAdminAnalyticsRoute
-  '/admin/disputes': typeof AuthenticatedAdminDisputesRouteWithChildren
   '/analytics/aprobaciones': typeof AuthenticatedAnalyticsAprobacionesRoute
   '/analytics/contratos': typeof AuthenticatedAnalyticsContratosRoute
   '/analytics/cumplimiento': typeof AuthenticatedAnalyticsCumplimientoRoute
@@ -797,7 +763,6 @@ export interface FileRoutesByTo {
   '/settings': typeof AuthenticatedSettingsIndexRoute
   '/teams': typeof AuthenticatedTeamsIndexRoute
   '/transactions': typeof AuthenticatedTransactionsIndexRoute
-  '/admin/disputes/$id': typeof AuthenticatedAdminDisputesIdRoute
   '/compliance/bank-accounts/new': typeof AuthenticatedComplianceBankAccountsNewRoute
   '/profile/banking/verify': typeof AuthenticatedProfileBankingVerifyRoute
   '/settings/organization/new': typeof AuthenticatedSettingsOrganizationNewRoute
@@ -818,7 +783,6 @@ export interface FileRoutesById {
   '/onboarding': typeof OnboardingRoute
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
-  '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/analytics': typeof AuthenticatedAnalyticsRouteWithChildren
   '/_authenticated/api-clients': typeof AuthenticatedApiClientsRoute
   '/_authenticated/approvals': typeof AuthenticatedApprovalsRoute
@@ -837,8 +801,6 @@ export interface FileRoutesById {
   '/_authenticated/transactions': typeof AuthenticatedTransactionsRouteWithChildren
   '/biometrico/$token': typeof BiometricoTokenRoute
   '/invitations/$token': typeof InvitationsTokenRoute
-  '/_authenticated/admin/analytics': typeof AuthenticatedAdminAnalyticsRoute
-  '/_authenticated/admin/disputes': typeof AuthenticatedAdminDisputesRouteWithChildren
   '/_authenticated/analytics/aprobaciones': typeof AuthenticatedAnalyticsAprobacionesRoute
   '/_authenticated/analytics/contratos': typeof AuthenticatedAnalyticsContratosRoute
   '/_authenticated/analytics/cumplimiento': typeof AuthenticatedAnalyticsCumplimientoRoute
@@ -893,7 +855,6 @@ export interface FileRoutesById {
   '/_authenticated/settings/': typeof AuthenticatedSettingsIndexRoute
   '/_authenticated/teams/': typeof AuthenticatedTeamsIndexRoute
   '/_authenticated/transactions/': typeof AuthenticatedTransactionsIndexRoute
-  '/_authenticated/admin/disputes/$id': typeof AuthenticatedAdminDisputesIdRoute
   '/_authenticated/compliance/bank-accounts/new': typeof AuthenticatedComplianceBankAccountsNewRoute
   '/_authenticated/profile/banking/verify': typeof AuthenticatedProfileBankingVerifyRoute
   '/_authenticated/settings/organization/new': typeof AuthenticatedSettingsOrganizationNewRoute
@@ -914,7 +875,6 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/reset-password'
     | '/sitemap.xml'
-    | '/admin'
     | '/analytics'
     | '/api-clients'
     | '/approvals'
@@ -933,8 +893,6 @@ export interface FileRouteTypes {
     | '/transactions'
     | '/biometrico/$token'
     | '/invitations/$token'
-    | '/admin/analytics'
-    | '/admin/disputes'
     | '/analytics/aprobaciones'
     | '/analytics/contratos'
     | '/analytics/cumplimiento'
@@ -989,7 +947,6 @@ export interface FileRouteTypes {
     | '/settings/'
     | '/teams/'
     | '/transactions/'
-    | '/admin/disputes/$id'
     | '/compliance/bank-accounts/new'
     | '/profile/banking/verify'
     | '/settings/organization/new'
@@ -1008,7 +965,6 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/reset-password'
     | '/sitemap.xml'
-    | '/admin'
     | '/api-clients'
     | '/approvals'
     | '/cumplimiento'
@@ -1021,8 +977,6 @@ export interface FileRouteTypes {
     | '/score'
     | '/biometrico/$token'
     | '/invitations/$token'
-    | '/admin/analytics'
-    | '/admin/disputes'
     | '/analytics/aprobaciones'
     | '/analytics/contratos'
     | '/analytics/cumplimiento'
@@ -1075,7 +1029,6 @@ export interface FileRouteTypes {
     | '/settings'
     | '/teams'
     | '/transactions'
-    | '/admin/disputes/$id'
     | '/compliance/bank-accounts/new'
     | '/profile/banking/verify'
     | '/settings/organization/new'
@@ -1095,7 +1048,6 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/reset-password'
     | '/sitemap.xml'
-    | '/_authenticated/admin'
     | '/_authenticated/analytics'
     | '/_authenticated/api-clients'
     | '/_authenticated/approvals'
@@ -1114,8 +1066,6 @@ export interface FileRouteTypes {
     | '/_authenticated/transactions'
     | '/biometrico/$token'
     | '/invitations/$token'
-    | '/_authenticated/admin/analytics'
-    | '/_authenticated/admin/disputes'
     | '/_authenticated/analytics/aprobaciones'
     | '/_authenticated/analytics/contratos'
     | '/_authenticated/analytics/cumplimiento'
@@ -1170,7 +1120,6 @@ export interface FileRouteTypes {
     | '/_authenticated/settings/'
     | '/_authenticated/teams/'
     | '/_authenticated/transactions/'
-    | '/_authenticated/admin/disputes/$id'
     | '/_authenticated/compliance/bank-accounts/new'
     | '/_authenticated/profile/banking/verify'
     | '/_authenticated/settings/organization/new'
@@ -1374,13 +1323,6 @@ declare module '@tanstack/react-router' {
       path: '/analytics'
       fullPath: '/analytics'
       preLoaderRoute: typeof AuthenticatedAnalyticsRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/admin': {
-      id: '/_authenticated/admin'
-      path: '/admin'
-      fullPath: '/admin'
-      preLoaderRoute: typeof AuthenticatedAdminRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/transactions/': {
@@ -1761,20 +1703,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAnalyticsAprobacionesRouteImport
       parentRoute: typeof AuthenticatedAnalyticsRoute
     }
-    '/_authenticated/admin/disputes': {
-      id: '/_authenticated/admin/disputes'
-      path: '/disputes'
-      fullPath: '/admin/disputes'
-      preLoaderRoute: typeof AuthenticatedAdminDisputesRouteImport
-      parentRoute: typeof AuthenticatedAdminRoute
-    }
-    '/_authenticated/admin/analytics': {
-      id: '/_authenticated/admin/analytics'
-      path: '/analytics'
-      fullPath: '/admin/analytics'
-      preLoaderRoute: typeof AuthenticatedAdminAnalyticsRouteImport
-      parentRoute: typeof AuthenticatedAdminRoute
-    }
     '/_authenticated/transactions/$id/': {
       id: '/_authenticated/transactions/$id/'
       path: '/'
@@ -1845,42 +1773,8 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedComplianceBankAccountsNewRouteImport
       parentRoute: typeof AuthenticatedComplianceBankAccountsRoute
     }
-    '/_authenticated/admin/disputes/$id': {
-      id: '/_authenticated/admin/disputes/$id'
-      path: '/$id'
-      fullPath: '/admin/disputes/$id'
-      preLoaderRoute: typeof AuthenticatedAdminDisputesIdRouteImport
-      parentRoute: typeof AuthenticatedAdminDisputesRoute
-    }
   }
 }
-
-interface AuthenticatedAdminDisputesRouteChildren {
-  AuthenticatedAdminDisputesIdRoute: typeof AuthenticatedAdminDisputesIdRoute
-}
-
-const AuthenticatedAdminDisputesRouteChildren: AuthenticatedAdminDisputesRouteChildren =
-  {
-    AuthenticatedAdminDisputesIdRoute: AuthenticatedAdminDisputesIdRoute,
-  }
-
-const AuthenticatedAdminDisputesRouteWithChildren =
-  AuthenticatedAdminDisputesRoute._addFileChildren(
-    AuthenticatedAdminDisputesRouteChildren,
-  )
-
-interface AuthenticatedAdminRouteChildren {
-  AuthenticatedAdminAnalyticsRoute: typeof AuthenticatedAdminAnalyticsRoute
-  AuthenticatedAdminDisputesRoute: typeof AuthenticatedAdminDisputesRouteWithChildren
-}
-
-const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
-  AuthenticatedAdminAnalyticsRoute: AuthenticatedAdminAnalyticsRoute,
-  AuthenticatedAdminDisputesRoute: AuthenticatedAdminDisputesRouteWithChildren,
-}
-
-const AuthenticatedAdminRouteWithChildren =
-  AuthenticatedAdminRoute._addFileChildren(AuthenticatedAdminRouteChildren)
 
 interface AuthenticatedAnalyticsRouteChildren {
   AuthenticatedAnalyticsAprobacionesRoute: typeof AuthenticatedAnalyticsAprobacionesRoute
@@ -2130,7 +2024,6 @@ const AuthenticatedComplianceBankAccountsRouteWithChildren =
   )
 
 interface AuthenticatedRouteRouteChildren {
-  AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
   AuthenticatedAnalyticsRoute: typeof AuthenticatedAnalyticsRouteWithChildren
   AuthenticatedApiClientsRoute: typeof AuthenticatedApiClientsRoute
   AuthenticatedApprovalsRoute: typeof AuthenticatedApprovalsRoute
@@ -2154,7 +2047,6 @@ interface AuthenticatedRouteRouteChildren {
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
-  AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
   AuthenticatedAnalyticsRoute: AuthenticatedAnalyticsRouteWithChildren,
   AuthenticatedApiClientsRoute: AuthenticatedApiClientsRoute,
   AuthenticatedApprovalsRoute: AuthenticatedApprovalsRoute,
