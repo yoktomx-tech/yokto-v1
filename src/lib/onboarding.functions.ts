@@ -302,6 +302,23 @@ const saveStepSchema = z.union([
 ]);
 
 
+function translateDbError(msg: string): string {
+  const m = msg.toLowerCase();
+  if (m.includes("profiles_curp_key") || (m.includes("duplicate") && m.includes("curp"))) {
+    return "La CURP ya está registrada en otra cuenta. Verifica el dato o inicia sesión con tu cuenta existente.";
+  }
+  if (m.includes("profiles_rfc_key") || (m.includes("duplicate") && m.includes("rfc"))) {
+    return "El RFC ya está registrado en otra cuenta. Verifica el dato o inicia sesión con tu cuenta existente.";
+  }
+  if (m.includes("profiles_email_key") || (m.includes("duplicate") && m.includes("email"))) {
+    return "El correo electrónico ya está registrado en otra cuenta.";
+  }
+  if (m.includes("duplicate key value")) {
+    return "Este dato ya está registrado en otra cuenta.";
+  }
+  return msg;
+}
+
 export const saveOnboardingStep = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((i: unknown) => saveStepSchema.parse(i))
@@ -313,7 +330,7 @@ export const saveOnboardingStep = createServerFn({ method: "POST" })
         .from("profiles")
         .update({ account_type: data.account_type, onboarding_step: 2 })
         .eq("id", userId);
-      if (error) throw new Error(error.message);
+      if (error) throw new Error(translateDbError(error.message));
       return { ok: true };
     }
 
@@ -344,7 +361,7 @@ export const saveOnboardingStep = createServerFn({ method: "POST" })
         fiscal_postal_code: data.fiscal_postal_code,
         onboarding_step: 3,
       }).eq("id", userId);
-      if (error) throw new Error(error.message);
+      if (error) throw new Error(translateDbError(error.message));
     } else {
       // rep legal validaciones
       const repRfc = validateRfc(data.legal_rep.rfc, "PF");
@@ -375,7 +392,7 @@ export const saveOnboardingStep = createServerFn({ method: "POST" })
         fiscal_postal_code: data.fiscal_postal_code,
         onboarding_step: 3,
       }).eq("id", userId);
-      if (error) throw new Error(error.message);
+      if (error) throw new Error(translateDbError(error.message));
     }
     return { ok: true };
   });

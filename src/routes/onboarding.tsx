@@ -68,6 +68,7 @@ function OnboardingWizard() {
           .then(({ data: p }) => {
             if (!mounted || !p) return;
             if (p.onboarding_completed || p.kyc_status === "in_review" || p.kyc_status === "approved") {
+              sessionStorage.setItem("yokto.onboarding.intentional_exit", "1");
               navigate({ to: "/onboarding/pendiente" });
               return;
             }
@@ -86,58 +87,65 @@ function OnboardingWizard() {
   const goNext = (n: StepId) => { setError(null); setStep(n); };
   const goPrev = () => { setError(null); if (step > 1) setStep((step - 1) as StepId); };
 
-  const handleCancelOnboarding = async () => {
+
+
+
+  // Auto-borrado del borrador si el usuario cierra la ventana sin completar.
+  // Marca sessionStorage cuando la navegación es intencional dentro del flujo
+  // (Volver a /auth, ir a /onboarding/pendiente) para no disparar el borrado.
+  useEffect(() => {
     if (!session) return;
-    const ok = window.confirm(
-      "¿Cancelar y borrar tu cuenta en curso?\n\nSe eliminarán todos los datos capturados (identidad, fiscal, biométrico). Esta acción no se puede deshacer."
-    );
-    if (!ok) return;
-    setLoading(true);
-    try {
-      const { error: rpcErr } = await supabase.rpc("cancel_my_onboarding");
-      if (rpcErr) throw rpcErr;
-      await supabase.auth.signOut();
-      try { localStorage.removeItem(LS_KEY); } catch { /* noop */ }
-      navigate({ to: "/auth" });
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "No se pudo cancelar el registro.");
-      setLoading(false);
-    }
-  };
+    const url = import.meta.env.VITE_SUPABASE_URL as string | undefined;
+    const key = (import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY
+      ?? import.meta.env.VITE_SUPABASE_ANON_KEY) as string | undefined;
+    if (!url || !key) return;
+
+    const onHide = () => {
+      if (sessionStorage.getItem("yokto.onboarding.intentional_exit") === "1") return;
+      supabase.auth.getSession().then(({ data }) => {
+        const token = data.session?.access_token;
+        if (!token) return;
+        try {
+          fetch(`${url}/rest/v1/rpc/cancel_my_onboarding`, {
+            method: "POST",
+            keepalive: true,
+            headers: {
+              "Content-Type": "application/json",
+              apikey: key,
+              Authorization: `Bearer ${token}`,
+            },
+            body: "{}",
+          });
+        } catch { /* ignore */ }
+      });
+    };
+    window.addEventListener("pagehide", onHide);
+    return () => window.removeEventListener("pagehide", onHide);
+  }, [session]);
 
   return (
     <div className="min-h-dvh bg-yo-bg text-yo-txt">
       <header className="border-b border-yo-border bg-yo-surface">
         <div className="mx-auto max-w-5xl px-5 py-4 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2.5">
+          <Link
+            to="/"
+            className="flex items-center gap-2.5"
+            onClick={() => { sessionStorage.setItem("yokto.onboarding.intentional_exit", "1"); }}
+          >
             <YoktoLogo variant="dark" className="h-6 w-auto" />
           </Link>
-          <Link to="/auth" className="text-sm text-yo-txt-2 hover:text-yo-txt">
+          <Link
+            to="/auth"
+            className="text-sm text-yo-txt-2 hover:text-yo-txt"
+            onClick={() => { sessionStorage.setItem("yokto.onboarding.intentional_exit", "1"); }}
+          >
             ¿Ya tienes cuenta? <span className="text-yo-ac font-medium">Iniciar sesión</span>
           </Link>
         </div>
       </header>
 
       <main className="mx-auto max-w-3xl px-5 py-10">
-        {session && (
-          <div className="mb-4 flex flex-col gap-2 rounded-md border border-yo-border bg-yo-surface px-3.5 py-2.5 text-sm sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-start gap-2 text-yo-txt-2">
-              <AlertCircle className="size-4 mt-0.5 shrink-0 text-yo-warn" />
-              <span>
-                <span className="font-medium text-yo-txt">Borrador de registro.</span>{" "}
-                Si no completas el proceso, tu cuenta se eliminará automáticamente en <strong>24 horas</strong>.
-              </span>
-            </div>
-            <button
-              type="button"
-              onClick={handleCancelOnboarding}
-              disabled={loading}
-              className="shrink-0 text-xs font-medium text-yo-err hover:underline disabled:opacity-50"
-            >
-              Cancelar y borrar mi cuenta
-            </button>
-          </div>
-        )}
+
 
         <Stepper active={step} />
 
@@ -186,7 +194,7 @@ function OnboardingWizard() {
           )}
           {step === 6 && session && (
             <Step6Review
-              onFinished={() => navigate({ to: "/onboarding/pendiente" })} onBack={goPrev}
+              onFinished={() => { sessionStorage.setItem("yokto.onboarding.intentional_exit", "1"); navigate({ to: "/onboarding/pendiente" }); }} onBack={goPrev}
               setError={setError} loading={loading} setLoading={setLoading}
             />
           )}
