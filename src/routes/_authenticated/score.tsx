@@ -1103,3 +1103,58 @@ function RecalcModal({ onClose }: { onClose: () => void }) {
     </Modal>
   );
 }
+
+// ============ Integración PLD/FT ============
+const PLD_STYLE: Record<string, { badge: string; label: string; text: string }> = {
+  bajo:        { badge: "bg-emerald-500/15 text-emerald-500 border-emerald-500/30", label: "Bajo",        text: "text-emerald-500" },
+  medio:       { badge: "bg-amber-500/15 text-amber-500 border-amber-500/30",       label: "Medio",       text: "text-amber-500" },
+  alto:        { badge: "bg-orange-500/15 text-orange-500 border-orange-500/30",    label: "Alto",        text: "text-orange-500" },
+  inaceptable: { badge: "bg-red-500/15 text-red-500 border-red-500/30",             label: "Inaceptable", text: "text-red-500" },
+};
+
+function PldSummaryCard() {
+  const { currentOrg } = useCurrentOrg();
+  const fn = useServerFn(getPldOverview);
+  const { data } = useQuery({
+    queryKey: ["pld-overview-mini", currentOrg?.id],
+    queryFn: () => fn({ data: { org_id: currentOrg!.id } }),
+    enabled: !!currentOrg?.id,
+    staleTime: 30_000,
+  });
+
+  const profile = data?.profile;
+  const hasQuest = !!data?.questionnaire;
+  const level = (profile?.level ?? "medio") as string;
+  const style = PLD_STYLE[level] ?? PLD_STYLE.medio;
+
+  return (
+    <div className="rounded-lg border border-yo-border bg-yo-surface p-4">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <ShieldCheck className="h-4 w-4 text-yo-txt-2" />
+          <h3 className="text-sm font-semibold text-yo-txt">PLD/FT</h3>
+        </div>
+        <Link to="/pld" className="text-[11px] text-yo-txt-2 hover:text-yo-txt">Ver detalle →</Link>
+      </div>
+      {!hasQuest ? (
+        <div className="mt-3 space-y-2">
+          <p className="text-xs text-yo-txt-2">Cuestionario pendiente.</p>
+          <Link to="/pld/cuestionario"
+            className="inline-flex items-center gap-1 rounded-md bg-yo-accent px-2.5 py-1 text-xs font-medium text-yo-bg">
+            Completar
+          </Link>
+        </div>
+      ) : (
+        <div className="mt-3">
+          <div className="flex items-baseline gap-2">
+            <span className={cn("text-2xl font-bold tabular-nums", style.text)}>{profile?.score ?? 0}</span>
+            <span className="text-xs text-yo-txt-2">/100 riesgo</span>
+          </div>
+          <div className={cn("mt-2 inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-medium", style.badge)}>
+            {style.label}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
