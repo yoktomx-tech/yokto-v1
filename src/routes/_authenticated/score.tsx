@@ -1161,3 +1161,190 @@ function PldSummaryCard() {
     </div>
   );
 }
+
+function PldFtTab() {
+  const { currentOrg } = useCurrentOrg();
+  const fn = useServerFn(getPldOverview);
+  const { data, isLoading, refetch, isFetching } = useQuery({
+    queryKey: ["pld-overview", currentOrg?.id],
+    queryFn: () => fn({ data: { org_id: currentOrg!.id } }),
+    enabled: !!currentOrg?.id,
+  });
+
+  if (!currentOrg) {
+    return (
+      <div className="rounded-lg border border-yo-border bg-yo-surface p-8 text-center text-yo-txt-2">
+        Selecciona una organización para ver su perfil PLD/FT.
+      </div>
+    );
+  }
+
+  const profile = data?.profile ?? null;
+  const questionnaire = data?.questionnaire ?? null;
+  const alerts = data?.alerts ?? [];
+  const factors = data?.factors ?? [];
+  const openAlerts = alerts.filter((a) => a.status === "abierta" || a.status === "en_revision");
+  const level = (profile?.level ?? "medio") as string;
+  const style = PLD_STYLE[level] ?? PLD_STYLE.medio;
+  const score = profile?.score ?? 0;
+
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="rounded-lg border border-yo-border bg-yo-surface p-5">
+        <div className="flex items-start justify-between gap-4 flex-wrap">
+          <div>
+            <h3 className="text-sm font-semibold text-yo-txt flex items-center gap-2">
+              <ShieldCheck className="h-4 w-4 text-yo-txt-2" /> Perfil PLD/FT
+            </h3>
+            <p className="text-xs text-yo-txt-2 mt-1">Prevención de Lavado de Dinero y Financiamiento al Terrorismo</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => refetch()}
+              disabled={isFetching}
+              className="inline-flex items-center gap-2 rounded-lg border border-yo-border bg-yo-surface px-3 py-2 text-xs text-yo-txt-2 hover:text-yo-txt"
+            >
+              <RefreshCw className={cn("h-3.5 w-3.5", isFetching && "animate-spin")} /> Actualizar
+            </button>
+            <Link
+              to="/pld/cuestionario"
+              className="inline-flex items-center gap-2 rounded-lg bg-yo-ac hover:bg-yo-ac-h text-white px-3 py-2 text-xs font-medium"
+            >
+              <ClipboardList className="h-3.5 w-3.5" />
+              {questionnaire ? "Actualizar cuestionario" : "Completar cuestionario"}
+            </Link>
+          </div>
+        </div>
+
+        <div className="mt-5 grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="rounded-md border border-yo-border bg-yo-raised p-4">
+            <div className="text-[11px] uppercase tracking-wider text-yo-txt-3 font-semibold">Nivel de riesgo</div>
+            <div className={cn("mt-2 text-4xl font-bold tabular-nums", style.text)}>{score}</div>
+            <div className="text-xs text-yo-txt-3">de 100 (mayor = mayor riesgo)</div>
+            <div className={cn("mt-3 inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[11px] font-medium", style.badge)}>
+              {style.label}
+            </div>
+            {profile?.next_review_at && (
+              <div className="mt-3 text-[11px] text-yo-txt-3">
+                Próxima revisión: {new Date(profile.next_review_at).toLocaleDateString("es-MX")}
+              </div>
+            )}
+          </div>
+
+          <div className="md:col-span-2 rounded-md border border-yo-border bg-yo-raised p-4">
+            <div className="text-[11px] uppercase tracking-wider text-yo-txt-3 font-semibold mb-3">Estado</div>
+            {isLoading ? (
+              <div className="text-yo-txt-2 text-sm">Cargando…</div>
+            ) : !questionnaire ? (
+              <div className="space-y-3">
+                <div className="flex items-start gap-2 text-sm text-yo-txt-2">
+                  <Info className="h-4 w-4 mt-0.5 text-yo-ac shrink-0" />
+                  Aún no has completado el cuestionario PLD/FT. Es requisito para activar la organización en operaciones de riesgo medio o superior.
+                </div>
+                <Link
+                  to="/pld/cuestionario"
+                  className="inline-flex items-center gap-1.5 rounded-md bg-yo-ac hover:bg-yo-ac-h text-white px-3 py-1.5 text-xs font-medium"
+                >
+                  Iniciar cuestionario <ArrowRight className="h-3.5 w-3.5" />
+                </Link>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <PldStat label="Estado" value={profile?.status ?? "vigente"} />
+                <PldStat label="Actividad" value={questionnaire.actividad_economica ?? "—"} />
+                <PldStat
+                  label="Volumen mensual"
+                  value={
+                    questionnaire.volumen_mensual_estimado != null
+                      ? `$${Number(questionnaire.volumen_mensual_estimado).toLocaleString("es-MX")}`
+                      : "—"
+                  }
+                />
+                <PldStat label="PEP" value={questionnaire.es_pep ? "Sí" : questionnaire.familiar_pep ? "Familiar PEP" : "No"} />
+                <PldStat label="Uso de efectivo" value={questionnaire.usa_efectivo ? "Sí" : "No"} />
+                <PldStat
+                  label="Última evaluación"
+                  value={profile?.last_evaluated_at ? new Date(profile.last_evaluated_at).toLocaleString("es-MX") : "—"}
+                />
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div className="rounded-lg border border-yo-border bg-yo-surface">
+        <div className="flex items-center gap-2 px-5 py-3 border-b border-yo-border">
+          <Bell className="h-4 w-4 text-yo-txt-2" />
+          <h3 className="text-sm font-semibold text-yo-txt">Alertas abiertas</h3>
+          <span className="text-xs text-yo-txt-3">({openAlerts.length})</span>
+        </div>
+        {openAlerts.length === 0 ? (
+          <div className="p-6 text-center text-sm text-yo-txt-2 flex flex-col items-center gap-2">
+            <CheckCircle2 className="h-7 w-7 text-emerald-500" />
+            No hay alertas abiertas.
+          </div>
+        ) : (
+          <ul className="divide-y divide-yo-border">
+            {openAlerts.map((a) => (
+              <li key={a.id} className="p-4 flex items-start gap-3">
+                <AlertTriangle
+                  className={cn(
+                    "h-5 w-5 mt-0.5 shrink-0",
+                    a.severity === "critica"
+                      ? "text-red-500"
+                      : a.severity === "alta"
+                      ? "text-orange-500"
+                      : a.severity === "media"
+                      ? "text-amber-500"
+                      : "text-yo-txt-2",
+                  )}
+                />
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-medium text-yo-txt">{a.title}</div>
+                  {a.description && <div className="text-xs text-yo-txt-2 mt-1">{a.description}</div>}
+                  <div className="text-[11px] text-yo-txt-3 mt-1">{new Date(a.detected_at).toLocaleString("es-MX")}</div>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+      <div className="rounded-lg border border-yo-border bg-yo-surface">
+        <div className="flex items-center gap-2 px-5 py-3 border-b border-yo-border">
+          <ShieldCheck className="h-4 w-4 text-yo-txt-2" />
+          <h3 className="text-sm font-semibold text-yo-txt">Factores del puntaje</h3>
+          <span className="text-xs text-yo-txt-3">({factors.length})</span>
+        </div>
+        {factors.length === 0 ? (
+          <div className="p-6 text-center text-sm text-yo-txt-2">
+            Sin factores registrados. Completa el cuestionario para calcular el perfil.
+          </div>
+        ) : (
+          <ul className="divide-y divide-yo-border">
+            {factors.map((f) => (
+              <li key={f.id} className="p-4 grid grid-cols-12 gap-4 items-center">
+                <div className="col-span-3 md:col-span-2 text-[11px] uppercase tracking-wider text-yo-txt-3">{f.category}</div>
+                <div className="col-span-6 md:col-span-7 text-sm text-yo-txt">{f.label}</div>
+                <div className="col-span-3 text-right">
+                  <span className="inline-flex items-center gap-1 rounded-full border border-yo-border px-2 py-0.5 text-xs tabular-nums text-yo-txt">
+                    +{f.contribution} pts
+                  </span>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function PldStat({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <div className="text-[11px] uppercase tracking-wider text-yo-txt-3">{label}</div>
+      <div className="mt-0.5 text-sm text-yo-txt">{value}</div>
+    </div>
+  );
+}
