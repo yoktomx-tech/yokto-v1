@@ -24,6 +24,7 @@ import {
   User,
   Briefcase,
   ClipboardList,
+  ArrowRight,
 } from "lucide-react";
 import { PageHeader } from "@/components/page-header";
 import { useViewRole } from "@/hooks/use-view-role";
