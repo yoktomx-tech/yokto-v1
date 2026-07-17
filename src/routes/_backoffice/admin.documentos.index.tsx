@@ -27,11 +27,11 @@ function AdminDocs() {
       <AdminCard className="mb-4">
         <div className="flex gap-3 items-center flex-wrap">
           <select value={tipo} onChange={(e) => setTipo(e.target.value)}
-            className="bg-[#0A0A0B] border border-white/10 rounded-lg px-3 py-1.5 text-xs text-white">
+            className="bg-yo-surface border border-yo-border rounded-lg px-3 py-1.5 text-xs text-yo-txt">
             {TIPOS.map((t) => <option key={t} value={t}>{t || "Todos los tipos"}</option>)}
           </select>
           <select value={estado} onChange={(e) => setEstado(e.target.value)}
-            className="bg-[#0A0A0B] border border-white/10 rounded-lg px-3 py-1.5 text-xs text-white">
+            className="bg-yo-surface border border-yo-border rounded-lg px-3 py-1.5 text-xs text-yo-txt">
             {ESTADOS.map((s) => <option key={s} value={s}>{s || "Todos los estados"}</option>)}
           </select>
         </div>
@@ -39,30 +39,30 @@ function AdminDocs() {
 
       <AdminCard>
         {(data ?? []).length === 0 ? (
-          <p className="text-sm text-gray-500 text-center py-8">Sin elementos en la cola.</p>
+          <p className="text-sm text-yo-txt-3 text-center py-8">Sin elementos en la cola.</p>
         ) : (
           <div className="space-y-2">
             {(data ?? []).map((d) => (
               <Link key={d.id} to="/admin/documentos/$reviewId" params={{ reviewId: d.id }}
-                className="block p-3 rounded-lg border border-white/5 hover:border-white/20 hover:bg-white/[0.02]">
+                className="block p-3 rounded-lg border border-yo-border hover:border-yo-border hover:bg-white/[0.02]">
                 <div className="flex items-center justify-between">
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="text-xs font-mono text-[#A78BFA] bg-[#7C3AED]/15 px-2 py-0.5 rounded">{d.tipo}</span>
+                      <span className="text-xs font-mono text-yo-ac bg-yo-ac-bg px-2 py-0.5 rounded">{d.tipo}</span>
                       <span className={
                         "text-[10px] uppercase font-semibold px-2 py-0.5 rounded " +
                         (d.prioridad === "CRITICA" ? "bg-red-950 text-red-400" :
                          d.prioridad === "ALTA" ? "bg-orange-950 text-orange-400" :
-                         "bg-white/5 text-gray-400")
+                         "bg-yo-raised text-yo-txt-3")
                       }>{d.prioridad}</span>
-                      {d.sector && <span className="text-[10px] text-gray-500">{d.sector}</span>}
+                      {d.sector && <span className="text-[10px] text-yo-txt-3">{d.sector}</span>}
                     </div>
-                    <p className="text-sm text-gray-200 mt-1">{d.motivo_revision}</p>
-                    <p className="text-[11px] text-gray-500 mt-0.5">Estado: {d.estado}</p>
+                    <p className="text-sm text-yo-txt mt-1">{d.motivo_revision}</p>
+                    <p className="text-[11px] text-yo-txt-3 mt-0.5">Estado: {d.estado}</p>
                   </div>
                   {typeof d.confianza_ia === "number" && (
                     <div className="text-right">
-                      <p className="text-[10px] text-gray-500 uppercase">Confianza IA</p>
+                      <p className="text-[10px] text-yo-txt-3 uppercase">Confianza IA</p>
                       <p className={
                         "text-lg font-semibold " +
                         (d.confianza_ia >= 80 ? "text-green-400" :

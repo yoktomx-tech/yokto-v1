@@ -17,30 +17,30 @@ function AdminFinanzas() {
       <AdminPageHeader title="Finanzas" description="Analista Financiero · Reconciliación y webhooks" />
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <AdminCard>
-          <h3 className="text-sm font-semibold text-white mb-3">Últimos payouts</h3>
+          <h3 className="text-sm font-semibold text-yo-txt mb-3">Últimos payouts</h3>
           {(data?.payouts ?? []).length === 0 ? (
-            <p className="text-xs text-gray-500">Sin payouts recientes.</p>
+            <p className="text-xs text-yo-txt-3">Sin payouts recientes.</p>
           ) : (
             <ul className="space-y-2 text-xs">
               {(data?.payouts ?? []).slice(0, 10).map((p: Record<string, unknown>) => (
-                <li key={p.id as string} className="flex justify-between border-b border-white/5 pb-1">
-                  <span className="text-gray-400 font-mono">{(p.id as string).slice(0, 8)}</span>
-                  <span className="text-gray-200">${(p.amount_cents as number ?? 0) / 100}</span>
-                  <span className="text-gray-500">{p.status as string}</span>
+                <li key={p.id as string} className="flex justify-between border-b border-yo-border pb-1">
+                  <span className="text-yo-txt-3 font-mono">{(p.id as string).slice(0, 8)}</span>
+                  <span className="text-yo-txt">${(p.amount_cents as number ?? 0) / 100}</span>
+                  <span className="text-yo-txt-3">{p.status as string}</span>
                 </li>
               ))}
             </ul>
           )}
         </AdminCard>
         <AdminCard>
-          <h3 className="text-sm font-semibold text-white mb-3">Webhooks Stripe</h3>
+          <h3 className="text-sm font-semibold text-yo-txt mb-3">Webhooks Stripe</h3>
           {(data?.webhooks ?? []).length === 0 ? (
-            <p className="text-xs text-gray-500">Sin webhooks recientes.</p>
+            <p className="text-xs text-yo-txt-3">Sin webhooks recientes.</p>
           ) : (
             <ul className="space-y-2 text-xs">
               {(data?.webhooks ?? []).slice(0, 10).map((w: Record<string, unknown>) => (
-                <li key={w.id as string} className="flex justify-between border-b border-white/5 pb-1">
-                  <span className="text-gray-300">{w.event_type as string}</span>
+                <li key={w.id as string} className="flex justify-between border-b border-yo-border pb-1">
+                  <span className="text-yo-txt-2">{w.event_type as string}</span>
                   <span className={w.processed ? "text-green-400" : "text-yellow-400"}>
                     {w.processed ? "OK" : "pendiente"}
                   </span>

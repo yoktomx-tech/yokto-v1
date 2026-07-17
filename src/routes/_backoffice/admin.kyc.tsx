@@ -30,17 +30,17 @@ function AdminKyc() {
       <AdminPageHeader title="Cola KYC" description="Aprobación de identidad · Analista KYC" />
       <AdminCard>
         <table className="w-full text-sm">
-          <thead className="text-xs text-gray-500 uppercase">
-            <tr className="text-left border-b border-white/10">
+          <thead className="text-xs text-yo-txt-3 uppercase">
+            <tr className="text-left border-b border-yo-border">
               <th className="py-2">Usuario</th><th>Email</th><th>CURP</th><th>Estado</th><th></th>
             </tr>
           </thead>
           <tbody>
             {(data ?? []).map((p) => (
-              <tr key={p.id} className="border-b border-white/5 hover:bg-white/[0.02]">
-                <td className="py-2 text-gray-200">{p.first_name} {p.last_name}</td>
-                <td className="text-gray-400">{p.email}</td>
-                <td className="text-gray-500 font-mono text-xs">{p.curp ?? "—"}</td>
+              <tr key={p.id} className="border-b border-yo-border hover:bg-white/[0.02]">
+                <td className="py-2 text-yo-txt">{p.first_name} {p.last_name}</td>
+                <td className="text-yo-txt-3">{p.email}</td>
+                <td className="text-yo-txt-3 font-mono text-xs">{p.curp ?? "—"}</td>
                 <td>
                   <span className={
                     p.kyc_status === "approved" ? "text-green-400" :
@@ -50,7 +50,7 @@ function AdminKyc() {
                 </td>
                 <td>
                   <button onClick={() => setSelected(p.id)}
-                    className="text-[11px] text-[#A78BFA] hover:underline">Revisar</button>
+                    className="text-[11px] text-yo-ac hover:underline">Revisar</button>
                 </td>
               </tr>
             ))}
@@ -61,12 +61,12 @@ function AdminKyc() {
       {selected && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
           <AdminCard className="max-w-md w-full">
-            <h3 className="text-white font-semibold mb-3">Decisión KYC</h3>
+            <h3 className="text-yo-txt font-semibold mb-3">Decisión KYC</h3>
             <textarea value={reason} onChange={(e) => setReason(e.target.value)}
               placeholder="Motivo (obligatorio, mínimo 3 caracteres)"
-              className="w-full bg-[#0A0A0B] border border-white/10 rounded-lg p-2 text-sm text-white h-24 mb-3" />
+              className="w-full bg-yo-surface border border-yo-border rounded-lg p-2 text-sm text-yo-txt h-24 mb-3" />
             <div className="flex gap-2 justify-end">
-              <button onClick={() => setSelected(null)} className="px-3 py-1.5 text-xs text-gray-400 hover:text-white">Cancelar</button>
+              <button onClick={() => setSelected(null)} className="px-3 py-1.5 text-xs text-yo-txt-3 hover:text-yo-txt">Cancelar</button>
               <button disabled={reason.length < 3 || m.isPending}
                 onClick={() => m.mutate({ userId: selected, decision: "rejected", reason })}
                 className="px-3 py-1.5 text-xs bg-red-600 hover:bg-red-500 rounded disabled:opacity-40">Rechazar</button>

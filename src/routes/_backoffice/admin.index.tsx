@@ -31,12 +31,12 @@ function AdminIndex() {
         {cards.map((c) => (
           <AdminCard key={c.label}>
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-[#7C3AED]/15 flex items-center justify-center">
-                <c.icon className="w-5 h-5 text-[#A78BFA]" />
+              <div className="w-10 h-10 rounded-lg bg-yo-ac-bg flex items-center justify-center">
+                <c.icon className="w-5 h-5 text-yo-ac" />
               </div>
               <div>
-                <p className="text-xs text-gray-400 uppercase tracking-wide">{c.label}</p>
-                <p className="text-2xl font-semibold text-white mt-0.5">{c.value}</p>
+                <p className="text-xs text-yo-txt-3 uppercase tracking-wide">{c.label}</p>
+                <p className="text-2xl font-semibold text-yo-txt mt-0.5">{c.value}</p>
               </div>
             </div>
           </AdminCard>
@@ -44,10 +44,10 @@ function AdminIndex() {
       </div>
 
       <AdminCard className="mt-6">
-        <h3 className="text-sm font-semibold text-white mb-2">Recordatorio de segregación</h3>
-        <p className="text-xs text-gray-400 leading-relaxed">
+        <h3 className="text-sm font-semibold text-yo-txt mb-2">Recordatorio de segregación</h3>
+        <p className="text-xs text-yo-txt-3 leading-relaxed">
           Cada rol interno actúa solo en su cola. Las decisiones críticas requieren motivo y
-          quedan registradas en <code className="text-[#A78BFA]">internal_action_log</code> junto
+          quedan registradas en <code className="text-yo-ac">internal_action_log</code> junto
           con el rol usado al momento de la acción.
         </p>
       </AdminCard>
