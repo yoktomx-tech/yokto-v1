@@ -68,6 +68,7 @@ function OnboardingWizard() {
           .then(({ data: p }) => {
             if (!mounted || !p) return;
             if (p.onboarding_completed || p.kyc_status === "in_review" || p.kyc_status === "approved") {
+              sessionStorage.setItem("yokto.onboarding.intentional_exit", "1");
               navigate({ to: "/onboarding/pendiente" });
               return;
             }
