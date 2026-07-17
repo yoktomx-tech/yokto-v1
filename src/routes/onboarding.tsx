@@ -1789,6 +1789,21 @@ function Step6Review({ onFinished, onBack, setError, loading, setLoading }: {
           <ReviewRow k="Documentos entregados" v={`${docsCount} archivo(s)`} />
         </ReviewSection>
 
+        <ReviewSection title="Organización" icon={<Building2 className="size-4" />}>
+          {(() => {
+            let d: OrgKindDraft = { kind: "individual" };
+            try { const raw = localStorage.getItem(LS_ORG); if (raw) d = JSON.parse(raw); } catch { /* noop */ }
+            return (
+              <>
+                <ReviewRow k="Tipo" v={d.kind === "team" ? "Organización / equipo" : "Cuenta individual"} />
+                {d.kind === "team" && <ReviewRow k="Nombre" v={d.name || "Por definir más adelante"} tone={d.name ? undefined : "warn"} />}
+                {d.kind === "team" && <ReviewRow k="RFC" v={d.rfc || "Por definir más adelante"} mono tone={d.rfc ? undefined : "warn"} />}
+                {d.kind === "team" && <ReviewRow k="Invitaciones" v={`${d.invitees?.length ?? 0} miembro(s)`} />}
+              </>
+            );
+          })()}
+        </ReviewSection>
+
         <ReviewSection title="Token Móvil (2FA)" icon={<KeyRound className="size-4" />}>
           <ReviewRow
             k="Estado"
@@ -1796,6 +1811,7 @@ function Step6Review({ onFinished, onBack, setError, loading, setLoading }: {
             tone={mfa === "enabled" ? "ok" : mfa === "pending" ? "warn" : undefined}
           />
         </ReviewSection>
+
       </div>
 
       <label className="flex items-start gap-2.5 text-sm text-yo-txt-2 cursor-pointer border border-yo-border rounded-md p-3 bg-yo-surface">
