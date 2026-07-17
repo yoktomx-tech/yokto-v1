@@ -217,6 +217,7 @@ function ScorePage() {
             <DocsTab profile={profile} onOpen={setOpenDoc} onUpload={() => setUploadOpen(true)} />
           )}
           {tab === "score" && <ScoreTab profile={profile} onOpen={setOpenComponent} />}
+          {tab === "pld" && <PldFtTab />}
           {tab === "alerts" && <AlertsTab profile={profile} />}
           {tab === "history" && <HistoryTab profile={profile} />}
           {tab === "visibility" && <VisibilityTab profile={profile} />}
