@@ -41,8 +41,8 @@ const STEPS: Array<{ id: StepId; title: string; desc: string }> = [
   { id: 1, title: "Cuenta",       desc: "Email y contraseña" },
   { id: 2, title: "Tipo",         desc: "Persona física / moral" },
   { id: 3, title: "Fiscal",       desc: "RFC y datos SAT" },
-  { id: 4, title: "Organización", desc: "Individual o equipo" },
-  { id: 5, title: "Identidad",    desc: "Biométrico + documentos" },
+  { id: 4, title: "Identidad",    desc: "Biométrico + documentos" },
+  { id: 5, title: "Organización", desc: "Individual o equipo" },
   { id: 6, title: "Token Móvil",  desc: "2FA autenticador" },
   { id: 7, title: "Confirmación", desc: "Revisar y crear" },
 ];
@@ -191,14 +191,14 @@ function OnboardingWizard() {
             />
           )}
           {step === 4 && session && (
-            <Step4AccountKind
-              onSaved={() => goNext(5)} onBack={goPrev}
+            <Step4Biometric
+              onDone={() => goNext(5)} onBack={goPrev}
               setError={setError}
             />
           )}
           {step === 5 && session && (
-            <Step4Biometric
-              onDone={() => goNext(6)} onBack={goPrev}
+            <Step4AccountKind
+              onSaved={() => goNext(6)} onBack={goPrev}
               setError={setError}
             />
           )}
