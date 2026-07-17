@@ -43,9 +43,9 @@ async function logAction(input: {
     entidad_tipo: input.entityType ?? null,
     entidad_id: input.entityId ?? null,
     motivo: input.reason ?? null,
-    snapshot_antes: input.snapshotBefore ?? null,
-    snapshot_despues: input.snapshotAfter ?? null,
-    detalle_json: input.detail ?? null,
+    snapshot_antes: (input.snapshotBefore ?? null) as never,
+    snapshot_despues: (input.snapshotAfter ?? null) as never,
+    detalle_json: (input.detail ?? null) as never,
   });
 }
 
@@ -329,7 +329,7 @@ export const adminAuditList = createServerFn({ method: "GET" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data } = await supabaseAdmin
       .from("internal_action_log")
-      .select("*")
+      .select("id, user_id, rol_usado, recurso, accion, entidad_tipo, entidad_id, motivo, user_agent, created_at")
       .order("created_at", { ascending: false })
       .limit(300);
     return data ?? [];
