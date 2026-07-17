@@ -87,14 +87,8 @@ function OnboardingWizard() {
   const goNext = (n: StepId) => { setError(null); setStep(n); };
   const goPrev = () => { setError(null); if (step > 1) setStep((step - 1) as StepId); };
 
-  const handleCancelOnboarding = useCallback(async () => {
-    if (!session) return;
-    try {
-      await supabase.rpc("cancel_my_onboarding");
-    } catch { /* ignore */ }
-    try { await supabase.auth.signOut(); } catch { /* ignore */ }
-    try { localStorage.removeItem(LS_KEY); } catch { /* noop */ }
-  }, [session]);
+
+
 
   // Auto-borrado del borrador si el usuario cierra la ventana sin completar.
   // Marca sessionStorage cuando la navegación es intencional dentro del flujo
