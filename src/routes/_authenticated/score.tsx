@@ -218,6 +218,7 @@ function ScorePage() {
 
         {/* Sidebar 30% */}
         <aside className="flex flex-col gap-4">
+          <PldSummaryCard />
           <ChecklistCard profile={profile} />
           <SidebarAlerts profile={profile} />
           <NextActionsCard personType={personType} onUpload={() => setUploadOpen(true)} onComplete={() => setCompleteOpen(true)} />
