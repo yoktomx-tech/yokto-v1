@@ -71,7 +71,7 @@ export const submitPldQuestionnaire = createServerFn({ method: "POST" })
     // 1) Guardar cuestionario
     const { data: quest, error: qErr } = await supabaseAdmin
       .from("pld_questionnaires")
-      .insert({
+      .insert(asJson({
         org_id: data.org_id,
         user_id: userId,
         actividad_economica: data.actividad_economica,
@@ -94,7 +94,7 @@ export const submitPldQuestionnaire = createServerFn({ method: "POST" })
         completado: true,
         version: nextVersion,
         respuestas_raw: data,
-      })
+      }))
       .select("id")
       .single();
     if (qErr) throw new Error(`No se pudo guardar el cuestionario: ${qErr.message}`);
