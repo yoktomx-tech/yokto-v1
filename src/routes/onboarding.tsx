@@ -82,7 +82,7 @@ function OnboardingWizard() {
               navigate({ to: "/onboarding/pendiente" });
               return;
             }
-            const next = Math.max(2, Math.min(6, (p.onboarding_step ?? 1) + 1)) as StepId;
+            const next = Math.max(2, Math.min(7, (p.onboarding_step ?? 1) + 1)) as StepId;
             setStep(next);
           });
       }
