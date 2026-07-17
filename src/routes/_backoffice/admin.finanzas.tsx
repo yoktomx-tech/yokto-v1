@@ -40,7 +40,7 @@ function AdminFinanzas() {
             <ul className="space-y-2 text-xs">
               {(data?.webhooks ?? []).slice(0, 10).map((w: Record<string, unknown>) => (
                 <li key={w.id as string} className="flex justify-between border-b border-white/5 pb-1">
-                  <span className="text-gray-300">{w.type as string}</span>
+                  <span className="text-gray-300">{w.event_type as string}</span>
                   <span className={w.processed ? "text-green-400" : "text-yellow-400"}>
                     {w.processed ? "OK" : "pendiente"}
                   </span>

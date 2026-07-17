@@ -216,7 +216,7 @@ export const adminFinanzasOverview = createServerFn({ method: "GET" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const [{ data: payouts }, { data: webhooks }] = await Promise.all([
       supabaseAdmin.from("payouts").select("*").order("created_at", { ascending: false }).limit(50),
-      supabaseAdmin.from("stripe_webhook_events").select("id, type, processed, created_at, error").order("created_at", { ascending: false }).limit(50),
+      supabaseAdmin.from("stripe_webhook_events").select("id, event_type, processed, created_at, error").order("created_at", { ascending: false }).limit(50),
     ]);
     return { payouts: payouts ?? [], webhooks: webhooks ?? [] };
   });
