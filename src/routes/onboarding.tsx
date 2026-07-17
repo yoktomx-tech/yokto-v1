@@ -35,18 +35,28 @@ export const Route = createFileRoute("/onboarding")({
 });
 
 type AccountType = "persona_fisica" | "persona_moral";
-type StepId = 1 | 2 | 3 | 4 | 5 | 6;
+type StepId = 1 | 2 | 3 | 4 | 5 | 6 | 7;
 
 const STEPS: Array<{ id: StepId; title: string; desc: string }> = [
   { id: 1, title: "Cuenta",       desc: "Email y contraseña" },
   { id: 2, title: "Tipo",         desc: "Persona física / moral" },
   { id: 3, title: "Fiscal",       desc: "RFC y datos SAT" },
-  { id: 4, title: "Identidad",    desc: "Biométrico + documentos" },
-  { id: 5, title: "Token Móvil",  desc: "2FA autenticador" },
-  { id: 6, title: "Confirmación", desc: "Revisar y crear" },
+  { id: 4, title: "Organización", desc: "Individual o equipo" },
+  { id: 5, title: "Identidad",    desc: "Biométrico + documentos" },
+  { id: 6, title: "Token Móvil",  desc: "2FA autenticador" },
+  { id: 7, title: "Confirmación", desc: "Revisar y crear" },
 ];
 
 const LS_KEY = "yokto.onboarding.v1";
+const LS_ORG = "yokto.onboarding.orgkind";
+
+export type OrgKindDraft = {
+  kind: "individual" | "team";
+  name?: string;
+  rfc?: string;
+  invitees?: { email: string; role: "ADMIN" | "FINANZAS" | "OPERADOR" | "READONLY" }[];
+};
+
 
 function OnboardingWizard() {
   const navigate = useNavigate();
