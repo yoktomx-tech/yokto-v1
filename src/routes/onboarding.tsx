@@ -35,18 +35,28 @@ export const Route = createFileRoute("/onboarding")({
 });
 
 type AccountType = "persona_fisica" | "persona_moral";
-type StepId = 1 | 2 | 3 | 4 | 5 | 6;
+type StepId = 1 | 2 | 3 | 4 | 5 | 6 | 7;
 
 const STEPS: Array<{ id: StepId; title: string; desc: string }> = [
   { id: 1, title: "Cuenta",       desc: "Email y contraseña" },
   { id: 2, title: "Tipo",         desc: "Persona física / moral" },
   { id: 3, title: "Fiscal",       desc: "RFC y datos SAT" },
-  { id: 4, title: "Identidad",    desc: "Biométrico + documentos" },
-  { id: 5, title: "Token Móvil",  desc: "2FA autenticador" },
-  { id: 6, title: "Confirmación", desc: "Revisar y crear" },
+  { id: 4, title: "Organización", desc: "Individual o equipo" },
+  { id: 5, title: "Identidad",    desc: "Biométrico + documentos" },
+  { id: 6, title: "Token Móvil",  desc: "2FA autenticador" },
+  { id: 7, title: "Confirmación", desc: "Revisar y crear" },
 ];
 
 const LS_KEY = "yokto.onboarding.v1";
+const LS_ORG = "yokto.onboarding.orgkind";
+
+export type OrgKindDraft = {
+  kind: "individual" | "team";
+  name?: string;
+  rfc?: string;
+  invitees?: { email: string; role: "ADMIN" | "FINANZAS" | "OPERADOR" | "READONLY" }[];
+};
+
 
 function OnboardingWizard() {
   const navigate = useNavigate();
@@ -72,7 +82,7 @@ function OnboardingWizard() {
               navigate({ to: "/onboarding/pendiente" });
               return;
             }
-            const next = Math.max(2, Math.min(6, (p.onboarding_step ?? 1) + 1)) as StepId;
+            const next = Math.max(2, Math.min(7, (p.onboarding_step ?? 1) + 1)) as StepId;
             setStep(next);
           });
       }
@@ -181,23 +191,30 @@ function OnboardingWizard() {
             />
           )}
           {step === 4 && session && (
-            <Step4Biometric
-              onDone={() => goNext(5)} onBack={goPrev}
+            <Step4AccountKind
+              onSaved={() => goNext(5)} onBack={goPrev}
               setError={setError}
             />
           )}
           {step === 5 && session && (
-            <Step5MFA
+            <Step4Biometric
               onDone={() => goNext(6)} onBack={goPrev}
-              setError={setError} loading={loading} setLoading={setLoading}
+              setError={setError}
             />
           )}
           {step === 6 && session && (
+            <Step5MFA
+              onDone={() => goNext(7)} onBack={goPrev}
+              setError={setError} loading={loading} setLoading={setLoading}
+            />
+          )}
+          {step === 7 && session && (
             <Step6Review
               onFinished={() => { sessionStorage.setItem("yokto.onboarding.intentional_exit", "1"); navigate({ to: "/onboarding/pendiente" }); }} onBack={goPrev}
               setError={setError} loading={loading} setLoading={setLoading}
             />
           )}
+
           {step > 2 && !session && (
             <div className="text-sm text-yo-txt-2">
               Debes iniciar sesión para continuar.
@@ -214,7 +231,7 @@ function OnboardingWizard() {
 // ─── Stepper ────────────────────────────────────────────────────────────────
 function Stepper({ active }: { active: StepId }) {
   return (
-    <ol className="grid grid-cols-6 gap-2" aria-label="Progreso de registro">
+    <ol className="grid grid-cols-7 gap-2" aria-label="Progreso de registro">
       {STEPS.map((s) => {
         const done = active > s.id;
         const current = active === s.id;
@@ -1772,6 +1789,21 @@ function Step6Review({ onFinished, onBack, setError, loading, setLoading }: {
           <ReviewRow k="Documentos entregados" v={`${docsCount} archivo(s)`} />
         </ReviewSection>
 
+        <ReviewSection title="Organización" icon={<Building2 className="size-4" />}>
+          {(() => {
+            let d: OrgKindDraft = { kind: "individual" };
+            try { const raw = localStorage.getItem(LS_ORG); if (raw) d = JSON.parse(raw); } catch { /* noop */ }
+            return (
+              <>
+                <ReviewRow k="Tipo" v={d.kind === "team" ? "Organización / equipo" : "Cuenta individual"} />
+                {d.kind === "team" && <ReviewRow k="Nombre" v={d.name || "Por definir más adelante"} tone={d.name ? undefined : "warn"} />}
+                {d.kind === "team" && <ReviewRow k="RFC" v={d.rfc || "Por definir más adelante"} mono tone={d.rfc ? undefined : "warn"} />}
+                {d.kind === "team" && <ReviewRow k="Invitaciones" v={`${d.invitees?.length ?? 0} miembro(s)`} />}
+              </>
+            );
+          })()}
+        </ReviewSection>
+
         <ReviewSection title="Token Móvil (2FA)" icon={<KeyRound className="size-4" />}>
           <ReviewRow
             k="Estado"
@@ -1779,6 +1811,7 @@ function Step6Review({ onFinished, onBack, setError, loading, setLoading }: {
             tone={mfa === "enabled" ? "ok" : mfa === "pending" ? "warn" : undefined}
           />
         </ReviewSection>
+
       </div>
 
       <label className="flex items-start gap-2.5 text-sm text-yo-txt-2 cursor-pointer border border-yo-border rounded-md p-3 bg-yo-surface">
@@ -1984,5 +2017,185 @@ function StepLine({ ok, active, children }: { ok: boolean; active: boolean; chil
       </span>
       <span className={ok ? "text-yo-txt" : active ? "text-yo-txt" : "text-yo-txt-3"}>{children}</span>
     </li>
+  );
+}
+
+// ─── STEP 4 (nuevo) — Tipo de cuenta: Individual u Organización ───────────────
+function Step4AccountKind({ onSaved, onBack, setError }: {
+  onSaved: () => void; onBack: () => void;
+  setError: (s: string | null) => void;
+}) {
+  const [kind, setKind] = useState<"individual" | "team">(() => {
+    try {
+      const raw = localStorage.getItem(LS_ORG);
+      if (raw) return (JSON.parse(raw) as OrgKindDraft).kind ?? "individual";
+    } catch { /* noop */ }
+    return "individual";
+  });
+  const [orgName, setOrgName] = useState<string>(() => {
+    try { return (JSON.parse(localStorage.getItem(LS_ORG) ?? "{}") as OrgKindDraft).name ?? ""; } catch { return ""; }
+  });
+  const [orgRfc, setOrgRfc] = useState<string>(() => {
+    try { return (JSON.parse(localStorage.getItem(LS_ORG) ?? "{}") as OrgKindDraft).rfc ?? ""; } catch { return ""; }
+  });
+  const [invitees, setInvitees] = useState<{ email: string; role: "ADMIN" | "FINANZAS" | "OPERADOR" | "READONLY" }[]>(() => {
+    try { return (JSON.parse(localStorage.getItem(LS_ORG) ?? "{}") as OrgKindDraft).invitees ?? []; } catch { return []; }
+  });
+  const [newEmail, setNewEmail] = useState("");
+  const [newRole, setNewRole] = useState<"ADMIN" | "FINANZAS" | "OPERADOR" | "READONLY">("OPERADOR");
+  const [saving, setSaving] = useState(false);
+
+  function addInvitee() {
+    const e = newEmail.trim().toLowerCase();
+    if (!e) return;
+    const parsed = z.string().email().safeParse(e);
+    if (!parsed.success) { setError("Correo de invitación inválido"); return; }
+    if (invitees.some((i) => i.email === e)) { setError("Ese correo ya está en la lista"); return; }
+    setError(null);
+    setInvitees([...invitees, { email: e, role: newRole }]);
+    setNewEmail("");
+  }
+  function removeInvitee(email: string) {
+    setInvitees(invitees.filter((i) => i.email !== email));
+  }
+
+  async function submit() {
+    setError(null);
+    if (kind === "team" && orgRfc && !validateRfc(orgRfc)) {
+      setError("RFC de organización inválido");
+      return;
+    }
+    const draft: OrgKindDraft = {
+      kind,
+      name: kind === "team" ? orgName.trim() || undefined : undefined,
+      rfc: kind === "team" ? (orgRfc ? normalizeRfc(orgRfc) : undefined) : undefined,
+      invitees: kind === "team" ? invitees : [],
+    };
+    setSaving(true);
+    try {
+      localStorage.setItem(LS_ORG, JSON.stringify(draft));
+      // Actualiza la organización auto-creada por handle_new_user (best-effort).
+      const { data: u } = await supabase.auth.getUser();
+      const uid = u.user?.id;
+      if (uid) {
+        const patch: { type: "business" | "individual"; name?: string } = { type: kind === "team" ? "business" : "individual" };
+        if (kind === "team" && draft.name) patch.name = draft.name;
+        await supabase.from("organizations").update(patch).eq("owner_user_id", uid);
+      }
+      onSaved();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "No se pudo guardar el tipo de cuenta");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div className="flex flex-col gap-5">
+      <div>
+        <h2 className="text-2xl font-bold tracking-tight">Tipo de cuenta</h2>
+        <p className="mt-1 text-sm text-yo-txt-2">
+          Elige cómo vas a operar en YOKTO. Puedes cambiar esto y configurar tu equipo más adelante desde <span className="font-medium">Configuración → Equipo</span>.
+        </p>
+      </div>
+
+      <div className="grid gap-3 sm:grid-cols-2">
+        <button type="button" onClick={() => setKind("individual")}
+          className={cn(
+            "text-left rounded-xl border p-4 transition",
+            kind === "individual" ? "border-yo-ac ring-2 ring-yo-ac/25 bg-yo-ac-bg" : "border-yo-border bg-yo-surface hover:border-yo-border-s",
+          )}>
+          <div className="flex items-center gap-2 mb-1.5">
+            <UserIcon className="size-5 text-yo-ac" />
+            <span className="font-semibold text-yo-txt">Cuenta individual</span>
+          </div>
+          <p className="text-sm text-yo-txt-2">Opera tú mismo. Ideal para freelance, personas físicas y proyectos personales.</p>
+        </button>
+
+        <button type="button" onClick={() => setKind("team")}
+          className={cn(
+            "text-left rounded-xl border p-4 transition",
+            kind === "team" ? "border-yo-ac ring-2 ring-yo-ac/25 bg-yo-ac-bg" : "border-yo-border bg-yo-surface hover:border-yo-border-s",
+          )}>
+          <div className="flex items-center gap-2 mb-1.5">
+            <Building2 className="size-5 text-yo-ac" />
+            <span className="font-semibold text-yo-txt">Organización / equipo</span>
+          </div>
+          <p className="text-sm text-yo-txt-2">Invita a tu equipo, define roles y comparte operaciones. Los datos de la empresa se pueden completar después.</p>
+        </button>
+      </div>
+
+      {kind === "team" && (
+        <div className="rounded-xl border border-yo-border bg-yo-surface p-4 sm:p-5 flex flex-col gap-4">
+          <div className="flex items-center gap-2">
+            <Building2 className="size-4 text-yo-ac" />
+            <p className="text-xs uppercase tracking-widest font-semibold text-yo-txt">Datos de la organización (opcional)</p>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <Field id="org-name" label="Nombre comercial" value={orgName} onChange={setOrgName}
+              placeholder="Comercializadora del Pacífico"
+              hint="Podrás cambiarlo más adelante." />
+            <Field id="org-rfc" label="RFC de la organización" value={orgRfc} onChange={setOrgRfc}
+              placeholder="XAXX010101000" uppercase maxLength={13}
+              hint="Opcional. Si aún no lo tienes, déjalo en blanco." />
+          </div>
+
+          <div className="border-t border-yo-border pt-4">
+            <p className="text-xs uppercase tracking-widest font-semibold text-yo-txt mb-2">Invitar miembros (opcional)</p>
+            <div className="flex flex-col sm:flex-row gap-2">
+              <div className="flex-1">
+                <Field id="inv-email" label="Correo del miembro" value={newEmail} onChange={setNewEmail}
+                  type="email" placeholder="colaborador@empresa.com" icon={<Mail className="size-4" />} />
+              </div>
+              <div className="sm:w-56">
+                <Field id="inv-role" label="Rol" as="select" value={newRole}
+                  onChange={(v) => setNewRole(v as typeof newRole)}>
+                  <option value="ADMIN">Administrador</option>
+                  <option value="FINANZAS">Finanzas</option>
+                  <option value="OPERADOR">Operador</option>
+                  <option value="READONLY">Solo lectura</option>
+                </Field>
+              </div>
+              <button type="button" onClick={addInvitee}
+                className="h-11 mt-[22px] px-4 rounded-md border border-yo-border text-sm font-medium text-yo-txt hover:border-yo-ac hover:text-yo-ac transition">
+                Agregar
+              </button>
+            </div>
+
+            {invitees.length > 0 && (
+              <ul className="mt-3 divide-y divide-yo-border border border-yo-border rounded-md overflow-hidden">
+                {invitees.map((i) => (
+                  <li key={i.email} className="flex items-center justify-between gap-3 px-3 py-2 text-sm bg-yo-surface">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <Mail className="size-3.5 text-yo-txt-3 shrink-0" />
+                      <span className="truncate text-yo-txt">{i.email}</span>
+                      <span className="text-[10px] uppercase tracking-widest text-yo-txt-3 border border-yo-border rounded px-1.5 py-0.5">{i.role}</span>
+                    </div>
+                    <button type="button" onClick={() => removeInvitee(i.email)}
+                      className="text-yo-txt-3 hover:text-yo-err" aria-label={`Quitar ${i.email}`}>
+                      <X className="size-4" />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+            <p className="mt-2 text-[11px] text-yo-txt-3">
+              Las invitaciones se envían al crear el usuario. Puedes agregar más miembros luego desde <span className="font-medium">Equipo</span>.
+            </p>
+          </div>
+        </div>
+      )}
+
+      <div className="flex items-center justify-between pt-2">
+        <button type="button" onClick={onBack} disabled={saving}
+          className="inline-flex items-center gap-1.5 text-sm text-yo-txt-2 hover:text-yo-txt disabled:opacity-50">
+          <ArrowLeft className="size-4" /> Regresar
+        </button>
+        <button onClick={submit} disabled={saving}
+          className="inline-flex items-center gap-2 min-h-10 px-5 rounded-md bg-yo-ac hover:bg-yo-ac-h text-white text-sm font-semibold disabled:opacity-50">
+          {saving ? <Loader2 className="size-4 animate-spin" /> : <>Continuar <ArrowRight className="size-4" /></>}
+        </button>
+      </div>
+    </div>
   );
 }
