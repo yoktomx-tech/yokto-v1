@@ -2,7 +2,7 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import { useState } from "react";
 import {
   LayoutDashboard, Briefcase, PackageCheck, AlertTriangle, Banknote,
-  Users, Users2, Star, Menu, X, ClipboardCheck, BarChart3, Landmark, Settings, ShieldCheck,
+  Users, Users2, Star, Menu, X, ClipboardCheck, BarChart3, Landmark, Settings,
 } from "lucide-react";
 import { YoktoLogo } from "@/components/logo";
 import { OrgSwitcher } from "@/components/org-switcher";
