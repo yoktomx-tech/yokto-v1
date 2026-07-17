@@ -2078,7 +2078,7 @@ function Step4AccountKind({ onSaved, onBack, setError }: {
       const { data: u } = await supabase.auth.getUser();
       const uid = u.user?.id;
       if (uid) {
-        const patch: { type: "team" | "individual"; name?: string } = { type: kind === "team" ? "team" : "individual" };
+        const patch: { type: "business" | "individual"; name?: string } = { type: kind === "team" ? "business" : "individual" };
         if (kind === "team" && draft.name) patch.name = draft.name;
         await supabase.from("organizations").update(patch).eq("owner_user_id", uid);
       }
