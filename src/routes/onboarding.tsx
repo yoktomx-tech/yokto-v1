@@ -191,14 +191,14 @@ function OnboardingWizard() {
             />
           )}
           {step === 4 && session && (
-            <Step4AccountKind
-              onSaved={() => goNext(5)} onBack={goPrev}
+            <Step4Biometric
+              onDone={() => goNext(5)} onBack={goPrev}
               setError={setError}
             />
           )}
           {step === 5 && session && (
-            <Step4Biometric
-              onDone={() => goNext(6)} onBack={goPrev}
+            <Step4AccountKind
+              onSaved={() => goNext(6)} onBack={goPrev}
               setError={setError}
             />
           )}
