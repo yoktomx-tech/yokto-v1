@@ -38,6 +38,7 @@ import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedTransactionsIndexRouteImport } from './routes/_authenticated/transactions.index'
 import { Route as AuthenticatedTeamsIndexRouteImport } from './routes/_authenticated/teams.index'
 import { Route as AuthenticatedSettingsIndexRouteImport } from './routes/_authenticated/settings.index'
+import { Route as AuthenticatedPldIndexRouteImport } from './routes/_authenticated/pld.index'
 import { Route as AuthenticatedDisputesIndexRouteImport } from './routes/_authenticated/disputes.index'
 import { Route as AuthenticatedCrmIndexRouteImport } from './routes/_authenticated/crm.index'
 import { Route as AuthenticatedAnalyticsIndexRouteImport } from './routes/_authenticated/analytics.index'
@@ -65,6 +66,7 @@ import { Route as AuthenticatedSettingsDangerZoneRouteImport } from './routes/_a
 import { Route as AuthenticatedSettingsBillingRouteImport } from './routes/_authenticated/settings.billing'
 import { Route as AuthenticatedSettingsAuditRouteImport } from './routes/_authenticated/settings.audit'
 import { Route as AuthenticatedSettingsApiKeysRouteImport } from './routes/_authenticated/settings.api-keys'
+import { Route as AuthenticatedPldCuestionarioRouteImport } from './routes/_authenticated/pld.cuestionario'
 import { Route as AuthenticatedPaymentsLedgerRouteImport } from './routes/_authenticated/payments.ledger'
 import { Route as AuthenticatedPaymentsFiscalRouteImport } from './routes/_authenticated/payments.fiscal'
 import { Route as AuthenticatedPaymentsIdRouteImport } from './routes/_authenticated/payments.$id'
@@ -250,6 +252,11 @@ const AuthenticatedSettingsIndexRoute =
     path: '/',
     getParentRoute: () => AuthenticatedSettingsRoute,
   } as any)
+const AuthenticatedPldIndexRoute = AuthenticatedPldIndexRouteImport.update({
+  id: '/pld/',
+  path: '/pld/',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedDisputesIndexRoute =
   AuthenticatedDisputesIndexRouteImport.update({
     id: '/',
@@ -409,6 +416,12 @@ const AuthenticatedSettingsApiKeysRoute =
     id: '/api-keys',
     path: '/api-keys',
     getParentRoute: () => AuthenticatedSettingsRoute,
+  } as any)
+const AuthenticatedPldCuestionarioRoute =
+  AuthenticatedPldCuestionarioRouteImport.update({
+    id: '/pld/cuestionario',
+    path: '/pld/cuestionario',
+    getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedPaymentsLedgerRoute =
   AuthenticatedPaymentsLedgerRouteImport.update({
@@ -666,6 +679,7 @@ export interface FileRoutesByFullPath {
   '/payments/$id': typeof AuthenticatedPaymentsIdRoute
   '/payments/fiscal': typeof AuthenticatedPaymentsFiscalRoute
   '/payments/ledger': typeof AuthenticatedPaymentsLedgerRoute
+  '/pld/cuestionario': typeof AuthenticatedPldCuestionarioRoute
   '/settings/api-keys': typeof AuthenticatedSettingsApiKeysRoute
   '/settings/audit': typeof AuthenticatedSettingsAuditRoute
   '/settings/billing': typeof AuthenticatedSettingsBillingRoute
@@ -693,6 +707,7 @@ export interface FileRoutesByFullPath {
   '/analytics/': typeof AuthenticatedAnalyticsIndexRoute
   '/crm/': typeof AuthenticatedCrmIndexRoute
   '/disputes/': typeof AuthenticatedDisputesIndexRoute
+  '/pld/': typeof AuthenticatedPldIndexRoute
   '/settings/': typeof AuthenticatedSettingsIndexRoute
   '/teams/': typeof AuthenticatedTeamsIndexRoute
   '/transactions/': typeof AuthenticatedTransactionsIndexRoute
@@ -751,6 +766,7 @@ export interface FileRoutesByTo {
   '/payments/$id': typeof AuthenticatedPaymentsIdRoute
   '/payments/fiscal': typeof AuthenticatedPaymentsFiscalRoute
   '/payments/ledger': typeof AuthenticatedPaymentsLedgerRoute
+  '/pld/cuestionario': typeof AuthenticatedPldCuestionarioRoute
   '/settings/api-keys': typeof AuthenticatedSettingsApiKeysRoute
   '/settings/audit': typeof AuthenticatedSettingsAuditRoute
   '/settings/billing': typeof AuthenticatedSettingsBillingRoute
@@ -777,6 +793,7 @@ export interface FileRoutesByTo {
   '/analytics': typeof AuthenticatedAnalyticsIndexRoute
   '/crm': typeof AuthenticatedCrmIndexRoute
   '/disputes': typeof AuthenticatedDisputesIndexRoute
+  '/pld': typeof AuthenticatedPldIndexRoute
   '/settings': typeof AuthenticatedSettingsIndexRoute
   '/teams': typeof AuthenticatedTeamsIndexRoute
   '/transactions': typeof AuthenticatedTransactionsIndexRoute
@@ -844,6 +861,7 @@ export interface FileRoutesById {
   '/_authenticated/payments/$id': typeof AuthenticatedPaymentsIdRoute
   '/_authenticated/payments/fiscal': typeof AuthenticatedPaymentsFiscalRoute
   '/_authenticated/payments/ledger': typeof AuthenticatedPaymentsLedgerRoute
+  '/_authenticated/pld/cuestionario': typeof AuthenticatedPldCuestionarioRoute
   '/_authenticated/settings/api-keys': typeof AuthenticatedSettingsApiKeysRoute
   '/_authenticated/settings/audit': typeof AuthenticatedSettingsAuditRoute
   '/_authenticated/settings/billing': typeof AuthenticatedSettingsBillingRoute
@@ -871,6 +889,7 @@ export interface FileRoutesById {
   '/_authenticated/analytics/': typeof AuthenticatedAnalyticsIndexRoute
   '/_authenticated/crm/': typeof AuthenticatedCrmIndexRoute
   '/_authenticated/disputes/': typeof AuthenticatedDisputesIndexRoute
+  '/_authenticated/pld/': typeof AuthenticatedPldIndexRoute
   '/_authenticated/settings/': typeof AuthenticatedSettingsIndexRoute
   '/_authenticated/teams/': typeof AuthenticatedTeamsIndexRoute
   '/_authenticated/transactions/': typeof AuthenticatedTransactionsIndexRoute
@@ -938,6 +957,7 @@ export interface FileRouteTypes {
     | '/payments/$id'
     | '/payments/fiscal'
     | '/payments/ledger'
+    | '/pld/cuestionario'
     | '/settings/api-keys'
     | '/settings/audit'
     | '/settings/billing'
@@ -965,6 +985,7 @@ export interface FileRouteTypes {
     | '/analytics/'
     | '/crm/'
     | '/disputes/'
+    | '/pld/'
     | '/settings/'
     | '/teams/'
     | '/transactions/'
@@ -1023,6 +1044,7 @@ export interface FileRouteTypes {
     | '/payments/$id'
     | '/payments/fiscal'
     | '/payments/ledger'
+    | '/pld/cuestionario'
     | '/settings/api-keys'
     | '/settings/audit'
     | '/settings/billing'
@@ -1049,6 +1071,7 @@ export interface FileRouteTypes {
     | '/analytics'
     | '/crm'
     | '/disputes'
+    | '/pld'
     | '/settings'
     | '/teams'
     | '/transactions'
@@ -1115,6 +1138,7 @@ export interface FileRouteTypes {
     | '/_authenticated/payments/$id'
     | '/_authenticated/payments/fiscal'
     | '/_authenticated/payments/ledger'
+    | '/_authenticated/pld/cuestionario'
     | '/_authenticated/settings/api-keys'
     | '/_authenticated/settings/audit'
     | '/_authenticated/settings/billing'
@@ -1142,6 +1166,7 @@ export interface FileRouteTypes {
     | '/_authenticated/analytics/'
     | '/_authenticated/crm/'
     | '/_authenticated/disputes/'
+    | '/_authenticated/pld/'
     | '/_authenticated/settings/'
     | '/_authenticated/teams/'
     | '/_authenticated/transactions/'
@@ -1379,6 +1404,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSettingsIndexRouteImport
       parentRoute: typeof AuthenticatedSettingsRoute
     }
+    '/_authenticated/pld/': {
+      id: '/_authenticated/pld/'
+      path: '/pld'
+      fullPath: '/pld/'
+      preLoaderRoute: typeof AuthenticatedPldIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/disputes/': {
       id: '/_authenticated/disputes/'
       path: '/'
@@ -1567,6 +1599,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/settings/api-keys'
       preLoaderRoute: typeof AuthenticatedSettingsApiKeysRouteImport
       parentRoute: typeof AuthenticatedSettingsRoute
+    }
+    '/_authenticated/pld/cuestionario': {
+      id: '/_authenticated/pld/cuestionario'
+      path: '/pld/cuestionario'
+      fullPath: '/pld/cuestionario'
+      preLoaderRoute: typeof AuthenticatedPldCuestionarioRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/payments/ledger': {
       id: '/_authenticated/payments/ledger'
@@ -2110,6 +2149,8 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedTransactionsRoute: typeof AuthenticatedTransactionsRouteWithChildren
   AuthenticatedComplianceBankAccountsRoute: typeof AuthenticatedComplianceBankAccountsRouteWithChildren
   AuthenticatedOnboardingPendienteRoute: typeof AuthenticatedOnboardingPendienteRoute
+  AuthenticatedPldCuestionarioRoute: typeof AuthenticatedPldCuestionarioRoute
+  AuthenticatedPldIndexRoute: typeof AuthenticatedPldIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -2133,6 +2174,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedComplianceBankAccountsRoute:
     AuthenticatedComplianceBankAccountsRouteWithChildren,
   AuthenticatedOnboardingPendienteRoute: AuthenticatedOnboardingPendienteRoute,
+  AuthenticatedPldCuestionarioRoute: AuthenticatedPldCuestionarioRoute,
+  AuthenticatedPldIndexRoute: AuthenticatedPldIndexRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =

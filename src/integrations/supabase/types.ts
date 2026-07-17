@@ -1496,6 +1496,336 @@ export type Database = {
         }
         Relationships: []
       }
+      pld_alerts: {
+        Row: {
+          code: string
+          created_at: string
+          description: string | null
+          detected_at: string
+          id: string
+          org_id: string
+          payload: Json | null
+          resolution_notes: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          severity: Database["public"]["Enums"]["pld_alert_severity"]
+          status: Database["public"]["Enums"]["pld_alert_status"]
+          title: string
+          transaction_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          description?: string | null
+          detected_at?: string
+          id?: string
+          org_id: string
+          payload?: Json | null
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity?: Database["public"]["Enums"]["pld_alert_severity"]
+          status?: Database["public"]["Enums"]["pld_alert_status"]
+          title: string
+          transaction_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          description?: string | null
+          detected_at?: string
+          id?: string
+          org_id?: string
+          payload?: Json | null
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity?: Database["public"]["Enums"]["pld_alert_severity"]
+          status?: Database["public"]["Enums"]["pld_alert_status"]
+          title?: string
+          transaction_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pld_alerts_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pld_alerts_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pld_questionnaires: {
+        Row: {
+          actividad_economica: string | null
+          actividad_scian: string | null
+          beneficiario_final: Json | null
+          completado: boolean
+          created_at: string
+          destino_recursos: string | null
+          efectivo_mensual_estimado: number | null
+          es_pep: boolean
+          estados_operacion: string[] | null
+          familiar_pep: boolean
+          id: string
+          operaciones_mensuales_estimadas: number | null
+          org_id: string
+          origen_recursos: string | null
+          paises_operacion: string[] | null
+          pep_detalle: Json | null
+          proposito_cuenta: string | null
+          respuestas_raw: Json | null
+          sector: string | null
+          ticket_promedio_estimado: number | null
+          updated_at: string
+          usa_efectivo: boolean
+          user_id: string
+          version: number
+          volumen_mensual_estimado: number | null
+        }
+        Insert: {
+          actividad_economica?: string | null
+          actividad_scian?: string | null
+          beneficiario_final?: Json | null
+          completado?: boolean
+          created_at?: string
+          destino_recursos?: string | null
+          efectivo_mensual_estimado?: number | null
+          es_pep?: boolean
+          estados_operacion?: string[] | null
+          familiar_pep?: boolean
+          id?: string
+          operaciones_mensuales_estimadas?: number | null
+          org_id: string
+          origen_recursos?: string | null
+          paises_operacion?: string[] | null
+          pep_detalle?: Json | null
+          proposito_cuenta?: string | null
+          respuestas_raw?: Json | null
+          sector?: string | null
+          ticket_promedio_estimado?: number | null
+          updated_at?: string
+          usa_efectivo?: boolean
+          user_id: string
+          version?: number
+          volumen_mensual_estimado?: number | null
+        }
+        Update: {
+          actividad_economica?: string | null
+          actividad_scian?: string | null
+          beneficiario_final?: Json | null
+          completado?: boolean
+          created_at?: string
+          destino_recursos?: string | null
+          efectivo_mensual_estimado?: number | null
+          es_pep?: boolean
+          estados_operacion?: string[] | null
+          familiar_pep?: boolean
+          id?: string
+          operaciones_mensuales_estimadas?: number | null
+          org_id?: string
+          origen_recursos?: string | null
+          paises_operacion?: string[] | null
+          pep_detalle?: Json | null
+          proposito_cuenta?: string | null
+          respuestas_raw?: Json | null
+          sector?: string | null
+          ticket_promedio_estimado?: number | null
+          updated_at?: string
+          usa_efectivo?: boolean
+          user_id?: string
+          version?: number
+          volumen_mensual_estimado?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pld_questionnaires_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pld_risk_factors: {
+        Row: {
+          category: string
+          code: string
+          contribution: number
+          detail: Json | null
+          evaluated_at: string
+          id: string
+          label: string
+          org_id: string
+          profile_id: string | null
+          value: number | null
+          weight: number
+        }
+        Insert: {
+          category: string
+          code: string
+          contribution: number
+          detail?: Json | null
+          evaluated_at?: string
+          id?: string
+          label: string
+          org_id: string
+          profile_id?: string | null
+          value?: number | null
+          weight: number
+        }
+        Update: {
+          category?: string
+          code?: string
+          contribution?: number
+          detail?: Json | null
+          evaluated_at?: string
+          id?: string
+          label?: string
+          org_id?: string
+          profile_id?: string | null
+          value?: number | null
+          weight?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pld_risk_factors_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pld_risk_factors_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "pld_risk_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pld_risk_profiles: {
+        Row: {
+          created_at: string
+          evaluated_by: string | null
+          factors_summary: Json | null
+          id: string
+          last_evaluated_at: string | null
+          level: Database["public"]["Enums"]["pld_risk_level"]
+          next_review_at: string | null
+          notes: string | null
+          org_id: string
+          score: number
+          status: Database["public"]["Enums"]["pld_profile_status"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          evaluated_by?: string | null
+          factors_summary?: Json | null
+          id?: string
+          last_evaluated_at?: string | null
+          level?: Database["public"]["Enums"]["pld_risk_level"]
+          next_review_at?: string | null
+          notes?: string | null
+          org_id: string
+          score?: number
+          status?: Database["public"]["Enums"]["pld_profile_status"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          evaluated_by?: string | null
+          factors_summary?: Json | null
+          id?: string
+          last_evaluated_at?: string | null
+          level?: Database["public"]["Enums"]["pld_risk_level"]
+          next_review_at?: string | null
+          notes?: string | null
+          org_id?: string
+          score?: number
+          status?: Database["public"]["Enums"]["pld_profile_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pld_risk_profiles_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: true
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pld_screening_results: {
+        Row: {
+          created_at: string
+          evaluated_at: string
+          evidence_hash: string | null
+          id: string
+          lista: Database["public"]["Enums"]["pld_screening_list"]
+          match_score: number | null
+          org_id: string
+          provider: string
+          raw_response: Json | null
+          status: Database["public"]["Enums"]["pld_screening_status"]
+          subject_curp: string | null
+          subject_name: string
+          subject_rfc: string | null
+          subject_type: string
+        }
+        Insert: {
+          created_at?: string
+          evaluated_at?: string
+          evidence_hash?: string | null
+          id?: string
+          lista: Database["public"]["Enums"]["pld_screening_list"]
+          match_score?: number | null
+          org_id: string
+          provider?: string
+          raw_response?: Json | null
+          status: Database["public"]["Enums"]["pld_screening_status"]
+          subject_curp?: string | null
+          subject_name: string
+          subject_rfc?: string | null
+          subject_type: string
+        }
+        Update: {
+          created_at?: string
+          evaluated_at?: string
+          evidence_hash?: string | null
+          id?: string
+          lista?: Database["public"]["Enums"]["pld_screening_list"]
+          match_score?: number | null
+          org_id?: string
+          provider?: string
+          raw_response?: Json | null
+          status?: Database["public"]["Enums"]["pld_screening_status"]
+          subject_curp?: string | null
+          subject_name?: string
+          subject_rfc?: string | null
+          subject_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pld_screening_results_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       postal_code_lookups: {
         Row: {
           ciudad: string | null
@@ -2375,6 +2705,34 @@ export type Database = {
         | "dispute_manager"
         | "support"
         | "platform_admin"
+      pld_alert_severity: "info" | "baja" | "media" | "alta" | "critica"
+      pld_alert_status:
+        | "abierta"
+        | "en_revision"
+        | "resuelta"
+        | "descartada"
+        | "escalada"
+      pld_profile_status:
+        | "borrador"
+        | "vigente"
+        | "en_revision"
+        | "vencido"
+        | "bloqueado"
+      pld_risk_level: "bajo" | "medio" | "alto" | "inaceptable"
+      pld_screening_list:
+        | "pep_nacional"
+        | "pep_internacional"
+        | "ofac"
+        | "onu"
+        | "ue"
+        | "adverse_media"
+        | "interpol"
+        | "sat_69b"
+      pld_screening_status:
+        | "limpio"
+        | "coincidencia_debil"
+        | "coincidencia_fuerte"
+        | "error"
       transaction_status:
         | "draft"
         | "awaiting_funding"
@@ -2563,6 +2921,38 @@ export const Constants = {
         "dispute_manager",
         "support",
         "platform_admin",
+      ],
+      pld_alert_severity: ["info", "baja", "media", "alta", "critica"],
+      pld_alert_status: [
+        "abierta",
+        "en_revision",
+        "resuelta",
+        "descartada",
+        "escalada",
+      ],
+      pld_profile_status: [
+        "borrador",
+        "vigente",
+        "en_revision",
+        "vencido",
+        "bloqueado",
+      ],
+      pld_risk_level: ["bajo", "medio", "alto", "inaceptable"],
+      pld_screening_list: [
+        "pep_nacional",
+        "pep_internacional",
+        "ofac",
+        "onu",
+        "ue",
+        "adverse_media",
+        "interpol",
+        "sat_69b",
+      ],
+      pld_screening_status: [
+        "limpio",
+        "coincidencia_debil",
+        "coincidencia_fuerte",
+        "error",
       ],
       transaction_status: [
         "draft",
