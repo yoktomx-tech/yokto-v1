@@ -63,7 +63,7 @@ export const Route = createFileRoute("/_authenticated/score")({
   component: ScorePage,
 });
 
-type TabKey = "resumen" | "kyc" | "docs" | "score" | "alerts" | "history" | "visibility";
+type TabKey = "resumen" | "kyc" | "docs" | "score" | "pld" | "alerts" | "history" | "visibility";
 
 function buildTabs(personType: PersonType): { key: TabKey; label: string; icon: typeof ShieldCheck }[] {
   const kycLabel = personType === "PM" ? "Verificación de Empresa" : "Verificación de Identidad";
@@ -73,6 +73,7 @@ function buildTabs(personType: PersonType): { key: TabKey; label: string; icon: 
     { key: "kyc", label: kycLabel, icon: kycIcon },
     { key: "docs", label: "Documentos del Perfil", icon: FileText },
     { key: "score", label: "Indicadores", icon: ShieldCheck },
+    { key: "pld", label: "PLD/FT", icon: ShieldCheck },
     { key: "alerts", label: "Alertas", icon: Bell },
     { key: "history", label: "Historial", icon: History },
     { key: "visibility", label: "Visibilidad", icon: Eye },
