@@ -811,6 +811,7 @@ function Step3Fiscal({ onSaved, onBack, setError, loading, setLoading }: {
       setF((p) => ({
         ...p,
         rfc: r.rfc || p.rfc,
+        curp: r.curp || p.curp,
         regimen_fiscal: matched?.code ?? p.regimen_fiscal,
         fiscal_street: r.domicilio.street || p.fiscal_street,
         fiscal_ext_number: r.domicilio.ext || p.fiscal_ext_number,
