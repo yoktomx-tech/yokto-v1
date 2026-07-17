@@ -102,7 +102,7 @@ export const submitPldQuestionnaire = createServerFn({ method: "POST" })
     // 2) Screening stub del titular
     const screeningResults = stubScreening(nombre, profile?.curp);
     await supabaseAdmin.from("pld_screening_results").insert(
-      screeningResults.map(r => ({
+      screeningResults.map(r => asJson({
         org_id: data.org_id,
         subject_type: "titular",
         subject_name: nombre,
@@ -125,7 +125,7 @@ export const submitPldQuestionnaire = createServerFn({ method: "POST" })
 
     const { data: profileRow } = await supabaseAdmin
       .from("pld_risk_profiles")
-      .upsert({
+      .upsert(asJson({
         org_id: data.org_id,
         score: result.score,
         level: result.level,
@@ -134,7 +134,7 @@ export const submitPldQuestionnaire = createServerFn({ method: "POST" })
         next_review_at: nextReview.toISOString(),
         evaluated_by: userId,
         factors_summary: { factors: result.factors, screening_count: screeningResults.length },
-      }, { onConflict: "org_id" })
+      }), { onConflict: "org_id" })
       .select("id")
       .single();
 
@@ -143,7 +143,7 @@ export const submitPldQuestionnaire = createServerFn({ method: "POST" })
       await supabaseAdmin.from("pld_risk_factors").delete().eq("profile_id", profileRow.id);
       if (result.factors.length > 0) {
         await supabaseAdmin.from("pld_risk_factors").insert(
-          result.factors.map(f => ({
+          result.factors.map(f => asJson({
             org_id: data.org_id,
             profile_id: profileRow.id,
             category: f.category,
@@ -160,7 +160,7 @@ export const submitPldQuestionnaire = createServerFn({ method: "POST" })
 
     // 6) Alertas críticas
     if (result.level === "inaceptable" || result.level === "alto") {
-      await supabaseAdmin.from("pld_alerts").insert({
+      await supabaseAdmin.from("pld_alerts").insert(asJson({
         org_id: data.org_id,
         code: `RISK_${result.level.toUpperCase()}`,
         title: result.level === "inaceptable"
@@ -169,14 +169,17 @@ export const submitPldQuestionnaire = createServerFn({ method: "POST" })
         description: `El motor calculó un puntaje de ${result.score}/100. Requiere revisión de cumplimiento.`,
         severity: result.level === "inaceptable" ? "critica" : "alta",
         payload: { score: result.score, factors: result.factors },
-      });
+      }));
     }
 
     return {
-      questionnaire_id: quest.id,
+      questionnaire_id: quest?.id ?? "",
       score: result.score,
-      level: result.level,
-      factors: result.factors,
+      level: result.level as string,
+      factors: result.factors.map(f => ({
+        category: f.category, code: f.code, label: f.label,
+        weight: f.weight, value: f.value, contribution: f.contribution,
+      })),
       next_review_at: nextReview.toISOString(),
     };
   });
