@@ -115,12 +115,13 @@ export function TopbarQuickAccess() {
                 right={critical ? <span className="size-2 rounded-full bg-yo-err" /> : null} />
               {canLiveChat && (
                 <button
-                  onClick={() => { setOpen(false); window.dispatchEvent(new CustomEvent("yokto:open-support-fab")); }}
-                  className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[13px] text-yo-txt hover:bg-[#F5F3FF] transition text-left"
+                  onClick={() => startLive.mutate()}
+                  disabled={startLive.isPending}
+                  className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[13px] text-yo-txt hover:bg-[#F5F3FF] transition text-left disabled:opacity-50"
                 >
                   <Sparkles className="size-4 text-[#7C3AED]" />
-                  <span>Chat en vivo</span>
-                  <span className="ml-auto text-[10px] font-semibold text-[#7C3AED]">PRO</span>
+                  <span>{startLive.isPending ? "Abriendo chat…" : "Chat en vivo"}</span>
+                  <span className="ml-auto text-[10px] font-semibold text-[#7C3AED]">{plan === "enterprise" ? "ENTERPRISE" : "PRO"}</span>
                 </button>
               )}
             </div>
