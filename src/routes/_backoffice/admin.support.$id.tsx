@@ -129,7 +129,7 @@ function AdminTicket() {
                       <span className="inline-flex items-center gap-2 truncate">
                         <Paperclip className="size-3.5 text-yo-txt-3" />
                         <span className="truncate">{a.file_name}</span>
-                        <span className="text-yo-txt-3">· {(a.size_bytes/1024).toFixed(0)} KB</span>
+                        <span className="text-yo-txt-3">· {(((a.size_bytes ?? 0)/1024)).toFixed(0)} KB</span>
                       </span>
                       <button onClick={() => downloadAttachment(a.id)}
                         className="inline-flex items-center gap-1 h-7 px-2 rounded border border-yo-border hover:bg-white">
