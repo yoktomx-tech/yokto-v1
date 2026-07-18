@@ -148,6 +148,8 @@ function SidebarContent({
       </nav>
 
       <div className="border-t border-yo-border p-3 space-y-3">
+        <OpenTicketsStat onNavigate={onNavigate} />
+
         <div>
           <p className="px-1 text-[10px] uppercase tracking-[0.14em] font-semibold text-yo-txt-3 mb-1.5">Espacio de trabajo</p>
           <OrgSwitcher />
