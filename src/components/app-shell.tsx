@@ -145,8 +145,6 @@ function SidebarContent({
       </nav>
 
       <div className="border-t border-yo-border p-3 space-y-3">
-        <OpenTicketsStat onNavigate={onNavigate} />
-
         <div>
           <p className="px-1 text-[10px] uppercase tracking-[0.14em] font-semibold text-yo-txt-3 mb-1.5">Espacio de trabajo</p>
           <OrgSwitcher />
@@ -180,36 +178,5 @@ function SidebarContent({
   );
 }
 
-function OpenTicketsStat({ onNavigate }: { onNavigate?: () => void }) {
-  const fetchTickets = useServerFn(listMyTickets);
-  const { data } = useQuery({
-    queryKey: ["sidebar-open-tickets"],
-    queryFn: () => fetchTickets(),
-    staleTime: 60_000,
-    refetchInterval: 120_000,
-  });
-  const openCount = (data ?? []).filter(
-    (t: any) => !["resolved", "closed", "cancelled"].includes(String(t.status))
-  ).length;
-
-  return (
-    <div>
-      <p className="px-1 text-[10px] uppercase tracking-[0.14em] font-semibold text-yo-txt-3 mb-1.5">Soporte</p>
-      <Link
-        to="/support/tickets"
-        onClick={onNavigate}
-        className="block rounded-md border border-yo-border bg-yo-bg p-3 hover:bg-yo-raised transition"
-      >
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-1.5">
-            <LifeBuoy className="size-3.5 text-yo-ac" />
-            <span className="text-[11px] font-medium text-yo-txt-2">Tickets abiertos</span>
-          </div>
-          <span className="text-lg font-bold text-yo-txt tabular-nums leading-none">{openCount}</span>
-        </div>
-      </Link>
-    </div>
-  );
-}
 
 
