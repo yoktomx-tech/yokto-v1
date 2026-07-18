@@ -110,6 +110,7 @@ import { Route as ApiPublicV1TransactionsRouteImport } from './routes/api/public
 import { Route as ApiPublicStripeWebhookRouteImport } from './routes/api/public/stripe.webhook'
 import { Route as ApiPublicHooksVerificamexPennyTestRouteImport } from './routes/api/public/hooks/verificamex-penny-test'
 import { Route as ApiPublicHooksDisputeDeadlinesRouteImport } from './routes/api/public/hooks/dispute-deadlines'
+import { Route as BackofficeAdminSupportIdRouteImport } from './routes/_backoffice/admin.support.$id'
 import { Route as BackofficeAdminDocumentosReviewIdRouteImport } from './routes/_backoffice/admin.documentos.$reviewId'
 import { Route as AuthenticatedTransactionsIdExpedienteRouteImport } from './routes/_authenticated/transactions.$id.expediente'
 import { Route as AuthenticatedSupportTicketsNewRouteImport } from './routes/_authenticated/support.tickets.new'
@@ -679,6 +680,12 @@ const ApiPublicHooksDisputeDeadlinesRoute =
     path: '/api/public/hooks/dispute-deadlines',
     getParentRoute: () => rootRouteImport,
   } as any)
+const BackofficeAdminSupportIdRoute =
+  BackofficeAdminSupportIdRouteImport.update({
+    id: '/$id',
+    path: '/$id',
+    getParentRoute: () => BackofficeAdminSupportRoute,
+  } as any)
 const BackofficeAdminDocumentosReviewIdRoute =
   BackofficeAdminDocumentosReviewIdRouteImport.update({
     id: '/admin/documentos/$reviewId',
@@ -805,7 +812,7 @@ export interface FileRoutesByFullPath {
   '/admin/health': typeof BackofficeAdminHealthRoute
   '/admin/kyc': typeof BackofficeAdminKycRoute
   '/admin/roles': typeof BackofficeAdminRolesRoute
-  '/admin/support': typeof BackofficeAdminSupportRoute
+  '/admin/support': typeof BackofficeAdminSupportRouteWithChildren
   '/analytics/': typeof AuthenticatedAnalyticsIndexRoute
   '/crm/': typeof AuthenticatedCrmIndexRoute
   '/disputes/': typeof AuthenticatedDisputesIndexRoute
@@ -821,6 +828,7 @@ export interface FileRoutesByFullPath {
   '/support/tickets/new': typeof AuthenticatedSupportTicketsNewRoute
   '/transactions/$id/expediente': typeof AuthenticatedTransactionsIdExpedienteRoute
   '/admin/documentos/$reviewId': typeof BackofficeAdminDocumentosReviewIdRoute
+  '/admin/support/$id': typeof BackofficeAdminSupportIdRoute
   '/api/public/hooks/dispute-deadlines': typeof ApiPublicHooksDisputeDeadlinesRoute
   '/api/public/hooks/verificamex-penny-test': typeof ApiPublicHooksVerificamexPennyTestRoute
   '/api/public/stripe/webhook': typeof ApiPublicStripeWebhookRoute
@@ -905,7 +913,7 @@ export interface FileRoutesByTo {
   '/admin/health': typeof BackofficeAdminHealthRoute
   '/admin/kyc': typeof BackofficeAdminKycRoute
   '/admin/roles': typeof BackofficeAdminRolesRoute
-  '/admin/support': typeof BackofficeAdminSupportRoute
+  '/admin/support': typeof BackofficeAdminSupportRouteWithChildren
   '/analytics': typeof AuthenticatedAnalyticsIndexRoute
   '/crm': typeof AuthenticatedCrmIndexRoute
   '/disputes': typeof AuthenticatedDisputesIndexRoute
@@ -921,6 +929,7 @@ export interface FileRoutesByTo {
   '/support/tickets/new': typeof AuthenticatedSupportTicketsNewRoute
   '/transactions/$id/expediente': typeof AuthenticatedTransactionsIdExpedienteRoute
   '/admin/documentos/$reviewId': typeof BackofficeAdminDocumentosReviewIdRoute
+  '/admin/support/$id': typeof BackofficeAdminSupportIdRoute
   '/api/public/hooks/dispute-deadlines': typeof ApiPublicHooksDisputeDeadlinesRoute
   '/api/public/hooks/verificamex-penny-test': typeof ApiPublicHooksVerificamexPennyTestRoute
   '/api/public/stripe/webhook': typeof ApiPublicStripeWebhookRoute
@@ -1016,7 +1025,7 @@ export interface FileRoutesById {
   '/_backoffice/admin/health': typeof BackofficeAdminHealthRoute
   '/_backoffice/admin/kyc': typeof BackofficeAdminKycRoute
   '/_backoffice/admin/roles': typeof BackofficeAdminRolesRoute
-  '/_backoffice/admin/support': typeof BackofficeAdminSupportRoute
+  '/_backoffice/admin/support': typeof BackofficeAdminSupportRouteWithChildren
   '/_authenticated/analytics/': typeof AuthenticatedAnalyticsIndexRoute
   '/_authenticated/crm/': typeof AuthenticatedCrmIndexRoute
   '/_authenticated/disputes/': typeof AuthenticatedDisputesIndexRoute
@@ -1032,6 +1041,7 @@ export interface FileRoutesById {
   '/_authenticated/support/tickets/new': typeof AuthenticatedSupportTicketsNewRoute
   '/_authenticated/transactions/$id/expediente': typeof AuthenticatedTransactionsIdExpedienteRoute
   '/_backoffice/admin/documentos/$reviewId': typeof BackofficeAdminDocumentosReviewIdRoute
+  '/_backoffice/admin/support/$id': typeof BackofficeAdminSupportIdRoute
   '/api/public/hooks/dispute-deadlines': typeof ApiPublicHooksDisputeDeadlinesRoute
   '/api/public/hooks/verificamex-penny-test': typeof ApiPublicHooksVerificamexPennyTestRoute
   '/api/public/stripe/webhook': typeof ApiPublicStripeWebhookRoute
@@ -1142,6 +1152,7 @@ export interface FileRouteTypes {
     | '/support/tickets/new'
     | '/transactions/$id/expediente'
     | '/admin/documentos/$reviewId'
+    | '/admin/support/$id'
     | '/api/public/hooks/dispute-deadlines'
     | '/api/public/hooks/verificamex-penny-test'
     | '/api/public/stripe/webhook'
@@ -1242,6 +1253,7 @@ export interface FileRouteTypes {
     | '/support/tickets/new'
     | '/transactions/$id/expediente'
     | '/admin/documentos/$reviewId'
+    | '/admin/support/$id'
     | '/api/public/hooks/dispute-deadlines'
     | '/api/public/hooks/verificamex-penny-test'
     | '/api/public/stripe/webhook'
@@ -1352,6 +1364,7 @@ export interface FileRouteTypes {
     | '/_authenticated/support/tickets/new'
     | '/_authenticated/transactions/$id/expediente'
     | '/_backoffice/admin/documentos/$reviewId'
+    | '/_backoffice/admin/support/$id'
     | '/api/public/hooks/dispute-deadlines'
     | '/api/public/hooks/verificamex-penny-test'
     | '/api/public/stripe/webhook'
@@ -2088,6 +2101,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksDisputeDeadlinesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_backoffice/admin/support/$id': {
+      id: '/_backoffice/admin/support/$id'
+      path: '/$id'
+      fullPath: '/admin/support/$id'
+      preLoaderRoute: typeof BackofficeAdminSupportIdRouteImport
+      parentRoute: typeof BackofficeAdminSupportRoute
+    }
     '/_backoffice/admin/documentos/$reviewId': {
       id: '/_backoffice/admin/documentos/$reviewId'
       path: '/admin/documentos/$reviewId'
@@ -2458,6 +2478,20 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
 const AuthenticatedRouteRouteWithChildren =
   AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
+interface BackofficeAdminSupportRouteChildren {
+  BackofficeAdminSupportIdRoute: typeof BackofficeAdminSupportIdRoute
+}
+
+const BackofficeAdminSupportRouteChildren: BackofficeAdminSupportRouteChildren =
+  {
+    BackofficeAdminSupportIdRoute: BackofficeAdminSupportIdRoute,
+  }
+
+const BackofficeAdminSupportRouteWithChildren =
+  BackofficeAdminSupportRoute._addFileChildren(
+    BackofficeAdminSupportRouteChildren,
+  )
+
 interface BackofficeRouteChildren {
   BackofficeAdminAuditRoute: typeof BackofficeAdminAuditRoute
   BackofficeAdminComplianceRoute: typeof BackofficeAdminComplianceRoute
@@ -2467,7 +2501,7 @@ interface BackofficeRouteChildren {
   BackofficeAdminHealthRoute: typeof BackofficeAdminHealthRoute
   BackofficeAdminKycRoute: typeof BackofficeAdminKycRoute
   BackofficeAdminRolesRoute: typeof BackofficeAdminRolesRoute
-  BackofficeAdminSupportRoute: typeof BackofficeAdminSupportRoute
+  BackofficeAdminSupportRoute: typeof BackofficeAdminSupportRouteWithChildren
   BackofficeAdminIndexRoute: typeof BackofficeAdminIndexRoute
   BackofficeAdminDocumentosReviewIdRoute: typeof BackofficeAdminDocumentosReviewIdRoute
   BackofficeAdminDocumentosIndexRoute: typeof BackofficeAdminDocumentosIndexRoute
@@ -2482,7 +2516,7 @@ const BackofficeRouteChildren: BackofficeRouteChildren = {
   BackofficeAdminHealthRoute: BackofficeAdminHealthRoute,
   BackofficeAdminKycRoute: BackofficeAdminKycRoute,
   BackofficeAdminRolesRoute: BackofficeAdminRolesRoute,
-  BackofficeAdminSupportRoute: BackofficeAdminSupportRoute,
+  BackofficeAdminSupportRoute: BackofficeAdminSupportRouteWithChildren,
   BackofficeAdminIndexRoute: BackofficeAdminIndexRoute,
   BackofficeAdminDocumentosReviewIdRoute:
     BackofficeAdminDocumentosReviewIdRoute,
