@@ -60,9 +60,9 @@ export const listPaymentsForCenter = createServerFn({ method: "GET" })
     for (const h of hitos ?? []) {
       const cur = hitosByTx.get(h.transaction_id) ?? { total: 0, current: 0 };
       cur.total += 1;
-      if (h.estado === "in_progress" || h.estado === "en_verificacion" || h.estado === "pendiente") {
+      if (h.estado === "EN_CURSO" || h.estado === "EN_REVISION" || h.estado === "PENDIENTE") {
         if (cur.current === 0) cur.current = h.orden ?? cur.total;
-      } else if (h.estado === "aprobado") {
+      } else if (h.estado === "APROBADO") {
         cur.current = Math.max(cur.current, (h.orden ?? 0) + 1);
       }
       hitosByTx.set(h.transaction_id, cur);
