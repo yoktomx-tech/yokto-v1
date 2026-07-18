@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Send, AlertTriangle, XCircle, Paperclip, Download, ShieldCheck } from "lucide-react";
+import { ArrowLeft, Send, AlertTriangle, XCircle, Paperclip, Download, ShieldCheck, History } from "lucide-react";
 import { AdminCard, AdminPageHeader } from "@/components/admin/admin-shell";
 import {
   adminGetTicket, adminReplyTicket, adminEscalateTicket, adminCloseTicket,
