@@ -33,7 +33,7 @@ export function SiteHeader() {
     >
       <div className="container-editorial flex h-16 items-center justify-between">
         <Link to="/" className="flex items-center gap-2.5 group" onClick={() => setOpen(false)} aria-label="YOKTO — Inicio">
-          <YoktoLogo variant="dark" className="h-6 w-auto transition group-hover:opacity-80" />
+          <YoktoLogo variant="auto" className="h-6 w-auto transition group-hover:opacity-80" />
         </Link>
 
         <nav className="hidden md:flex items-center gap-1" />

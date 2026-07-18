@@ -6,7 +6,7 @@ export function SiteFooter() {
       <div className="container-editorial py-16 grid gap-12 md:grid-cols-12">
         <div className="md:col-span-5">
           <div className="flex items-center gap-3">
-            <YoktoLogo variant="dark" className="h-7 w-auto" />
+            <YoktoLogo variant="auto" className="h-7 w-auto" />
           </div>
           <p className="mt-6 max-w-md text-sm text-yokto-text-2 leading-relaxed">
             Pago Seguro contra Cumplimiento. Retenemos fondos vía pasarelas certificadas

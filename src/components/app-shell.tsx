@@ -116,7 +116,7 @@ function SidebarContent({
     <>
       <div className="px-5 py-5 border-b border-yo-border flex justify-center">
         <Link to="/dashboard" onClick={onNavigate} className="inline-flex items-center justify-center">
-          <YoktoLogo variant="dark" className="h-6 w-auto" />
+          <YoktoLogo variant="auto" className="h-6 w-auto" />
         </Link>
       </div>
 
