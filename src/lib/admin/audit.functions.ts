@@ -29,9 +29,10 @@ export type TicketAuditActionRow = {
   motivo: string | null;
   ip: string | null;
   user_agent: string | null;
-  snapshot_antes: unknown;
-  snapshot_despues: unknown;
-  detalle_json: unknown;
+  snapshot_antes: any;
+  snapshot_despues: any;
+  detalle_json: any;
+
 };
 
 export type TicketAuditDownloadRow = {
