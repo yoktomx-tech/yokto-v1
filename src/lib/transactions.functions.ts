@@ -167,7 +167,7 @@ export const saveTransactionHitos = createServerFn({ method: "POST" })
       evidencia_requerida: h.evidencia_requerida,
       responsable: h.responsable,
       auto_release: h.auto_release,
-      estado: "pendiente" as const,
+      estado: "PENDIENTE" as const,
     }));
 
     const { error: insErr } = await context.supabase.from("transaction_hitos").insert(rows);
