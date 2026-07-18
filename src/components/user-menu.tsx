@@ -96,6 +96,7 @@ export function UserMenu({ email }: { email?: string | null }) {
           >
             <LogOut className="size-4 text-yo-txt-3" /> Cerrar sesión
           </button>
+        </div>
       )}
     </div>
   );
