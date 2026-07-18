@@ -13,11 +13,11 @@ export const Route = createFileRoute("/_backoffice/admin/health")({
         <AdminPageHeader title="Salud del sistema" />
         <AdminCard>
           <div className="grid grid-cols-3 gap-4 text-sm">
-            <div><p className="text-gray-500 text-xs uppercase">Base de datos</p><p className="text-green-400 mt-1">{data?.db ?? "..."}</p></div>
-            <div><p className="text-gray-500 text-xs uppercase">Storage</p><p className="text-green-400 mt-1">{data?.storage ?? "..."}</p></div>
-            <div><p className="text-gray-500 text-xs uppercase">Webhooks</p><p className="text-green-400 mt-1">{data?.webhooks ?? "..."}</p></div>
+            <div><p className="text-yo-txt-3 text-xs uppercase">Base de datos</p><p className="text-green-400 mt-1">{data?.db ?? "..."}</p></div>
+            <div><p className="text-yo-txt-3 text-xs uppercase">Storage</p><p className="text-green-400 mt-1">{data?.storage ?? "..."}</p></div>
+            <div><p className="text-yo-txt-3 text-xs uppercase">Webhooks</p><p className="text-green-400 mt-1">{data?.webhooks ?? "..."}</p></div>
           </div>
-          <p className="text-[10px] text-gray-500 mt-4">Última verificación: {data?.lastCheck}</p>
+          <p className="text-[10px] text-yo-txt-3 mt-4">Última verificación: {data?.lastCheck}</p>
         </AdminCard>
       </>
     );
