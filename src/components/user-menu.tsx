@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { LogOut, User } from "lucide-react";
+import { LifeBuoy, LogOut, Settings, User } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 async function sha256Hex(s: string) {
@@ -64,6 +64,20 @@ export function UserMenu({ email }: { email?: string | null }) {
             className="flex items-center gap-2 px-3 py-2 text-[13px] text-yo-txt hover:bg-yo-raised"
           >
             <User className="size-3.5 text-yo-txt-3" /> Mi perfil
+          </Link>
+          <Link
+            to="/help"
+            onClick={() => setOpen(false)}
+            className="flex items-center gap-2 px-3 py-2 text-[13px] text-yo-txt hover:bg-yo-raised"
+          >
+            <LifeBuoy className="size-3.5 text-yo-txt-3" /> Centro de ayuda y soporte
+          </Link>
+          <Link
+            to="/settings"
+            onClick={() => setOpen(false)}
+            className="flex items-center gap-2 px-3 py-2 text-[13px] text-yo-txt hover:bg-yo-raised"
+          >
+            <Settings className="size-3.5 text-yo-txt-3" /> Configuración
           </Link>
           <button
             onClick={signOut}
