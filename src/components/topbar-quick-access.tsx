@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import {
   Search, MessageSquare, LifeBuoy, Activity, HelpCircle,
 } from "lucide-react";
-import { getQuickAccessContext } from "@/lib/support.functions";
+import { getQuickAccessContext, listMyTickets } from "@/lib/support.functions";
 import { useViewRole } from "@/hooks/use-view-role";
 import { cn } from "@/lib/utils";
 
@@ -13,10 +13,21 @@ export function TopbarQuickAccess() {
   const [open, setOpen] = useState(false);
   const { role } = useViewRole();
   const fn = useServerFn(getQuickAccessContext);
+  const ticketsFn = useServerFn(listMyTickets);
   const { data } = useQuery({ queryKey: ["qa-context"], queryFn: () => fn(), staleTime: 30_000 });
+  const { data: tickets } = useQuery({
+    queryKey: ["qa-open-tickets"],
+    queryFn: () => ticketsFn(),
+    staleTime: 60_000,
+    refetchInterval: 120_000,
+  });
+  const openCount = (tickets ?? []).filter(
+    (t: any) => !["resolved", "closed", "cancelled"].includes(String(t.status))
+  ).length;
 
   const critical = !!data?.criticalIncident;
-  const hasOpenTickets = !!data?.openTickets;
+  const hasOpenTickets = openCount > 0;
+
 
   return (
     <div className="relative">
@@ -72,7 +83,11 @@ export function TopbarQuickAccess() {
               <p className="px-2 py-1 text-[10px] uppercase tracking-wider text-yo-txt-3 font-semibold">Soporte</p>
               <QaItem to="/help" icon={HelpCircle} label="Centro de Ayuda" onClick={() => setOpen(false)} />
               <QaItem to="/support/tickets/new" icon={LifeBuoy} label="Crear ticket" onClick={() => setOpen(false)} />
-              <QaItem to="/support/tickets" icon={MessageSquare} label="Mis tickets" onClick={() => setOpen(false)} />
+              <QaItem to="/support/tickets" icon={MessageSquare} label="Mis tickets" onClick={() => setOpen(false)}
+                right={openCount > 0 ? (
+                  <span className="min-w-5 h-5 px-1.5 grid place-items-center rounded-full bg-[#7C3AED] text-white text-[10px] font-semibold tabular-nums">{openCount}</span>
+                ) : null} />
+
               <QaItem to="/support/status" icon={Activity} label="Estado de plataforma" onClick={() => setOpen(false)}
                 right={critical ? <span className="size-2 rounded-full bg-yo-err" /> : null} />
             </div>
