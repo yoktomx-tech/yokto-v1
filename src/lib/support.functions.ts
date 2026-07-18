@@ -38,13 +38,6 @@ function calcSla(plan: Plan, isLiveChat: boolean): { firstResponseHrs: number; r
   }
 }
 
-async function resolvePlan(supabase: NonNullable<Awaited<ReturnType<typeof getRequest>>> extends never ? never : unknown, orgId: string | null | undefined): Promise<Plan> {
-  return orgId ? await resolvePlanInner(supabase as never, orgId) : "free";
-}
-async function resolvePlanInner(supabase: { from: (t: string) => { select: (c: string) => { eq: (a: string, b: string) => { maybeSingle: () => Promise<{ data: { plan?: Plan } | null }> } } } }, orgId: string): Promise<Plan> {
-  const { data } = await supabase.from("organizations").select("plan").eq("id", orgId).maybeSingle();
-  return (data?.plan as Plan) ?? "free";
-}
 
 const MAX_ATTACHMENT_BYTES = 15 * 1024 * 1024;
 const ALLOWED_MIME = new Set<string>([
