@@ -109,6 +109,7 @@ import { Route as AuthenticatedComplianceBankAccountsIndexRouteImport } from './
 import { Route as ApiPublicV1TransactionsRouteImport } from './routes/api/public/v1.transactions'
 import { Route as ApiPublicStripeWebhookRouteImport } from './routes/api/public/stripe.webhook'
 import { Route as ApiPublicHooksVerificamexPennyTestRouteImport } from './routes/api/public/hooks/verificamex-penny-test'
+import { Route as ApiPublicHooksSupportSlaRouteImport } from './routes/api/public/hooks/support-sla'
 import { Route as ApiPublicHooksDisputeDeadlinesRouteImport } from './routes/api/public/hooks/dispute-deadlines'
 import { Route as BackofficeAdminSupportIdRouteImport } from './routes/_backoffice/admin.support.$id'
 import { Route as BackofficeAdminDocumentosReviewIdRouteImport } from './routes/_backoffice/admin.documentos.$reviewId'
@@ -675,6 +676,12 @@ const ApiPublicHooksVerificamexPennyTestRoute =
     path: '/api/public/hooks/verificamex-penny-test',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicHooksSupportSlaRoute =
+  ApiPublicHooksSupportSlaRouteImport.update({
+    id: '/api/public/hooks/support-sla',
+    path: '/api/public/hooks/support-sla',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicHooksDisputeDeadlinesRoute =
   ApiPublicHooksDisputeDeadlinesRouteImport.update({
     id: '/api/public/hooks/dispute-deadlines',
@@ -837,6 +844,7 @@ export interface FileRoutesByFullPath {
   '/admin/documentos/$reviewId': typeof BackofficeAdminDocumentosReviewIdRoute
   '/admin/support/$id': typeof BackofficeAdminSupportIdRouteWithChildren
   '/api/public/hooks/dispute-deadlines': typeof ApiPublicHooksDisputeDeadlinesRoute
+  '/api/public/hooks/support-sla': typeof ApiPublicHooksSupportSlaRoute
   '/api/public/hooks/verificamex-penny-test': typeof ApiPublicHooksVerificamexPennyTestRoute
   '/api/public/stripe/webhook': typeof ApiPublicStripeWebhookRoute
   '/api/public/v1/transactions': typeof ApiPublicV1TransactionsRoute
@@ -939,6 +947,7 @@ export interface FileRoutesByTo {
   '/admin/documentos/$reviewId': typeof BackofficeAdminDocumentosReviewIdRoute
   '/admin/support/$id': typeof BackofficeAdminSupportIdRouteWithChildren
   '/api/public/hooks/dispute-deadlines': typeof ApiPublicHooksDisputeDeadlinesRoute
+  '/api/public/hooks/support-sla': typeof ApiPublicHooksSupportSlaRoute
   '/api/public/hooks/verificamex-penny-test': typeof ApiPublicHooksVerificamexPennyTestRoute
   '/api/public/stripe/webhook': typeof ApiPublicStripeWebhookRoute
   '/api/public/v1/transactions': typeof ApiPublicV1TransactionsRoute
@@ -1052,6 +1061,7 @@ export interface FileRoutesById {
   '/_backoffice/admin/documentos/$reviewId': typeof BackofficeAdminDocumentosReviewIdRoute
   '/_backoffice/admin/support/$id': typeof BackofficeAdminSupportIdRouteWithChildren
   '/api/public/hooks/dispute-deadlines': typeof ApiPublicHooksDisputeDeadlinesRoute
+  '/api/public/hooks/support-sla': typeof ApiPublicHooksSupportSlaRoute
   '/api/public/hooks/verificamex-penny-test': typeof ApiPublicHooksVerificamexPennyTestRoute
   '/api/public/stripe/webhook': typeof ApiPublicStripeWebhookRoute
   '/api/public/v1/transactions': typeof ApiPublicV1TransactionsRoute
@@ -1164,6 +1174,7 @@ export interface FileRouteTypes {
     | '/admin/documentos/$reviewId'
     | '/admin/support/$id'
     | '/api/public/hooks/dispute-deadlines'
+    | '/api/public/hooks/support-sla'
     | '/api/public/hooks/verificamex-penny-test'
     | '/api/public/stripe/webhook'
     | '/api/public/v1/transactions'
@@ -1266,6 +1277,7 @@ export interface FileRouteTypes {
     | '/admin/documentos/$reviewId'
     | '/admin/support/$id'
     | '/api/public/hooks/dispute-deadlines'
+    | '/api/public/hooks/support-sla'
     | '/api/public/hooks/verificamex-penny-test'
     | '/api/public/stripe/webhook'
     | '/api/public/v1/transactions'
@@ -1378,6 +1390,7 @@ export interface FileRouteTypes {
     | '/_backoffice/admin/documentos/$reviewId'
     | '/_backoffice/admin/support/$id'
     | '/api/public/hooks/dispute-deadlines'
+    | '/api/public/hooks/support-sla'
     | '/api/public/hooks/verificamex-penny-test'
     | '/api/public/stripe/webhook'
     | '/api/public/v1/transactions'
@@ -1400,6 +1413,7 @@ export interface RootRouteChildren {
   BiometricoTokenRoute: typeof BiometricoTokenRoute
   InvitationsTokenRoute: typeof InvitationsTokenRoute
   ApiPublicHooksDisputeDeadlinesRoute: typeof ApiPublicHooksDisputeDeadlinesRoute
+  ApiPublicHooksSupportSlaRoute: typeof ApiPublicHooksSupportSlaRoute
   ApiPublicHooksVerificamexPennyTestRoute: typeof ApiPublicHooksVerificamexPennyTestRoute
   ApiPublicStripeWebhookRoute: typeof ApiPublicStripeWebhookRoute
   ApiPublicV1TransactionsRoute: typeof ApiPublicV1TransactionsRoute
@@ -2107,6 +2121,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksVerificamexPennyTestRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/support-sla': {
+      id: '/api/public/hooks/support-sla'
+      path: '/api/public/hooks/support-sla'
+      fullPath: '/api/public/hooks/support-sla'
+      preLoaderRoute: typeof ApiPublicHooksSupportSlaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/dispute-deadlines': {
       id: '/api/public/hooks/dispute-deadlines'
       path: '/api/public/hooks/dispute-deadlines'
@@ -2573,6 +2594,7 @@ const rootRouteChildren: RootRouteChildren = {
   BiometricoTokenRoute: BiometricoTokenRoute,
   InvitationsTokenRoute: InvitationsTokenRoute,
   ApiPublicHooksDisputeDeadlinesRoute: ApiPublicHooksDisputeDeadlinesRoute,
+  ApiPublicHooksSupportSlaRoute: ApiPublicHooksSupportSlaRoute,
   ApiPublicHooksVerificamexPennyTestRoute:
     ApiPublicHooksVerificamexPennyTestRoute,
   ApiPublicStripeWebhookRoute: ApiPublicStripeWebhookRoute,
