@@ -2574,6 +2574,7 @@ export type Database = {
           escalated_at: string | null
           escalated_by: string | null
           escalation: Database["public"]["Enums"]["support_escalation_type"]
+          escalation_notified_at: string | null
           escalation_reason: string | null
           first_response_at: string | null
           id: string
@@ -2586,8 +2587,10 @@ export type Database = {
           related_dispute_id: string | null
           related_transaction_id: string | null
           resolved_at: string | null
+          sla_breach_notified_at: string | null
           sla_first_response_at: string | null
           sla_resolution_at: string | null
+          sla_warn_notified_at: string | null
           status: Database["public"]["Enums"]["support_ticket_status"]
           subject: string
           updated_at: string
@@ -2602,6 +2605,7 @@ export type Database = {
           escalated_at?: string | null
           escalated_by?: string | null
           escalation?: Database["public"]["Enums"]["support_escalation_type"]
+          escalation_notified_at?: string | null
           escalation_reason?: string | null
           first_response_at?: string | null
           id?: string
@@ -2614,8 +2618,10 @@ export type Database = {
           related_dispute_id?: string | null
           related_transaction_id?: string | null
           resolved_at?: string | null
+          sla_breach_notified_at?: string | null
           sla_first_response_at?: string | null
           sla_resolution_at?: string | null
+          sla_warn_notified_at?: string | null
           status?: Database["public"]["Enums"]["support_ticket_status"]
           subject: string
           updated_at?: string
@@ -2630,6 +2636,7 @@ export type Database = {
           escalated_at?: string | null
           escalated_by?: string | null
           escalation?: Database["public"]["Enums"]["support_escalation_type"]
+          escalation_notified_at?: string | null
           escalation_reason?: string | null
           first_response_at?: string | null
           id?: string
@@ -2642,8 +2649,10 @@ export type Database = {
           related_dispute_id?: string | null
           related_transaction_id?: string | null
           resolved_at?: string | null
+          sla_breach_notified_at?: string | null
           sla_first_response_at?: string | null
           sla_resolution_at?: string | null
+          sla_warn_notified_at?: string | null
           status?: Database["public"]["Enums"]["support_ticket_status"]
           subject?: string
           updated_at?: string
