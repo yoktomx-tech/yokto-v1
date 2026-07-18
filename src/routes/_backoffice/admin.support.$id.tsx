@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Send, AlertTriangle, XCircle, Paperclip, Download, ShieldCheck } from "lucide-react";
+import { ArrowLeft, Send, AlertTriangle, XCircle, Paperclip, Download, ShieldCheck, History } from "lucide-react";
 import { AdminCard, AdminPageHeader } from "@/components/admin/admin-shell";
 import {
   adminGetTicket, adminReplyTicket, adminEscalateTicket, adminCloseTicket,
@@ -85,7 +85,14 @@ function AdminTicket() {
       <Link to="/admin/support" className="inline-flex items-center gap-1.5 text-xs text-yo-txt-3 hover:text-yo-txt mb-3">
         <ArrowLeft className="size-3.5" /> Cola de soporte
       </Link>
-      <AdminPageHeader title={ticket.subject} description={`Ticket ${ticket.numero} · estado ${ticket.status} · prioridad ${ticket.priority} · plan ${ticket.plan ?? "free"}`} />
+      <div className="flex items-start justify-between gap-3 mb-3">
+        <AdminPageHeader title={ticket.subject} description={`Ticket ${ticket.numero} · estado ${ticket.status} · prioridad ${ticket.priority} · plan ${ticket.plan ?? "free"}`} />
+        <Link to="/admin/support/$id/audit" params={{ id }}
+          className="shrink-0 inline-flex items-center gap-1.5 h-9 px-3 text-xs font-semibold rounded-lg border border-yo-border hover:bg-yo-raised">
+          <History className="size-3.5" /> Ver auditoría
+        </Link>
+      </div>
+
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <div className="lg:col-span-2 space-y-3">
