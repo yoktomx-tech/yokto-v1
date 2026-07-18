@@ -303,36 +303,49 @@ export const submitBiometricSelfie = createServerFn({ method: "POST" })
       ? await saveCapture(admin, enrollment.user_id, enrollment.id, "liveness", data.video_base64, data.video_mime)
       : null;
 
-    // Recuperar foto de INE/pasaporte para comparar
-    // Nubarium acepta base64 en `id` (foto de ID) e `imagen` (selfie).
+    // Recuperar foto del anverso de INE/pasaporte para comparar contra la captura del móvil.
     const { data: front } = await admin.storage.from("biometric-captures").download(enrollment.id_front_path);
     if (!front) throw new Error("No se pudo cargar la foto de identificación");
     const frontB64 = Buffer.from(await front.arrayBuffer()).toString("base64");
 
+    // Endpoint antifraude: acepta credencial (ID) vs captura (imagen o video).
+    // Usamos el video cuando esté disponible para mejor liveness; si no, la selfie.
+    const useVideo = !!data.video_base64;
+    const captura = useVideo ? data.video_base64! : data.selfie_base64;
+    const tipo = useVideo ? "video" : "imagen";
+
     let httpStatus: number | null = null;
     let payload: Record<string, unknown> = {};
     try {
-      const res = await fetch("https://facial.nubarium.com/facial/v3/comparacion", {
+      const res = await fetch("https://biometrics.nubarium.com/antifraude/reconocimiento_facial", {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: nubariumAuth() },
-        body: JSON.stringify({ id: frontB64, imagen: data.selfie_base64 }),
+        body: JSON.stringify({
+          credencial: frontB64,
+          captura,
+          tipo,
+          limiteInferior: String(Math.floor(FACE_MATCH_MIN)),
+        }),
       });
       httpStatus = res.status;
       try { payload = (await res.json()) as Record<string, unknown>; } catch { /* ignore */ }
     } catch (e) {
-      await logApi(admin, enrollment.id, enrollment.user_id, "facial/comparacion", null, false, {}, null, (e as Error).message);
+      await logApi(admin, enrollment.id, enrollment.user_id, "antifraude/reconocimiento_facial", null, false, { tipo }, null, (e as Error).message);
       throw new Error("No se pudo contactar al servicio facial");
     }
 
-    // Score puede venir como 0-1 o 0-100 según endpoint. Normalizamos a 0-100.
-    let scoreRaw = Number(payload.similitud ?? payload.score ?? payload.confidence ?? 0);
+    // Score puede venir como 0-1, 0-100 o string. Normalizamos a 0-100.
+    let scoreRaw = Number(
+      payload.similitud ?? payload.porcentajeSimilitud ?? payload.score ?? payload.confidence ?? 0,
+    );
     if (!Number.isFinite(scoreRaw)) scoreRaw = 0;
     const score = scoreRaw <= 1 ? scoreRaw * 100 : scoreRaw;
-    const estatus = String(payload.estatus ?? "");
+    const estatus = String(payload.estatus ?? "").toUpperCase();
+    const resultado = String(payload.resultado ?? payload.coincide ?? "").toUpperCase();
     const ok = estatus === "OK";
-    const match = ok && score >= FACE_MATCH_MIN;
+    const match = ok && (score >= FACE_MATCH_MIN || resultado === "TRUE" || resultado === "SI" || resultado === "COINCIDE");
 
-    await logApi(admin, enrollment.id, enrollment.user_id, "facial/comparacion", httpStatus, ok, { min: FACE_MATCH_MIN }, payload);
+    await logApi(admin, enrollment.id, enrollment.user_id, "antifraude/reconocimiento_facial", httpStatus, ok, { tipo, min: FACE_MATCH_MIN }, payload);
     await admin.from("biometric_enrollments").update({
       selfie_path: selfiePath,
       video_path: videoPath,
