@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { Maximize2, Minimize2, Moon, Search, Sun } from "lucide-react";
+import { Maximize2, Minimize2, Moon, Sun } from "lucide-react";
+import { GlobalSearchBar } from "@/components/global-search-bar";
 import { NotificationsBell } from "@/components/notifications-bell";
 import { RoleSelectHeader } from "@/components/role-select";
 import { TopbarQuickAccess } from "@/components/topbar-quick-access";
@@ -31,14 +32,7 @@ export function AppHeader({ email, userId }: { email?: string | null; section?: 
           <RoleSelectHeader />
         </div>
 
-        <div className="hidden md:flex flex-1 max-w-xl relative">
-          <Search className="size-4 text-yo-txt-2 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-          <input
-            type="search"
-            placeholder="Buscar operaciones, contrapartes, documentos…"
-            className="w-full h-9 pl-9 pr-3 rounded-md bg-yo-raised border border-yo-border text-sm text-yo-txt placeholder:text-yo-txt-2 focus:outline-none focus:ring-2 focus:ring-yo-accent/40 focus:border-yo-accent"
-          />
-        </div>
+        <GlobalSearchBar />
 
         <div className="flex-1 md:hidden" />
 
