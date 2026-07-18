@@ -8,7 +8,7 @@ import { SectorChart, type SectorRow } from "@/components/dashboard/sector-chart
 import { UpcomingDeadlines, type Deadline } from "@/components/dashboard/upcoming-deadlines";
 import { RecentTransactions, type TxRow } from "@/components/dashboard/recent-transactions";
 import { ActivityFeed, type ActivityItem } from "@/components/dashboard/activity-feed";
-import { QuickActionBar } from "@/components/dashboard/quick-action-bar";
+
 import { EmptyStateDashboard } from "@/components/dashboard/empty-state";
 import type { TxStatus } from "@/lib/tx";
 
@@ -224,7 +224,6 @@ function Dashboard() {
                 </Card>
               </div>
 
-              <QuickActionBar />
             </>
           )}
       </div>
