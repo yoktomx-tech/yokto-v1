@@ -34,20 +34,14 @@ export function RoleSelectHeader() {
     <div className="relative" ref={ref}>
       <button
         onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-2.5 h-10 pl-2.5 pr-3 rounded-lg border border-yo-ac/40 bg-yo-ac-bg/50 hover:bg-yo-ac-bg hover:border-yo-ac/70 shadow-sm transition"
+        className="flex items-center gap-2 h-9 px-2.5 rounded-md border border-yo-border bg-yo-bg hover:bg-yo-raised transition"
         aria-label="Cambiar vista"
         title={ROLE_DESC[role]}
       >
-        <span className="flex items-center justify-center size-7 rounded-md bg-yo-ac/15 text-yo-ac">
-          <CurrentIcon className="size-4" />
-        </span>
-        <span className="flex flex-col items-start leading-none">
-          <span className="text-[9px] uppercase tracking-[0.14em] font-semibold text-yo-txt-3">Vista</span>
-          <span className="text-[13px] font-semibold text-yo-txt mt-0.5">{current.label}</span>
-        </span>
-        <ChevronDown className={cn("size-3.5 text-yo-txt-3 transition-transform ml-0.5", open && "rotate-180")} />
+        <CurrentIcon className="size-3.5 text-yo-ac shrink-0" />
+        <span className="text-[12.5px] font-semibold text-yo-txt">{current.label}</span>
+        <ChevronDown className={cn("size-3.5 text-yo-txt-3 transition-transform", open && "rotate-180")} />
       </button>
-
 
       {open && (
         <div className="absolute top-full mt-1 right-0 z-50 w-64 rounded-md border border-yo-border bg-yo-surface shadow-lg overflow-hidden">
