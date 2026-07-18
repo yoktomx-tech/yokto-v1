@@ -141,23 +141,41 @@ function Cancelled() {
     </div>
   );
 }
-function Progress({ phase, enroll }: { phase: Phase; enroll: Enrollment }) {
+function Progress({ phase, enroll, onJump }: { phase: Phase; enroll: Enrollment; onJump: (step: "id" | "face") => void }) {
+  const idFailed = enroll?.curp_match === false;
+  const faceFailed = enroll?.face_match_ok === false;
   const steps = [
-    { k: "id", label: "ID", ok: !!enroll?.curp_match, active: phase === "id-choose" || phase === "id-capture" || phase === "id-result" },
-    { k: "face", label: "Rostro", ok: !!enroll?.face_match_ok, active: phase === "selfie" },
-    { k: "done", label: "Confirmar", ok: phase === "done", active: phase === "review" },
+    { k: "id" as const, label: "ID", ok: enroll?.curp_match === true, failed: idFailed, active: phase === "id-choose" || phase === "id-capture" || phase === "id-result", jump: "id" as const },
+    { k: "face" as const, label: "Rostro", ok: enroll?.face_match_ok === true, failed: faceFailed, active: phase === "selfie", jump: "face" as const },
+    { k: "done" as const, label: "Confirmar", ok: phase === "done", failed: false, active: phase === "review", jump: null },
   ];
   return (
     <ol className="grid grid-cols-3 gap-1 text-[11px]">
-      {steps.map((s, i) => (
-        <li key={s.k} className={"flex flex-col items-center gap-1 " + (s.ok ? "text-yo-ok" : s.active ? "text-yo-ac" : "text-yo-txt-3")}>
-          <span className={"grid place-items-center size-7 rounded-full border text-[11px] font-semibold " +
-            (s.ok ? "bg-yo-ok text-white border-yo-ok" : s.active ? "bg-yo-ac text-white border-yo-ac" : "bg-yo-surface border-yo-border")}>
-            {s.ok ? <Check className="size-3.5" /> : i + 1}
-          </span>
-          {s.label}
-        </li>
-      ))}
+      {steps.map((s, i) => {
+        const tone = s.failed ? "text-red-600" : s.ok ? "text-yo-ok" : s.active ? "text-yo-ac" : "text-yo-txt-3";
+        const badge = s.failed
+          ? "bg-red-600 text-white border-red-600"
+          : s.ok
+            ? "bg-yo-ok text-white border-yo-ok"
+            : s.active
+              ? "bg-yo-ac text-white border-yo-ac"
+              : "bg-yo-surface border-yo-border";
+        const clickable = !!s.jump && (s.failed || s.ok || s.active);
+        return (
+          <li key={s.k} className={"flex flex-col items-center gap-1 " + tone}>
+            <button
+              type="button"
+              disabled={!clickable}
+              onClick={() => s.jump && onJump(s.jump)}
+              className={"grid place-items-center size-7 rounded-full border text-[11px] font-semibold transition " + badge + (clickable ? " cursor-pointer hover:opacity-80" : " cursor-default")}
+              aria-label={s.failed ? `Reintentar ${s.label}` : s.label}
+            >
+              {s.failed ? <XCircle className="size-3.5" /> : s.ok ? <Check className="size-3.5" /> : i + 1}
+            </button>
+            {s.label}
+          </li>
+        );
+      })}
     </ol>
   );
 }
