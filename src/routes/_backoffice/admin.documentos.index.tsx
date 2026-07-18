@@ -44,7 +44,7 @@ function AdminDocs() {
           <div className="space-y-2">
             {(data ?? []).map((d) => (
               <Link key={d.id} to="/admin/documentos/$reviewId" params={{ reviewId: d.id }}
-                className="block p-3 rounded-lg border border-yo-border hover:border-yo-border hover:bg-white/[0.02]">
+                className="block p-3 rounded-lg border border-yo-border hover:border-yo-border hover:bg-yo-raised">
                 <div className="flex items-center justify-between">
                   <div>
                     <div className="flex items-center gap-2">

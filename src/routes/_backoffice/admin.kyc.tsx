@@ -37,7 +37,7 @@ function AdminKyc() {
           </thead>
           <tbody>
             {(data ?? []).map((p) => (
-              <tr key={p.id} className="border-b border-yo-border hover:bg-white/[0.02]">
+              <tr key={p.id} className="border-b border-yo-border hover:bg-yo-raised">
                 <td className="py-2 text-yo-txt">{p.first_name} {p.last_name}</td>
                 <td className="text-yo-txt-3">{p.email}</td>
                 <td className="text-yo-txt-3 font-mono text-xs">{p.curp ?? "—"}</td>

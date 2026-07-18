@@ -43,7 +43,7 @@ function AdminRoles() {
         description="Delegación de permisos del staff YOKTO — requiere motivo y MFA"
         actions={
           <button onClick={() => setShowAssign(true)}
-            className="px-4 py-2 bg-yo-ac hover:bg-[#8B5CF6] rounded-lg text-xs font-semibold text-yo-txt">
+            className="px-4 py-2 bg-yo-ac hover:bg-yo-ac-h rounded-lg text-xs font-semibold text-yo-txt">
             + Asignar rol
           </button>
         }
@@ -172,7 +172,7 @@ function AssignRoleModal({ onClose }: { onClose: () => void }) {
               <button onClick={onClose} className="px-3 py-1.5 text-xs text-yo-txt-3">Cancelar</button>
               <button disabled={!mfa || reason.length < 5 || m.isPending}
                 onClick={() => m.mutate()}
-                className="px-3 py-1.5 text-xs bg-yo-ac hover:bg-[#8B5CF6] disabled:opacity-40 rounded text-yo-txt">
+                className="px-3 py-1.5 text-xs bg-yo-ac hover:bg-yo-ac-h disabled:opacity-40 rounded text-yo-txt">
                 Asignar rol
               </button>
             </div>
