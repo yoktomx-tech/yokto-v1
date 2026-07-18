@@ -1,8 +1,11 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import {
   LayoutDashboard, Briefcase, PackageCheck, AlertTriangle, Banknote,
   Users, Users2, Star, Menu, X, ClipboardCheck, BarChart3, Landmark, Settings,
+  LifeBuoy,
 } from "lucide-react";
 import { YoktoLogo } from "@/components/logo";
 import { OrgSwitcher } from "@/components/org-switcher";
@@ -10,6 +13,7 @@ import { useViewRole } from "@/hooks/use-view-role";
 import { useAuthUser } from "@/hooks/use-auth-user";
 import { AppHeader } from "@/components/app-header";
 import { SupportFAB } from "@/components/support-fab";
+import { listMyTickets } from "@/lib/support.functions";
 import { cn } from "@/lib/utils";
 import { getMockProfile, LEVEL_CFG, TONE_CLASSES } from "@/lib/score-mock";
 
