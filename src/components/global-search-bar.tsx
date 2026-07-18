@@ -7,9 +7,10 @@ import {
   FileText, Scale, LifeBuoy, BookOpen, Compass, Loader2,
 } from "lucide-react";
 import { useViewRole } from "@/hooks/use-view-role";
+import { useCurrentOrg } from "@/hooks/use-current-org";
 import { cn } from "@/lib/utils";
 import { NAV_INDEX, type NavEntry } from "@/lib/nav-index";
-import { globalSearch, type SearchHit } from "@/lib/global-search.functions";
+import { globalSearch, type SearchHit, type SearchKind } from "@/lib/global-search.functions";
 
 const RECENT_KEY = "yokto.search.recent";
 const MAX_RECENT = 6;
@@ -25,6 +26,17 @@ const HINTS_SELLER = [
   "Locks de cumplimiento",
   "Complementos de pago (REP)",
   "Score de cumplimiento",
+];
+
+type FilterKey = "all" | "nav" | SearchKind;
+
+const FILTERS: { key: FilterKey; label: string; hotkey: string }[] = [
+  { key: "all",         label: "Todo",       hotkey: "0" },
+  { key: "nav",         label: "Pantallas",  hotkey: "1" },
+  { key: "transaction", label: "Operaciones",hotkey: "2" },
+  { key: "dispute",     label: "Disputas",   hotkey: "3" },
+  { key: "ticket",      label: "Tickets",    hotkey: "4" },
+  { key: "article",     label: "Artículos",  hotkey: "5" },
 ];
 
 function loadRecent(): string[] {
@@ -49,33 +61,62 @@ function useDebounced<T>(value: T, ms = 200) {
 }
 
 function scoreNav(q: string, e: NavEntry): number {
-  const hay = `${e.label} ${e.keywords} ${e.group}`.toLowerCase();
-  if (!hay.includes(q)) return 0;
-  if (e.label.toLowerCase().startsWith(q)) return 3;
-  if (e.label.toLowerCase().includes(q)) return 2;
-  return 1;
+  const label = e.label.toLowerCase();
+  const kw = e.keywords.toLowerCase();
+  const grp = e.group.toLowerCase();
+  if (label === q) return 100;
+  if (label.startsWith(q)) return 80;
+  // word-boundary in keywords / group
+  if (new RegExp(`(^|[\\s./_-])${q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`).test(kw)) return 55;
+  if (label.includes(q)) return 45;
+  if (kw.includes(q)) return 25;
+  if (grp.includes(q)) return 15;
+  return 0;
 }
 
-const HIT_ICON: Record<SearchHit["kind"], typeof FileText> = {
+const HIT_ICON: Record<SearchKind, typeof FileText> = {
   transaction: FileText,
   dispute: Scale,
   ticket: LifeBuoy,
   article: BookOpen,
 };
-const HIT_LABEL: Record<SearchHit["kind"], string> = {
+const HIT_LABEL: Record<SearchKind, string> = {
   transaction: "Operación",
   dispute: "Disputa",
   ticket: "Ticket",
   article: "Artículo",
 };
 
+/** Highlight all case-insensitive occurrences of `q` in `text`. */
+function Highlight({ text, q }: { text: string | null | undefined; q: string }) {
+  if (!text) return null;
+  if (!q) return <>{text}</>;
+  const re = new RegExp(`(${q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`, "ig");
+  const parts = text.split(re);
+  return (
+    <>
+      {parts.map((p, i) =>
+        re.test(p) && p.toLowerCase() === q.toLowerCase() ? (
+          <mark key={i} className="bg-yo-ac/25 text-yo-txt rounded-sm px-0.5">{p}</mark>
+        ) : (
+          <span key={i}>{p}</span>
+        ),
+      )}
+    </>
+  );
+}
+
 export function GlobalSearchBar() {
   const navigate = useNavigate();
   const { role } = useViewRole();
+  const { currentOrg } = useCurrentOrg();
+  const orgId = currentOrg?.id ?? null;
+
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
   const [recent, setRecent] = useState<string[]>([]);
   const [activeIdx, setActiveIdx] = useState(0);
+  const [filter, setFilter] = useState<FilterKey>("all");
   const inputRef = useRef<HTMLInputElement>(null);
   const rootRef = useRef<HTMLDivElement>(null);
 
@@ -106,38 +147,67 @@ export function GlobalSearchBar() {
     return () => document.removeEventListener("mousedown", onClick);
   }, []);
 
-  // Screens & options (in-memory)
+  // Screens & options (in-memory, ranked)
   const navMatches = useMemo(() => {
     if (!qLower) return [];
     return NAV_INDEX
       .map((e) => ({ e, s: scoreNav(qLower, e) }))
       .filter((x) => x.s > 0)
       .sort((a, b) => b.s - a.s)
-      .slice(0, 8)
+      .slice(0, 10)
       .map((x) => x.e);
   }, [qLower]);
 
-  // Records (async, debounced)
+  // Records (async, debounced, cached, tenant-scoped)
   const runSearch = useServerFn(globalSearch);
   const { data: hits = [], isFetching } = useQuery({
-    queryKey: ["global-search", debounced],
-    queryFn: () => runSearch({ data: { q: debounced } }),
+    queryKey: ["global-search", debounced, orgId],
+    queryFn: () => runSearch({ data: { q: debounced, orgId } }),
     enabled: debounced.length >= 2,
-    staleTime: 30_000,
+    staleTime: 60_000,
+    gcTime: 5 * 60_000,
+    placeholderData: (prev) => prev,
   });
 
-  useEffect(() => { setActiveIdx(0); }, [qLower, open]);
+  const counts = useMemo(() => {
+    const c: Record<FilterKey, number> = {
+      all: 0, nav: navMatches.length,
+      transaction: 0, dispute: 0, ticket: 0, article: 0,
+    };
+    for (const h of hits) c[h.kind]++;
+    c.all = navMatches.length + hits.length;
+    return c;
+  }, [navMatches, hits]);
 
-  // Combined flat list for keyboard navigation
+  // Filtered combined list
   type Row =
     | { kind: "nav"; entry: NavEntry }
     | { kind: "hit"; hit: SearchHit };
   const rows: Row[] = useMemo(() => {
-    return [
-      ...navMatches.map((entry) => ({ kind: "nav" as const, entry })),
-      ...hits.map((hit) => ({ kind: "hit" as const, hit })),
-    ];
-  }, [navMatches, hits]);
+    const navRows: Row[] = (filter === "all" || filter === "nav")
+      ? navMatches.map((entry) => ({ kind: "nav", entry }))
+      : [];
+    const hitRows: Row[] = (filter === "all")
+      ? hits.map((hit) => ({ kind: "hit", hit }))
+      : (filter === "nav")
+        ? []
+        : hits.filter((h) => h.kind === filter).map((hit) => ({ kind: "hit", hit }));
+    return [...navRows, ...hitRows];
+  }, [navMatches, hits, filter]);
+
+  useEffect(() => { setActiveIdx(0); }, [qLower, open, filter]);
+
+  // Keyboard: Alt/Ctrl+digit switches category
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (!(e.altKey || e.ctrlKey)) return;
+      const f = FILTERS.find((x) => x.hotkey === e.key);
+      if (f) { e.preventDefault(); setFilter(f.key); }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open]);
 
   function commitRecent(term: string) {
     const t = term.trim();
@@ -164,6 +234,14 @@ export function GlobalSearchBar() {
   function clearRecent() { setRecent([]); saveRecent([]); }
 
   function onKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+    if (e.key === "Tab" && qLower) {
+      e.preventDefault();
+      const enabled = FILTERS.filter((f) => counts[f.key] > 0 || f.key === "all");
+      const i = enabled.findIndex((f) => f.key === filter);
+      const next = enabled[(i + (e.shiftKey ? -1 + enabled.length : 1)) % enabled.length];
+      if (next) setFilter(next.key);
+      return;
+    }
     if (e.key === "ArrowDown") {
       e.preventDefault();
       setActiveIdx((i) => Math.min(i + 1, Math.max(0, rows.length - 1)));
@@ -185,7 +263,9 @@ export function GlobalSearchBar() {
   const showEmptyState = qLower.length >= 2 && !isFetching && rows.length === 0;
   const hintsList = role === "buyer" ? HINTS_BUYER : HINTS_SELLER;
 
-  // Flatten row indices per section for highlight
+  const navRowsRender = rows.filter((r): r is { kind: "nav"; entry: NavEntry } => r.kind === "nav");
+  const hitRowsRender = rows.filter((r): r is { kind: "hit"; hit: SearchHit } => r.kind === "hit");
+
   let cursor = 0;
 
   return (
@@ -213,11 +293,46 @@ export function GlobalSearchBar() {
               <div className="flex-1">
                 <p className="text-[13px] font-semibold text-yo-txt">Búsqueda global</p>
                 <p className="text-[11px] text-yo-txt-3">
-                  Pantallas, operaciones, disputas, tickets y ayuda · Enter para abrir · Esc para cerrar
+                  Pantallas, operaciones, disputas, tickets y ayuda · Tab cambia categoría · ⌥+número salta
                 </p>
               </div>
             </div>
           </div>
+
+          {/* Category chips (only with query) */}
+          {qLower && (
+            <div className="flex items-center gap-1 px-2 py-1.5 border-b border-yo-border overflow-x-auto">
+              {FILTERS.map((f) => {
+                const n = counts[f.key];
+                const disabled = f.key !== "all" && n === 0;
+                return (
+                  <button
+                    key={f.key}
+                    onClick={() => setFilter(f.key)}
+                    disabled={disabled}
+                    className={cn(
+                      "inline-flex items-center gap-1.5 shrink-0 px-2 py-1 rounded-full text-[11px] font-medium border transition",
+                      filter === f.key
+                        ? "bg-yo-ac text-white border-yo-ac"
+                        : disabled
+                          ? "border-yo-border text-yo-txt-3 opacity-50 cursor-not-allowed"
+                          : "border-yo-border text-yo-txt hover:border-yo-ac hover:text-yo-ac",
+                    )}
+                  >
+                    <span>{f.label}</span>
+                    <span className={cn(
+                      "px-1 rounded text-[10px] font-mono",
+                      filter === f.key ? "bg-white/20" : "bg-yo-raised text-yo-txt-3",
+                    )}>{n}</span>
+                    <kbd className={cn(
+                      "text-[9px] font-mono opacity-60",
+                      filter === f.key ? "text-white/80" : "text-yo-txt-3",
+                    )}>⌥{f.hotkey}</kbd>
+                  </button>
+                );
+              })}
+            </div>
+          )}
 
           <div className="max-h-[440px] overflow-y-auto">
             {/* Idle: recientes + sugerencias */}
@@ -285,12 +400,12 @@ export function GlobalSearchBar() {
             {/* Con query: pantallas + registros */}
             {qLower && (
               <>
-                {navMatches.length > 0 && (
+                {navRowsRender.length > 0 && (
                   <div className="p-2 border-b border-yo-border">
                     <p className="px-2 py-1 text-[10px] uppercase tracking-wider text-yo-txt-3 font-semibold flex items-center gap-1.5">
-                      <Compass className="size-3" /> Pantallas y opciones
+                      <Compass className="size-3" /> Pantallas
                     </p>
-                    {navMatches.map((entry) => {
+                    {navRowsRender.map(({ entry }) => {
                       const idx = cursor++;
                       return (
                         <button
@@ -303,8 +418,9 @@ export function GlobalSearchBar() {
                           )}
                         >
                           <Compass className="size-4 text-yo-txt-3 shrink-0" />
-                          <span className="flex-1 truncate">{entry.label}</span>
-                          <span className="text-[10px] text-yo-txt-3 px-1.5 py-0.5 rounded border border-yo-border">{entry.group}</span>
+                          <span className="flex-1 truncate"><Highlight text={entry.label} q={qLower} /></span>
+                          <span className="text-[10px] uppercase tracking-wider text-yo-ac bg-yo-ac-bg px-1.5 py-0.5 rounded shrink-0">Pantalla</span>
+                          <span className="text-[10px] text-yo-txt-3 px-1.5 py-0.5 rounded border border-yo-border shrink-0">{entry.group}</span>
                           <ArrowRight className="size-3.5 text-yo-txt-3 shrink-0" />
                         </button>
                       );
@@ -312,12 +428,12 @@ export function GlobalSearchBar() {
                   </div>
                 )}
 
-                {hits.length > 0 && (
+                {hitRowsRender.length > 0 && (
                   <div className="p-2">
                     <p className="px-2 py-1 text-[10px] uppercase tracking-wider text-yo-txt-3 font-semibold flex items-center gap-1.5">
                       <FileText className="size-3" /> Registros
                     </p>
-                    {hits.map((hit) => {
+                    {hitRowsRender.map(({ hit }) => {
                       const Icon = HIT_ICON[hit.kind];
                       const idx = cursor++;
                       return (
@@ -333,11 +449,15 @@ export function GlobalSearchBar() {
                           <Icon className="size-4 text-yo-txt-3 shrink-0" />
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-1.5">
-                              <span className="font-medium truncate">{hit.title}</span>
-                              <span className="text-[10px] text-yo-txt-3 px-1.5 py-0.5 rounded border border-yo-border shrink-0">{HIT_LABEL[hit.kind]}</span>
+                              <span className="font-medium truncate"><Highlight text={hit.title} q={qLower} /></span>
+                              <span className="text-[10px] uppercase tracking-wider text-yo-ac bg-yo-ac-bg px-1.5 py-0.5 rounded shrink-0">
+                                {HIT_LABEL[hit.kind]}
+                              </span>
                             </div>
                             {hit.subtitle && (
-                              <p className="text-[11px] text-yo-txt-3 truncate">{hit.subtitle}</p>
+                              <p className="text-[11px] text-yo-txt-3 truncate">
+                                <Highlight text={hit.subtitle} q={qLower} />
+                              </p>
                             )}
                           </div>
                           {hit.meta && (
