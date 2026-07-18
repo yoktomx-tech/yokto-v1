@@ -9,6 +9,7 @@ import { OrgSwitcher } from "@/components/org-switcher";
 import { useViewRole } from "@/hooks/use-view-role";
 import { useAuthUser } from "@/hooks/use-auth-user";
 import { AppHeader } from "@/components/app-header";
+import { SupportFAB } from "@/components/support-fab";
 import { cn } from "@/lib/utils";
 import { getMockProfile, LEVEL_CFG, TONE_CLASSES } from "@/lib/score-mock";
 
@@ -92,6 +93,7 @@ export function AppShell({ children }: { children: React.ReactNode; sgyScore?: n
         </button>
         <AppHeader email={email} userId={userId} />
         <main className="flex-1 p-4 md:p-6">{children}</main>
+        <SupportFAB />
       </div>
     </div>
   );
