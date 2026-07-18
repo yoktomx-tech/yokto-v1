@@ -422,8 +422,20 @@ function SelfieCapture({ token, onDone, onError }: { token: string; onDone: () =
   const [videoB64, setVideoB64] = useState<{ base64: string; mime: string } | null>(null);
   const [selfie, setSelfie] = useState<{ base64: string; mime: string } | null>(null);
   const [busy, setBusy] = useState(false);
+  const [coachIdx, setCoachIdx] = useState(0);
+  const [countdown, setCountdown] = useState(0);
   const chunks = useRef<Blob[]>([]);
   const recRef = useRef<MediaRecorder | null>(null);
+
+  // Mensajes de guía que se rotan durante la grabación.
+  const REC_MS = 5000;
+  const coachSteps = [
+    { t: "Centra tu rostro en el círculo", tone: "text-white" },
+    { t: "Acércate un poco a la cámara", tone: "text-yo-ac" },
+    { t: "Ahora aléjate ligeramente", tone: "text-yo-ac" },
+    { t: "Gira suavemente la cabeza", tone: "text-yo-ac" },
+    { t: "Mira al frente y no te muevas", tone: "text-yo-ok" },
+  ];
 
   async function record() {
     if (!cam.streamRef.current) return;
@@ -439,7 +451,20 @@ function SelfieCapture({ token, onDone, onError }: { token: string; onDone: () =
     };
     rec.start();
     setRecording(true);
-    setTimeout(() => { rec.stop(); setRecording(false); }, 3000);
+    setCoachIdx(0);
+    setCountdown(Math.ceil(REC_MS / 1000));
+
+    const stepInterval = Math.floor(REC_MS / coachSteps.length);
+    const coachTimer = setInterval(() => setCoachIdx((i) => Math.min(i + 1, coachSteps.length - 1)), stepInterval);
+    const countTimer = setInterval(() => setCountdown((c) => Math.max(0, c - 1)), 1000);
+
+    setTimeout(() => {
+      rec.stop();
+      setRecording(false);
+      clearInterval(coachTimer);
+      clearInterval(countTimer);
+      setCountdown(0);
+    }, REC_MS);
   }
 
   async function send() {
@@ -455,17 +480,37 @@ function SelfieCapture({ token, onDone, onError }: { token: string; onDone: () =
     finally { setBusy(false); }
   }
 
+  const coach = coachSteps[coachIdx];
+
   return (
     <div className="flex flex-col gap-3">
       <h2 className="text-lg font-bold">Selfie y prueba de vida</h2>
-      <p className="text-xs text-yo-txt-3">Al grabar, mueve suavemente la cabeza de un lado a otro durante 3 segundos.</p>
+      <p className="text-xs text-yo-txt-3">Sigue las indicaciones en pantalla mientras grabamos {Math.round(REC_MS / 1000)} segundos.</p>
       <div className="relative aspect-square rounded-xl overflow-hidden bg-black">
         <video ref={cam.videoRef} className={"absolute inset-0 w-full h-full object-cover scale-x-[-1] " + (selfie ? "invisible" : "")} muted playsInline autoPlay />
         {selfie && (
           <img src={`data:${selfie.mime};base64,${selfie.base64}`} alt="Selfie" className="absolute inset-0 w-full h-full object-cover" />
         )}
         <div className="absolute inset-6 rounded-full border-2 border-yo-ac/80 pointer-events-none" />
-        {recording && <span className="absolute top-3 left-3 bg-red-600 text-white text-[11px] px-2 py-0.5 rounded-full animate-pulse">REC</span>}
+        {recording && (
+          <>
+            <span className="absolute top-3 left-3 bg-red-600 text-white text-[11px] px-2 py-0.5 rounded-full animate-pulse inline-flex items-center gap-1">
+              <span className="size-1.5 rounded-full bg-white" /> REC {countdown}s
+            </span>
+            <div className="absolute inset-x-0 bottom-3 flex justify-center pointer-events-none">
+              <span className={"px-3 py-1.5 rounded-full bg-black/70 backdrop-blur text-xs font-semibold " + coach.tone}>
+                {coach.t}
+              </span>
+            </div>
+          </>
+        )}
+        {!recording && !selfie && (
+          <div className="absolute inset-x-0 bottom-3 flex justify-center pointer-events-none">
+            <span className="px-3 py-1.5 rounded-full bg-black/60 text-white text-xs">
+              Coloca tu rostro dentro del círculo
+            </span>
+          </div>
+        )}
       </div>
       {cam.err && <p className="text-xs text-red-600">{cam.err}</p>}
       <div className="flex gap-2">
@@ -478,7 +523,7 @@ function SelfieCapture({ token, onDone, onError }: { token: string; onDone: () =
           </>
         ) : (
           <button onClick={record} disabled={!cam.ready || recording} className="flex-1 h-11 rounded-md bg-yo-ac hover:bg-yo-ac-h text-white text-sm font-semibold inline-flex items-center justify-center gap-1.5">
-            <Video className="size-4" /> {recording ? "Grabando…" : "Grabar 3 segundos"}
+            <Video className="size-4" /> {recording ? `Grabando… ${countdown}s` : `Iniciar grabación (${Math.round(REC_MS / 1000)}s)`}
           </button>
         )}
       </div>
