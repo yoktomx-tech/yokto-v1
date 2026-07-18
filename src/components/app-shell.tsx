@@ -26,7 +26,6 @@ const SELLER_NAV: NavItem[] = [
   { to: "/crm", icon: Users,           label: "Relaciones" },
   { to: "/teams",        icon: Users2,          label: "Equipo" },
   { to: "/score",        icon: Star,            label: "Score de confianza" },
-  { to: "/settings",     icon: Settings,        label: "Configuración" },
 ];
 
 const BUYER_NAV: NavItem[] = [
