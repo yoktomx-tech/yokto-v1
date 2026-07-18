@@ -54,12 +54,24 @@ export function NotificationsBell({ userId }: { userId: string }) {
       </button>
 
       {open && (
-        <div className="absolute right-0 mt-2 w-80 max-h-[70vh] overflow-auto border border-yo-border bg-yo-surface rounded-lg shadow-lg z-50">
-          <div className="flex items-center justify-between p-3 border-b border-yo-border">
-            <span className="text-[11px] uppercase tracking-[0.14em] font-semibold text-yo-txt">Notificaciones</span>
-            {unread > 0 && (
-              <button onClick={markAll} className="text-[11px] text-yo-ac hover:underline">Marcar leídas</button>
-            )}
+        <div className="absolute right-0 mt-2 w-[340px] max-h-[70vh] overflow-auto border border-yo-border bg-yo-surface rounded-xl shadow-xl z-50">
+          <div className="p-3 border-b border-yo-border bg-[#F5F3FF]">
+            <div className="flex items-center gap-2">
+              <div className="size-8 grid place-items-center rounded-lg bg-[#7C3AED] text-white">
+                <Bell className="size-4" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-[13px] font-semibold text-yo-txt">Notificaciones</p>
+                <p className="text-[11px] text-yo-txt-3">
+                  {unread > 0 ? `${unread} sin leer` : "Todo al día"}
+                </p>
+              </div>
+              {unread > 0 && (
+                <button onClick={markAll} className="text-[11px] font-medium text-[#7C3AED] hover:underline">
+                  Marcar leídas
+                </button>
+              )}
+            </div>
           </div>
           {items.length === 0 && <p className="p-4 text-sm text-yo-txt-3">Sin notificaciones.</p>}
           <ul className="divide-y divide-yo-border">
