@@ -30,7 +30,7 @@ function TicketsIndex() {
       <PageHeader
         icon={LifeBuoy}
         title="Mis tickets"
-        description="Tickets de soporte que has abierto o que ves como administrador."
+        subtitle="Tickets de soporte que has abierto o que ves como administrador."
         actions={!isAuditor && (
           <Link to="/support/tickets/new"
             className="inline-flex items-center gap-1.5 h-9 px-3 rounded-lg bg-[#18181B] text-white text-sm font-semibold hover:bg-black">

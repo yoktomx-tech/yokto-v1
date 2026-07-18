@@ -54,7 +54,7 @@ function NewTicket() {
 
   return (
     <div className="max-w-2xl space-y-6">
-      <PageHeader icon={LifeBuoy} title="Nuevo ticket" description="Cuéntanos qué necesitas y te contactaremos." />
+      <PageHeader icon={LifeBuoy} title="Nuevo ticket" subtitle="Cuéntanos qué necesitas y te contactaremos." />
 
       <div className="rounded-xl border border-yo-border bg-yo-surface p-6 space-y-4">
         <div>

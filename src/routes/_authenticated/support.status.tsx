@@ -24,7 +24,7 @@ function StatusPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader icon={Activity} title="Estado de plataforma" description="Servicios y incidentes recientes de YOKTO." />
+      <PageHeader icon={Activity} title="Estado de plataforma" subtitle="Servicios y incidentes recientes de YOKTO." />
 
       <div className="rounded-xl border border-yo-border bg-yo-surface divide-y divide-yo-border">
         {SERVICES.map((s) => {

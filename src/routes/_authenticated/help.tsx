@@ -25,7 +25,7 @@ function HelpIndex() {
 
   return (
     <div className="space-y-6">
-      <PageHeader icon={HelpCircle} title="Centro de Ayuda" description="Guías, artículos y respuestas rápidas." />
+      <PageHeader icon={HelpCircle} title="Centro de Ayuda" subtitle="Guías, artículos y respuestas rápidas." />
 
       <div className="rounded-xl border border-yo-border bg-[#F5F3FF] p-6">
         <div className="max-w-2xl mx-auto">
