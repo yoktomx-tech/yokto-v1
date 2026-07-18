@@ -72,11 +72,18 @@ function AuthPage() {
         if (error) throw error;
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Error de autenticación");
+      const raw = err instanceof Error ? err.message : "";
+      const msg = /invalid login credentials/i.test(raw)
+        ? "Correo o contraseña incorrectos. Verifica tus datos e inténtalo de nuevo."
+        : /email not confirmed/i.test(raw)
+        ? "Debes confirmar tu correo antes de iniciar sesión."
+        : raw || "Error de autenticación";
+      setError(msg);
     } finally {
       setLoading(false);
     }
   }
+
 
 
 
