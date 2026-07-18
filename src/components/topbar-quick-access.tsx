@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import {
   Search, MessageSquare, LifeBuoy, Activity, HelpCircle,
 } from "lucide-react";
-import { getQuickAccessContext } from "@/lib/support.functions";
+import { getQuickAccessContext, listMyTickets } from "@/lib/support.functions";
 import { useViewRole } from "@/hooks/use-view-role";
 import { cn } from "@/lib/utils";
 
@@ -13,10 +13,21 @@ export function TopbarQuickAccess() {
   const [open, setOpen] = useState(false);
   const { role } = useViewRole();
   const fn = useServerFn(getQuickAccessContext);
+  const ticketsFn = useServerFn(listMyTickets);
   const { data } = useQuery({ queryKey: ["qa-context"], queryFn: () => fn(), staleTime: 30_000 });
+  const { data: tickets } = useQuery({
+    queryKey: ["qa-open-tickets"],
+    queryFn: () => ticketsFn(),
+    staleTime: 60_000,
+    refetchInterval: 120_000,
+  });
+  const openCount = (tickets ?? []).filter(
+    (t: any) => !["resolved", "closed", "cancelled"].includes(String(t.status))
+  ).length;
 
   const critical = !!data?.criticalIncident;
-  const hasOpenTickets = !!data?.openTickets;
+  const hasOpenTickets = openCount > 0;
+
 
   return (
     <div className="relative">
