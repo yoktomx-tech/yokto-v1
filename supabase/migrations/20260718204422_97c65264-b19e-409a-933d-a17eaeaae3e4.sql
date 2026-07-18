@@ -1,0 +1,1 @@
+DROP POLICY IF EXISTS dispute_evidence_insert ON storage.objects;
