@@ -185,8 +185,8 @@
   --card-foreground: var(--yo-txt);
   --popover: var(--yo-surface);
   --popover-foreground: var(--yo-txt);
-  --primary: var(--yo-ac);
-  --primary-foreground: #0A0A0B;
+  --primary: #FFFFFF;
+  --primary-foreground: #09090B;
   --secondary: var(--yo-raised);
   --secondary-foreground: var(--yo-txt);
   --muted: var(--yo-raised);
