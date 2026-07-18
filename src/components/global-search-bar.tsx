@@ -1,42 +1,41 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import {
-  Search, Clock, Sparkles, ArrowRight, X, TrendingUp,
-  FileText, Users, CreditCard, Scale, ShieldCheck, LifeBuoy,
-  BarChart3, FileCheck,
-} from "lucide-react";
+import { Search, Clock, Sparkles, ArrowRight, X, TrendingUp, CornerDownLeft } from "lucide-react";
 import { useViewRole } from "@/hooks/use-view-role";
 import { cn } from "@/lib/utils";
-
-type Suggestion = {
-  label: string;
-  to: string;
-  icon: typeof Search;
-  hint?: string;
-};
 
 const RECENT_KEY = "yokto.search.recent";
 const MAX_RECENT = 6;
 
-const QUICK_LINKS: Suggestion[] = [
-  { label: "Nueva operación", to: "/transactions/new", icon: CreditCard, hint: "Crear escrow" },
-  { label: "Mis operaciones", to: "/transactions", icon: FileText },
-  { label: "Aprobaciones pendientes", to: "/approvals", icon: FileCheck, hint: "Comprador" },
-  { label: "Contrapartes (CRM)", to: "/crm", icon: Users },
-  { label: "Centro de pagos", to: "/payments", icon: CreditCard },
-  { label: "Disputas", to: "/disputes", icon: Scale },
-  { label: "Cumplimiento", to: "/cumplimiento", icon: ShieldCheck, hint: "Vendedor" },
-  { label: "Perfil de cumplimiento", to: "/score", icon: BarChart3 },
-  { label: "Analytics", to: "/analytics", icon: BarChart3 },
-  { label: "Centro de ayuda", to: "/help", icon: LifeBuoy },
-  { label: "Mis tickets", to: "/support/tickets", icon: LifeBuoy },
-  { label: "Estado de plataforma", to: "/support/status", icon: ShieldCheck },
+// Search-term hints: things a user might type. Clicking pre-fills the input,
+// it does NOT navigate to a module.
+const HINTS_BUYER = [
+  "Operaciones pendientes de aprobación",
+  "Fondos retenidos por liberar",
+  "Contrapartes con score bajo",
+  "CFDI (PPD) por validar",
+  "Contratos sin firmar",
+  "Disputas abiertas",
+  "Historial de pagos SPEI",
+  "Comisiones del mes",
 ];
 
-const TRENDING: Suggestion[] = [
-  { label: "Liberar fondos retenidos", to: "/payments", icon: TrendingUp },
-  { label: "Firmar contrato pendiente", to: "/approvals", icon: TrendingUp },
-  { label: "Cargar CFDI (PPD)", to: "/payments/fiscal", icon: TrendingUp },
+const HINTS_SELLER = [
+  "Cobros liberados este mes",
+  "Locks de cumplimiento activos",
+  "REP (complemento de pago) pendientes",
+  "Constancia de Situación Fiscal",
+  "Operaciones por vencer SLA",
+  "Contrapartes recurrentes",
+  "Score de cumplimiento",
+  "Depósitos en garantía",
+];
+
+const TRENDING_TERMS = [
+  "cómo liberar fondos",
+  "subir CFDI",
+  "firmar contrato con e.firma",
+  "abrir disputa",
 ];
 
 function loadRecent(): string[] {
@@ -89,13 +88,17 @@ export function GlobalSearchBar() {
     return () => document.removeEventListener("mousedown", onClick);
   }, []);
 
-  const q = query.trim().toLowerCase();
-  const filtered = useMemo(() => {
-    if (!q) return QUICK_LINKS.slice(0, 8);
-    return QUICK_LINKS.filter((s) => s.label.toLowerCase().includes(q)).slice(0, 8);
-  }, [q]);
+  const q = query.trim();
+  const qLower = q.toLowerCase();
 
-  useEffect(() => { setActiveIdx(0); }, [q, open]);
+  const baseHints = role === "buyer" ? HINTS_BUYER : HINTS_SELLER;
+
+  const filteredHints = useMemo(() => {
+    if (!qLower) return baseHints.slice(0, 6);
+    return baseHints.filter((h) => h.toLowerCase().includes(qLower)).slice(0, 6);
+  }, [qLower, baseHints]);
+
+  useEffect(() => { setActiveIdx(0); }, [qLower, open]);
 
   function commitRecent(term: string) {
     const t = term.trim();
@@ -105,20 +108,18 @@ export function GlobalSearchBar() {
     saveRecent(next);
   }
 
-  function goTo(to: string, label?: string) {
-    if (label) commitRecent(label);
-    setOpen(false);
-    setQuery("");
-    navigate({ to });
-  }
-
-  function submitFreeText(term: string) {
+  function runSearch(term: string) {
     const t = term.trim();
     if (!t) return;
     commitRecent(t);
     setOpen(false);
     setQuery("");
     navigate({ to: "/help", search: { q: t } as never });
+  }
+
+  function useHint(term: string) {
+    setQuery(term);
+    inputRef.current?.focus();
   }
 
   function removeRecent(term: string) {
@@ -132,23 +133,19 @@ export function GlobalSearchBar() {
     saveRecent([]);
   }
 
-  const showResultsList = filtered.length > 0;
-  const totalNav = filtered.length;
-
   function onKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
     if (e.key === "ArrowDown") {
       e.preventDefault();
-      setActiveIdx((i) => Math.min(i + 1, Math.max(0, totalNav - 1)));
+      setActiveIdx((i) => Math.min(i + 1, Math.max(0, filteredHints.length - 1)));
     } else if (e.key === "ArrowUp") {
       e.preventDefault();
       setActiveIdx((i) => Math.max(i - 1, 0));
     } else if (e.key === "Enter") {
       e.preventDefault();
-      if (q && filtered[activeIdx]) {
-        const item = filtered[activeIdx];
-        goTo(item.to, item.label);
+      if (qLower && filteredHints[activeIdx]) {
+        runSearch(filteredHints[activeIdx]);
       } else if (q) {
-        submitFreeText(q);
+        runSearch(q);
       }
     }
   }
@@ -178,14 +175,14 @@ export function GlobalSearchBar() {
               <div className="flex-1">
                 <p className="text-[13px] font-semibold text-yo-txt">Búsqueda global</p>
                 <p className="text-[11px] text-yo-txt-3">
-                  Vista {role === "buyer" ? "Comprador" : "Vendedor"} · Enter para ir · Esc para cerrar
+                  Vista {role === "buyer" ? "Comprador" : "Vendedor"} · Enter para buscar · Esc para cerrar
                 </p>
               </div>
             </div>
           </div>
 
           <div className="max-h-[420px] overflow-y-auto">
-            {!q && recent.length > 0 && (
+            {!qLower && recent.length > 0 && (
               <div className="p-2 border-b border-yo-border">
                 <div className="flex items-center justify-between px-2 py-1">
                   <p className="text-[10px] uppercase tracking-wider text-yo-txt-3 font-semibold flex items-center gap-1.5">
@@ -201,7 +198,7 @@ export function GlobalSearchBar() {
                 <div className="flex flex-wrap gap-1.5 px-2 pt-1 pb-2">
                   {recent.map((r) => (
                     <span key={r} className="group inline-flex items-center gap-1 pl-2 pr-1 py-1 rounded-full bg-yo-raised border border-yo-border text-[12px] text-yo-txt">
-                      <button onClick={() => { setQuery(r); inputRef.current?.focus(); }} className="hover:text-yo-ac transition">
+                      <button onClick={() => runSearch(r)} className="hover:text-yo-ac transition">
                         {r}
                       </button>
                       <button
@@ -220,56 +217,55 @@ export function GlobalSearchBar() {
             <div className="p-2">
               <p className="px-2 py-1 text-[10px] uppercase tracking-wider text-yo-txt-3 font-semibold flex items-center gap-1.5">
                 <Sparkles className="size-3" />
-                {q ? "Resultados" : "Sugerencias rápidas"}
+                {qLower ? "Sugerencias" : "Prueba buscar"}
               </p>
-              {showResultsList ? (
-                filtered.map((s, i) => (
+              {filteredHints.length > 0 ? (
+                filteredHints.map((hint, i) => (
                   <button
-                    key={s.to + s.label}
+                    key={hint}
                     onMouseEnter={() => setActiveIdx(i)}
-                    onClick={() => goTo(s.to, s.label)}
+                    onClick={() => useHint(hint)}
                     className={cn(
-                      "w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[13px] text-yo-txt transition text-left",
+                      "w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[13px] text-yo-txt transition text-left group",
                       i === activeIdx ? "bg-yo-raised" : "hover:bg-yo-raised",
                     )}
+                    title="Usar como búsqueda"
                   >
-                    <s.icon className="size-4 text-yo-txt-3 shrink-0" />
-                    <span className="flex-1 truncate">{s.label}</span>
-                    {s.hint && (
-                      <span className="text-[10px] text-yo-txt-3 px-1.5 py-0.5 rounded border border-yo-border">{s.hint}</span>
-                    )}
-                    <ArrowRight className="size-3.5 text-yo-txt-3 shrink-0" />
+                    <Search className="size-3.5 text-yo-txt-3 shrink-0" />
+                    <span className="flex-1 truncate">{hint}</span>
+                    <CornerDownLeft className="size-3.5 text-yo-txt-3 shrink-0 opacity-0 group-hover:opacity-100 transition" />
                   </button>
                 ))
               ) : (
                 <div className="px-2.5 py-4 text-center">
-                  <p className="text-[12px] text-yo-txt-3">Sin coincidencias directas.</p>
+                  <p className="text-[12px] text-yo-txt-3">Sin sugerencias para “{q}”.</p>
                   <button
-                    onClick={() => submitFreeText(q)}
+                    onClick={() => runSearch(q)}
                     className="mt-2 inline-flex items-center gap-1.5 text-[12px] text-yo-ac hover:underline"
                   >
-                    Buscar “{q}” en Centro de ayuda <ArrowRight className="size-3" />
+                    Buscar “{q}” de todos modos <ArrowRight className="size-3" />
                   </button>
                 </div>
               )}
             </div>
 
-            {!q && (
+            {!qLower && (
               <div className="p-2 border-t border-yo-border">
                 <p className="px-2 py-1 text-[10px] uppercase tracking-wider text-yo-txt-3 font-semibold flex items-center gap-1.5">
                   <TrendingUp className="size-3" /> Tendencias
                 </p>
-                {TRENDING.map((t) => (
-                  <button
-                    key={t.label}
-                    onClick={() => goTo(t.to, t.label)}
-                    className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[13px] text-yo-txt hover:bg-yo-raised transition text-left"
-                  >
-                    <t.icon className="size-4 text-yo-txt-3 shrink-0" />
-                    <span className="flex-1 truncate">{t.label}</span>
-                    <ArrowRight className="size-3.5 text-yo-txt-3 shrink-0" />
-                  </button>
-                ))}
+                <div className="flex flex-wrap gap-1.5 px-2 pt-1 pb-2">
+                  {TRENDING_TERMS.map((t) => (
+                    <button
+                      key={t}
+                      onClick={() => useHint(t)}
+                      className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full bg-yo-raised border border-yo-border text-[12px] text-yo-txt hover:border-yo-ac hover:text-yo-ac transition"
+                    >
+                      <TrendingUp className="size-3" />
+                      {t}
+                    </button>
+                  ))}
+                </div>
               </div>
             )}
           </div>
