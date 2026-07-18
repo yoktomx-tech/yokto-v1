@@ -1615,6 +1615,7 @@ export type Database = {
           kyb_status: Database["public"]["Enums"]["kyb_status"]
           name: string
           owner_user_id: string | null
+          plan: Database["public"]["Enums"]["org_plan"]
           razon_social: string | null
           regimen_fiscal: string | null
           rfc: string | null
@@ -1629,6 +1630,7 @@ export type Database = {
           kyb_status?: Database["public"]["Enums"]["kyb_status"]
           name: string
           owner_user_id?: string | null
+          plan?: Database["public"]["Enums"]["org_plan"]
           razon_social?: string | null
           regimen_fiscal?: string | null
           rfc?: string | null
@@ -1643,6 +1645,7 @@ export type Database = {
           kyb_status?: Database["public"]["Enums"]["kyb_status"]
           name?: string
           owner_user_id?: string | null
+          plan?: Database["public"]["Enums"]["org_plan"]
           razon_social?: string | null
           regimen_fiscal?: string | null
           rfc?: string | null
@@ -2421,6 +2424,57 @@ export type Database = {
         }
         Relationships: []
       }
+      support_attachment_downloads: {
+        Row: {
+          attachment_id: string
+          created_at: string
+          id: string
+          internal_role: string | null
+          ip: unknown
+          ticket_id: string
+          user_agent: string | null
+          user_id: string
+          user_kind: string
+        }
+        Insert: {
+          attachment_id: string
+          created_at?: string
+          id?: string
+          internal_role?: string | null
+          ip?: unknown
+          ticket_id: string
+          user_agent?: string | null
+          user_id: string
+          user_kind: string
+        }
+        Update: {
+          attachment_id?: string
+          created_at?: string
+          id?: string
+          internal_role?: string | null
+          ip?: unknown
+          ticket_id?: string
+          user_agent?: string | null
+          user_id?: string
+          user_kind?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "support_attachment_downloads_attachment_id_fkey"
+            columns: ["attachment_id"]
+            isOneToOne: false
+            referencedRelation: "support_attachments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "support_attachment_downloads_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "support_tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       support_attachments: {
         Row: {
           created_at: string
@@ -2523,6 +2577,7 @@ export type Database = {
           escalation_reason: string | null
           first_response_at: string | null
           id: string
+          is_live_chat: boolean
           module: string | null
           numero: string | null
           org_id: string | null
@@ -2550,6 +2605,7 @@ export type Database = {
           escalation_reason?: string | null
           first_response_at?: string | null
           id?: string
+          is_live_chat?: boolean
           module?: string | null
           numero?: string | null
           org_id?: string | null
@@ -2577,6 +2633,7 @@ export type Database = {
           escalation_reason?: string | null
           first_response_at?: string | null
           id?: string
+          is_live_chat?: boolean
           module?: string | null
           numero?: string | null
           org_id?: string | null
@@ -3230,6 +3287,7 @@ export type Database = {
       kyc_nivel: "basico" | "intermedio" | "avanzado"
       kyc_status: "pending" | "in_review" | "approved" | "rejected"
       membership_status: "active" | "invited" | "suspended" | "removed"
+      org_plan: "free" | "pro" | "enterprise"
       org_role:
         | "owner"
         | "buyer_admin"
@@ -3476,6 +3534,7 @@ export const Constants = {
       kyc_nivel: ["basico", "intermedio", "avanzado"],
       kyc_status: ["pending", "in_review", "approved", "rejected"],
       membership_status: ["active", "invited", "suspended", "removed"],
+      org_plan: ["free", "pro", "enterprise"],
       org_role: [
         "owner",
         "buyer_admin",
