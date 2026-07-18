@@ -28,6 +28,7 @@ import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedPaymentsRouteImport } from './routes/_authenticated/payments'
 import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authenticated/notifications'
 import { Route as AuthenticatedKycRouteImport } from './routes/_authenticated/kyc'
+import { Route as AuthenticatedHelpRouteImport } from './routes/_authenticated/help'
 import { Route as AuthenticatedDisputesRouteImport } from './routes/_authenticated/disputes'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedCumplimientoRouteImport } from './routes/_authenticated/cumplimiento'
@@ -62,6 +63,7 @@ import { Route as AuthenticatedTeamsIntegrationsRouteImport } from './routes/_au
 import { Route as AuthenticatedTeamsAuditRouteImport } from './routes/_authenticated/teams.audit'
 import { Route as AuthenticatedTeamsApprovalsRouteImport } from './routes/_authenticated/teams.approvals'
 import { Route as AuthenticatedTeamsApiKeysRouteImport } from './routes/_authenticated/teams.api-keys'
+import { Route as AuthenticatedSupportStatusRouteImport } from './routes/_authenticated/support.status'
 import { Route as AuthenticatedSettingsWebhooksRouteImport } from './routes/_authenticated/settings.webhooks'
 import { Route as AuthenticatedSettingsTeamRouteImport } from './routes/_authenticated/settings.team'
 import { Route as AuthenticatedSettingsSupportRouteImport } from './routes/_authenticated/settings.support'
@@ -81,6 +83,7 @@ import { Route as AuthenticatedPaymentsLedgerRouteImport } from './routes/_authe
 import { Route as AuthenticatedPaymentsFiscalRouteImport } from './routes/_authenticated/payments.fiscal'
 import { Route as AuthenticatedPaymentsIdRouteImport } from './routes/_authenticated/payments.$id'
 import { Route as AuthenticatedOnboardingPendienteRouteImport } from './routes/_authenticated/onboarding.pendiente'
+import { Route as AuthenticatedHelpSlugRouteImport } from './routes/_authenticated/help.$slug'
 import { Route as AuthenticatedDisputesNewRouteImport } from './routes/_authenticated/disputes.new'
 import { Route as AuthenticatedDisputesIdRouteImport } from './routes/_authenticated/disputes.$id'
 import { Route as AuthenticatedCrmSearchRouteImport } from './routes/_authenticated/crm.search'
@@ -101,6 +104,7 @@ import { Route as AuthenticatedAnalyticsContratosRouteImport } from './routes/_a
 import { Route as AuthenticatedAnalyticsAprobacionesRouteImport } from './routes/_authenticated/analytics.aprobaciones'
 import { Route as BackofficeAdminDocumentosIndexRouteImport } from './routes/_backoffice/admin.documentos.index'
 import { Route as AuthenticatedTransactionsIdIndexRouteImport } from './routes/_authenticated/transactions.$id.index'
+import { Route as AuthenticatedSupportTicketsIndexRouteImport } from './routes/_authenticated/support.tickets.index'
 import { Route as AuthenticatedComplianceBankAccountsIndexRouteImport } from './routes/_authenticated/compliance.bank-accounts.index'
 import { Route as ApiPublicV1TransactionsRouteImport } from './routes/api/public/v1.transactions'
 import { Route as ApiPublicStripeWebhookRouteImport } from './routes/api/public/stripe.webhook'
@@ -108,6 +112,8 @@ import { Route as ApiPublicHooksVerificamexPennyTestRouteImport } from './routes
 import { Route as ApiPublicHooksDisputeDeadlinesRouteImport } from './routes/api/public/hooks/dispute-deadlines'
 import { Route as BackofficeAdminDocumentosReviewIdRouteImport } from './routes/_backoffice/admin.documentos.$reviewId'
 import { Route as AuthenticatedTransactionsIdExpedienteRouteImport } from './routes/_authenticated/transactions.$id.expediente'
+import { Route as AuthenticatedSupportTicketsNewRouteImport } from './routes/_authenticated/support.tickets.new'
+import { Route as AuthenticatedSupportTicketsIdRouteImport } from './routes/_authenticated/support.tickets.$id'
 import { Route as AuthenticatedSettingsOrganizationNewRouteImport } from './routes/_authenticated/settings.organization.new'
 import { Route as AuthenticatedProfileBankingVerifyRouteImport } from './routes/_authenticated/profile.banking.verify'
 import { Route as AuthenticatedComplianceBankAccountsNewRouteImport } from './routes/_authenticated/compliance.bank-accounts.new'
@@ -205,6 +211,11 @@ const AuthenticatedNotificationsRoute =
 const AuthenticatedKycRoute = AuthenticatedKycRouteImport.update({
   id: '/kyc',
   path: '/kyc',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedHelpRoute = AuthenticatedHelpRouteImport.update({
+  id: '/help',
+  path: '/help',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedDisputesRoute = AuthenticatedDisputesRouteImport.update({
@@ -392,6 +403,12 @@ const AuthenticatedTeamsApiKeysRoute =
     path: '/api-keys',
     getParentRoute: () => AuthenticatedTeamsRoute,
   } as any)
+const AuthenticatedSupportStatusRoute =
+  AuthenticatedSupportStatusRouteImport.update({
+    id: '/support/status',
+    path: '/support/status',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedSettingsWebhooksRoute =
   AuthenticatedSettingsWebhooksRouteImport.update({
     id: '/webhooks',
@@ -505,6 +522,11 @@ const AuthenticatedOnboardingPendienteRoute =
     path: '/onboarding/pendiente',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedHelpSlugRoute = AuthenticatedHelpSlugRouteImport.update({
+  id: '/$slug',
+  path: '/$slug',
+  getParentRoute: () => AuthenticatedHelpRoute,
+} as any)
 const AuthenticatedDisputesNewRoute =
   AuthenticatedDisputesNewRouteImport.update({
     id: '/new',
@@ -623,6 +645,12 @@ const AuthenticatedTransactionsIdIndexRoute =
     path: '/',
     getParentRoute: () => AuthenticatedTransactionsIdRoute,
   } as any)
+const AuthenticatedSupportTicketsIndexRoute =
+  AuthenticatedSupportTicketsIndexRouteImport.update({
+    id: '/support/tickets/',
+    path: '/support/tickets/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedComplianceBankAccountsIndexRoute =
   AuthenticatedComplianceBankAccountsIndexRouteImport.update({
     id: '/',
@@ -663,6 +691,18 @@ const AuthenticatedTransactionsIdExpedienteRoute =
     path: '/expediente',
     getParentRoute: () => AuthenticatedTransactionsIdRoute,
   } as any)
+const AuthenticatedSupportTicketsNewRoute =
+  AuthenticatedSupportTicketsNewRouteImport.update({
+    id: '/support/tickets/new',
+    path: '/support/tickets/new',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedSupportTicketsIdRoute =
+  AuthenticatedSupportTicketsIdRouteImport.update({
+    id: '/support/tickets/$id',
+    path: '/support/tickets/$id',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedSettingsOrganizationNewRoute =
   AuthenticatedSettingsOrganizationNewRouteImport.update({
     id: '/new',
@@ -696,6 +736,7 @@ export interface FileRoutesByFullPath {
   '/cumplimiento': typeof AuthenticatedCumplimientoRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/disputes': typeof AuthenticatedDisputesRouteWithChildren
+  '/help': typeof AuthenticatedHelpRouteWithChildren
   '/kyc': typeof AuthenticatedKycRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
   '/payments': typeof AuthenticatedPaymentsRouteWithChildren
@@ -725,6 +766,7 @@ export interface FileRoutesByFullPath {
   '/crm/search': typeof AuthenticatedCrmSearchRoute
   '/disputes/$id': typeof AuthenticatedDisputesIdRoute
   '/disputes/new': typeof AuthenticatedDisputesNewRoute
+  '/help/$slug': typeof AuthenticatedHelpSlugRoute
   '/onboarding/pendiente': typeof AuthenticatedOnboardingPendienteRoute
   '/payments/$id': typeof AuthenticatedPaymentsIdRoute
   '/payments/fiscal': typeof AuthenticatedPaymentsFiscalRoute
@@ -744,6 +786,7 @@ export interface FileRoutesByFullPath {
   '/settings/support': typeof AuthenticatedSettingsSupportRoute
   '/settings/team': typeof AuthenticatedSettingsTeamRoute
   '/settings/webhooks': typeof AuthenticatedSettingsWebhooksRoute
+  '/support/status': typeof AuthenticatedSupportStatusRoute
   '/teams/api-keys': typeof AuthenticatedTeamsApiKeysRoute
   '/teams/approvals': typeof AuthenticatedTeamsApprovalsRoute
   '/teams/audit': typeof AuthenticatedTeamsAuditRoute
@@ -774,6 +817,8 @@ export interface FileRoutesByFullPath {
   '/compliance/bank-accounts/new': typeof AuthenticatedComplianceBankAccountsNewRoute
   '/profile/banking/verify': typeof AuthenticatedProfileBankingVerifyRoute
   '/settings/organization/new': typeof AuthenticatedSettingsOrganizationNewRoute
+  '/support/tickets/$id': typeof AuthenticatedSupportTicketsIdRoute
+  '/support/tickets/new': typeof AuthenticatedSupportTicketsNewRoute
   '/transactions/$id/expediente': typeof AuthenticatedTransactionsIdExpedienteRoute
   '/admin/documentos/$reviewId': typeof BackofficeAdminDocumentosReviewIdRoute
   '/api/public/hooks/dispute-deadlines': typeof ApiPublicHooksDisputeDeadlinesRoute
@@ -781,6 +826,7 @@ export interface FileRoutesByFullPath {
   '/api/public/stripe/webhook': typeof ApiPublicStripeWebhookRoute
   '/api/public/v1/transactions': typeof ApiPublicV1TransactionsRoute
   '/compliance/bank-accounts/': typeof AuthenticatedComplianceBankAccountsIndexRoute
+  '/support/tickets/': typeof AuthenticatedSupportTicketsIndexRoute
   '/transactions/$id/': typeof AuthenticatedTransactionsIdIndexRoute
   '/admin/documentos/': typeof BackofficeAdminDocumentosIndexRoute
 }
@@ -795,6 +841,7 @@ export interface FileRoutesByTo {
   '/approvals': typeof AuthenticatedApprovalsRoute
   '/cumplimiento': typeof AuthenticatedCumplimientoRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/help': typeof AuthenticatedHelpRouteWithChildren
   '/kyc': typeof AuthenticatedKycRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
   '/payments': typeof AuthenticatedPaymentsRouteWithChildren
@@ -820,6 +867,7 @@ export interface FileRoutesByTo {
   '/crm/search': typeof AuthenticatedCrmSearchRoute
   '/disputes/$id': typeof AuthenticatedDisputesIdRoute
   '/disputes/new': typeof AuthenticatedDisputesNewRoute
+  '/help/$slug': typeof AuthenticatedHelpSlugRoute
   '/onboarding/pendiente': typeof AuthenticatedOnboardingPendienteRoute
   '/payments/$id': typeof AuthenticatedPaymentsIdRoute
   '/payments/fiscal': typeof AuthenticatedPaymentsFiscalRoute
@@ -839,6 +887,7 @@ export interface FileRoutesByTo {
   '/settings/support': typeof AuthenticatedSettingsSupportRoute
   '/settings/team': typeof AuthenticatedSettingsTeamRoute
   '/settings/webhooks': typeof AuthenticatedSettingsWebhooksRoute
+  '/support/status': typeof AuthenticatedSupportStatusRoute
   '/teams/api-keys': typeof AuthenticatedTeamsApiKeysRoute
   '/teams/approvals': typeof AuthenticatedTeamsApprovalsRoute
   '/teams/audit': typeof AuthenticatedTeamsAuditRoute
@@ -868,6 +917,8 @@ export interface FileRoutesByTo {
   '/compliance/bank-accounts/new': typeof AuthenticatedComplianceBankAccountsNewRoute
   '/profile/banking/verify': typeof AuthenticatedProfileBankingVerifyRoute
   '/settings/organization/new': typeof AuthenticatedSettingsOrganizationNewRoute
+  '/support/tickets/$id': typeof AuthenticatedSupportTicketsIdRoute
+  '/support/tickets/new': typeof AuthenticatedSupportTicketsNewRoute
   '/transactions/$id/expediente': typeof AuthenticatedTransactionsIdExpedienteRoute
   '/admin/documentos/$reviewId': typeof BackofficeAdminDocumentosReviewIdRoute
   '/api/public/hooks/dispute-deadlines': typeof ApiPublicHooksDisputeDeadlinesRoute
@@ -875,6 +926,7 @@ export interface FileRoutesByTo {
   '/api/public/stripe/webhook': typeof ApiPublicStripeWebhookRoute
   '/api/public/v1/transactions': typeof ApiPublicV1TransactionsRoute
   '/compliance/bank-accounts': typeof AuthenticatedComplianceBankAccountsIndexRoute
+  '/support/tickets': typeof AuthenticatedSupportTicketsIndexRoute
   '/transactions/$id': typeof AuthenticatedTransactionsIdIndexRoute
   '/admin/documentos': typeof BackofficeAdminDocumentosIndexRoute
 }
@@ -895,6 +947,7 @@ export interface FileRoutesById {
   '/_authenticated/cumplimiento': typeof AuthenticatedCumplimientoRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/disputes': typeof AuthenticatedDisputesRouteWithChildren
+  '/_authenticated/help': typeof AuthenticatedHelpRouteWithChildren
   '/_authenticated/kyc': typeof AuthenticatedKycRoute
   '/_authenticated/notifications': typeof AuthenticatedNotificationsRoute
   '/_authenticated/payments': typeof AuthenticatedPaymentsRouteWithChildren
@@ -924,6 +977,7 @@ export interface FileRoutesById {
   '/_authenticated/crm/search': typeof AuthenticatedCrmSearchRoute
   '/_authenticated/disputes/$id': typeof AuthenticatedDisputesIdRoute
   '/_authenticated/disputes/new': typeof AuthenticatedDisputesNewRoute
+  '/_authenticated/help/$slug': typeof AuthenticatedHelpSlugRoute
   '/_authenticated/onboarding/pendiente': typeof AuthenticatedOnboardingPendienteRoute
   '/_authenticated/payments/$id': typeof AuthenticatedPaymentsIdRoute
   '/_authenticated/payments/fiscal': typeof AuthenticatedPaymentsFiscalRoute
@@ -943,6 +997,7 @@ export interface FileRoutesById {
   '/_authenticated/settings/support': typeof AuthenticatedSettingsSupportRoute
   '/_authenticated/settings/team': typeof AuthenticatedSettingsTeamRoute
   '/_authenticated/settings/webhooks': typeof AuthenticatedSettingsWebhooksRoute
+  '/_authenticated/support/status': typeof AuthenticatedSupportStatusRoute
   '/_authenticated/teams/api-keys': typeof AuthenticatedTeamsApiKeysRoute
   '/_authenticated/teams/approvals': typeof AuthenticatedTeamsApprovalsRoute
   '/_authenticated/teams/audit': typeof AuthenticatedTeamsAuditRoute
@@ -973,6 +1028,8 @@ export interface FileRoutesById {
   '/_authenticated/compliance/bank-accounts/new': typeof AuthenticatedComplianceBankAccountsNewRoute
   '/_authenticated/profile/banking/verify': typeof AuthenticatedProfileBankingVerifyRoute
   '/_authenticated/settings/organization/new': typeof AuthenticatedSettingsOrganizationNewRoute
+  '/_authenticated/support/tickets/$id': typeof AuthenticatedSupportTicketsIdRoute
+  '/_authenticated/support/tickets/new': typeof AuthenticatedSupportTicketsNewRoute
   '/_authenticated/transactions/$id/expediente': typeof AuthenticatedTransactionsIdExpedienteRoute
   '/_backoffice/admin/documentos/$reviewId': typeof BackofficeAdminDocumentosReviewIdRoute
   '/api/public/hooks/dispute-deadlines': typeof ApiPublicHooksDisputeDeadlinesRoute
@@ -980,6 +1037,7 @@ export interface FileRoutesById {
   '/api/public/stripe/webhook': typeof ApiPublicStripeWebhookRoute
   '/api/public/v1/transactions': typeof ApiPublicV1TransactionsRoute
   '/_authenticated/compliance/bank-accounts/': typeof AuthenticatedComplianceBankAccountsIndexRoute
+  '/_authenticated/support/tickets/': typeof AuthenticatedSupportTicketsIndexRoute
   '/_authenticated/transactions/$id/': typeof AuthenticatedTransactionsIdIndexRoute
   '/_backoffice/admin/documentos/': typeof BackofficeAdminDocumentosIndexRoute
 }
@@ -999,6 +1057,7 @@ export interface FileRouteTypes {
     | '/cumplimiento'
     | '/dashboard'
     | '/disputes'
+    | '/help'
     | '/kyc'
     | '/notifications'
     | '/payments'
@@ -1028,6 +1087,7 @@ export interface FileRouteTypes {
     | '/crm/search'
     | '/disputes/$id'
     | '/disputes/new'
+    | '/help/$slug'
     | '/onboarding/pendiente'
     | '/payments/$id'
     | '/payments/fiscal'
@@ -1047,6 +1107,7 @@ export interface FileRouteTypes {
     | '/settings/support'
     | '/settings/team'
     | '/settings/webhooks'
+    | '/support/status'
     | '/teams/api-keys'
     | '/teams/approvals'
     | '/teams/audit'
@@ -1077,6 +1138,8 @@ export interface FileRouteTypes {
     | '/compliance/bank-accounts/new'
     | '/profile/banking/verify'
     | '/settings/organization/new'
+    | '/support/tickets/$id'
+    | '/support/tickets/new'
     | '/transactions/$id/expediente'
     | '/admin/documentos/$reviewId'
     | '/api/public/hooks/dispute-deadlines'
@@ -1084,6 +1147,7 @@ export interface FileRouteTypes {
     | '/api/public/stripe/webhook'
     | '/api/public/v1/transactions'
     | '/compliance/bank-accounts/'
+    | '/support/tickets/'
     | '/transactions/$id/'
     | '/admin/documentos/'
   fileRoutesByTo: FileRoutesByTo
@@ -1098,6 +1162,7 @@ export interface FileRouteTypes {
     | '/approvals'
     | '/cumplimiento'
     | '/dashboard'
+    | '/help'
     | '/kyc'
     | '/notifications'
     | '/payments'
@@ -1123,6 +1188,7 @@ export interface FileRouteTypes {
     | '/crm/search'
     | '/disputes/$id'
     | '/disputes/new'
+    | '/help/$slug'
     | '/onboarding/pendiente'
     | '/payments/$id'
     | '/payments/fiscal'
@@ -1142,6 +1208,7 @@ export interface FileRouteTypes {
     | '/settings/support'
     | '/settings/team'
     | '/settings/webhooks'
+    | '/support/status'
     | '/teams/api-keys'
     | '/teams/approvals'
     | '/teams/audit'
@@ -1171,6 +1238,8 @@ export interface FileRouteTypes {
     | '/compliance/bank-accounts/new'
     | '/profile/banking/verify'
     | '/settings/organization/new'
+    | '/support/tickets/$id'
+    | '/support/tickets/new'
     | '/transactions/$id/expediente'
     | '/admin/documentos/$reviewId'
     | '/api/public/hooks/dispute-deadlines'
@@ -1178,6 +1247,7 @@ export interface FileRouteTypes {
     | '/api/public/stripe/webhook'
     | '/api/public/v1/transactions'
     | '/compliance/bank-accounts'
+    | '/support/tickets'
     | '/transactions/$id'
     | '/admin/documentos'
   id:
@@ -1197,6 +1267,7 @@ export interface FileRouteTypes {
     | '/_authenticated/cumplimiento'
     | '/_authenticated/dashboard'
     | '/_authenticated/disputes'
+    | '/_authenticated/help'
     | '/_authenticated/kyc'
     | '/_authenticated/notifications'
     | '/_authenticated/payments'
@@ -1226,6 +1297,7 @@ export interface FileRouteTypes {
     | '/_authenticated/crm/search'
     | '/_authenticated/disputes/$id'
     | '/_authenticated/disputes/new'
+    | '/_authenticated/help/$slug'
     | '/_authenticated/onboarding/pendiente'
     | '/_authenticated/payments/$id'
     | '/_authenticated/payments/fiscal'
@@ -1245,6 +1317,7 @@ export interface FileRouteTypes {
     | '/_authenticated/settings/support'
     | '/_authenticated/settings/team'
     | '/_authenticated/settings/webhooks'
+    | '/_authenticated/support/status'
     | '/_authenticated/teams/api-keys'
     | '/_authenticated/teams/approvals'
     | '/_authenticated/teams/audit'
@@ -1275,6 +1348,8 @@ export interface FileRouteTypes {
     | '/_authenticated/compliance/bank-accounts/new'
     | '/_authenticated/profile/banking/verify'
     | '/_authenticated/settings/organization/new'
+    | '/_authenticated/support/tickets/$id'
+    | '/_authenticated/support/tickets/new'
     | '/_authenticated/transactions/$id/expediente'
     | '/_backoffice/admin/documentos/$reviewId'
     | '/api/public/hooks/dispute-deadlines'
@@ -1282,6 +1357,7 @@ export interface FileRouteTypes {
     | '/api/public/stripe/webhook'
     | '/api/public/v1/transactions'
     | '/_authenticated/compliance/bank-accounts/'
+    | '/_authenticated/support/tickets/'
     | '/_authenticated/transactions/$id/'
     | '/_backoffice/admin/documentos/'
   fileRoutesById: FileRoutesById
@@ -1436,6 +1512,13 @@ declare module '@tanstack/react-router' {
       path: '/kyc'
       fullPath: '/kyc'
       preLoaderRoute: typeof AuthenticatedKycRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/help': {
+      id: '/_authenticated/help'
+      path: '/help'
+      fullPath: '/help'
+      preLoaderRoute: typeof AuthenticatedHelpRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/disputes': {
@@ -1676,6 +1759,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedTeamsApiKeysRouteImport
       parentRoute: typeof AuthenticatedTeamsRoute
     }
+    '/_authenticated/support/status': {
+      id: '/_authenticated/support/status'
+      path: '/support/status'
+      fullPath: '/support/status'
+      preLoaderRoute: typeof AuthenticatedSupportStatusRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/settings/webhooks': {
       id: '/_authenticated/settings/webhooks'
       path: '/webhooks'
@@ -1808,6 +1898,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/onboarding/pendiente'
       preLoaderRoute: typeof AuthenticatedOnboardingPendienteRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/help/$slug': {
+      id: '/_authenticated/help/$slug'
+      path: '/$slug'
+      fullPath: '/help/$slug'
+      preLoaderRoute: typeof AuthenticatedHelpSlugRouteImport
+      parentRoute: typeof AuthenticatedHelpRoute
     }
     '/_authenticated/disputes/new': {
       id: '/_authenticated/disputes/new'
@@ -1949,6 +2046,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedTransactionsIdIndexRouteImport
       parentRoute: typeof AuthenticatedTransactionsIdRoute
     }
+    '/_authenticated/support/tickets/': {
+      id: '/_authenticated/support/tickets/'
+      path: '/support/tickets'
+      fullPath: '/support/tickets/'
+      preLoaderRoute: typeof AuthenticatedSupportTicketsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/compliance/bank-accounts/': {
       id: '/_authenticated/compliance/bank-accounts/'
       path: '/'
@@ -1997,6 +2101,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/transactions/$id/expediente'
       preLoaderRoute: typeof AuthenticatedTransactionsIdExpedienteRouteImport
       parentRoute: typeof AuthenticatedTransactionsIdRoute
+    }
+    '/_authenticated/support/tickets/new': {
+      id: '/_authenticated/support/tickets/new'
+      path: '/support/tickets/new'
+      fullPath: '/support/tickets/new'
+      preLoaderRoute: typeof AuthenticatedSupportTicketsNewRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/support/tickets/$id': {
+      id: '/_authenticated/support/tickets/$id'
+      path: '/support/tickets/$id'
+      fullPath: '/support/tickets/$id'
+      preLoaderRoute: typeof AuthenticatedSupportTicketsIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/settings/organization/new': {
       id: '/_authenticated/settings/organization/new'
@@ -2098,6 +2216,17 @@ const AuthenticatedDisputesRouteWithChildren =
   AuthenticatedDisputesRoute._addFileChildren(
     AuthenticatedDisputesRouteChildren,
   )
+
+interface AuthenticatedHelpRouteChildren {
+  AuthenticatedHelpSlugRoute: typeof AuthenticatedHelpSlugRoute
+}
+
+const AuthenticatedHelpRouteChildren: AuthenticatedHelpRouteChildren = {
+  AuthenticatedHelpSlugRoute: AuthenticatedHelpSlugRoute,
+}
+
+const AuthenticatedHelpRouteWithChildren =
+  AuthenticatedHelpRoute._addFileChildren(AuthenticatedHelpRouteChildren)
 
 interface AuthenticatedPaymentsRouteChildren {
   AuthenticatedPaymentsIdRoute: typeof AuthenticatedPaymentsIdRoute
@@ -2277,6 +2406,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedCumplimientoRoute: typeof AuthenticatedCumplimientoRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedDisputesRoute: typeof AuthenticatedDisputesRouteWithChildren
+  AuthenticatedHelpRoute: typeof AuthenticatedHelpRouteWithChildren
   AuthenticatedKycRoute: typeof AuthenticatedKycRoute
   AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
   AuthenticatedPaymentsRoute: typeof AuthenticatedPaymentsRouteWithChildren
@@ -2289,7 +2419,11 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedComplianceBankAccountsRoute: typeof AuthenticatedComplianceBankAccountsRouteWithChildren
   AuthenticatedOnboardingPendienteRoute: typeof AuthenticatedOnboardingPendienteRoute
   AuthenticatedPldCuestionarioRoute: typeof AuthenticatedPldCuestionarioRoute
+  AuthenticatedSupportStatusRoute: typeof AuthenticatedSupportStatusRoute
   AuthenticatedPldIndexRoute: typeof AuthenticatedPldIndexRoute
+  AuthenticatedSupportTicketsIdRoute: typeof AuthenticatedSupportTicketsIdRoute
+  AuthenticatedSupportTicketsNewRoute: typeof AuthenticatedSupportTicketsNewRoute
+  AuthenticatedSupportTicketsIndexRoute: typeof AuthenticatedSupportTicketsIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -2300,6 +2434,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCumplimientoRoute: AuthenticatedCumplimientoRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedDisputesRoute: AuthenticatedDisputesRouteWithChildren,
+  AuthenticatedHelpRoute: AuthenticatedHelpRouteWithChildren,
   AuthenticatedKycRoute: AuthenticatedKycRoute,
   AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,
   AuthenticatedPaymentsRoute: AuthenticatedPaymentsRouteWithChildren,
@@ -2313,7 +2448,11 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
     AuthenticatedComplianceBankAccountsRouteWithChildren,
   AuthenticatedOnboardingPendienteRoute: AuthenticatedOnboardingPendienteRoute,
   AuthenticatedPldCuestionarioRoute: AuthenticatedPldCuestionarioRoute,
+  AuthenticatedSupportStatusRoute: AuthenticatedSupportStatusRoute,
   AuthenticatedPldIndexRoute: AuthenticatedPldIndexRoute,
+  AuthenticatedSupportTicketsIdRoute: AuthenticatedSupportTicketsIdRoute,
+  AuthenticatedSupportTicketsNewRoute: AuthenticatedSupportTicketsNewRoute,
+  AuthenticatedSupportTicketsIndexRoute: AuthenticatedSupportTicketsIndexRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
