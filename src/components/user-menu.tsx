@@ -51,13 +51,23 @@ export function UserMenu({ email }: { email?: string | null }) {
       </button>
 
       {open && (
-        <div className="absolute right-0 mt-2 w-56 rounded-lg border border-yo-border bg-yo-surface shadow-lg overflow-hidden z-50">
-          {email && (
-            <div className="px-3 py-2 border-b border-yo-border">
-              <p className="text-[11px] text-yo-txt-3">Sesión iniciada como</p>
-              <p className="text-[12.5px] font-medium text-yo-txt truncate">{email}</p>
+        <div className="absolute right-0 mt-2 w-[280px] rounded-xl border border-yo-border bg-yo-surface shadow-xl overflow-hidden z-50">
+          <div className="p-3 border-b border-yo-border bg-[#F5F3FF]">
+            <div className="flex items-center gap-2">
+              <div className="size-8 grid place-items-center rounded-lg bg-[#7C3AED] text-white overflow-hidden">
+                {avatar ? (
+                  <img src={avatar} alt="" className="size-full object-cover" />
+                ) : (
+                  <UserCircle className="size-4" />
+                )}
+              </div>
+              <div className="min-w-0">
+                <p className="text-[13px] font-semibold text-yo-txt truncate">Mi cuenta</p>
+                <p className="text-[11px] text-yo-txt-3 truncate">{email ?? "Sesión activa"}</p>
+              </div>
             </div>
-          )}
+          </div>
+          <div className="p-2">
           <Link
             to="/profile"
             onClick={() => setOpen(false)}
