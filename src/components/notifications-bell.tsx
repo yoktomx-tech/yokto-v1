@@ -55,9 +55,9 @@ export function NotificationsBell({ userId }: { userId: string }) {
 
       {open && (
         <div className="absolute right-0 mt-2 w-[340px] max-h-[70vh] overflow-auto border border-yo-border bg-yo-surface rounded-xl shadow-xl z-50">
-          <div className="p-3 border-b border-yo-border bg-[#F5F3FF]">
+          <div className="p-3 border-b border-yo-border bg-yo-ac-bg">
             <div className="flex items-center gap-2">
-              <div className="size-8 grid place-items-center rounded-lg bg-[#7C3AED] text-white">
+              <div className="size-8 grid place-items-center rounded-lg bg-yo-ac text-white">
                 <Bell className="size-4" />
               </div>
               <div className="flex-1 min-w-0">
@@ -67,7 +67,7 @@ export function NotificationsBell({ userId }: { userId: string }) {
                 </p>
               </div>
               {unread > 0 && (
-                <button onClick={markAll} className="text-[11px] font-medium text-[#7C3AED] hover:underline">
+                <button onClick={markAll} className="text-[11px] font-medium text-yo-ac hover:underline">
                   Marcar leídas
                 </button>
               )}

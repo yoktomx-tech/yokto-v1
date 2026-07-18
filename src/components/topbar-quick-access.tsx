@@ -41,7 +41,7 @@ export function TopbarQuickAccess() {
         {(hasOpenTickets || critical) && (
           <span className={cn(
             "absolute -top-0.5 -right-0.5 size-2 rounded-full ring-2 ring-yo-surface",
-            critical ? "bg-yo-err" : "bg-[#7C3AED]",
+            critical ? "bg-yo-err" : "bg-yo-ac",
           )} />
         )}
       </button>
@@ -50,9 +50,9 @@ export function TopbarQuickAccess() {
         <>
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
           <div className="absolute right-0 mt-2 w-[340px] z-50 rounded-xl border border-yo-border bg-yo-surface shadow-xl overflow-hidden">
-            <div className="p-3 border-b border-yo-border bg-[#F5F3FF]">
+            <div className="p-3 border-b border-yo-border bg-yo-ac-bg">
               <div className="flex items-center gap-2">
-                <div className="size-8 grid place-items-center rounded-lg bg-[#7C3AED] text-white">
+                <div className="size-8 grid place-items-center rounded-lg bg-yo-ac text-white">
                   <HelpCircle className="size-4" />
                 </div>
                 <div>
@@ -73,7 +73,7 @@ export function TopbarQuickAccess() {
                     }
                   }}
                   placeholder="Buscar en Centro de Ayuda…"
-                  className="w-full h-9 pl-8 pr-14 rounded-lg bg-yo-bg border border-yo-border text-sm focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/30"
+                  className="w-full h-9 pl-8 pr-14 rounded-lg bg-yo-bg border border-yo-border text-sm focus:outline-none focus:ring-2 focus:ring-yo-ac/30"
                 />
                 <kbd className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] font-mono px-1.5 py-0.5 rounded border border-yo-border text-yo-txt-3 bg-yo-surface">⌘K</kbd>
               </div>
@@ -85,7 +85,7 @@ export function TopbarQuickAccess() {
               <QaItem to="/support/tickets/new" icon={LifeBuoy} label="Crear ticket" onClick={() => setOpen(false)} />
               <QaItem to="/support/tickets" icon={MessageSquare} label="Mis tickets" onClick={() => setOpen(false)}
                 right={openCount > 0 ? (
-                  <span className="min-w-5 h-5 px-1.5 grid place-items-center rounded-full bg-[#7C3AED] text-white text-[10px] font-semibold tabular-nums">{openCount}</span>
+                  <span className="min-w-5 h-5 px-1.5 grid place-items-center rounded-full bg-yo-ac text-white text-[10px] font-semibold tabular-nums">{openCount}</span>
                 ) : null} />
 
               <QaItem to="/support/status" icon={Activity} label="Estado de plataforma" onClick={() => setOpen(false)}
