@@ -1,32 +1,74 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { getRequest, getRequestIP } from "@tanstack/react-start/server";
 
 const uuid = z.string().uuid();
 
 type Priority = "low" | "normal" | "high" | "urgent";
 type Plan = "free" | "pro" | "enterprise";
 
-function calcPriority(input: { module?: string | null; escalation?: string | null; hasDispute?: boolean }): Priority {
+/** Prioridad automática según módulo, escalamiento y plan. */
+function calcPriority(input: {
+  module?: string | null;
+  escalation?: string | null;
+  hasDispute?: boolean;
+  isLiveChat?: boolean;
+  plan: Plan;
+}): Priority {
   if (input.escalation && input.escalation !== "none") return "urgent";
+  if (input.isLiveChat) return "urgent";
+  if (input.plan === "enterprise") {
+    if (input.hasDispute || input.module === "payments" || input.module === "disputes") return "urgent";
+    return "high";
+  }
   if (input.hasDispute) return "high";
   if (input.module === "payments" || input.module === "disputes") return "high";
+  if (input.plan === "pro") return "high";
   return "normal";
 }
 
-function calcSla(plan: Plan): { firstResponseHrs: number; resolutionHrs: number } {
+/** SLA en horas — congelado en el ticket al crearse. */
+function calcSla(plan: Plan, isLiveChat: boolean): { firstResponseHrs: number; resolutionHrs: number } {
+  if (isLiveChat) return { firstResponseHrs: 0.25, resolutionHrs: 4 }; // 15 min
   switch (plan) {
     case "enterprise": return { firstResponseHrs: 2, resolutionHrs: 12 };
-    case "pro": return { firstResponseHrs: 6, resolutionHrs: 24 };
-    default: return { firstResponseHrs: 24, resolutionHrs: 72 };
+    case "pro":        return { firstResponseHrs: 6, resolutionHrs: 24 };
+    default:           return { firstResponseHrs: 24, resolutionHrs: 72 };
   }
 }
+
+
+const MAX_ATTACHMENT_BYTES = 15 * 1024 * 1024;
+const ALLOWED_MIME = new Set<string>([
+  "application/pdf",
+  "image/png", "image/jpeg", "image/webp",
+  "text/plain", "text/csv",
+  "application/xml", "text/xml",
+  "application/json",
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+]);
 
 // ============ QUICK ACCESS CONTEXT ============
 export const getQuickAccessContext = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { supabase, userId } = context;
+
+    // Derivar el plan más alto entre las organizaciones donde el usuario es miembro activo.
+    const { data: memberships } = await supabase
+      .from("memberships").select("org_id, status").eq("user_id", userId).eq("status", "active");
+    const orgIds = (memberships ?? []).map((m: { org_id: string }) => m.org_id);
+    let plan: Plan = "free";
+    if (orgIds.length) {
+      const { data: orgs } = await supabase.from("organizations").select("plan").in("id", orgIds);
+      for (const o of orgs ?? []) {
+        const p = (o.plan as Plan) ?? "free";
+        if (p === "enterprise") { plan = "enterprise"; break; }
+        if (p === "pro" && plan === "free") plan = "pro";
+      }
+    }
 
     const [tx, tickets, disputes, incidents] = await Promise.all([
       supabase.from("transactions").select("id", { count: "exact", head: true }).eq("status", "pending_action" as never),
@@ -44,7 +86,7 @@ export const getQuickAccessContext = createServerFn({ method: "GET" })
       activeDisputes: disputes.count ?? 0,
       hasPending: pending > 0,
       criticalIncident,
-      plan: "free" as Plan, // Placeholder: organización.plan (upgrade path)
+      plan,
     };
   });
 
@@ -59,6 +101,7 @@ export const createSupportTicket = createServerFn({ method: "POST" })
     activeView?: "buyer" | "seller" | null;
     relatedTransactionId?: string | null;
     relatedDisputeId?: string | null;
+    isLiveChat?: boolean;
   }) => z.object({
     subject: z.string().trim().min(4).max(160),
     description: z.string().trim().min(10).max(4000),
@@ -67,40 +110,51 @@ export const createSupportTicket = createServerFn({ method: "POST" })
     activeView: z.enum(["buyer","seller"]).nullish(),
     relatedTransactionId: uuid.nullish(),
     relatedDisputeId: uuid.nullish(),
+    isLiveChat: z.boolean().optional(),
   }).parse(d))
   .handler(async ({ context, data }) => {
     const { supabase, userId } = context;
 
-    // Auditor cannot create tickets
+    // Auditor no puede crear tickets
     if (data.orgId) {
       const { data: mem } = await supabase.from("memberships")
         .select("org_role,status").eq("org_id", data.orgId).eq("user_id", userId).maybeSingle();
       if (mem?.org_role === "auditor") throw new Error("Los auditores no pueden abrir tickets.");
     }
 
-    // Freeze context server-side
+    // Congelar contexto server-side (no confiar en el cliente)
     const { data: rolesRow } = await supabase.from("user_roles").select("role").eq("user_id", userId);
     const { data: membership } = data.orgId ? await supabase.from("memberships")
       .select("org_role,status").eq("org_id", data.orgId).eq("user_id", userId).maybeSingle() : { data: null };
     const { data: org } = data.orgId ? await supabase.from("organizations")
-      .select("id,name,type,kyb_status").eq("id", data.orgId).maybeSingle() : { data: null };
+      .select("id,name,type,kyb_status,plan").eq("id", data.orgId).maybeSingle() : { data: null };
+    const plan: Plan = (org?.plan as Plan) ?? "free";
 
-    const plan: Plan = "free"; // TODO: derive from org billing when available
-    const priority = calcPriority({ module: data.module, hasDispute: !!data.relatedDisputeId });
-    const sla = calcSla(plan);
+    // Live chat solo para Pro/Enterprise
+    const isLiveChat = !!data.isLiveChat && (plan === "pro" || plan === "enterprise");
+    if (data.isLiveChat && !isLiveChat) {
+      throw new Error("El chat en vivo está disponible solo para los planes Profesional y Enterprise.");
+    }
+
+    const priority = calcPriority({
+      module: data.module,
+      hasDispute: !!data.relatedDisputeId,
+      isLiveChat,
+      plan,
+    });
+    const sla = calcSla(plan, isLiveChat);
     const now = new Date();
     const firstResp = new Date(now.getTime() + sla.firstResponseHrs * 3600_000);
     const resolution = new Date(now.getTime() + sla.resolutionHrs * 3600_000);
 
     const contextoFrozen = {
       user_roles: (rolesRow ?? []).map((r: { role: string }) => r.role),
-      org_id: data.orgId ?? null,
-      org_name: org?.name ?? null,
-      org_type: org?.type ?? null,
-      kyb_status: org?.kyb_status ?? null,
-      org_role: membership?.org_role ?? null,
+      membership: membership ? { org_role: membership.org_role, status: membership.status } : null,
+      org: org ? { id: org.id, name: org.name, type: org.type, kyb_status: org.kyb_status, plan } : null,
       active_view: data.activeView ?? null,
       plan,
+      is_live_chat: isLiveChat,
+      sla: { first_response_hrs: sla.firstResponseHrs, resolution_hrs: sla.resolutionHrs },
       frozen_at: now.toISOString(),
     };
 
@@ -110,28 +164,29 @@ export const createSupportTicket = createServerFn({ method: "POST" })
       org_id: data.orgId ?? null,
       subject: data.subject,
       description: data.description,
-      module: data.module ?? null,
+      module: isLiveChat ? "live_chat" : (data.module ?? null),
       related_transaction_id: data.relatedTransactionId ?? null,
       related_dispute_id: data.relatedDisputeId ?? null,
       status: "open",
       priority,
       plan,
+      is_live_chat: isLiveChat,
       contexto_rol_congelado: contextoFrozen as never,
       sla_first_response_at: firstResp.toISOString(),
       sla_resolution_at: resolution.toISOString(),
-    }).select("id, numero").single();
+    }).select("id, numero, is_live_chat, priority, plan, sla_first_response_at").single();
     if (error) throw new Error(error.message);
 
     return created;
   });
 
-// ============ LIST TICKETS (own + org admin visibility via RLS) ============
+// ============ LIST / GET ============
 export const listMyTickets = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { data, error } = await context.supabase
       .from("support_tickets")
-      .select("id, numero, subject, module, status, priority, escalation, created_at, updated_at, org_id, user_id")
+      .select("id, numero, subject, module, status, priority, escalation, created_at, updated_at, org_id, user_id, is_live_chat, plan")
       .order("created_at", { ascending: false })
       .limit(200);
     if (error) throw new Error(error.message);
@@ -153,20 +208,121 @@ export const getTicket = createServerFn({ method: "GET" })
       .eq("ticket_id", data.id).eq("is_internal_note", false)
       .order("created_at", { ascending: true });
 
-    return { ticket, messages: messages ?? [] };
+    const { data: attachments } = await context.supabase
+      .from("support_attachments")
+      .select("id, ticket_id, message_id, file_name, mime_type, size_bytes, storage_path, uploaded_by, created_at")
+      .eq("ticket_id", data.id)
+      .order("created_at", { ascending: true });
+
+    return { ticket, messages: messages ?? [], attachments: attachments ?? [] };
   });
 
 export const addTicketMessage = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { ticketId: string; body: string }) =>
-    z.object({ ticketId: uuid, body: z.string().trim().min(1).max(4000) }).parse(d))
+  .inputValidator((d: { ticketId: string; body: string; attachmentIds?: string[] }) =>
+    z.object({
+      ticketId: uuid,
+      body: z.string().trim().min(1).max(4000),
+      attachmentIds: z.array(uuid).max(10).optional(),
+    }).parse(d))
   .handler(async ({ context, data }) => {
     const { userId } = context;
-    const { error } = await context.supabase.from("support_messages").insert({
+    const { data: msg, error } = await context.supabase.from("support_messages").insert({
       ticket_id: data.ticketId, author_id: userId, author_kind: "user", body: data.body, is_internal_note: false,
-    });
+    }).select("id").single();
     if (error) throw new Error(error.message);
-    return { ok: true };
+
+    if (data.attachmentIds?.length) {
+      await context.supabase.from("support_attachments")
+        .update({ message_id: msg.id })
+        .in("id", data.attachmentIds)
+        .eq("ticket_id", data.ticketId)
+        .eq("uploaded_by", userId);
+    }
+    return { ok: true, messageId: msg.id };
+  });
+
+// ============ ATTACHMENTS ============
+export const createAttachmentUploadUrl = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { ticketId: string; fileName: string; mimeType: string; sizeBytes: number }) =>
+    z.object({
+      ticketId: uuid,
+      fileName: z.string().trim().min(1).max(160),
+      mimeType: z.string().trim().min(1).max(120),
+      sizeBytes: z.number().int().positive().max(MAX_ATTACHMENT_BYTES, "Máximo 15 MB por archivo."),
+    }).parse(d))
+  .handler(async ({ context, data }) => {
+    const { userId } = context;
+    if (!ALLOWED_MIME.has(data.mimeType)) {
+      throw new Error("Tipo de archivo no permitido. Formatos aceptados: PDF, imágenes, texto, XML, CSV, JSON, Office.");
+    }
+    // Verify the caller can access the ticket
+    const { data: ticket } = await context.supabase.from("support_tickets")
+      .select("id").eq("id", data.ticketId).maybeSingle();
+    if (!ticket) throw new Error("Ticket no encontrado.");
+
+    const safeName = data.fileName.replace(/[^\w.\-]+/g, "_").slice(0, 120);
+    const objectPath = `${data.ticketId}/${crypto.randomUUID()}-${safeName}`;
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: signed, error } = await supabaseAdmin.storage
+      .from("support-attachments")
+      .createSignedUploadUrl(objectPath);
+    if (error || !signed) throw new Error(error?.message ?? "No se pudo firmar la URL de carga.");
+
+    // Pre-registrar el adjunto (sin message_id aún). El cliente adjunta a un mensaje al enviarlo.
+    const { data: att, error: attErr } = await supabaseAdmin.from("support_attachments").insert({
+      ticket_id: data.ticketId,
+      uploaded_by: userId,
+      file_name: safeName,
+      mime_type: data.mimeType,
+      size_bytes: data.sizeBytes,
+      storage_path: objectPath,
+    }).select("id").single();
+    if (attErr) throw new Error(attErr.message);
+
+    return {
+      attachmentId: att.id,
+      uploadUrl: signed.signedUrl,
+      token: signed.token,
+      path: objectPath,
+      maxBytes: MAX_ATTACHMENT_BYTES,
+    };
+  });
+
+/** Firma una URL de descarga (60s) y registra la descarga en la auditoría. */
+export const getAttachmentDownloadUrl = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { attachmentId: string }) =>
+    z.object({ attachmentId: uuid }).parse(d))
+  .handler(async ({ context, data }) => {
+    const { userId } = context;
+    // Comprobar acceso vía RLS
+    const { data: att, error } = await context.supabase.from("support_attachments")
+      .select("id, ticket_id, storage_path, file_name")
+      .eq("id", data.attachmentId).maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!att) throw new Error("Adjunto no encontrado o sin acceso.");
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: signed, error: sErr } = await supabaseAdmin.storage
+      .from("support-attachments")
+      .createSignedUrl(att.storage_path, 60, { download: att.file_name });
+    if (sErr || !signed) throw new Error(sErr?.message ?? "No se pudo firmar la URL de descarga.");
+
+    // Auditar la descarga
+    const req = getRequest();
+    const ua = req?.headers.get("user-agent") ?? null;
+    let ip: string | null = null;
+    try { ip = getRequestIP({ xForwardedFor: true }) ?? null; } catch { ip = null; }
+    await supabaseAdmin.from("support_attachment_downloads").insert({
+      attachment_id: att.id, ticket_id: att.ticket_id,
+      user_id: userId, user_kind: "user",
+      ip: ip as never, user_agent: ua,
+    });
+
+    return { url: signed.signedUrl, fileName: att.file_name };
   });
 
 // ============ HELP CENTER ============
