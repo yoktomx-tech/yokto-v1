@@ -64,9 +64,9 @@ export const globalSearch = createServerFn({ method: "POST" })
         kind: "dispute",
         id: d.id,
         title: d.numero ?? "Disputa",
-        subtitle: d.motivo ?? null,
+        subtitle: d.reason_description ?? d.reason_code ?? null,
         to: `/disputes/${d.id}`,
-        meta: d.estado ?? null,
+        meta: d.status ?? null,
       });
     }
     for (const t of tksRes.data ?? []) {
