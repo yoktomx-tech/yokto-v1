@@ -156,27 +156,28 @@
 .dark {
   color-scheme: dark;
 
-  /* Paleta v3 dark — inversión semántica de tokens `yo-*` */
-  --yo-bg:       #0A0A0B;
-  --yo-surface:  #131316;
-  --yo-raised:   #1C1C21;
-  --yo-border:   #26262C;
-  --yo-border-s: #35353D;
+  /* Paleta v3 dark — YOKTO Dark Theme */
+  --yo-bg:       #09090B;
+  --yo-surface:  #111113;
+  --yo-raised:   #18181B;
+  --yo-hover:    #1F1F23;
+  --yo-border:   #27272A;
+  --yo-border-s: #3F3F46;
 
-  --yo-txt:      #F4F4F5;
-  --yo-txt-2:    #C4C4C8;
-  --yo-txt-3:    #8A8A93;
-  --yo-txt-4:    #5A5A63;
+  --yo-txt:      #FAFAFA;
+  --yo-txt-2:    #D4D4D8;
+  --yo-txt-3:    #A1A1AA;
+  --yo-txt-4:    #71717A;
 
-  --yo-ac:       #818CF8;
-  --yo-ac-h:     #A5B4FC;
-  --yo-ac-bg:    #1E1B3A;
-  --yo-ac-txt:   #C7D2FE;
+  --yo-ac:       #8B5CF6;
+  --yo-ac-h:     #A78BFA;
+  --yo-ac-bg:    #1E1B4B;
+  --yo-ac-txt:   #C4B5FD;
 
-  --yo-ok:       #34D399;  --yo-ok-bg:   #052E22;
-  --yo-err:      #F87171;  --yo-err-bg:  #3B0F10;
-  --yo-warn:     #FBBF24;  --yo-warn-bg: #3A2A05;
-  --yo-info:     #38BDF8;  --yo-info-bg: #082A3D;
+  --yo-ok:       #10B981;  --yo-ok-bg:   #052E24;
+  --yo-err:      #EF4444;  --yo-err-bg:  #450A0A;
+  --yo-warn:     #F59E0B;  --yo-warn-bg: #451A03;
+  --yo-info:     #38BDF8;  --yo-info-bg: #082F49;
 
   --background: var(--yo-bg);
   --foreground: var(--yo-txt);
@@ -184,8 +185,8 @@
   --card-foreground: var(--yo-txt);
   --popover: var(--yo-surface);
   --popover-foreground: var(--yo-txt);
-  --primary: var(--yo-ac);
-  --primary-foreground: #0A0A0B;
+  --primary: #FFFFFF;
+  --primary-foreground: #09090B;
   --secondary: var(--yo-raised);
   --secondary-foreground: var(--yo-txt);
   --muted: var(--yo-raised);
