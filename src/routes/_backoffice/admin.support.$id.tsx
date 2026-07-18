@@ -57,10 +57,10 @@ function AdminTicket() {
           <AdminCard>
             <p className="text-[11px] uppercase tracking-wider text-yo-txt-3 font-semibold mb-2">Descripción original</p>
             <p className="text-sm text-yo-txt-2 whitespace-pre-wrap">{ticket.description}</p>
-            {ticket.context_snapshot && (
+            {ticket.contexto_rol_congelado && (
               <details className="mt-3 text-xs">
                 <summary className="cursor-pointer text-yo-txt-3">Ver contexto congelado</summary>
-                <pre className="mt-2 p-2 rounded bg-yo-bg text-[11px] overflow-auto">{JSON.stringify(ticket.context_snapshot, null, 2)}</pre>
+                <pre className="mt-2 p-2 rounded bg-yo-bg text-[11px] overflow-auto">{JSON.stringify(ticket.contexto_rol_congelado, null, 2)}</pre>
               </details>
             )}
           </AdminCard>
@@ -162,7 +162,7 @@ function AdminTicket() {
             <dl className="text-xs space-y-1">
               <div className="flex justify-between"><dt className="text-yo-txt-3">Módulo</dt><dd>{ticket.module ?? "—"}</dd></div>
               <div className="flex justify-between"><dt className="text-yo-txt-3">Escalamiento</dt><dd>{ticket.escalation}</dd></div>
-              <div className="flex justify-between"><dt className="text-yo-txt-3">Vista activa</dt><dd>{ticket.active_view ?? "—"}</dd></div>
+              <div className="flex justify-between"><dt className="text-yo-txt-3">Plan</dt><dd>{ticket.plan ?? "—"}</dd></div>
               <div className="flex justify-between"><dt className="text-yo-txt-3">Creado</dt><dd className="font-mono">{new Date(ticket.created_at).toLocaleString("es-MX")}</dd></div>
               {ticket.sla_first_response_at && (
                 <div className="flex justify-between"><dt className="text-yo-txt-3">SLA respuesta</dt><dd className="font-mono">{new Date(ticket.sla_first_response_at).toLocaleString("es-MX")}</dd></div>
