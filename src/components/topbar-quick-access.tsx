@@ -1,20 +1,37 @@
 import { useState } from "react";
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import {
   Zap, Search, Plus, FileText, MessageSquare, LifeBuoy, Activity, HelpCircle,
   Sparkles,
 } from "lucide-react";
-import { getQuickAccessContext } from "@/lib/support.functions";
+import { getQuickAccessContext, createSupportTicket } from "@/lib/support.functions";
 import { useViewRole } from "@/hooks/use-view-role";
+import { useCurrentOrg } from "@/hooks/use-current-org";
 import { cn } from "@/lib/utils";
 
 export function TopbarQuickAccess() {
   const [open, setOpen] = useState(false);
   const { role } = useViewRole();
+  const { currentOrg } = useCurrentOrg();
+  const nav = useNavigate();
   const fn = useServerFn(getQuickAccessContext);
+  const createFn = useServerFn(createSupportTicket);
   const { data } = useQuery({ queryKey: ["qa-context"], queryFn: () => fn(), staleTime: 30_000 });
+
+  const startLive = useMutation({
+    mutationFn: () => createFn({ data: {
+      subject: "Chat en vivo",
+      description: "Sesión de chat en vivo iniciada desde acceso rápido.",
+      module: "live_chat", orgId: currentOrg?.id ?? null, activeView: role,
+      isLiveChat: true,
+    } }),
+    onSuccess: (res) => {
+      setOpen(false);
+      nav({ to: "/support/tickets/$id", params: { id: (res as { id: string }).id } });
+    },
+  });
 
   const hasPending = !!data?.hasPending;
   const critical = !!data?.criticalIncident;
