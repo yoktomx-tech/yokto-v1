@@ -70,9 +70,16 @@ function BiometricMobile() {
   if (phase === "error" || !enroll) return <MobileShell><ErrorCard msg={error ?? "Sesión no válida"} /></MobileShell>;
   if (phase === "cancelled") return <MobileShell><Cancelled /></MobileShell>;
 
+  function goToStep(step: "id" | "face") {
+    setError(null);
+    setIdResult(null);
+    if (step === "id") setPhase("id-choose");
+    else setPhase("selfie");
+  }
+
   return (
     <MobileShell>
-      {phase !== "intro" && <Progress phase={phase} enroll={enroll} />}
+      {phase !== "intro" && <Progress phase={phase} enroll={enroll} onJump={goToStep} />}
       {phase === "intro" && <Intro onStart={() => setPhase("id-choose")} enroll={enroll} />}
       {phase === "id-choose" && <IdChoose onChoose={() => setPhase("id-capture")} enroll={enroll} setEnroll={setEnroll} />}
       {phase === "id-capture" && (
