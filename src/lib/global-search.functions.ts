@@ -30,8 +30,8 @@ export const globalSearch = createServerFn({ method: "POST" })
         .limit(6),
       supabase
         .from("disputes")
-        .select("id,numero,motivo,estado")
-        .or(`numero.ilike.${like},motivo.ilike.${like}`)
+        .select("id,numero,reason_code,reason_description,status")
+        .or(`numero.ilike.${like},reason_code.ilike.${like},reason_description.ilike.${like}`)
         .limit(4),
       supabase
         .from("support_tickets")
