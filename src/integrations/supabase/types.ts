@@ -1217,6 +1217,98 @@ export type Database = {
           },
         ]
       }
+      help_articles: {
+        Row: {
+          audience: string[]
+          body_md: string
+          category_id: string | null
+          created_at: string
+          id: string
+          is_published: boolean
+          module: string | null
+          slug: string
+          summary: string | null
+          tags: string[]
+          title: string
+          updated_at: string
+          views: number
+        }
+        Insert: {
+          audience?: string[]
+          body_md?: string
+          category_id?: string | null
+          created_at?: string
+          id?: string
+          is_published?: boolean
+          module?: string | null
+          slug: string
+          summary?: string | null
+          tags?: string[]
+          title: string
+          updated_at?: string
+          views?: number
+        }
+        Update: {
+          audience?: string[]
+          body_md?: string
+          category_id?: string | null
+          created_at?: string
+          id?: string
+          is_published?: boolean
+          module?: string | null
+          slug?: string
+          summary?: string | null
+          tags?: string[]
+          title?: string
+          updated_at?: string
+          views?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "help_articles_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "help_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      help_categories: {
+        Row: {
+          created_at: string
+          description: string | null
+          icon: string | null
+          id: string
+          module: string | null
+          name: string
+          slug: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          module?: string | null
+          name: string
+          slug: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          module?: string | null
+          name?: string
+          slug?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       internal_access_log: {
         Row: {
           created_at: string
@@ -1680,6 +1772,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      platform_incidents: {
+        Row: {
+          body_md: string | null
+          created_at: string
+          id: string
+          resolved_at: string | null
+          service: string
+          severity: Database["public"]["Enums"]["incident_severity"]
+          started_at: string
+          status: Database["public"]["Enums"]["incident_status"]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          body_md?: string | null
+          created_at?: string
+          id?: string
+          resolved_at?: string | null
+          service: string
+          severity?: Database["public"]["Enums"]["incident_severity"]
+          started_at?: string
+          status?: Database["public"]["Enums"]["incident_status"]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          body_md?: string | null
+          created_at?: string
+          id?: string
+          resolved_at?: string | null
+          service?: string
+          severity?: Database["public"]["Enums"]["incident_severity"]
+          started_at?: string
+          status?: Database["public"]["Enums"]["incident_status"]
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       platform_roles: {
         Row: {
@@ -2290,6 +2421,187 @@ export type Database = {
         }
         Relationships: []
       }
+      support_attachments: {
+        Row: {
+          created_at: string
+          file_name: string
+          id: string
+          message_id: string | null
+          mime_type: string | null
+          size_bytes: number | null
+          storage_path: string
+          ticket_id: string
+          uploaded_by: string
+        }
+        Insert: {
+          created_at?: string
+          file_name: string
+          id?: string
+          message_id?: string | null
+          mime_type?: string | null
+          size_bytes?: number | null
+          storage_path: string
+          ticket_id: string
+          uploaded_by: string
+        }
+        Update: {
+          created_at?: string
+          file_name?: string
+          id?: string
+          message_id?: string | null
+          mime_type?: string | null
+          size_bytes?: number | null
+          storage_path?: string
+          ticket_id?: string
+          uploaded_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "support_attachments_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "support_messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "support_attachments_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "support_tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      support_messages: {
+        Row: {
+          author_id: string
+          author_kind: string
+          body: string
+          created_at: string
+          id: string
+          is_internal_note: boolean
+          ticket_id: string
+        }
+        Insert: {
+          author_id: string
+          author_kind?: string
+          body: string
+          created_at?: string
+          id?: string
+          is_internal_note?: boolean
+          ticket_id: string
+        }
+        Update: {
+          author_id?: string
+          author_kind?: string
+          body?: string
+          created_at?: string
+          id?: string
+          is_internal_note?: boolean
+          ticket_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "support_messages_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "support_tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      support_tickets: {
+        Row: {
+          assigned_to: string | null
+          closed_at: string | null
+          contexto_rol_congelado: Json
+          created_at: string
+          description: string
+          escalated_at: string | null
+          escalated_by: string | null
+          escalation: Database["public"]["Enums"]["support_escalation_type"]
+          escalation_reason: string | null
+          first_response_at: string | null
+          id: string
+          module: string | null
+          numero: string | null
+          org_id: string | null
+          plan: string | null
+          priority: Database["public"]["Enums"]["support_ticket_priority"]
+          related_dispute_id: string | null
+          related_transaction_id: string | null
+          resolved_at: string | null
+          sla_first_response_at: string | null
+          sla_resolution_at: string | null
+          status: Database["public"]["Enums"]["support_ticket_status"]
+          subject: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          closed_at?: string | null
+          contexto_rol_congelado?: Json
+          created_at?: string
+          description: string
+          escalated_at?: string | null
+          escalated_by?: string | null
+          escalation?: Database["public"]["Enums"]["support_escalation_type"]
+          escalation_reason?: string | null
+          first_response_at?: string | null
+          id?: string
+          module?: string | null
+          numero?: string | null
+          org_id?: string | null
+          plan?: string | null
+          priority?: Database["public"]["Enums"]["support_ticket_priority"]
+          related_dispute_id?: string | null
+          related_transaction_id?: string | null
+          resolved_at?: string | null
+          sla_first_response_at?: string | null
+          sla_resolution_at?: string | null
+          status?: Database["public"]["Enums"]["support_ticket_status"]
+          subject: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          assigned_to?: string | null
+          closed_at?: string | null
+          contexto_rol_congelado?: Json
+          created_at?: string
+          description?: string
+          escalated_at?: string | null
+          escalated_by?: string | null
+          escalation?: Database["public"]["Enums"]["support_escalation_type"]
+          escalation_reason?: string | null
+          first_response_at?: string | null
+          id?: string
+          module?: string | null
+          numero?: string | null
+          org_id?: string | null
+          plan?: string | null
+          priority?: Database["public"]["Enums"]["support_ticket_priority"]
+          related_dispute_id?: string | null
+          related_transaction_id?: string | null
+          resolved_at?: string | null
+          sla_first_response_at?: string | null
+          sla_resolution_at?: string | null
+          status?: Database["public"]["Enums"]["support_ticket_status"]
+          subject?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "support_tickets_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       transaction_conditions: {
         Row: {
           created_at: string
@@ -2879,6 +3191,12 @@ export type Database = {
       clabe_status: "pending" | "verifying" | "verified" | "failed"
       commission_payer: "buyer" | "seller" | "split"
       condition_status: "pending" | "met" | "rejected"
+      incident_severity: "minor" | "major" | "critical"
+      incident_status:
+        | "investigating"
+        | "identified"
+        | "monitoring"
+        | "resolved"
       industry_sector:
         | "autotransporte"
         | "construccion"
@@ -2954,6 +3272,21 @@ export type Database = {
         | "coincidencia_debil"
         | "coincidencia_fuerte"
         | "error"
+      support_escalation_type:
+        | "none"
+        | "conflict"
+        | "pld_ft"
+        | "financial"
+        | "technical"
+      support_ticket_priority: "low" | "normal" | "high" | "urgent"
+      support_ticket_status:
+        | "open"
+        | "pending_user"
+        | "in_progress"
+        | "escalated"
+        | "resolved"
+        | "closed"
+        | "reopened"
       transaction_status:
         | "draft"
         | "awaiting_funding"
@@ -3100,6 +3433,13 @@ export const Constants = {
       clabe_status: ["pending", "verifying", "verified", "failed"],
       commission_payer: ["buyer", "seller", "split"],
       condition_status: ["pending", "met", "rejected"],
+      incident_severity: ["minor", "major", "critical"],
+      incident_status: [
+        "investigating",
+        "identified",
+        "monitoring",
+        "resolved",
+      ],
       industry_sector: [
         "autotransporte",
         "construccion",
@@ -3183,6 +3523,23 @@ export const Constants = {
         "coincidencia_debil",
         "coincidencia_fuerte",
         "error",
+      ],
+      support_escalation_type: [
+        "none",
+        "conflict",
+        "pld_ft",
+        "financial",
+        "technical",
+      ],
+      support_ticket_priority: ["low", "normal", "high", "urgent"],
+      support_ticket_status: [
+        "open",
+        "pending_user",
+        "in_progress",
+        "escalated",
+        "resolved",
+        "closed",
+        "reopened",
       ],
       transaction_status: [
         "draft",

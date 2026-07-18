@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Maximize2, Minimize2, Moon, Search, Sun } from "lucide-react";
 import { NotificationsBell } from "@/components/notifications-bell";
 import { RoleSelectHeader } from "@/components/role-select";
+import { TopbarQuickAccess } from "@/components/topbar-quick-access";
 import { UserMenu } from "@/components/user-menu";
 import { useTheme } from "@/hooks/use-theme";
 
@@ -42,6 +43,7 @@ export function AppHeader({ email, userId }: { email?: string | null; section?: 
 
 
         <div className="flex items-center gap-1 shrink-0 ml-auto">
+          <TopbarQuickAccess />
           {userId && <NotificationsBell userId={userId} />}
           <button
             onClick={toggleFullscreen}
