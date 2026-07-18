@@ -68,34 +68,34 @@ export function UserMenu({ email }: { email?: string | null }) {
             </div>
           </div>
           <div className="p-2">
-          <Link
-            to="/profile"
-            onClick={() => setOpen(false)}
-            className="flex items-center gap-2 px-3 py-2 text-[13px] text-yo-txt hover:bg-yo-raised"
-          >
-            <User className="size-3.5 text-yo-txt-3" /> Mi perfil
-          </Link>
-          <Link
-            to="/help"
-            onClick={() => setOpen(false)}
-            className="flex items-center gap-2 px-3 py-2 text-[13px] text-yo-txt hover:bg-yo-raised"
-          >
-            <LifeBuoy className="size-3.5 text-yo-txt-3" /> Centro de ayuda y soporte
-          </Link>
-          <Link
-            to="/settings"
-            onClick={() => setOpen(false)}
-            className="flex items-center gap-2 px-3 py-2 text-[13px] text-yo-txt hover:bg-yo-raised"
-          >
-            <Settings className="size-3.5 text-yo-txt-3" /> Configuración
-          </Link>
+            <Link
+              to="/profile"
+              onClick={() => setOpen(false)}
+              className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[13px] text-yo-txt hover:bg-yo-raised transition"
+            >
+              <User className="size-4 text-yo-txt-3" /> Mi perfil
+            </Link>
+            <Link
+              to="/help"
+              onClick={() => setOpen(false)}
+              className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[13px] text-yo-txt hover:bg-yo-raised transition"
+            >
+              <LifeBuoy className="size-4 text-yo-txt-3" /> Centro de ayuda y soporte
+            </Link>
+            <Link
+              to="/settings"
+              onClick={() => setOpen(false)}
+              className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[13px] text-yo-txt hover:bg-yo-raised transition"
+            >
+              <Settings className="size-4 text-yo-txt-3" /> Configuración
+            </Link>
+          </div>
           <button
             onClick={signOut}
-            className="w-full flex items-center gap-2 px-3 py-2 text-[13px] text-yo-txt hover:bg-yo-raised border-t border-yo-border"
+            className="w-full flex items-center gap-2.5 px-4 py-2.5 text-[13px] text-yo-txt hover:bg-yo-raised border-t border-yo-border transition"
           >
-            <LogOut className="size-3.5 text-yo-txt-3" /> Cerrar sesión
+            <LogOut className="size-4 text-yo-txt-3" /> Cerrar sesión
           </button>
-        </div>
       )}
     </div>
   );
