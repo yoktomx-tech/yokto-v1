@@ -52,9 +52,9 @@ export function UserMenu({ email }: { email?: string | null }) {
 
       {open && (
         <div className="absolute right-0 mt-2 w-[280px] rounded-xl border border-yo-border bg-yo-surface shadow-xl overflow-hidden z-50">
-          <div className="p-3 border-b border-yo-border bg-[#F5F3FF]">
+          <div className="p-3 border-b border-yo-border bg-yo-ac-bg">
             <div className="flex items-center gap-2">
-              <div className="size-8 grid place-items-center rounded-lg bg-[#7C3AED] text-white overflow-hidden">
+              <div className="size-8 grid place-items-center rounded-lg bg-yo-ac text-white overflow-hidden">
                 {avatar ? (
                   <img src={avatar} alt="" className="size-full object-cover" />
                 ) : (
