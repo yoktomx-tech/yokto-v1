@@ -236,7 +236,7 @@ export const refundTransaction = createServerFn({ method: "POST" })
       .from("transaction_hitos")
       .select("monto_cents")
       .eq("transaction_id", tx.id)
-      .eq("estado", "aprobado");
+      .eq("estado", "APROBADO");
     const yaLiberado =
       hitosLiberados?.reduce((s: number, h: { monto_cents?: number | null }) => s + (h.monto_cents ?? 0), 0) ?? 0;
     const pendiente = Math.max(0, tx.amount_cents - yaLiberado);
