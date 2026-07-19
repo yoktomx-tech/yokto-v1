@@ -17,8 +17,8 @@ ninguno de estos por ti desde este entorno.
 | 1 | Proyecto Supabase staging | Cliente | Supabase Dashboard → New project | §3 Link | metadata pública | `supabase projects list` muestra ref |
 | 2 | `TARGET_STAGING_PROJECT_REF` | Cliente | Anotar del Dashboard → Settings → General | §0 Guards | público | Coincide con ref del proyecto creado |
 | 3 | `TARGET_STAGING_URL` = `https://<ref>.supabase.co` | Auto | Dashboard → Settings → API | §3 | público | `curl -sf $TARGET_STAGING_URL/rest/v1/` |
-| 4 | Anon / Publishable key (staging) | Auto | Dashboard → Settings → API | §14 frontend | público (JWT anon) | Copiar a `.env.staging` |
-| 5 | Service role key (staging) | Auto | Dashboard → Settings → API | §10 secretos | **SECRETO** — sólo Vault y `.env.staging.secrets` (git-ignored) | Nunca en frontend ni en logs |
+| 4 | **Publishable key (staging)** — principal para el frontend | Auto | Dashboard → Settings → API | §14 frontend | público | Copiar a `.env.staging` como `VITE_SUPABASE_PUBLISHABLE_KEY`. `VITE_SUPABASE_ANON_KEY` sólo como fallback legacy temporal. |
+| 5 | Service role key (staging) | Auto | Dashboard → Settings → API | §10 secretos | **SECRETO** — sólo Vault y `.env.staging.secrets` (git-ignored) | Prohibido en frontend, en variables VITE_*, en logs y en el proyecto Lovable |
 | 6 | Password de base de datos (staging) | Cliente | Dashboard → Settings → Database → Reset | §3, §5 | **SECRETO** | `psql "$STAGING_DB_URL" -c 'select 1'` |
 | 7 | Personal Access Token para Supabase CLI | Cliente | Account → Access Tokens | §2 CLI login | **SECRETO** | `supabase login --token ...` OK |
 | 8 | Conexión PostgreSQL directa (`STAGING_DB_URL`) | Cliente | Compuesta con 5+6 | §4–§17 | **SECRETO** | `psql -c 'select current_database()'` |
@@ -34,7 +34,7 @@ ninguno de estos por ti desde este entorno.
 | 18 | `BANK_ACCOUNT_HASH_SECRET` (staging, distinto al prod) | Cliente | Generar con `openssl rand -hex 32` | §10 | **SECRETO** | Longitud >= 32 chars |
 | 19 | `CRON_SECRET` (staging) | Cliente | `openssl rand -hex 32` | §10 crons | **SECRETO** | Hooks aceptan sólo con este token |
 | 20 | `RESEND_API_KEY` (sandbox) o SMTP | Cliente | Resend dashboard | §10 | **SECRETO** | Test email a dirección ficticia |
-| 21 | `GEMINI_API_KEY` (reemplazo de LOVABLE_API_KEY) | Cliente | Google AI Studio → Get API key | §10 (blocker categoría C) | **SECRETO** | `curl -H "x-goog-api-key: ..." https://generativelanguage.googleapis.com/v1beta/models` |
+| 21 | `AI_PROVIDER_API_KEY` (+ `AI_PROVIDER`, `AI_DEFAULT_MODEL`, `AI_MAX_INPUT_TOKENS`, `AI_MAX_OUTPUT_TOKENS`, `AI_REQUEST_TIMEOUT_MS`) — reemplazo de `LOVABLE_API_KEY` | Cliente | Consola del proveedor (Google AI Studio / OpenAI) | §10 (Edge Function `ai-gateway`) | **SECRETO** | Configurar como Edge Function Secrets; probar la función `ai-gateway` desde el frontend staging con un usuario autenticado |
 | 22 | Extensiones (`pg_cron`, `pg_net`, `pgcrypto`) habilitadas | Cliente / auto vía SQL | Dashboard → Database → Extensions o §4 runbook | §4 | público | `select extname from pg_extension` |
 | 23 | Buckets Storage creados | Runbook §12 | Vía SQL | §12 | público metadata | 6 buckets, todos `public=false` |
 | 24 | `pg_cron` jobs (dispute-deadlines, support-sla) | Cliente en dashboard SQL Editor | §9 runbook + `05-edge-functions/README.md` | §9 | metadata pública | `select * from cron.job` |
@@ -52,16 +52,55 @@ ninguno de estos por ti desde este entorno.
 - Cambio de URL productiva del frontend.
 - Cualquier acción sobre `diqdpygummlrajsugotv`.
 
+## Contrato de variables frontend (obligatorio)
+
+`.env.staging` (git-ignored) del frontend sólo debe contener:
+
+```
+VITE_SUPABASE_URL=
+VITE_SUPABASE_PUBLISHABLE_KEY=
+VITE_APP_ENV=staging
+VITE_APP_URL=
+```
+
+Opcional, sólo como fallback legacy temporal (retirar en Fase 1):
+
+```
+# VITE_SUPABASE_ANON_KEY=
+```
+
+Prohibido en `.env.staging` (nunca en el frontend):
+
+- `SUPABASE_SECRET_KEY`, `SUPABASE_SERVICE_ROLE_KEY`
+- `sb_secret_*`, `service_role`
+- Contraseña de la base PostgreSQL
+- Personal Access Token (`sbp_*`)
+- Claves de proveedores (Stripe secret, Nubarium, Verificamex, Copomex, AI)
+- `LOVABLE_API_KEY`
+- Cualquier valor productivo (proyecto `diqdpygummlrajsugotv`)
+
 ## Confirmación previa a §0 del runbook
 
 Antes de correr un solo bloque `# RUN`, tener llenos:
 
-- `.env.staging.local` con: `TARGET_STAGING_PROJECT_REF`, `ENVIRONMENT=staging`,
-  `SUPABASE_ACCESS_TOKEN`, `SUPABASE_DB_PASSWORD`, `STAGING_DB_HOST`,
-  `STAGING_DB_URL`.
-- `.env.staging.secrets` (git-ignored) con TODOS los secretos de
-  proveedores sandbox (filas 5, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21).
-- `.env.staging` (git-ignored) con las VITE_* públicas (filas 3, 4, 10, 11).
+- `.env.staging.local` (estación DevOps) con: `TARGET_STAGING_PROJECT_REF`,
+  `ENVIRONMENT=staging`, `SUPABASE_ACCESS_TOKEN`, `SUPABASE_DB_PASSWORD`,
+  `STAGING_DB_HOST`, `STAGING_DB_URL`.
+- `.env.staging.secrets` (estación DevOps, git-ignored) con TODOS los
+  secretos de proveedores sandbox (filas 5, 12, 13, 14, 15, 16, 17, 18, 19,
+  20, 21).
+- `.env.staging` (frontend, git-ignored) con las VITE_* del contrato de
+  arriba (filas 3, 4, 10, 11).
 - Todos los ítems de la tabla marcados como completos por el operador.
 
 Sin cualquiera de estos, el guard aborta la ejecución.
+
+## Flujo operativo
+
+- Lovable: prepara código, migraciones, pruebas y documentación.
+- Estación DevOps del operador (Supabase CLI + psql + secretos locales):
+  ejecuta el runbook y captura resultados.
+- Supabase staging externo: recibe migraciones, buckets, Edge Functions,
+  Auth, Realtime y secretos de staging.
+- Lovable NO recibe: contraseña de la base, service_role, PATs, claves de
+  proveedores. Lovable NO ejecuta comandos contra el Supabase externo.
