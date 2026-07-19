@@ -10,9 +10,13 @@ import type { Database } from './types';
 export const requireSupabaseAuth = createMiddleware({ type: 'function' }).server(
   async ({ next }) => {
     const url = process.env.SUPABASE_URL;
-    const anon = process.env.SUPABASE_ANON_KEY;
-    if (!url || !anon) {
-      throw new Error('SUPABASE_URL and SUPABASE_ANON_KEY are required on the server');
+    // Contrato principal: SUPABASE_PUBLISHABLE_KEY. Fallback legacy: SUPABASE_ANON_KEY.
+    const publishable =
+      process.env.SUPABASE_PUBLISHABLE_KEY ?? process.env.SUPABASE_ANON_KEY;
+    if (!url || !publishable) {
+      throw new Error(
+        'SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY are required on the server',
+      );
     }
 
     const headers = getRequestHeaders();
@@ -22,7 +26,7 @@ export const requireSupabaseAuth = createMiddleware({ type: 'function' }).server
     }
     const token = auth.slice('Bearer '.length);
 
-    const supabase = createClient<Database>(url, anon, {
+    const supabase = createClient<Database>(url, publishable, {
       auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
       global: { headers: { Authorization: `Bearer ${token}` } },
     });
