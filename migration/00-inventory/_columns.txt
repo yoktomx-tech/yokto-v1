@@ -1,0 +1,809 @@
+api_clients|id|uuid|NO|gen_random_uuid()
+api_clients|owner_id|uuid|NO|
+api_clients|name|text|NO|
+api_clients|key_id|text|NO|
+api_clients|secret_hash|text|NO|
+api_clients|scopes|ARRAY|NO|ARRAY['read'::text]
+api_clients|active|boolean|NO|true
+api_clients|last_used_at|timestamp with time zone|YES|
+api_clients|created_at|timestamp with time zone|NO|now()
+audit_events|id|uuid|NO|gen_random_uuid()
+audit_events|org_id|uuid|YES|
+audit_events|actor_user_id|uuid|YES|
+audit_events|entity_type|text|NO|
+audit_events|entity_id|uuid|YES|
+audit_events|action|text|NO|
+audit_events|before|jsonb|YES|
+audit_events|after|jsonb|YES|
+audit_events|ip|text|YES|
+audit_events|user_agent|text|YES|
+audit_events|created_at|timestamp with time zone|NO|now()
+audit_log|id|uuid|NO|gen_random_uuid()
+audit_log|user_id|uuid|YES|
+audit_log|entity_type|text|NO|
+audit_log|entity_id|text|NO|
+audit_log|action|text|NO|
+audit_log|previous_data|jsonb|YES|
+audit_log|new_data|jsonb|YES|
+audit_log|created_at|timestamp with time zone|NO|now()
+bank_account_penny_tests|id|uuid|NO|gen_random_uuid()
+bank_account_penny_tests|bank_account_id|uuid|NO|
+bank_account_penny_tests|user_id|uuid|NO|
+bank_account_penny_tests|provider|text|NO|'VERIFICAMEX'::text
+bank_account_penny_tests|provider_uuid|text|NO|
+bank_account_penny_tests|provider_status|text|YES|
+bank_account_penny_tests|type|text|NO|
+bank_account_penny_tests|query_masked|text|NO|
+bank_account_penny_tests|name_receiver|text|YES|
+bank_account_penny_tests|rfc_curp_receiver|text|YES|
+bank_account_penny_tests|status|text|NO|'WAITING_RESULT'::text
+bank_account_penny_tests|name_similarity|numeric|YES|
+bank_account_penny_tests|rfc_curp_match|text|YES|
+bank_account_penny_tests|decision_reasons|ARRAY|YES|
+bank_account_penny_tests|raw_response|jsonb|YES|
+bank_account_penny_tests|webhook_events|jsonb|NO|'[]'::jsonb
+bank_account_penny_tests|created_at|timestamp with time zone|NO|now()
+bank_account_penny_tests|updated_at|timestamp with time zone|NO|now()
+bank_account_penny_tests|finished_at|timestamp with time zone|YES|
+bank_accounts|id|uuid|NO|gen_random_uuid()
+bank_accounts|owner_user_id|uuid|YES|
+bank_accounts|owner_org_id|uuid|YES|
+bank_accounts|account_type|text|NO|
+bank_accounts|query_hash|text|NO|
+bank_accounts|query_last4|text|NO|
+bank_accounts|query_masked|text|NO|
+bank_accounts|bank_institution_clave|text|YES|
+bank_accounts|bank_name|text|YES|
+bank_accounts|holder_expected_name|text|NO|
+bank_accounts|holder_expected_rfc|text|YES|
+bank_accounts|holder_expected_curp|text|YES|
+bank_accounts|verification_status|text|NO|'DRAFT'::text
+bank_accounts|is_primary|boolean|NO|false
+bank_accounts|can_receive_payouts|boolean|NO|false
+bank_accounts|can_receive_refunds|boolean|NO|false
+bank_accounts|created_by|uuid|NO|
+bank_accounts|reviewed_by|uuid|YES|
+bank_accounts|reviewed_at|timestamp with time zone|YES|
+bank_accounts|archived_at|timestamp with time zone|YES|
+bank_accounts|created_at|timestamp with time zone|NO|now()
+bank_accounts|updated_at|timestamp with time zone|NO|now()
+biometric_api_logs|id|uuid|NO|gen_random_uuid()
+biometric_api_logs|enrollment_id|uuid|YES|
+biometric_api_logs|user_id|uuid|YES|
+biometric_api_logs|provider|text|NO|'nubarium'::text
+biometric_api_logs|endpoint|text|NO|
+biometric_api_logs|http_status|integer|YES|
+biometric_api_logs|ok|boolean|NO|false
+biometric_api_logs|request_summary|jsonb|YES|
+biometric_api_logs|response_summary|jsonb|YES|
+biometric_api_logs|error_message|text|YES|
+biometric_api_logs|created_at|timestamp with time zone|NO|now()
+biometric_enrollments|id|uuid|NO|gen_random_uuid()
+biometric_enrollments|user_id|uuid|NO|
+biometric_enrollments|token|text|NO|
+biometric_enrollments|status|text|NO|'pending'::text
+biometric_enrollments|expires_at|timestamp with time zone|NO|
+biometric_enrollments|id_type|text|YES|
+biometric_enrollments|id_front_path|text|YES|
+biometric_enrollments|id_back_path|text|YES|
+biometric_enrollments|ocr_data|jsonb|YES|
+biometric_enrollments|ocr_curp|text|YES|
+biometric_enrollments|curp_match|boolean|YES|
+biometric_enrollments|curp_renapo_data|jsonb|YES|
+biometric_enrollments|selfie_path|text|YES|
+biometric_enrollments|video_path|text|YES|
+biometric_enrollments|face_score|numeric|YES|
+biometric_enrollments|face_match_ok|boolean|YES|
+biometric_enrollments|address_doc_type|text|YES|
+biometric_enrollments|address_doc_path|text|YES|
+biometric_enrollments|address_doc_data|jsonb|YES|
+biometric_enrollments|address_doc_ok|boolean|YES|
+biometric_enrollments|address_doc_issued_at|date|YES|
+biometric_enrollments|lista_nominal_ok|boolean|YES|
+biometric_enrollments|lista_nominal_data|jsonb|YES|
+biometric_enrollments|last_error|text|YES|
+biometric_enrollments|completed_at|timestamp with time zone|YES|
+biometric_enrollments|created_at|timestamp with time zone|NO|now()
+biometric_enrollments|updated_at|timestamp with time zone|NO|now()
+clabe_verifications|id|uuid|NO|gen_random_uuid()
+clabe_verifications|user_id|uuid|NO|
+clabe_verifications|clabe|text|NO|
+clabe_verifications|banco|text|YES|
+clabe_verifications|nivel|USER-DEFINED|NO|'algoritmica'::clabe_nivel
+clabe_verifications|status|USER-DEFINED|NO|'pending'::clabe_status
+clabe_verifications|penny_test_code|text|YES|
+clabe_verifications|penny_test_amount_cents|integer|YES|1
+clabe_verifications|penny_test_ref|text|YES|
+clabe_verifications|penny_test_confirmed_at|timestamp with time zone|YES|
+clabe_verifications|created_at|timestamp with time zone|NO|now()
+clabe_verifications|updated_at|timestamp with time zone|NO|now()
+connected_accounts|id|uuid|NO|gen_random_uuid()
+connected_accounts|user_id|uuid|NO|
+connected_accounts|provider|text|NO|'mock'::text
+connected_accounts|provider_account_id|text|YES|
+connected_accounts|status|text|NO|'pending'::text
+connected_accounts|charges_enabled|boolean|NO|false
+connected_accounts|payouts_enabled|boolean|NO|false
+connected_accounts|requirements|jsonb|NO|'{}'::jsonb
+connected_accounts|created_at|timestamp with time zone|NO|now()
+connected_accounts|updated_at|timestamp with time zone|NO|now()
+contract_signatures|id|uuid|NO|gen_random_uuid()
+contract_signatures|contract_id|uuid|NO|
+contract_signatures|transaction_id|uuid|NO|
+contract_signatures|signer_user_id|uuid|NO|
+contract_signatures|signer_role|text|NO|
+contract_signatures|signer_name|text|NO|
+contract_signatures|signer_rfc|text|YES|
+contract_signatures|method|text|NO|
+contract_signatures|status|text|NO|'PENDING'::text
+contract_signatures|signature_svg_path|text|YES|
+contract_signatures|signature_png_path|text|YES|
+contract_signatures|biometric_selfie_path|text|YES|
+contract_signatures|biometric_liveness_score|numeric|YES|
+contract_signatures|biometric_match_score|numeric|YES|
+contract_signatures|biometric_provider|text|YES|
+contract_signatures|efirma_certificate_serial|text|YES|
+contract_signatures|efirma_certificate_rfc|text|YES|
+contract_signatures|efirma_certificate_curp|text|YES|
+contract_signatures|efirma_certificate_valid_from|date|YES|
+contract_signatures|efirma_certificate_valid_to|date|YES|
+contract_signatures|efirma_signature_b64|text|YES|
+contract_signatures|efirma_algorithm|text|YES|
+contract_signatures|document_hash_sha256|text|NO|
+contract_signatures|ip_address|inet|YES|
+contract_signatures|user_agent|text|YES|
+contract_signatures|geo_lat|numeric|YES|
+contract_signatures|geo_lng|numeric|YES|
+contract_signatures|signed_at|timestamp with time zone|YES|
+contract_signatures|evidence|jsonb|YES|
+contract_signatures|created_at|timestamp with time zone|NO|now()
+curp_verifications|id|uuid|NO|gen_random_uuid()
+curp_verifications|user_id|uuid|NO|
+curp_verifications|curp|text|NO|
+curp_verifications|nombre|text|YES|
+curp_verifications|apellido_paterno|text|YES|
+curp_verifications|apellido_materno|text|YES|
+curp_verifications|sexo|text|YES|
+curp_verifications|fecha_nacimiento|date|YES|
+curp_verifications|pais_nacimiento|text|YES|
+curp_verifications|estado_nacimiento|text|YES|
+curp_verifications|doc_probatorio|integer|YES|
+curp_verifications|datos_doc_probatorio|jsonb|YES|
+curp_verifications|estatus_curp|text|YES|
+curp_verifications|codigo_validacion|text|YES|
+curp_verifications|codigo_mensaje|text|YES|
+curp_verifications|estatus|text|YES|
+curp_verifications|raw_response|jsonb|YES|
+curp_verifications|provider|text|NO|'nubarium'::text
+curp_verifications|created_at|timestamp with time zone|NO|now()
+curp_verifications|updated_at|timestamp with time zone|NO|now()
+dispute_evidence|id|uuid|NO|gen_random_uuid()
+dispute_evidence|dispute_id|uuid|NO|
+dispute_evidence|uploaded_by|uuid|NO|
+dispute_evidence|uploader_role|text|NO|
+dispute_evidence|kind|text|NO|
+dispute_evidence|description|text|NO|
+dispute_evidence|storage_path|text|NO|
+dispute_evidence|mime_type|text|YES|
+dispute_evidence|size_bytes|bigint|YES|
+dispute_evidence|created_at|timestamp with time zone|NO|now()
+dispute_messages|id|uuid|NO|gen_random_uuid()
+dispute_messages|dispute_id|uuid|NO|
+dispute_messages|author_id|uuid|NO|
+dispute_messages|author_role|text|NO|
+dispute_messages|body|text|NO|
+dispute_messages|evidence_urls|ARRAY|NO|'{}'::text[]
+dispute_messages|created_at|timestamp with time zone|NO|now()
+dispute_messages|message_type|text|NO|'text'::text
+dispute_messages|visible_to|text|NO|'all'::text
+dispute_messages|attachments|jsonb|NO|'[]'::jsonb
+dispute_messages|read_by_buyer|boolean|NO|false
+dispute_messages|read_by_seller|boolean|NO|false
+dispute_messages|read_by_mediator|boolean|NO|false
+disputes|id|uuid|NO|gen_random_uuid()
+disputes|transaction_id|uuid|NO|
+disputes|opened_by|uuid|NO|
+disputes|opened_role|text|NO|
+disputes|reason_code|text|NO|
+disputes|reason_description|text|NO|
+disputes|amount_disputed_cents|bigint|NO|
+disputes|status|text|NO|'open'::text
+disputes|resolution|text|YES|
+disputes|resolution_notes|text|YES|
+disputes|buyer_share_cents|bigint|YES|
+disputes|seller_share_cents|bigint|YES|
+disputes|loser_pays|text|YES|
+disputes|mediator_id|uuid|YES|
+disputes|resolved_at|timestamp with time zone|YES|
+disputes|created_at|timestamp with time zone|NO|now()
+disputes|updated_at|timestamp with time zone|NO|now()
+disputes|numero|text|YES|
+disputes|hito_id|uuid|YES|
+disputes|deposit_cents|bigint|YES|
+disputes|deposit_provider_ref|text|YES|
+disputes|deposit_paid|boolean|NO|false
+disputes|deposit_paid_at|timestamp with time zone|YES|
+disputes|deposit_returned_to|text|YES|
+disputes|deposit_distribution|jsonb|YES|
+disputes|summary_ai|text|YES|
+disputes|summary_ai_generated_at|timestamp with time zone|YES|
+disputes|activated_at|timestamp with time zone|YES|
+disputes|counterparty_response_due_at|timestamp with time zone|YES|
+disputes|evidence_due_at|timestamp with time zone|YES|
+disputes|resolution_due_at|timestamp with time zone|YES|
+disputes|arbitration_entity|text|YES|
+disputes|arbitration_case_number|text|YES|
+disputes|percent_release_seller|numeric|YES|
+disputes|evidence_closed_at|timestamp with time zone|YES|
+disputes|escalated_at|timestamp with time zone|YES|
+disputes|escalation_reason|text|YES|
+document_review_queue|id|uuid|NO|gen_random_uuid()
+document_review_queue|transaction_id|uuid|YES|
+document_review_queue|hito_id|uuid|YES|
+document_review_queue|document_id|uuid|YES|
+document_review_queue|evidence_id|uuid|YES|
+document_review_queue|tipo|text|NO|
+document_review_queue|sector|text|YES|
+document_review_queue|motivo_revision|text|NO|
+document_review_queue|confianza_ia|integer|YES|
+document_review_queue|ia_summary|text|YES|
+document_review_queue|expected_values|jsonb|YES|
+document_review_queue|extracted_values|jsonb|YES|
+document_review_queue|estado|text|NO|'PENDIENTE'::text
+document_review_queue|prioridad|text|NO|'NORMAL'::text
+document_review_queue|asignado_a|uuid|YES|
+document_review_queue|revisado_por|uuid|YES|
+document_review_queue|revisado_at|timestamp with time zone|YES|
+document_review_queue|decision|text|YES|
+document_review_queue|notas_revision|text|YES|
+document_review_queue|created_at|timestamp with time zone|NO|now()
+document_review_queue|updated_at|timestamp with time zone|NO|now()
+fiscal_documents|id|uuid|NO|gen_random_uuid()
+fiscal_documents|transaction_id|uuid|NO|
+fiscal_documents|hito_id|uuid|YES|
+fiscal_documents|parent_cfdi_id|uuid|YES|
+fiscal_documents|tipo|text|NO|
+fiscal_documents|metodo_pago|text|YES|
+fiscal_documents|forma_pago|text|YES|
+fiscal_documents|uso_cfdi|text|YES|
+fiscal_documents|uuid_fiscal|text|YES|
+fiscal_documents|serie|text|YES|
+fiscal_documents|folio|text|YES|
+fiscal_documents|fecha_emision|timestamp with time zone|YES|
+fiscal_documents|fecha_timbrado|timestamp with time zone|YES|
+fiscal_documents|no_certificado_sat|text|YES|
+fiscal_documents|no_certificado_emisor|text|YES|
+fiscal_documents|sello_cfd|text|YES|
+fiscal_documents|sello_sat|text|YES|
+fiscal_documents|rfc_emisor|text|YES|
+fiscal_documents|nombre_emisor|text|YES|
+fiscal_documents|regimen_fiscal_emisor|text|YES|
+fiscal_documents|rfc_receptor|text|YES|
+fiscal_documents|nombre_receptor|text|YES|
+fiscal_documents|regimen_fiscal_receptor|text|YES|
+fiscal_documents|domicilio_fiscal_receptor|text|YES|
+fiscal_documents|subtotal|numeric|YES|
+fiscal_documents|descuento|numeric|YES|0
+fiscal_documents|total|numeric|YES|
+fiscal_documents|moneda|text|YES|'MXN'::text
+fiscal_documents|tipo_cambio|numeric|YES|
+fiscal_documents|total_impuestos_trasladados|numeric|YES|0
+fiscal_documents|total_impuestos_retenidos|numeric|YES|0
+fiscal_documents|rep_data|jsonb|YES|
+fiscal_documents|parcialidad_numero|integer|YES|
+fiscal_documents|imp_saldo_ant|numeric|YES|
+fiscal_documents|imp_pagado|numeric|YES|
+fiscal_documents|imp_saldo_insoluto|numeric|YES|
+fiscal_documents|fecha_pago|timestamp with time zone|YES|
+fiscal_documents|xml_url|text|NO|
+fiscal_documents|pdf_url|text|YES|
+fiscal_documents|xml_hash|text|YES|
+fiscal_documents|estado|text|NO|'SUBIDO'::text
+fiscal_documents|estado_sat|text|YES|'pendiente_verificacion'::text
+fiscal_documents|fecha_consulta_sat|timestamp with time zone|YES|
+fiscal_documents|coherence_checks|jsonb|YES|'[]'::jsonb
+fiscal_documents|coherence_score|integer|YES|
+fiscal_documents|validation_errors|jsonb|YES|'[]'::jsonb
+fiscal_documents|validation_warnings|jsonb|YES|'[]'::jsonb
+fiscal_documents|ai_analysis|jsonb|YES|
+fiscal_documents|aceptado_por|uuid|YES|
+fiscal_documents|aceptado_at|timestamp with time zone|YES|
+fiscal_documents|rechazado_por|uuid|YES|
+fiscal_documents|rechazado_at|timestamp with time zone|YES|
+fiscal_documents|motivo_rechazo|text|YES|
+fiscal_documents|uploaded_by|uuid|NO|
+fiscal_documents|raw_xml_data|jsonb|YES|
+fiscal_documents|created_at|timestamp with time zone|NO|now()
+fiscal_documents|updated_at|timestamp with time zone|NO|now()
+help_articles|id|uuid|NO|gen_random_uuid()
+help_articles|category_id|uuid|YES|
+help_articles|slug|text|NO|
+help_articles|title|text|NO|
+help_articles|summary|text|YES|
+help_articles|body_md|text|NO|''::text
+help_articles|tags|ARRAY|NO|'{}'::text[]
+help_articles|audience|ARRAY|NO|'{buyer,seller}'::text[]
+help_articles|module|text|YES|
+help_articles|is_published|boolean|NO|false
+help_articles|views|integer|NO|0
+help_articles|created_at|timestamp with time zone|NO|now()
+help_articles|updated_at|timestamp with time zone|NO|now()
+help_categories|id|uuid|NO|gen_random_uuid()
+help_categories|slug|text|NO|
+help_categories|name|text|NO|
+help_categories|description|text|YES|
+help_categories|module|text|YES|
+help_categories|icon|text|YES|
+help_categories|sort_order|integer|NO|0
+help_categories|created_at|timestamp with time zone|NO|now()
+help_categories|updated_at|timestamp with time zone|NO|now()
+internal_access_log|id|uuid|NO|gen_random_uuid()
+internal_access_log|user_id|uuid|NO|
+internal_access_log|rol_usado|USER-DEFINED|YES|
+internal_access_log|ruta|text|NO|
+internal_access_log|metodo|text|YES|
+internal_access_log|ip|inet|YES|
+internal_access_log|user_agent|text|YES|
+internal_access_log|created_at|timestamp with time zone|NO|now()
+internal_action_log|id|uuid|NO|gen_random_uuid()
+internal_action_log|user_id|uuid|NO|
+internal_action_log|rol_usado|USER-DEFINED|NO|
+internal_action_log|recurso|text|NO|
+internal_action_log|accion|text|NO|
+internal_action_log|entidad_tipo|text|YES|
+internal_action_log|entidad_id|uuid|YES|
+internal_action_log|motivo|text|YES|
+internal_action_log|ip|inet|YES|
+internal_action_log|user_agent|text|YES|
+internal_action_log|snapshot_antes|jsonb|YES|
+internal_action_log|snapshot_despues|jsonb|YES|
+internal_action_log|detalle_json|jsonb|YES|
+internal_action_log|created_at|timestamp with time zone|NO|now()
+internal_role_assignments|id|uuid|NO|gen_random_uuid()
+internal_role_assignments|user_id|uuid|NO|
+internal_role_assignments|rol|USER-DEFINED|NO|
+internal_role_assignments|asignado_por|uuid|NO|
+internal_role_assignments|motivo|text|NO|
+internal_role_assignments|activo|boolean|NO|true
+internal_role_assignments|expira_at|timestamp with time zone|YES|
+internal_role_assignments|revocado_at|timestamp with time zone|YES|
+internal_role_assignments|revocado_por|uuid|YES|
+internal_role_assignments|motivo_revocacion|text|YES|
+internal_role_assignments|created_at|timestamp with time zone|NO|now()
+internal_role_assignments|updated_at|timestamp with time zone|NO|now()
+invitations|id|uuid|NO|gen_random_uuid()
+invitations|org_id|uuid|NO|
+invitations|email|text|NO|
+invitations|org_role|USER-DEFINED|NO|
+invitations|token|text|NO|
+invitations|invited_by|uuid|YES|
+invitations|expires_at|timestamp with time zone|NO|(now() + '7 days'::interval)
+invitations|accepted_at|timestamp with time zone|YES|
+invitations|accepted_by|uuid|YES|
+invitations|created_at|timestamp with time zone|NO|now()
+kyc_documents|id|uuid|NO|gen_random_uuid()
+kyc_documents|user_id|uuid|NO|
+kyc_documents|document_type|USER-DEFINED|NO|
+kyc_documents|storage_path|text|NO|
+kyc_documents|file_name|text|YES|
+kyc_documents|mime_type|text|YES|
+kyc_documents|status|USER-DEFINED|NO|'pending'::kyc_status
+kyc_documents|rejection_reason|text|YES|
+kyc_documents|reviewed_by|uuid|YES|
+kyc_documents|reviewed_at|timestamp with time zone|YES|
+kyc_documents|created_at|timestamp with time zone|NO|now()
+kyc_documents|updated_at|timestamp with time zone|NO|now()
+memberships|org_id|uuid|NO|
+memberships|user_id|uuid|NO|
+memberships|org_role|USER-DEFINED|NO|
+memberships|status|USER-DEFINED|NO|'active'::membership_status
+memberships|invited_by|uuid|YES|
+memberships|joined_at|timestamp with time zone|NO|now()
+memberships|created_at|timestamp with time zone|NO|now()
+memberships|updated_at|timestamp with time zone|NO|now()
+notifications|id|uuid|NO|gen_random_uuid()
+notifications|user_id|uuid|NO|
+notifications|type|text|NO|
+notifications|title|text|NO|
+notifications|body|text|YES|
+notifications|link|text|YES|
+notifications|metadata|jsonb|NO|'{}'::jsonb
+notifications|read_at|timestamp with time zone|YES|
+notifications|created_at|timestamp with time zone|NO|now()
+organizations|id|uuid|NO|gen_random_uuid()
+organizations|name|text|NO|
+organizations|slug|text|YES|
+organizations|type|USER-DEFINED|NO|'individual'::org_type
+organizations|rfc|text|YES|
+organizations|razon_social|text|YES|
+organizations|regimen_fiscal|text|YES|
+organizations|domicilio_fiscal|jsonb|YES|
+organizations|kyb_status|USER-DEFINED|NO|'not_started'::kyb_status
+organizations|owner_user_id|uuid|YES|
+organizations|created_at|timestamp with time zone|NO|now()
+organizations|updated_at|timestamp with time zone|NO|now()
+organizations|plan|USER-DEFINED|NO|'free'::org_plan
+payment_intents|id|uuid|NO|gen_random_uuid()
+payment_intents|transaction_id|uuid|NO|
+payment_intents|provider|text|NO|'mock'::text
+payment_intents|provider_ref|text|YES|
+payment_intents|method|text|NO|
+payment_intents|amount_cents|bigint|NO|
+payment_intents|currency|text|NO|'MXN'::text
+payment_intents|clabe|text|YES|
+payment_intents|reference_code|text|YES|
+payment_intents|status|text|NO|'requires_payment'::text
+payment_intents|expires_at|timestamp with time zone|YES|
+payment_intents|paid_at|timestamp with time zone|YES|
+payment_intents|metadata|jsonb|NO|'{}'::jsonb
+payment_intents|created_at|timestamp with time zone|NO|now()
+payment_intents|updated_at|timestamp with time zone|NO|now()
+payouts|id|uuid|NO|gen_random_uuid()
+payouts|transaction_id|uuid|NO|
+payouts|seller_id|uuid|YES|
+payouts|provider|text|NO|'mock'::text
+payouts|provider_ref|text|YES|
+payouts|gross_cents|bigint|NO|
+payouts|commission_cents|bigint|NO|0
+payouts|net_cents|bigint|NO|
+payouts|currency|text|NO|'MXN'::text
+payouts|status|text|NO|'pending'::text
+payouts|paid_at|timestamp with time zone|YES|
+payouts|metadata|jsonb|NO|'{}'::jsonb
+payouts|created_at|timestamp with time zone|NO|now()
+payouts|updated_at|timestamp with time zone|NO|now()
+platform_incidents|id|uuid|NO|gen_random_uuid()
+platform_incidents|service|text|NO|
+platform_incidents|title|text|NO|
+platform_incidents|body_md|text|YES|
+platform_incidents|severity|USER-DEFINED|NO|'minor'::incident_severity
+platform_incidents|status|USER-DEFINED|NO|'investigating'::incident_status
+platform_incidents|started_at|timestamp with time zone|NO|now()
+platform_incidents|resolved_at|timestamp with time zone|YES|
+platform_incidents|created_at|timestamp with time zone|NO|now()
+platform_incidents|updated_at|timestamp with time zone|NO|now()
+platform_roles|id|uuid|NO|gen_random_uuid()
+platform_roles|user_id|uuid|NO|
+platform_roles|role|USER-DEFINED|NO|
+platform_roles|granted_by|uuid|YES|
+platform_roles|created_at|timestamp with time zone|NO|now()
+pld_alerts|id|uuid|NO|gen_random_uuid()
+pld_alerts|org_id|uuid|NO|
+pld_alerts|transaction_id|uuid|YES|
+pld_alerts|code|text|NO|
+pld_alerts|title|text|NO|
+pld_alerts|description|text|YES|
+pld_alerts|severity|USER-DEFINED|NO|'media'::pld_alert_severity
+pld_alerts|status|USER-DEFINED|NO|'abierta'::pld_alert_status
+pld_alerts|detected_at|timestamp with time zone|NO|now()
+pld_alerts|resolved_at|timestamp with time zone|YES|
+pld_alerts|resolved_by|uuid|YES|
+pld_alerts|resolution_notes|text|YES|
+pld_alerts|payload|jsonb|YES|
+pld_alerts|created_at|timestamp with time zone|NO|now()
+pld_alerts|updated_at|timestamp with time zone|NO|now()
+pld_questionnaires|id|uuid|NO|gen_random_uuid()
+pld_questionnaires|org_id|uuid|NO|
+pld_questionnaires|user_id|uuid|NO|
+pld_questionnaires|actividad_economica|text|YES|
+pld_questionnaires|actividad_scian|text|YES|
+pld_questionnaires|sector|text|YES|
+pld_questionnaires|origen_recursos|text|YES|
+pld_questionnaires|destino_recursos|text|YES|
+pld_questionnaires|volumen_mensual_estimado|numeric|YES|
+pld_questionnaires|operaciones_mensuales_estimadas|integer|YES|
+pld_questionnaires|ticket_promedio_estimado|numeric|YES|
+pld_questionnaires|paises_operacion|ARRAY|YES|ARRAY['MX'::text]
+pld_questionnaires|estados_operacion|ARRAY|YES|
+pld_questionnaires|usa_efectivo|boolean|NO|false
+pld_questionnaires|efectivo_mensual_estimado|numeric|YES|
+pld_questionnaires|es_pep|boolean|NO|false
+pld_questionnaires|pep_detalle|jsonb|YES|
+pld_questionnaires|familiar_pep|boolean|NO|false
+pld_questionnaires|proposito_cuenta|text|YES|
+pld_questionnaires|beneficiario_final|jsonb|YES|
+pld_questionnaires|completado|boolean|NO|false
+pld_questionnaires|version|integer|NO|1
+pld_questionnaires|respuestas_raw|jsonb|YES|
+pld_questionnaires|created_at|timestamp with time zone|NO|now()
+pld_questionnaires|updated_at|timestamp with time zone|NO|now()
+pld_risk_factors|id|uuid|NO|gen_random_uuid()
+pld_risk_factors|org_id|uuid|NO|
+pld_risk_factors|profile_id|uuid|YES|
+pld_risk_factors|category|text|NO|
+pld_risk_factors|code|text|NO|
+pld_risk_factors|label|text|NO|
+pld_risk_factors|weight|integer|NO|
+pld_risk_factors|value|numeric|YES|
+pld_risk_factors|contribution|integer|NO|
+pld_risk_factors|detail|jsonb|YES|
+pld_risk_factors|evaluated_at|timestamp with time zone|NO|now()
+pld_risk_profiles|id|uuid|NO|gen_random_uuid()
+pld_risk_profiles|org_id|uuid|NO|
+pld_risk_profiles|score|integer|NO|0
+pld_risk_profiles|level|USER-DEFINED|NO|'medio'::pld_risk_level
+pld_risk_profiles|status|USER-DEFINED|NO|'borrador'::pld_profile_status
+pld_risk_profiles|last_evaluated_at|timestamp with time zone|YES|
+pld_risk_profiles|next_review_at|timestamp with time zone|YES|
+pld_risk_profiles|evaluated_by|uuid|YES|
+pld_risk_profiles|factors_summary|jsonb|YES|
+pld_risk_profiles|notes|text|YES|
+pld_risk_profiles|created_at|timestamp with time zone|NO|now()
+pld_risk_profiles|updated_at|timestamp with time zone|NO|now()
+pld_screening_results|id|uuid|NO|gen_random_uuid()
+pld_screening_results|org_id|uuid|NO|
+pld_screening_results|subject_type|text|NO|
+pld_screening_results|subject_name|text|NO|
+pld_screening_results|subject_curp|text|YES|
+pld_screening_results|subject_rfc|text|YES|
+pld_screening_results|lista|USER-DEFINED|NO|
+pld_screening_results|status|USER-DEFINED|NO|
+pld_screening_results|match_score|numeric|YES|
+pld_screening_results|provider|text|NO|'internal_stub'::text
+pld_screening_results|raw_response|jsonb|YES|
+pld_screening_results|evidence_hash|text|YES|
+pld_screening_results|evaluated_at|timestamp with time zone|NO|now()
+pld_screening_results|created_at|timestamp with time zone|NO|now()
+postal_code_lookups|id|uuid|NO|gen_random_uuid()
+postal_code_lookups|user_id|uuid|YES|
+postal_code_lookups|cp|text|NO|
+postal_code_lookups|source|text|NO|'manual'::text
+postal_code_lookups|success|boolean|NO|false
+postal_code_lookups|colonias|jsonb|YES|
+postal_code_lookups|municipio|text|YES|
+postal_code_lookups|estado|text|YES|
+postal_code_lookups|ciudad|text|YES|
+postal_code_lookups|pais|text|YES|
+postal_code_lookups|error|text|YES|
+postal_code_lookups|raw_response|jsonb|YES|
+postal_code_lookups|created_at|timestamp with time zone|NO|now()
+profiles|id|uuid|NO|
+profiles|email|text|YES|
+profiles|first_name|text|YES|
+profiles|last_name|text|YES|
+profiles|phone|text|YES|
+profiles|avatar_url|text|YES|
+profiles|account_type|USER-DEFINED|YES|
+profiles|industry_sector|USER-DEFINED|YES|
+profiles|legal_name|text|YES|
+profiles|rfc|text|YES|
+profiles|regimen_fiscal|text|YES|
+profiles|uso_cfdi|text|YES|
+profiles|fiscal_address|text|YES|
+profiles|fiscal_postal_code|text|YES|
+profiles|kyc_status|USER-DEFINED|NO|'pending'::kyc_status
+profiles|kyc_completed_at|timestamp with time zone|YES|
+profiles|onboarding_completed|boolean|NO|false
+profiles|created_at|timestamp with time zone|NO|now()
+profiles|updated_at|timestamp with time zone|NO|now()
+profiles|onboarding_step|smallint|NO|0
+profiles|kyc_submitted_at|timestamp with time zone|YES|
+profiles|second_last_name|text|YES|
+profiles|curp|text|YES|
+profiles|birth_date|date|YES|
+profiles|trade_name|text|YES|
+profiles|incorporation_date|date|YES|
+profiles|fiscal_street|text|YES|
+profiles|fiscal_ext_number|text|YES|
+profiles|fiscal_int_number|text|YES|
+profiles|fiscal_colonia|text|YES|
+profiles|fiscal_municipio|text|YES|
+profiles|fiscal_estado|text|YES|
+profiles|uso_cfdi_default|text|YES|
+profiles|legal_rep|jsonb|YES|
+profiles|kyc_nivel|USER-DEFINED|NO|'basico'::kyc_nivel
+profiles|kyc_rejection_reason|text|YES|
+profiles|kyc_approved_at|timestamp with time zone|YES|
+profiles|mfa_status|text|NO|'not_configured'::text
+reports_ledger|id|uuid|NO|gen_random_uuid()
+reports_ledger|owner_id|uuid|NO|
+reports_ledger|kind|text|NO|
+reports_ledger|transaction_id|uuid|YES|
+reports_ledger|period_from|date|YES|
+reports_ledger|period_to|date|YES|
+reports_ledger|row_count|integer|YES|
+reports_ledger|metadata|jsonb|YES|
+reports_ledger|created_at|timestamp with time zone|NO|now()
+stripe_webhook_events|id|uuid|NO|gen_random_uuid()
+stripe_webhook_events|event_id|text|NO|
+stripe_webhook_events|event_type|text|NO|
+stripe_webhook_events|payload|jsonb|NO|
+stripe_webhook_events|processed|boolean|NO|false
+stripe_webhook_events|processed_at|timestamp with time zone|YES|
+stripe_webhook_events|error|text|YES|
+stripe_webhook_events|received_at|timestamp with time zone|NO|now()
+stripe_webhook_events|created_at|timestamp with time zone|NO|now()
+support_attachment_downloads|id|uuid|NO|gen_random_uuid()
+support_attachment_downloads|attachment_id|uuid|NO|
+support_attachment_downloads|ticket_id|uuid|NO|
+support_attachment_downloads|user_id|uuid|NO|
+support_attachment_downloads|user_kind|text|NO|
+support_attachment_downloads|internal_role|text|YES|
+support_attachment_downloads|ip|inet|YES|
+support_attachment_downloads|user_agent|text|YES|
+support_attachment_downloads|created_at|timestamp with time zone|NO|now()
+support_attachments|id|uuid|NO|gen_random_uuid()
+support_attachments|ticket_id|uuid|NO|
+support_attachments|message_id|uuid|YES|
+support_attachments|uploaded_by|uuid|NO|
+support_attachments|storage_path|text|NO|
+support_attachments|file_name|text|NO|
+support_attachments|mime_type|text|YES|
+support_attachments|size_bytes|bigint|YES|
+support_attachments|created_at|timestamp with time zone|NO|now()
+support_messages|id|uuid|NO|gen_random_uuid()
+support_messages|ticket_id|uuid|NO|
+support_messages|author_id|uuid|NO|
+support_messages|author_kind|text|NO|'user'::text
+support_messages|body|text|NO|
+support_messages|is_internal_note|boolean|NO|false
+support_messages|created_at|timestamp with time zone|NO|now()
+support_tickets|id|uuid|NO|gen_random_uuid()
+support_tickets|numero|text|YES|
+support_tickets|user_id|uuid|NO|
+support_tickets|org_id|uuid|YES|
+support_tickets|subject|text|NO|
+support_tickets|description|text|NO|
+support_tickets|module|text|YES|
+support_tickets|related_transaction_id|uuid|YES|
+support_tickets|related_dispute_id|uuid|YES|
+support_tickets|status|USER-DEFINED|NO|'open'::support_ticket_status
+support_tickets|priority|USER-DEFINED|NO|'normal'::support_ticket_priority
+support_tickets|escalation|USER-DEFINED|NO|'none'::support_escalation_type
+support_tickets|escalated_at|timestamp with time zone|YES|
+support_tickets|escalated_by|uuid|YES|
+support_tickets|escalation_reason|text|YES|
+support_tickets|assigned_to|uuid|YES|
+support_tickets|contexto_rol_congelado|jsonb|NO|'{}'::jsonb
+support_tickets|plan|text|YES|
+support_tickets|sla_first_response_at|timestamp with time zone|YES|
+support_tickets|sla_resolution_at|timestamp with time zone|YES|
+support_tickets|first_response_at|timestamp with time zone|YES|
+support_tickets|resolved_at|timestamp with time zone|YES|
+support_tickets|closed_at|timestamp with time zone|YES|
+support_tickets|created_at|timestamp with time zone|NO|now()
+support_tickets|updated_at|timestamp with time zone|NO|now()
+support_tickets|is_live_chat|boolean|NO|false
+support_tickets|sla_warn_notified_at|timestamp with time zone|YES|
+support_tickets|sla_breach_notified_at|timestamp with time zone|YES|
+support_tickets|escalation_notified_at|timestamp with time zone|YES|
+transaction_conditions|id|uuid|NO|gen_random_uuid()
+transaction_conditions|transaction_id|uuid|NO|
+transaction_conditions|position|integer|NO|0
+transaction_conditions|description|text|NO|
+transaction_conditions|status|USER-DEFINED|NO|'pending'::condition_status
+transaction_conditions|evidence_url|text|YES|
+transaction_conditions|met_at|timestamp with time zone|YES|
+transaction_conditions|verified_by|uuid|YES|
+transaction_conditions|created_at|timestamp with time zone|NO|now()
+transaction_conditions|updated_at|timestamp with time zone|NO|now()
+transaction_contracts|id|uuid|NO|gen_random_uuid()
+transaction_contracts|transaction_id|uuid|NO|
+transaction_contracts|source_type|text|NO|
+transaction_contracts|template_key|text|YES|
+transaction_contracts|title|text|NO|
+transaction_contracts|version|text|NO|'v1.0'::text
+transaction_contracts|status|text|NO|'DRAFT'::text
+transaction_contracts|storage_path_original|text|YES|
+transaction_contracts|storage_path_signed|text|YES|
+transaction_contracts|hash_original_sha256|text|YES|
+transaction_contracts|hash_signed_sha256|text|YES|
+transaction_contracts|generated_payload|jsonb|YES|
+transaction_contracts|editable_sections|jsonb|YES|
+transaction_contracts|already_signed|boolean|NO|false
+transaction_contracts|requires_yokto_signature|boolean|NO|true
+transaction_contracts|requires_buyer_signature|boolean|NO|true
+transaction_contracts|requires_seller_signature|boolean|NO|true
+transaction_contracts|buyer_signature_method|text|YES|
+transaction_contracts|seller_signature_method|text|YES|
+transaction_contracts|signature_order|text|NO|'PARALLEL'::text
+transaction_contracts|expires_at|timestamp with time zone|YES|
+transaction_contracts|created_by|uuid|NO|
+transaction_contracts|created_at|timestamp with time zone|NO|now()
+transaction_contracts|updated_at|timestamp with time zone|NO|now()
+transaction_documents|id|uuid|NO|gen_random_uuid()
+transaction_documents|transaction_id|uuid|NO|
+transaction_documents|uploaded_by|uuid|NO|
+transaction_documents|doc_type|text|NO|
+transaction_documents|file_path|text|NO|
+transaction_documents|file_name|text|NO|
+transaction_documents|mime_type|text|YES|
+transaction_documents|size_bytes|bigint|YES|
+transaction_documents|note|text|YES|
+transaction_documents|cfdi_uuid|text|YES|
+transaction_documents|cfdi_rfc_emisor|text|YES|
+transaction_documents|cfdi_rfc_receptor|text|YES|
+transaction_documents|cfdi_total_cents|bigint|YES|
+transaction_documents|cfdi_fecha|timestamp with time zone|YES|
+transaction_documents|sat_status|text|YES|
+transaction_documents|sat_message|text|YES|
+transaction_documents|validated_at|timestamp with time zone|YES|
+transaction_documents|created_at|timestamp with time zone|NO|now()
+transaction_documents|updated_at|timestamp with time zone|NO|now()
+transaction_events|id|uuid|NO|gen_random_uuid()
+transaction_events|transaction_id|uuid|NO|
+transaction_events|actor_id|uuid|YES|
+transaction_events|event_type|text|NO|
+transaction_events|metadata|jsonb|NO|'{}'::jsonb
+transaction_events|created_at|timestamp with time zone|NO|now()
+transaction_hitos|id|uuid|NO|gen_random_uuid()
+transaction_hitos|transaction_id|uuid|NO|
+transaction_hitos|orden|integer|NO|
+transaction_hitos|titulo|text|NO|
+transaction_hitos|descripcion|text|YES|
+transaction_hitos|monto_porcentaje|numeric|NO|
+transaction_hitos|monto_cents|bigint|YES|
+transaction_hitos|fecha_limite|date|YES|
+transaction_hitos|tipo_verificacion|text|NO|
+transaction_hitos|documentos_requeridos|ARRAY|NO|'{}'::text[]
+transaction_hitos|evidencia_requerida|ARRAY|NO|'{}'::text[]
+transaction_hitos|responsable|text|NO|
+transaction_hitos|auto_release|boolean|NO|false
+transaction_hitos|estado|text|NO|'PENDIENTE'::text
+transaction_hitos|aprobado_por|text|YES|
+transaction_hitos|aprobado_at|timestamp with time zone|YES|
+transaction_hitos|liberacion_stripe_transfer_id|text|YES|
+transaction_hitos|notas_rechazo|text|YES|
+transaction_hitos|created_at|timestamp with time zone|NO|now()
+transaction_hitos|updated_at|timestamp with time zone|NO|now()
+transactions|id|uuid|NO|gen_random_uuid()
+transactions|buyer_id|uuid|NO|
+transactions|seller_id|uuid|YES|
+transactions|counterparty_email|text|YES|
+transactions|title|text|NO|
+transactions|description|text|YES|
+transactions|sector|text|YES|
+transactions|amount_cents|bigint|NO|
+transactions|currency|text|NO|'MXN'::text
+transactions|payment_method|USER-DEFINED|NO|'spei'::payment_method
+transactions|commission_bps|integer|NO|250
+transactions|commission_payer|USER-DEFINED|NO|'split'::commission_payer
+transactions|status|USER-DEFINED|NO|'draft'::transaction_status
+transactions|funding_deadline|timestamp with time zone|YES|
+transactions|delivery_deadline|timestamp with time zone|YES|
+transactions|funded_at|timestamp with time zone|YES|
+transactions|released_at|timestamp with time zone|YES|
+transactions|cancelled_at|timestamp with time zone|YES|
+transactions|created_at|timestamp with time zone|NO|now()
+transactions|updated_at|timestamp with time zone|NO|now()
+transactions|numero|text|YES|
+transactions|comision_cents|bigint|YES|
+transactions|iva_comision_cents|bigint|YES|
+transactions|total_a_depositar_cents|bigint|YES|
+transactions|descuento_volumetrico|numeric|YES|0
+transactions|stripe_payment_intent_id|text|YES|
+transactions|clabe_virtual|text|YES|
+transactions|fecha_activacion|timestamp with time zone|YES|
+transactions|fecha_firma_pagador|timestamp with time zone|YES|
+transactions|fecha_firma_beneficiario|timestamp with time zone|YES|
+transactions|fecha_completada|timestamp with time zone|YES|
+transactions|fecha_cancelada|timestamp with time zone|YES|
+transactions|contrato_pdf_url|text|YES|
+transactions|auto_release_global|boolean|YES|false
+transactions|repse_requerido|boolean|YES|false
+transactions|creado_por|uuid|YES|
+transactions|ip_creacion|inet|YES|
+transactions|beneficiario_nombre|text|YES|
+user_roles|id|uuid|NO|gen_random_uuid()
+user_roles|user_id|uuid|NO|
+user_roles|role|USER-DEFINED|NO|
+user_roles|created_at|timestamp with time zone|NO|now()
+verification_evidence|id|uuid|NO|gen_random_uuid()
+verification_evidence|transaction_id|uuid|NO|
+verification_evidence|uploaded_by|uuid|NO|
+verification_evidence|file_path|text|NO|
+verification_evidence|file_name|text|NO|
+verification_evidence|mime_type|text|YES|
+verification_evidence|size_bytes|integer|YES|
+verification_evidence|note|text|YES|
+verification_evidence|ai_provider|text|YES|
+verification_evidence|ai_model|text|YES|
+verification_evidence|ai_verdict|text|YES|
+verification_evidence|ai_score|integer|YES|
+verification_evidence|ai_summary|text|YES|
+verification_evidence|ai_raw|jsonb|YES|
+verification_evidence|analyzed_at|timestamp with time zone|YES|
+verification_evidence|created_at|timestamp with time zone|NO|now()
+verification_evidence|latitude|numeric|YES|
+verification_evidence|longitude|numeric|YES|
+verification_evidence|captured_at|timestamp with time zone|YES|

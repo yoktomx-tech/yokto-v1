@@ -1,0 +1,274 @@
+public|api_clients|owner_insert_clients|INSERT|{authenticated}||(owner_id = auth.uid())
+public|api_clients|owner_or_admin_delete_clients|DELETE|{authenticated}|((owner_id = auth.uid()) OR has_role(auth.uid(), 'admin'::app_role))|
+public|api_clients|owner_or_admin_read_clients|SELECT|{authenticated}|((owner_id = auth.uid()) OR has_role(auth.uid(), 'admin'::app_role))|
+public|api_clients|owner_or_admin_update_clients|UPDATE|{authenticated}|((owner_id = auth.uid()) OR has_role(auth.uid(), 'admin'::app_role))|
+public|audit_events|authenticated cannot delete audit_events|DELETE|{authenticated}|false|
+public|audit_events|authenticated cannot insert audit_events|INSERT|{authenticated}||false
+public|audit_events|authenticated cannot modify audit_events|UPDATE|{authenticated}|false|false
+public|audit_events|org members can view audit|SELECT|{authenticated}|(((org_id IS NOT NULL) AND is_org_member(org_id, auth.uid())) OR (actor_user_id = auth.uid()) OR has_platform_role(auth.uid(), 'platform_admin'::platform_role))|
+public|audit_log|audit_select_admin|SELECT|{authenticated}|has_role(auth.uid(), 'admin'::app_role)|
+public|bank_account_penny_tests|authenticated cannot delete penny_tests|DELETE|{authenticated}|false|
+public|bank_account_penny_tests|authenticated cannot insert penny_tests|INSERT|{authenticated}||false
+public|bank_account_penny_tests|authenticated cannot update penny_tests|UPDATE|{authenticated}|false|false
+public|bank_account_penny_tests|penny_tests_select_owner|SELECT|{authenticated}|((user_id = auth.uid()) OR (bank_account_id IN ( SELECT bank_accounts.id
+   FROM bank_accounts
+  WHERE ((bank_accounts.owner_user_id = auth.uid()) OR ((bank_accounts.owner_org_id IS NOT NULL) AND is_org_member(bank_accounts.owner_org_id, auth.uid()))))))|
+public|bank_account_penny_tests|platform admins view penny_tests|SELECT|{authenticated}|has_platform_role(auth.uid(), 'platform_admin'::platform_role)|
+public|bank_accounts|bank_accounts_insert_owner|INSERT|{authenticated}||((created_by = auth.uid()) AND (((owner_user_id = auth.uid()) AND (owner_org_id IS NULL)) OR ((owner_org_id IS NOT NULL) AND (has_org_role(owner_org_id, auth.uid(), 'owner'::org_role) OR has_org_role(owner_org_id, auth.uid(), 'buyer_admin'::org_role) OR has_org_role(owner_org_id, auth.uid(), 'seller_admin'::org_role)))))
+public|bank_accounts|bank_accounts_select_owner|SELECT|{authenticated}|((owner_user_id = auth.uid()) OR ((owner_org_id IS NOT NULL) AND is_org_member(owner_org_id, auth.uid())))|
+public|bank_accounts|bank_accounts_update_owner|UPDATE|{authenticated}|((owner_user_id = auth.uid()) OR ((owner_org_id IS NOT NULL) AND (has_org_role(owner_org_id, auth.uid(), 'owner'::org_role) OR has_org_role(owner_org_id, auth.uid(), 'buyer_admin'::org_role) OR has_org_role(owner_org_id, auth.uid(), 'seller_admin'::org_role))))|
+public|biometric_api_logs|admins_read_biometric_logs|SELECT|{authenticated}|has_role(auth.uid(), 'admin'::app_role)|
+public|biometric_enrollments|admin_delete_enrollments|DELETE|{authenticated}|has_role(auth.uid(), 'admin'::app_role)|
+public|biometric_enrollments|own_enrollments_read|SELECT|{authenticated}|((auth.uid() = user_id) OR has_role(auth.uid(), 'admin'::app_role))|
+public|biometric_enrollments|own_enrollments_update|UPDATE|{authenticated}|(auth.uid() = user_id)|(auth.uid() = user_id)
+public|biometric_enrollments|own_enrollments_write|INSERT|{authenticated}||(auth.uid() = user_id)
+public|clabe_verifications|clabe_admin_all|ALL|{authenticated}|has_role(auth.uid(), 'admin'::app_role)|has_role(auth.uid(), 'admin'::app_role)
+public|clabe_verifications|clabe_own_insert|INSERT|{authenticated}||(auth.uid() = user_id)
+public|clabe_verifications|clabe_own_select|SELECT|{authenticated}|(auth.uid() = user_id)|
+public|clabe_verifications|clabe_own_update|UPDATE|{authenticated}|(auth.uid() = user_id)|(auth.uid() = user_id)
+public|connected_accounts|own_insert|INSERT|{authenticated}||(user_id = auth.uid())
+public|connected_accounts|own_or_admin_select|SELECT|{authenticated}|((user_id = auth.uid()) OR has_role(auth.uid(), 'admin'::app_role) OR has_role(auth.uid(), 'verifier'::app_role))|
+public|connected_accounts|own_update|UPDATE|{authenticated}|(user_id = auth.uid())|
+public|contract_signatures|signatures_admin_manage|ALL|{authenticated}|has_role(auth.uid(), 'admin'::app_role)|has_role(auth.uid(), 'admin'::app_role)
+public|contract_signatures|signatures_via_transaction_insert|INSERT|{authenticated}||((signer_user_id = auth.uid()) AND (transaction_id IN ( SELECT transactions.id
+   FROM transactions
+  WHERE ((transactions.buyer_id = auth.uid()) OR (transactions.seller_id = auth.uid()) OR (transactions.creado_por = auth.uid())))))
+public|contract_signatures|signatures_via_transaction_select|SELECT|{authenticated}|((transaction_id IN ( SELECT transactions.id
+   FROM transactions
+  WHERE ((transactions.buyer_id = auth.uid()) OR (transactions.seller_id = auth.uid()) OR (transactions.creado_por = auth.uid())))) OR has_role(auth.uid(), 'admin'::app_role))|
+public|curp_verifications|Users can view their own CURP verifications|SELECT|{authenticated}|(auth.uid() = user_id)|
+public|dispute_evidence|parties_or_staff_insert_evidence|INSERT|{authenticated}||((uploaded_by = auth.uid()) AND ((EXISTS ( SELECT 1
+   FROM (disputes d
+     JOIN transactions t ON ((t.id = d.transaction_id)))
+  WHERE ((d.id = dispute_evidence.dispute_id) AND ((t.buyer_id = auth.uid()) OR (t.seller_id = auth.uid()))))) OR has_role(auth.uid(), 'admin'::app_role) OR has_role(auth.uid(), 'mediator'::app_role)))
+public|dispute_evidence|parties_or_staff_select_evidence|SELECT|{authenticated}|((EXISTS ( SELECT 1
+   FROM (disputes d
+     JOIN transactions t ON ((t.id = d.transaction_id)))
+  WHERE ((d.id = dispute_evidence.dispute_id) AND ((t.buyer_id = auth.uid()) OR (t.seller_id = auth.uid()))))) OR has_role(auth.uid(), 'admin'::app_role) OR has_role(auth.uid(), 'mediator'::app_role))|
+public|dispute_evidence|uploader_or_staff_delete_evidence|DELETE|{authenticated}|((uploaded_by = auth.uid()) OR has_role(auth.uid(), 'admin'::app_role) OR has_role(auth.uid(), 'mediator'::app_role))|
+public|dispute_messages|parties_or_staff_insert|INSERT|{authenticated}||((author_id = auth.uid()) AND ((EXISTS ( SELECT 1
+   FROM (disputes d
+     JOIN transactions t ON ((t.id = d.transaction_id)))
+  WHERE ((d.id = dispute_messages.dispute_id) AND ((t.buyer_id = auth.uid()) OR (t.seller_id = auth.uid()))))) OR has_role(auth.uid(), 'admin'::app_role) OR has_role(auth.uid(), 'mediator'::app_role)))
+public|dispute_messages|parties_or_staff_select|SELECT|{authenticated}|((EXISTS ( SELECT 1
+   FROM (disputes d
+     JOIN transactions t ON ((t.id = d.transaction_id)))
+  WHERE ((d.id = dispute_messages.dispute_id) AND ((t.buyer_id = auth.uid()) OR (t.seller_id = auth.uid()))))) OR has_role(auth.uid(), 'admin'::app_role) OR has_role(auth.uid(), 'mediator'::app_role))|
+public|disputes|disputes_restrict_party_delete|DELETE|{authenticated}|(has_role(auth.uid(), 'admin'::app_role) OR has_role(auth.uid(), 'mediator'::app_role))|
+public|disputes|disputes_restrict_party_update|UPDATE|{authenticated}|(has_role(auth.uid(), 'admin'::app_role) OR has_role(auth.uid(), 'mediator'::app_role))|(has_role(auth.uid(), 'admin'::app_role) OR has_role(auth.uid(), 'mediator'::app_role))
+public|disputes|mediator_update|UPDATE|{authenticated}|(has_role(auth.uid(), 'admin'::app_role) OR has_role(auth.uid(), 'mediator'::app_role))|
+public|disputes|parties_or_staff_select|SELECT|{authenticated}|((EXISTS ( SELECT 1
+   FROM transactions t
+  WHERE ((t.id = disputes.transaction_id) AND ((t.buyer_id = auth.uid()) OR (t.seller_id = auth.uid()))))) OR has_role(auth.uid(), 'admin'::app_role) OR has_role(auth.uid(), 'mediator'::app_role))|
+public|disputes|party_insert|INSERT|{authenticated}||((opened_by = auth.uid()) AND (EXISTS ( SELECT 1
+   FROM transactions t
+  WHERE ((t.id = disputes.transaction_id) AND ((t.buyer_id = auth.uid()) OR (t.seller_id = auth.uid()))))) AND (status = 'open'::text) AND (resolution IS NULL) AND (COALESCE(deposit_paid, false) = false))
+public|fiscal_documents|Admins delete fiscal docs|DELETE|{authenticated}|has_role(auth.uid(), 'admin'::app_role)|
+public|fiscal_documents|Parties can update fiscal docs|UPDATE|{authenticated}|((EXISTS ( SELECT 1
+   FROM transactions t
+  WHERE ((t.id = fiscal_documents.transaction_id) AND ((t.buyer_id = auth.uid()) OR (t.seller_id = auth.uid()))))) OR has_role(auth.uid(), 'admin'::app_role))|
+public|fiscal_documents|Parties can view fiscal docs|SELECT|{authenticated}|((EXISTS ( SELECT 1
+   FROM transactions t
+  WHERE ((t.id = fiscal_documents.transaction_id) AND ((t.buyer_id = auth.uid()) OR (t.seller_id = auth.uid()))))) OR has_role(auth.uid(), 'admin'::app_role))|
+public|fiscal_documents|Seller can insert fiscal docs|INSERT|{authenticated}||((uploaded_by = auth.uid()) AND (EXISTS ( SELECT 1
+   FROM transactions t
+  WHERE ((t.id = fiscal_documents.transaction_id) AND ((t.seller_id = auth.uid()) OR (t.buyer_id = auth.uid()))))))
+public|help_articles|help_articles public read published|SELECT|{anon,authenticated}|(is_published = true)|
+public|help_categories|help_categories public read|SELECT|{anon,authenticated}|true|
+public|internal_role_assignments|Staff sees own assignment|SELECT|{authenticated}|(user_id = auth.uid())|
+public|invitations|owner can create invitations|INSERT|{authenticated}||is_org_owner(org_id, auth.uid())
+public|invitations|owner can delete invitations|DELETE|{authenticated}|is_org_owner(org_id, auth.uid())|
+public|invitations|owner can update invitations|UPDATE|{authenticated}|is_org_owner(org_id, auth.uid())|is_org_owner(org_id, auth.uid())
+public|invitations|owner or verified invitee can view invitations|SELECT|{authenticated}|(is_org_owner(org_id, auth.uid()) OR ((lower(email) = lower((( SELECT u.email
+   FROM auth.users u
+  WHERE (u.id = auth.uid())))::text)) AND (( SELECT u.email_confirmed_at
+   FROM auth.users u
+  WHERE (u.id = auth.uid())) IS NOT NULL)))|
+public|invitations|verified invitee can accept invitation|UPDATE|{authenticated}|((lower(email) = lower((( SELECT u.email
+   FROM auth.users u
+  WHERE (u.id = auth.uid())))::text)) AND (( SELECT u.email_confirmed_at
+   FROM auth.users u
+  WHERE (u.id = auth.uid())) IS NOT NULL))|((lower(email) = lower((( SELECT u.email
+   FROM auth.users u
+  WHERE (u.id = auth.uid())))::text)) AND (( SELECT u.email_confirmed_at
+   FROM auth.users u
+  WHERE (u.id = auth.uid())) IS NOT NULL) AND (org_id = ( SELECT i.org_id
+   FROM invitations i
+  WHERE (i.id = invitations.id))) AND (org_role = ( SELECT i.org_role
+   FROM invitations i
+  WHERE (i.id = invitations.id))) AND (email = ( SELECT i.email
+   FROM invitations i
+  WHERE (i.id = invitations.id))) AND (token = ( SELECT i.token
+   FROM invitations i
+  WHERE (i.id = invitations.id))))
+public|kyc_documents|Users insert own kyc documents|INSERT|{authenticated}||(auth.uid() = user_id)
+public|kyc_documents|Users update own pending kyc documents|UPDATE|{authenticated}|((auth.uid() = user_id) AND (status = 'pending'::kyc_status))|(auth.uid() = user_id)
+public|kyc_documents|Users view own kyc documents|SELECT|{authenticated}|(auth.uid() = user_id)|
+public|kyc_documents|Verifiers update kyc documents|UPDATE|{authenticated}|(has_role(auth.uid(), 'verifier'::app_role) OR has_role(auth.uid(), 'admin'::app_role))|(has_role(auth.uid(), 'verifier'::app_role) OR has_role(auth.uid(), 'admin'::app_role))
+public|kyc_documents|Verifiers view all kyc documents|SELECT|{authenticated}|(has_role(auth.uid(), 'verifier'::app_role) OR has_role(auth.uid(), 'admin'::app_role))|
+public|memberships|org members can view memberships|SELECT|{authenticated}|(is_org_member(org_id, auth.uid()) OR (user_id = auth.uid()) OR has_platform_role(auth.uid(), 'platform_admin'::platform_role))|
+public|memberships|owner can update memberships|UPDATE|{authenticated}|is_org_owner(org_id, auth.uid())|is_org_owner(org_id, auth.uid())
+public|memberships|owner insert memberships|INSERT|{authenticated}||(is_org_owner(org_id, auth.uid()) OR ((user_id = auth.uid()) AND (org_role = 'owner'::org_role) AND (EXISTS ( SELECT 1
+   FROM organizations o
+  WHERE ((o.id = memberships.org_id) AND (o.owner_user_id = auth.uid()))))))
+public|memberships|owner or self can delete membership|DELETE|{authenticated}|(is_org_owner(org_id, auth.uid()) OR (user_id = auth.uid()))|
+public|notifications|own_select|SELECT|{authenticated}|(user_id = auth.uid())|
+public|notifications|own_update|UPDATE|{authenticated}|(user_id = auth.uid())|
+public|organizations|authenticated can create org|INSERT|{authenticated}||(owner_user_id = auth.uid())
+public|organizations|org members can view|SELECT|{authenticated}|(is_org_member(id, auth.uid()) OR has_platform_role(auth.uid(), 'platform_admin'::platform_role))|
+public|organizations|owner can delete org|DELETE|{authenticated}|is_org_owner(id, auth.uid())|
+public|organizations|owner can update org|UPDATE|{authenticated}|(is_org_owner(id, auth.uid()) OR has_platform_role(auth.uid(), 'platform_admin'::platform_role))|(is_org_owner(id, auth.uid()) OR has_platform_role(auth.uid(), 'platform_admin'::platform_role))
+public|payment_intents|buyer_insert|INSERT|{authenticated}||(EXISTS ( SELECT 1
+   FROM transactions t
+  WHERE ((t.id = payment_intents.transaction_id) AND (t.buyer_id = auth.uid()))))
+public|payment_intents|buyer_update|UPDATE|{authenticated}|(EXISTS ( SELECT 1
+   FROM transactions t
+  WHERE ((t.id = payment_intents.transaction_id) AND (t.buyer_id = auth.uid()))))|
+public|payment_intents|parties_select|SELECT|{authenticated}|((EXISTS ( SELECT 1
+   FROM transactions t
+  WHERE ((t.id = payment_intents.transaction_id) AND ((t.buyer_id = auth.uid()) OR (t.seller_id = auth.uid()))))) OR has_role(auth.uid(), 'admin'::app_role) OR has_role(auth.uid(), 'mediator'::app_role))|
+public|payouts|parties_select|SELECT|{authenticated}|((EXISTS ( SELECT 1
+   FROM transactions t
+  WHERE ((t.id = payouts.transaction_id) AND ((t.buyer_id = auth.uid()) OR (t.seller_id = auth.uid()))))) OR has_role(auth.uid(), 'admin'::app_role) OR has_role(auth.uid(), 'mediator'::app_role))|
+public|platform_incidents|incidents public read|SELECT|{anon,authenticated}|true|
+public|platform_roles|platform_admin can manage|ALL|{authenticated}|has_platform_role(auth.uid(), 'platform_admin'::platform_role)|has_platform_role(auth.uid(), 'platform_admin'::platform_role)
+public|platform_roles|platform_admin can view|SELECT|{authenticated}|(has_platform_role(auth.uid(), 'platform_admin'::platform_role) OR (user_id = auth.uid()))|
+public|pld_alerts|Deny user writes on alerts|ALL|{authenticated}|false|false
+public|pld_alerts|Miembros ven alertas PLD de su org|SELECT|{authenticated}|is_org_member(org_id, auth.uid())|
+public|pld_questionnaires|Miembros ven cuestionario de su org|SELECT|{authenticated}|is_org_member(org_id, auth.uid())|
+public|pld_questionnaires|Owners y auditor actualizan cuestionario|UPDATE|{authenticated}|(is_org_owner(org_id, auth.uid()) OR has_org_role(org_id, auth.uid(), 'auditor'::org_role))|(is_org_owner(org_id, auth.uid()) OR has_org_role(org_id, auth.uid(), 'auditor'::org_role))
+public|pld_questionnaires|Owners y auditor crean cuestionario|INSERT|{authenticated}||((user_id = auth.uid()) AND (is_org_owner(org_id, auth.uid()) OR has_org_role(org_id, auth.uid(), 'auditor'::org_role)))
+public|pld_risk_factors|Deny user writes on risk factors|ALL|{authenticated}|false|false
+public|pld_risk_factors|Miembros ven factores PLD de su org|SELECT|{authenticated}|is_org_member(org_id, auth.uid())|
+public|pld_risk_profiles|Deny user writes on risk profile|ALL|{authenticated}|false|false
+public|pld_risk_profiles|Miembros ven perfil PLD de su org|SELECT|{authenticated}|is_org_member(org_id, auth.uid())|
+public|pld_screening_results|Deny user writes on screening|ALL|{authenticated}|false|false
+public|pld_screening_results|Miembros ven screening de su org|SELECT|{authenticated}|is_org_member(org_id, auth.uid())|
+public|postal_code_lookups|Users can insert their own postal code lookups|INSERT|{authenticated}||(auth.uid() = user_id)
+public|postal_code_lookups|Users can view their own postal code lookups|SELECT|{authenticated}|(auth.uid() = user_id)|
+public|profiles|Admins view all profiles|SELECT|{authenticated}|has_role(auth.uid(), 'admin'::app_role)|
+public|profiles|Users insert own profile|INSERT|{authenticated}||(auth.uid() = id)
+public|profiles|Users update own profile|UPDATE|{authenticated}|(auth.uid() = id)|(auth.uid() = id)
+public|profiles|Users view own profile|SELECT|{authenticated}|(auth.uid() = id)|
+public|profiles|Verifiers view profiles for KYC|SELECT|{authenticated}|has_role(auth.uid(), 'verifier'::app_role)|
+public|reports_ledger|owner_insert_reports|INSERT|{authenticated}||(owner_id = auth.uid())
+public|reports_ledger|owner_or_admin_read_reports|SELECT|{authenticated}|((owner_id = auth.uid()) OR has_role(auth.uid(), 'admin'::app_role))|
+public|stripe_webhook_events|service role only|ALL|{service_role}|true|true
+public|support_attachment_downloads|No client writes on attachment download log|INSERT|{authenticated}||false
+public|support_attachment_downloads|Owners see own attachment download log|SELECT|{authenticated}|(user_id = auth.uid())|
+public|support_attachments|attachments insert by uploader|INSERT|{authenticated}||((uploaded_by = auth.uid()) AND (EXISTS ( SELECT 1
+   FROM support_tickets t
+  WHERE ((t.id = support_attachments.ticket_id) AND ((t.user_id = auth.uid()) OR ((t.org_id IS NOT NULL) AND (has_org_role(t.org_id, auth.uid(), 'owner'::org_role) OR has_org_role(t.org_id, auth.uid(), 'buyer_admin'::org_role) OR has_org_role(t.org_id, auth.uid(), 'seller_admin'::org_role))))))))
+public|support_attachments|attachments select for ticket viewers|SELECT|{authenticated}|(EXISTS ( SELECT 1
+   FROM support_tickets t
+  WHERE ((t.id = support_attachments.ticket_id) AND ((t.user_id = auth.uid()) OR ((t.org_id IS NOT NULL) AND (has_org_role(t.org_id, auth.uid(), 'owner'::org_role) OR has_org_role(t.org_id, auth.uid(), 'buyer_admin'::org_role) OR has_org_role(t.org_id, auth.uid(), 'seller_admin'::org_role) OR has_org_role(t.org_id, auth.uid(), 'auditor'::org_role)))))))|
+public|support_messages|messages insert by ticket owner or org admin|INSERT|{authenticated}||((author_id = auth.uid()) AND (author_kind = 'user'::text) AND (is_internal_note = false) AND (EXISTS ( SELECT 1
+   FROM support_tickets t
+  WHERE ((t.id = support_messages.ticket_id) AND ((t.user_id = auth.uid()) OR ((t.org_id IS NOT NULL) AND (has_org_role(t.org_id, auth.uid(), 'owner'::org_role) OR has_org_role(t.org_id, auth.uid(), 'buyer_admin'::org_role) OR has_org_role(t.org_id, auth.uid(), 'seller_admin'::org_role))))))))
+public|support_messages|messages select for ticket viewers|SELECT|{authenticated}|((is_internal_note = false) AND (EXISTS ( SELECT 1
+   FROM support_tickets t
+  WHERE ((t.id = support_messages.ticket_id) AND ((t.user_id = auth.uid()) OR ((t.org_id IS NOT NULL) AND (has_org_role(t.org_id, auth.uid(), 'owner'::org_role) OR has_org_role(t.org_id, auth.uid(), 'buyer_admin'::org_role) OR has_org_role(t.org_id, auth.uid(), 'seller_admin'::org_role) OR has_org_role(t.org_id, auth.uid(), 'auditor'::org_role))))))))|
+public|support_tickets|tickets insert own|INSERT|{authenticated}||(user_id = auth.uid())
+public|support_tickets|tickets select own or org admin|SELECT|{authenticated}|((user_id = auth.uid()) OR ((org_id IS NOT NULL) AND (has_org_role(org_id, auth.uid(), 'owner'::org_role) OR has_org_role(org_id, auth.uid(), 'buyer_admin'::org_role) OR has_org_role(org_id, auth.uid(), 'seller_admin'::org_role) OR has_org_role(org_id, auth.uid(), 'auditor'::org_role))))|
+public|support_tickets|tickets update own|UPDATE|{authenticated}|(user_id = auth.uid())|(user_id = auth.uid())
+public|transaction_conditions|buyer manages draft conditions|ALL|{authenticated}|(EXISTS ( SELECT 1
+   FROM transactions t
+  WHERE ((t.id = transaction_conditions.transaction_id) AND (((auth.uid() = t.buyer_id) AND (t.status = 'draft'::transaction_status)) OR has_role(auth.uid(), 'admin'::app_role)))))|(EXISTS ( SELECT 1
+   FROM transactions t
+  WHERE ((t.id = transaction_conditions.transaction_id) AND (((auth.uid() = t.buyer_id) AND (t.status = 'draft'::transaction_status)) OR has_role(auth.uid(), 'admin'::app_role)))))
+public|transaction_conditions|parties view conditions|SELECT|{authenticated}|(EXISTS ( SELECT 1
+   FROM transactions t
+  WHERE ((t.id = transaction_conditions.transaction_id) AND ((auth.uid() = t.buyer_id) OR (auth.uid() = t.seller_id) OR has_role(auth.uid(), 'admin'::app_role) OR has_role(auth.uid(), 'mediator'::app_role)))))|
+public|transaction_contracts|contracts_via_transaction_select|SELECT|{authenticated}|((transaction_id IN ( SELECT transactions.id
+   FROM transactions
+  WHERE ((transactions.buyer_id = auth.uid()) OR (transactions.seller_id = auth.uid()) OR (transactions.creado_por = auth.uid())))) OR has_role(auth.uid(), 'admin'::app_role))|
+public|transaction_contracts|contracts_via_transaction_write|ALL|{authenticated}|((transaction_id IN ( SELECT transactions.id
+   FROM transactions
+  WHERE ((transactions.buyer_id = auth.uid()) OR (transactions.seller_id = auth.uid()) OR (transactions.creado_por = auth.uid())))) OR has_role(auth.uid(), 'admin'::app_role))|((transaction_id IN ( SELECT transactions.id
+   FROM transactions
+  WHERE ((transactions.buyer_id = auth.uid()) OR (transactions.seller_id = auth.uid()) OR (transactions.creado_por = auth.uid())))) OR has_role(auth.uid(), 'admin'::app_role))
+public|transaction_documents|tx_docs_delete_uploader|DELETE|{authenticated}|((uploaded_by = auth.uid()) OR has_role(auth.uid(), 'admin'::app_role))|
+public|transaction_documents|tx_docs_insert_parties|INSERT|{authenticated}||((uploaded_by = auth.uid()) AND (transaction_id IN ( SELECT transactions.id
+   FROM transactions
+  WHERE ((transactions.buyer_id = auth.uid()) OR (transactions.seller_id = auth.uid())))))
+public|transaction_documents|tx_docs_select_parties|SELECT|{authenticated}|(transaction_id IN ( SELECT transactions.id
+   FROM transactions
+  WHERE ((transactions.buyer_id = auth.uid()) OR (transactions.seller_id = auth.uid()))))|
+public|transaction_documents|tx_docs_update_uploader|UPDATE|{authenticated}|((uploaded_by = auth.uid()) OR has_role(auth.uid(), 'admin'::app_role))|((uploaded_by = auth.uid()) OR has_role(auth.uid(), 'admin'::app_role))
+public|transaction_events|authenticated cannot delete transaction_events|DELETE|{authenticated}|false|
+public|transaction_events|authenticated cannot insert transaction_events|INSERT|{authenticated}||false
+public|transaction_events|authenticated cannot modify transaction_events|UPDATE|{authenticated}|false|false
+public|transaction_events|parties view events|SELECT|{authenticated}|(EXISTS ( SELECT 1
+   FROM transactions t
+  WHERE ((t.id = transaction_events.transaction_id) AND ((auth.uid() = t.buyer_id) OR (auth.uid() = t.seller_id) OR has_role(auth.uid(), 'admin'::app_role) OR has_role(auth.uid(), 'mediator'::app_role)))))|
+public|transaction_hitos|hitos manage by buyer draft|ALL|{authenticated}|(transaction_id IN ( SELECT transactions.id
+   FROM transactions
+  WHERE (((transactions.buyer_id = auth.uid()) AND (transactions.status = 'draft'::transaction_status)) OR has_role(auth.uid(), 'admin'::app_role))))|(transaction_id IN ( SELECT transactions.id
+   FROM transactions
+  WHERE (((transactions.buyer_id = auth.uid()) AND (transactions.status = 'draft'::transaction_status)) OR has_role(auth.uid(), 'admin'::app_role))))
+public|transaction_hitos|hitos view via transaction|SELECT|{authenticated}|(transaction_id IN ( SELECT transactions.id
+   FROM transactions
+  WHERE ((transactions.buyer_id = auth.uid()) OR (transactions.seller_id = auth.uid()) OR has_role(auth.uid(), 'admin'::app_role) OR has_role(auth.uid(), 'mediator'::app_role))))|
+public|transactions|buyer creates transactions|INSERT|{authenticated}||(auth.uid() = buyer_id)
+public|transactions|buyer deletes draft|DELETE|{authenticated}|(((auth.uid() = buyer_id) AND (status = 'draft'::transaction_status)) OR has_role(auth.uid(), 'admin'::app_role))|
+public|transactions|buyer updates draft|UPDATE|{authenticated}|(((auth.uid() = buyer_id) AND (status = 'draft'::transaction_status)) OR has_role(auth.uid(), 'admin'::app_role))|(((auth.uid() = buyer_id) AND (status = 'draft'::transaction_status)) OR has_role(auth.uid(), 'admin'::app_role))
+public|transactions|parties view own transactions|SELECT|{authenticated}|((auth.uid() = buyer_id) OR (auth.uid() = seller_id) OR has_role(auth.uid(), 'admin'::app_role) OR has_role(auth.uid(), 'mediator'::app_role))|
+public|user_roles|Admins delete roles|DELETE|{authenticated}|has_role(auth.uid(), 'admin'::app_role)|
+public|user_roles|Admins insert roles|INSERT|{authenticated}||has_role(auth.uid(), 'admin'::app_role)
+public|user_roles|Admins update roles|UPDATE|{authenticated}|has_role(auth.uid(), 'admin'::app_role)|has_role(auth.uid(), 'admin'::app_role)
+public|user_roles|Admins view all roles|SELECT|{authenticated}|has_role(auth.uid(), 'admin'::app_role)|
+public|user_roles|Users view own roles|SELECT|{authenticated}|(auth.uid() = user_id)|
+public|verification_evidence|admin_update_evidence|UPDATE|{authenticated}|has_role(auth.uid(), 'admin'::app_role)|
+public|verification_evidence|party_insert_evidence|INSERT|{authenticated}||((uploaded_by = auth.uid()) AND (EXISTS ( SELECT 1
+   FROM transactions t
+  WHERE ((t.id = verification_evidence.transaction_id) AND ((t.buyer_id = auth.uid()) OR (t.seller_id = auth.uid()))))))
+public|verification_evidence|party_or_admin_delete_evidence|DELETE|{authenticated}|((uploaded_by = auth.uid()) OR has_role(auth.uid(), 'admin'::app_role))|
+public|verification_evidence|party_or_admin_read_evidence|SELECT|{authenticated}|(has_role(auth.uid(), 'admin'::app_role) OR (EXISTS ( SELECT 1
+   FROM transactions t
+  WHERE ((t.id = verification_evidence.transaction_id) AND ((t.buyer_id = auth.uid()) OR (t.seller_id = auth.uid()))))))|
+storage|objects|Support attachments — owner delete own|DELETE|{authenticated}|((bucket_id = 'support-attachments'::text) AND (owner = auth.uid()))|
+storage|objects|Support attachments — owner read|SELECT|{authenticated}|((bucket_id = 'support-attachments'::text) AND (EXISTS ( SELECT 1
+   FROM support_tickets t
+  WHERE (((t.id)::text = (storage.foldername(objects.name))[1]) AND ((t.user_id = auth.uid()) OR is_org_member(t.org_id, auth.uid()))))))|
+storage|objects|Support attachments — owner upload|INSERT|{authenticated}||((bucket_id = 'support-attachments'::text) AND (owner = auth.uid()) AND (EXISTS ( SELECT 1
+   FROM support_tickets t
+  WHERE (((t.id)::text = (storage.foldername(objects.name))[1]) AND ((t.user_id = auth.uid()) OR is_org_member(t.org_id, auth.uid()))))))
+storage|objects|Users delete own kyc files|DELETE|{authenticated}|((bucket_id = 'kyc-documents'::text) AND ((storage.foldername(name))[1] = (auth.uid())::text))|
+storage|objects|Users upload own kyc files|INSERT|{authenticated}||((bucket_id = 'kyc-documents'::text) AND ((storage.foldername(name))[1] = (auth.uid())::text))
+storage|objects|Users view own kyc files|SELECT|{authenticated}|((bucket_id = 'kyc-documents'::text) AND ((storage.foldername(name))[1] = (auth.uid())::text))|
+storage|objects|Verifiers view all kyc files|SELECT|{authenticated}|((bucket_id = 'kyc-documents'::text) AND (has_role(auth.uid(), 'verifier'::app_role) OR has_role(auth.uid(), 'admin'::app_role)))|
+storage|objects|biometric_admin_delete|DELETE|{authenticated}|((bucket_id = 'biometric-captures'::text) AND has_role(auth.uid(), 'admin'::app_role))|
+storage|objects|biometric_owner_read|SELECT|{authenticated}|((bucket_id = 'biometric-captures'::text) AND (((auth.uid())::text = (storage.foldername(name))[1]) OR has_role(auth.uid(), 'admin'::app_role)))|
+storage|objects|biometric_owner_write|INSERT|{authenticated}||((bucket_id = 'biometric-captures'::text) AND ((auth.uid())::text = (storage.foldername(name))[1]))
+storage|objects|dispute_evidence_delete|DELETE|{authenticated}|((bucket_id = 'dispute-evidence'::text) AND ((owner = auth.uid()) OR has_role(auth.uid(), 'admin'::app_role) OR has_role(auth.uid(), 'mediator'::app_role)))|
+storage|objects|dispute_evidence_read|SELECT|{authenticated}|((bucket_id = 'dispute-evidence'::text) AND ((EXISTS ( SELECT 1
+   FROM (disputes d
+     JOIN transactions t ON ((t.id = d.transaction_id)))
+  WHERE (((d.id)::text = split_part(objects.name, '/'::text, 1)) AND ((t.buyer_id = auth.uid()) OR (t.seller_id = auth.uid()))))) OR has_role(auth.uid(), 'admin'::app_role) OR has_role(auth.uid(), 'mediator'::app_role)))|
+storage|objects|dispute_evidence_update|UPDATE|{public}|((bucket_id = 'dispute-evidence'::text) AND ((EXISTS ( SELECT 1
+   FROM (disputes d
+     JOIN transactions t ON ((t.id = d.transaction_id)))
+  WHERE (((d.id)::text = split_part(objects.name, '/'::text, 1)) AND ((t.buyer_id = auth.uid()) OR (t.seller_id = auth.uid()))))) OR has_role(auth.uid(), 'admin'::app_role) OR has_role(auth.uid(), 'mediator'::app_role)))|((bucket_id = 'dispute-evidence'::text) AND ((EXISTS ( SELECT 1
+   FROM (disputes d
+     JOIN transactions t ON ((t.id = d.transaction_id)))
+  WHERE (((d.id)::text = split_part(objects.name, '/'::text, 1)) AND ((t.buyer_id = auth.uid()) OR (t.seller_id = auth.uid()))))) OR has_role(auth.uid(), 'admin'::app_role) OR has_role(auth.uid(), 'mediator'::app_role)))
+storage|objects|dispute_evidence_write|INSERT|{authenticated}||((bucket_id = 'dispute-evidence'::text) AND ((EXISTS ( SELECT 1
+   FROM (disputes d
+     JOIN transactions t ON ((t.id = d.transaction_id)))
+  WHERE (((d.id)::text = split_part(objects.name, '/'::text, 1)) AND ((t.buyer_id = auth.uid()) OR (t.seller_id = auth.uid()))))) OR has_role(auth.uid(), 'admin'::app_role) OR has_role(auth.uid(), 'mediator'::app_role)))
+storage|objects|owner_delete_verif_files|DELETE|{authenticated}|((bucket_id = 'verification-evidence'::text) AND ((owner = auth.uid()) OR has_role(auth.uid(), 'admin'::app_role)))|
+storage|objects|party_read_verif_files|SELECT|{authenticated}|((bucket_id = 'verification-evidence'::text) AND (has_role(auth.uid(), 'admin'::app_role) OR (EXISTS ( SELECT 1
+   FROM transactions t
+  WHERE (((t.id)::text = split_part(objects.name, '/'::text, 1)) AND ((t.buyer_id = auth.uid()) OR (t.seller_id = auth.uid())))))))|
+storage|objects|party_update_verif_files|UPDATE|{authenticated}|((bucket_id = 'verification-evidence'::text) AND (owner = auth.uid()))|((bucket_id = 'verification-evidence'::text) AND (owner = auth.uid()))
+storage|objects|party_upload_verif_files|INSERT|{authenticated}||((bucket_id = 'verification-evidence'::text) AND (EXISTS ( SELECT 1
+   FROM transactions t
+  WHERE (((t.id)::text = split_part(objects.name, '/'::text, 1)) AND ((t.buyer_id = auth.uid()) OR (t.seller_id = auth.uid()))))))
+storage|objects|tx_docs_storage_delete|DELETE|{authenticated}|((bucket_id = 'transaction-documents'::text) AND (owner = auth.uid()))|
+storage|objects|tx_docs_storage_insert|INSERT|{authenticated}||((bucket_id = 'transaction-documents'::text) AND ((storage.foldername(name))[1] IN ( SELECT (transactions.id)::text AS id
+   FROM transactions
+  WHERE ((transactions.buyer_id = auth.uid()) OR (transactions.seller_id = auth.uid())))))
+storage|objects|tx_docs_storage_select|SELECT|{authenticated}|((bucket_id = 'transaction-documents'::text) AND ((storage.foldername(name))[1] IN ( SELECT (transactions.id)::text AS id
+   FROM transactions
+  WHERE ((transactions.buyer_id = auth.uid()) OR (transactions.seller_id = auth.uid())))))|
+storage|objects|tx_docs_storage_update|UPDATE|{authenticated}|((bucket_id = 'transaction-documents'::text) AND (owner = auth.uid()))|((bucket_id = 'transaction-documents'::text) AND (owner = auth.uid()))

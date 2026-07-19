@@ -1,0 +1,96 @@
+api_clients|owner_id|auth.users|id|CASCADE
+audit_events|org_id|organizations|id|SET NULL
+audit_events|actor_user_id|auth.users|id|SET NULL
+audit_log|user_id|auth.users|id|SET NULL
+bank_account_penny_tests|bank_account_id|bank_accounts|id|CASCADE
+bank_account_penny_tests|user_id|auth.users|id|NO ACTION
+bank_accounts|reviewed_by|auth.users|id|NO ACTION
+bank_accounts|owner_org_id|organizations|id|CASCADE
+bank_accounts|owner_user_id|auth.users|id|CASCADE
+bank_accounts|created_by|auth.users|id|NO ACTION
+biometric_api_logs|enrollment_id|biometric_enrollments|id|CASCADE
+biometric_api_logs|user_id|auth.users|id|SET NULL
+biometric_enrollments|user_id|auth.users|id|CASCADE
+clabe_verifications|user_id|auth.users|id|CASCADE
+connected_accounts|user_id|auth.users|id|CASCADE
+contract_signatures|contract_id|transaction_contracts|id|CASCADE
+contract_signatures|transaction_id|transactions|id|CASCADE
+contract_signatures|signer_user_id|auth.users|id|NO ACTION
+curp_verifications|user_id|auth.users|id|CASCADE
+dispute_evidence|dispute_id|disputes|id|CASCADE
+dispute_evidence|uploaded_by|auth.users|id|SET NULL
+dispute_messages|dispute_id|disputes|id|CASCADE
+dispute_messages|author_id|auth.users|id|SET NULL
+disputes|opened_by|auth.users|id|SET NULL
+disputes|transaction_id|transactions|id|CASCADE
+disputes|mediator_id|auth.users|id|SET NULL
+disputes|hito_id|transaction_hitos|id|SET NULL
+document_review_queue|asignado_a|auth.users|id|NO ACTION
+document_review_queue|revisado_por|auth.users|id|NO ACTION
+document_review_queue|transaction_id|transactions|id|CASCADE
+fiscal_documents|uploaded_by|auth.users|id|NO ACTION
+fiscal_documents|aceptado_por|auth.users|id|NO ACTION
+fiscal_documents|rechazado_por|auth.users|id|NO ACTION
+fiscal_documents|transaction_id|transactions|id|CASCADE
+fiscal_documents|hito_id|transaction_hitos|id|SET NULL
+fiscal_documents|parent_cfdi_id|fiscal_documents|id|SET NULL
+help_articles|category_id|help_categories|id|SET NULL
+internal_access_log|user_id|auth.users|id|NO ACTION
+internal_action_log|user_id|auth.users|id|NO ACTION
+internal_role_assignments|revocado_por|auth.users|id|NO ACTION
+internal_role_assignments|asignado_por|auth.users|id|NO ACTION
+internal_role_assignments|user_id|auth.users|id|CASCADE
+invitations|invited_by|auth.users|id|SET NULL
+invitations|org_id|organizations|id|CASCADE
+invitations|accepted_by|auth.users|id|SET NULL
+kyc_documents|reviewed_by|auth.users|id|NO ACTION
+kyc_documents|user_id|auth.users|id|CASCADE
+memberships|user_id|auth.users|id|CASCADE
+memberships|org_id|organizations|id|CASCADE
+memberships|invited_by|auth.users|id|SET NULL
+notifications|user_id|auth.users|id|CASCADE
+organizations|owner_user_id|auth.users|id|SET NULL
+payment_intents|transaction_id|transactions|id|CASCADE
+payouts|seller_id|auth.users|id|SET NULL
+payouts|transaction_id|transactions|id|CASCADE
+platform_roles|user_id|auth.users|id|CASCADE
+platform_roles|granted_by|auth.users|id|SET NULL
+pld_alerts|transaction_id|transactions|id|SET NULL
+pld_alerts|org_id|organizations|id|CASCADE
+pld_alerts|resolved_by|auth.users|id|NO ACTION
+pld_questionnaires|user_id|auth.users|id|CASCADE
+pld_questionnaires|org_id|organizations|id|CASCADE
+pld_risk_factors|org_id|organizations|id|CASCADE
+pld_risk_factors|profile_id|pld_risk_profiles|id|CASCADE
+pld_risk_profiles|evaluated_by|auth.users|id|NO ACTION
+pld_risk_profiles|org_id|organizations|id|CASCADE
+pld_screening_results|org_id|organizations|id|CASCADE
+postal_code_lookups|user_id|auth.users|id|CASCADE
+profiles|id|auth.users|id|CASCADE
+reports_ledger|owner_id|auth.users|id|CASCADE
+reports_ledger|transaction_id|transactions|id|SET NULL
+support_attachment_downloads|attachment_id|support_attachments|id|CASCADE
+support_attachment_downloads|ticket_id|support_tickets|id|CASCADE
+support_attachment_downloads|user_id|auth.users|id|CASCADE
+support_attachments|uploaded_by|auth.users|id|CASCADE
+support_attachments|message_id|support_messages|id|SET NULL
+support_attachments|ticket_id|support_tickets|id|CASCADE
+support_messages|author_id|auth.users|id|CASCADE
+support_messages|ticket_id|support_tickets|id|CASCADE
+support_tickets|user_id|auth.users|id|CASCADE
+support_tickets|org_id|organizations|id|SET NULL
+transaction_conditions|verified_by|auth.users|id|NO ACTION
+transaction_conditions|transaction_id|transactions|id|CASCADE
+transaction_contracts|transaction_id|transactions|id|CASCADE
+transaction_contracts|created_by|auth.users|id|NO ACTION
+transaction_documents|transaction_id|transactions|id|CASCADE
+transaction_documents|uploaded_by|auth.users|id|CASCADE
+transaction_events|transaction_id|transactions|id|CASCADE
+transaction_events|actor_id|auth.users|id|NO ACTION
+transaction_hitos|transaction_id|transactions|id|CASCADE
+transactions|buyer_id|auth.users|id|RESTRICT
+transactions|creado_por|auth.users|id|SET NULL
+transactions|seller_id|auth.users|id|RESTRICT
+user_roles|user_id|auth.users|id|CASCADE
+verification_evidence|transaction_id|transactions|id|CASCADE
+verification_evidence|uploaded_by|auth.users|id|CASCADE
