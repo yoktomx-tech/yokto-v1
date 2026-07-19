@@ -269,6 +269,19 @@ function AuthPage() {
                   {info}
                 </div>
               )}
+              {hint && !info && (
+                <div role="status" className="rounded-md border border-white/[0.08] bg-yokto-elevated px-3 py-2.5 text-xs text-yokto-text-2 flex items-start gap-2">
+                  <ShieldCheck className="size-4 shrink-0 text-yokto-accent mt-0.5" aria-hidden />
+                  <span>
+                    {hint}{" "}
+                    {mode === "login" && (
+                      <Link to="/forgot-password" className="font-semibold text-yokto-accent hover:underline">
+                        Restablecer contraseña
+                      </Link>
+                    )}
+                  </span>
+                </div>
+              )}
 
               <button
                 type="submit"
