@@ -4,13 +4,19 @@
 -- blocks changes to org_id, org_role, email, and token, while allowing
 -- an invitee to update acceptance-only fields (accepted_at / accepted_by).
 --
--- Run against the project's admin connection (service-role / postgres),
--- because it inserts fixture rows in auth.users:
+-- HOW TO RUN
+-- ----------
+-- This suite inserts fixture rows in auth.users, which requires a
+-- superuser connection (the `postgres` role). It must be executed from
+-- the Supabase SQL Editor or through a superuser psql connection —
+-- application roles (`service_role`, `authenticated`, `anon`) do NOT
+-- have the required grants on the `auth` schema.
 --
---   psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f tests/rls/invitations.test.sql
---
--- The script is fully transactional and rolls back at the end.
+-- Every statement runs inside a single transaction and is ROLLED BACK
+-- at the end, leaving no residual data behind. Every assertion prints
+-- "PASS N/6 ..." on success; any failure aborts with a FAIL message.
 -- =====================================================================
+
 
 BEGIN;
 
