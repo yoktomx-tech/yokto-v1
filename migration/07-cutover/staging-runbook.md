@@ -3,11 +3,37 @@
 **Entorno único autorizado:** proyecto Supabase staging externo (`TARGET_STAGING_PROJECT_REF`).
 **Entorno PROHIBIDO:** `diqdpygummlrajsugotv` (Lovable Cloud producción).
 
-Este runbook está diseñado para ejecutarse desde una estación DevOps o
-un runner CI aislado, con las credenciales del proyecto staging. Nunca
-desde la sesión del agente Lovable, ni contra el proyecto Cloud actual.
+**Ejecutor autorizado:** operador humano desde una estación DevOps controlada,
+con Supabase CLI + `psql` y variables secretas locales. **Lovable no ejecuta
+este runbook**, no recibe la contraseña de la base, no recibe service_role, no
+recibe Personal Access Tokens y no recibe claves de proveedores. Los
+resultados de cada bloque se capturan localmente por el operador y luego se
+incorporan a los reportes de `migration/07-cutover/reports/`.
+
+Diagrama de responsabilidades:
+
+```
+Lovable
+└── Genera código, migraciones, pruebas y documentación
+
+Estación DevOps controlada (operador)
+├── Supabase CLI
+├── psql
+├── variables secretas locales (.env.staging.local, .env.staging.secrets)
+├── ejecución del runbook
+└── captura de resultados
+
+Supabase staging externo
+├── base de datos
+├── Auth
+├── Storage
+├── Edge Functions
+├── Realtime
+└── secretos de staging
+```
 
 ---
+
 
 ## 0. Guards obligatorios (incluir al inicio de cada script `.sh`)
 
@@ -297,11 +323,24 @@ supabase secrets set --env-file .env.staging.secrets \
 supabase secrets list --project-ref "$TARGET_STAGING_PROJECT_REF"
 ```
 
-Secretos esperados: `NUBARIUM_USER`, `NUBARIUM_PASSWORD`,
-`VERIFICAMEX_API_KEY`, `VERIFICAMEX_WEBHOOK_TOKEN`, `COPOMEX_TOKEN`,
-`STRIPE_SECRET_KEY` (test), `STRIPE_WEBHOOK_SECRET`, `BANK_ACCOUNT_HASH_SECRET`,
-`LOVABLE_API_KEY` (sólo si aún se usa AI Gateway — categoría C potencial),
-`APP_URL` = URL frontend staging.
+Secretos esperados en Edge Function Secrets del proyecto staging:
+`NUBARIUM_USER`, `NUBARIUM_PASSWORD`, `VERIFICAMEX_API_KEY`,
+`VERIFICAMEX_WEBHOOK_TOKEN`, `COPOMEX_TOKEN`, `STRIPE_SECRET_KEY` (test),
+`STRIPE_WEBHOOK_SECRET`, `BANK_ACCOUNT_HASH_SECRET`, `CRON_SECRET`,
+`RESEND_API_KEY` (sandbox), `APP_URL` (URL frontend staging).
+
+AI Gateway portable (`supabase/functions/ai-gateway/`) — nombres genéricos,
+**sin `LOVABLE_API_KEY`**:
+
+- `AI_PROVIDER`
+- `AI_PROVIDER_API_KEY`
+- `AI_DEFAULT_MODEL`
+- `AI_MAX_INPUT_TOKENS`
+- `AI_MAX_OUTPUT_TOKENS`
+- `AI_REQUEST_TIMEOUT_MS`
+
+Antes de desplegar `ai-gateway`, aplicar el DDL de `ai_gateway_usage`
+descrito en `supabase/functions/ai-gateway/README.md`.
 
 ---
 
@@ -371,13 +410,14 @@ Las pruebas usan JWT de rol real (no service_role). Ver
 ## 14. Pruebas funcionales E2E (frontend staging)
 
 En rama `chore/staging-cutover-dryrun` (ver §16), con `.env.staging` apuntando
-al proyecto staging:
+al proyecto staging y usando el contrato oficial de variables:
 
 ```bash
 # LOCAL — desde el checkout del frontend
 git checkout chore/staging-cutover-dryrun
-cp .env.staging.template .env.staging
-# Editar .env.staging con VITE_SUPABASE_URL del staging
+cp migration/06-frontend-portable/.env.staging.template .env.staging
+# Editar .env.staging con VITE_SUPABASE_URL y VITE_SUPABASE_PUBLISHABLE_KEY del staging.
+# VITE_SUPABASE_ANON_KEY sólo si el código legacy aún lo requiere.
 bun install
 bun run build   # debe compilar
 bun run dev
