@@ -6,15 +6,26 @@ sin ejecución en staging). Se mantendrán y actualizarán tras el dry run.
 ## B-01 · Gateway de IA sin `LOVABLE_API_KEY`
 
 - **Categoría de origen:** función migration-matrix #24.
-- **Estado:** **RESUELTO EN DISEÑO / NOT TESTED**.
-- **Resolución:** portada a Edge Function externa
-  `supabase/functions/ai-gateway/` con secretos genéricos `AI_PROVIDER`,
-  `AI_PROVIDER_API_KEY`, `AI_DEFAULT_MODEL`, `AI_MAX_INPUT_TOKENS`,
-  `AI_MAX_OUTPUT_TOKENS`, `AI_REQUEST_TIMEOUT_MS`. Elimina toda dependencia
-  de `LOVABLE_API_KEY` y de `ai.gateway.lovable.dev`.
+- **Estado:**
+  - **RESOLVED IN DESIGN** — portada a Edge Function externa
+    `supabase/functions/ai-gateway/` con secretos genéricos `AI_PROVIDER`,
+    `AI_PROVIDER_API_KEY`, `AI_DEFAULT_MODEL`, `AI_MAX_INPUT_TOKENS`,
+    `AI_MAX_OUTPUT_TOKENS`, `AI_REQUEST_TIMEOUT_MS`. Sin dependencia de
+    `LOVABLE_API_KEY` ni de `ai.gateway.lovable.dev`.
+  - **LOCAL UNIT TESTS: PASS** — 28/28 casos verdes con
+    `deno test --allow-env --allow-read supabase/functions/ai-gateway/index.test.ts`
+    (ver `supabase/functions/ai-gateway/LOCAL_TESTING.md`). Cubre auth,
+    membership, allowlist de modelos, SSRF, límites de input/output,
+    timeout, rate limit por usuario y por org, auditoría metadata-only,
+    higiene estática (no `LOVABLE_API_KEY`, no `lovable.dev`).
+  - **STAGING INTEGRATION TEST: NOT TESTED** — depende de que el operador
+    ejecute `supabase functions serve ai-gateway --env-file .env.staging.local`
+    contra el proyecto staging externo.
+  - **PRODUCTION: NOT AUTHORIZED**.
 - **Pendiente:** despliegue y prueba en staging por el operador; retirar
   `src/lib/ai-gateway.server.ts` de la rama `chore/staging-cutover-dryrun`.
-- **Bloquea Fase 1:** SÍ hasta que la Edge Function pase pruebas en staging.
+- **Bloquea Fase 1:** SÍ hasta que la Edge Function pase pruebas de
+  integración en staging.
 
 
 ## B-02 · Prerequisitos externos no provistos
