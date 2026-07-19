@@ -3,23 +3,19 @@
 Blockers identificados durante la preparación de la Fase 0 (Opción B —
 sin ejecución en staging). Se mantendrán y actualizarán tras el dry run.
 
-## B-01 · `LOVABLE_API_KEY` en `ai-gateway.server.ts`
+## B-01 · Gateway de IA sin `LOVABLE_API_KEY`
 
-- **Categoría de origen:** función migration-matrix #24 (categoría C).
-- **Descripción:** `src/lib/ai-gateway.server.ts` invoca
-  `https://ai-gateway.lovable.dev` con `LOVABLE_API_KEY`. Es la única
-  dependencia backend de Lovable Cloud identificada hasta ahora.
-- **Impacto:** verificación documental con Gemini deja de funcionar si
-  se desactiva Cloud sin migrar. Bloquea la afirmación "cero
-  dependencia backend de Cloud".
-- **Acción requerida:**
-  1. Provisionar `GEMINI_API_KEY` en el Vault del Supabase staging.
-  2. Reescribir el helper para llamar directamente a
-     `https://generativelanguage.googleapis.com/v1beta/models/gemini-*:generateContent`.
-  3. Retirar `LOVABLE_API_KEY` como secreto requerido.
-- **Estado:** OPEN — acción se ejecuta durante el dry run en la rama
-  `chore/staging-cutover-dryrun`.
-- **Bloquea Fase 1:** SÍ hasta demostrar AI operando contra Gemini directo en staging.
+- **Categoría de origen:** función migration-matrix #24.
+- **Estado:** **RESUELTO EN DISEÑO / NOT TESTED**.
+- **Resolución:** portada a Edge Function externa
+  `supabase/functions/ai-gateway/` con secretos genéricos `AI_PROVIDER`,
+  `AI_PROVIDER_API_KEY`, `AI_DEFAULT_MODEL`, `AI_MAX_INPUT_TOKENS`,
+  `AI_MAX_OUTPUT_TOKENS`, `AI_REQUEST_TIMEOUT_MS`. Elimina toda dependencia
+  de `LOVABLE_API_KEY` y de `ai.gateway.lovable.dev`.
+- **Pendiente:** despliegue y prueba en staging por el operador; retirar
+  `src/lib/ai-gateway.server.ts` de la rama `chore/staging-cutover-dryrun`.
+- **Bloquea Fase 1:** SÍ hasta que la Edge Function pase pruebas en staging.
+
 
 ## B-02 · Prerequisitos externos no provistos
 
