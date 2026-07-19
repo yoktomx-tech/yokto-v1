@@ -36,6 +36,11 @@ function AuthPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
+  const [hint, setHint] = useState<string | null>(null);
+  const [failedAttempts, setFailedAttempts] = useState(0);
+
+  const MAX_ATTEMPTS = 5;
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
   const redirectTo = search.redirect && search.redirect.startsWith("/") ? search.redirect : "/dashboard";
 
@@ -53,13 +58,27 @@ function AuthPage() {
     return () => { mounted = false; sub.subscription.unsubscribe(); };
   }, [navigate, redirectTo, router]);
 
+  function validateBeforeSubmit(): string | null {
+    const trimmed = email.trim();
+    if (!trimmed) return "Ingresa tu correo electrónico.";
+    if (!emailRegex.test(trimmed)) return "El formato del correo no es válido. Ejemplo: nombre@dominio.com";
+    if (!password) return "Ingresa tu contraseña.";
+    if (mode === "signup" && password.length < 8) return "La contraseña debe tener al menos 8 caracteres.";
+    return null;
+  }
+
   async function handleEmail(e: React.FormEvent) {
     e.preventDefault();
-    setError(null); setInfo(null); setLoading(true);
+    setError(null); setInfo(null); setHint(null);
+
+    const validationError = validateBeforeSubmit();
+    if (validationError) { setError(validationError); return; }
+
+    setLoading(true);
     try {
       if (mode === "signup") {
         const { error } = await supabase.auth.signUp({
-          email, password,
+          email: email.trim(), password,
           options: {
             emailRedirectTo: `${window.location.origin}${redirectTo}`,
             data: { first_name: firstName, last_name: lastName },
@@ -68,21 +87,39 @@ function AuthPage() {
         if (error) throw error;
         setInfo("Cuenta creada. Revisa tu correo para confirmarla y luego inicia sesión.");
       } else {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
         if (error) throw error;
+        setFailedAttempts(0);
       }
     } catch (err) {
       const raw = err instanceof Error ? err.message : "";
-      const msg = /invalid login credentials/i.test(raw)
+      const isBadCreds = /invalid login credentials/i.test(raw);
+      const msg = isBadCreds
         ? "Correo o contraseña incorrectos. Verifica tus datos e inténtalo de nuevo."
         : /email not confirmed/i.test(raw)
         ? "Debes confirmar tu correo antes de iniciar sesión."
+        : /over_email_send_rate_limit|rate limit/i.test(raw)
+        ? "Demasiados intentos. Espera unos minutos antes de reintentar."
         : raw || "Error de autenticación";
       setError(msg);
+
+      if (mode === "login" && isBadCreds) {
+        const next = failedAttempts + 1;
+        setFailedAttempts(next);
+        const remaining = Math.max(MAX_ATTEMPTS - next, 0);
+        if (remaining === 0) {
+          setHint("Has alcanzado el límite de intentos sugerido. Restablece tu contraseña para evitar bloqueos temporales por seguridad.");
+        } else if (remaining <= 2) {
+          setHint(`Te quedan ${remaining} ${remaining === 1 ? "intento" : "intentos"} antes de un bloqueo temporal. Si no recuerdas tu contraseña, restablécela.`);
+        } else {
+          setHint("Consejo: verifica mayúsculas, distribución del teclado y que no haya espacios al inicio o final.");
+        }
+      }
     } finally {
       setLoading(false);
     }
   }
+
 
 
 
