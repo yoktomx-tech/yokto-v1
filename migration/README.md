@@ -83,11 +83,15 @@ migration/
 - Cada script SQL es **idempotente y transaccional**; se puede reintentar.
 - Cualquier valor `service_role` o `db password` del nuevo proyecto NO se comita nunca — se maneja como secreto de Lovable con `add_secret`.
 
-## Estado actual (este turno)
+## Estado actual
 
-✅ 00-inventory: completo (51 tablas, 30 enums, 274 RLS policies, 6 buckets, 8 server routes públicas, 11 secretos, dependencias Lovable inventariadas).
-✅ 01-schema: DDL portable extraída.
-✅ 02-role-model-migration: enums/tablas/funciones/backfill/matriz completos.
-⏳ Pendiente: `14_new_rls_policies.sql`, `15_finalize_role_rename.sql`, `03-data-migration/`, `04-storage-migration/`, `05-edge-functions/`, `06-frontend-portable/`, `07-cutover/`.
+✅ **00-inventory**: 51 tablas, 30 enums, 274 RLS policies, 6 buckets, 11 secretos + `lovable-cloud-dependencies.md` (10 archivos a swap).
+✅ **01-schema**: DDL portable extraída (11 archivos).
+✅ **02-role-model-migration**: enums v2, tablas, 17 funciones `has_*/can_*`, backfill legacy→v2, matriz de permisos, RLS reescrita para las 51 tablas, script de rename final.
+✅ **03-data-migration**: playbook `pg_dump/pg_restore` con delta incremental.
+✅ **04-storage-migration**: playbook `mc mirror` bucket-a-bucket.
+✅ **05-edge-functions**: decisión de arquitectura — TSS se queda, sólo webhooks/cron cambian URL en dashboards.
+✅ **06-frontend-portable**: `client.ts`, `client.server.ts`, `auth-middleware.ts`, `auth-attacher.ts`, `.env.template`.
+✅ **07-cutover**: `verification-suite.sql`, `rls-tests.sql`, `cutover-checklist.md` con rollback.
 
-Siguiente iteración: reescribir RLS de las 51 tablas usando `can_*()` (paquete grande — se entrega en la siguiente respuesta).
+**Todos los entregables listos.** El proyecto Lovable no se modificó; los artefactos viven bajo `migration/` sin tocar `src/`. Cuando se dispare el corte se aplican en el orden del checklist.
