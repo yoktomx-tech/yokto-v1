@@ -1,0 +1,6 @@
+biometric-captures|biometric-captures|f
+dispute-evidence|dispute-evidence|f
+kyc-documents|kyc-documents|f
+support-attachments|support-attachments|f
+transaction-documents|transaction-documents|f
+verification-evidence|verification-evidence|f
