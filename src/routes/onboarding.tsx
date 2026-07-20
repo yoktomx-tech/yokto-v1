@@ -890,6 +890,14 @@ function Step3Fiscal({ onSaved, onBack, setError, loading, setLoading }: {
         setError("Sube tu documento para extraer el RFC");
         return;
       }
+      if (fillMode === "efirma" && efInfo && efInfo.vigente === false) {
+        setError("Tu e.firma aparece como NO VIGENTE en el SAT. No puedes continuar con este método.");
+        return;
+      }
+    }
+    if (!f.regimen_fiscal) {
+      setError("Falta el tipo de régimen fiscal. Selecciónalo en la lista.");
+      return;
     }
     setError(null); setLoading(true);
     try {
@@ -921,7 +929,17 @@ function Step3Fiscal({ onSaved, onBack, setError, loading, setLoading }: {
       }
       onSaved();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Error al guardar");
+      const raw = e instanceof Error ? e.message : "Error al guardar";
+      let msg = raw;
+      try {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed[0]?.message) {
+          const issue = parsed[0];
+          if (issue.path?.includes("regimen_fiscal")) msg = "Falta el tipo de régimen fiscal. Selecciónalo en la lista.";
+          else msg = issue.message;
+        }
+      } catch { /* not json */ }
+      setError(msg);
     } finally { setLoading(false); }
   }
 
