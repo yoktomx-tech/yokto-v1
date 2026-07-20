@@ -676,31 +676,53 @@ function Step3Fiscal({ onSaved, onBack, setError, loading, setLoading }: {
   }
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      const uid = data.user?.id; if (!uid) return;
-      supabase.from("profiles").select("*").eq("id", uid).maybeSingle().then(({ data: p }) => {
-        if (!p) return;
-        setTipo(p.account_type as AccountType);
-        setF({
-          first_name: p.first_name ?? "", last_name: p.last_name ?? "",
-          second_last_name: p.second_last_name ?? "", birth_date: p.birth_date ?? "",
-          rfc: p.rfc ?? "", curp: p.curp ?? "",
-          legal_name: p.legal_name ?? "", trade_name: p.trade_name ?? "",
-          incorporation_date: p.incorporation_date ?? "",
-          regimen_fiscal: p.regimen_fiscal ?? "",
-          fiscal_street: p.fiscal_street ?? "", fiscal_ext_number: p.fiscal_ext_number ?? "",
-          fiscal_int_number: p.fiscal_int_number ?? "", fiscal_colonia: p.fiscal_colonia ?? "",
-          fiscal_municipio: p.fiscal_municipio ?? "", fiscal_estado: p.fiscal_estado ?? "",
-          fiscal_postal_code: p.fiscal_postal_code ?? "",
-          rep_full_name: (p.legal_rep as { full_name?: string } | null)?.full_name ?? "",
-          rep_rfc: (p.legal_rep as { rfc?: string } | null)?.rfc ?? "",
-          rep_curp: (p.legal_rep as { curp?: string } | null)?.curp ?? "",
-          rep_role: (p.legal_rep as { role?: string } | null)?.role ?? "",
-        });
-        if ((p.fiscal_postal_code ?? "").length === 5) setCpLocked(true);
-      });
-    });
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data: auth } = await supabase.auth.getUser();
+        const uid = auth.user?.id;
+        // Fallback a localStorage si no hay sesión o falla la consulta
+        const lsRaw = (() => { try { return localStorage.getItem(LS_KEY); } catch { return null; } })();
+        const ls = lsRaw ? (JSON.parse(lsRaw) as { account_type?: AccountType }) : null;
+
+        let p: Record<string, unknown> | null = null;
+        if (uid) {
+          const { data, error } = await supabase.from("profiles").select("*").eq("id", uid).maybeSingle();
+          if (error) console.warn("[onboarding step3] profiles load error", error);
+          p = data as Record<string, unknown> | null;
+        }
+        if (cancelled) return;
+
+        const acct = (p?.account_type as AccountType | undefined) ?? ls?.account_type ?? "persona_fisica";
+        setTipo(acct);
+
+        if (p) {
+          setF({
+            first_name: (p.first_name as string) ?? "", last_name: (p.last_name as string) ?? "",
+            second_last_name: (p.second_last_name as string) ?? "", birth_date: (p.birth_date as string) ?? "",
+            rfc: (p.rfc as string) ?? "", curp: (p.curp as string) ?? "",
+            legal_name: (p.legal_name as string) ?? "", trade_name: (p.trade_name as string) ?? "",
+            incorporation_date: (p.incorporation_date as string) ?? "",
+            regimen_fiscal: (p.regimen_fiscal as string) ?? "",
+            fiscal_street: (p.fiscal_street as string) ?? "", fiscal_ext_number: (p.fiscal_ext_number as string) ?? "",
+            fiscal_int_number: (p.fiscal_int_number as string) ?? "", fiscal_colonia: (p.fiscal_colonia as string) ?? "",
+            fiscal_municipio: (p.fiscal_municipio as string) ?? "", fiscal_estado: (p.fiscal_estado as string) ?? "",
+            fiscal_postal_code: (p.fiscal_postal_code as string) ?? "",
+            rep_full_name: (p.legal_rep as { full_name?: string } | null)?.full_name ?? "",
+            rep_rfc: (p.legal_rep as { rfc?: string } | null)?.rfc ?? "",
+            rep_curp: (p.legal_rep as { curp?: string } | null)?.curp ?? "",
+            rep_role: (p.legal_rep as { role?: string } | null)?.role ?? "",
+          });
+          if (((p.fiscal_postal_code as string) ?? "").length === 5) setCpLocked(true);
+        }
+      } catch (e) {
+        console.error("[onboarding step3] load failed", e);
+        if (!cancelled) setTipo("persona_fisica");
+      }
+    })();
+    return () => { cancelled = true; };
   }, []);
+
 
   // Auto-cerrar el recuadro de CURP tras 5s
   useEffect(() => {
