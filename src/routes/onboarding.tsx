@@ -1366,64 +1366,233 @@ function Step3Fiscal({ onSaved, onBack, setError, loading, setLoading }: {
         </>
       ) : (
         <>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <Field id="legal_name" label="Razón social" value={f.legal_name ?? ""} onChange={(v) => set("legal_name", v)} required />
-            <Field id="trade_name" label="Nombre comercial (opcional)" value={f.trade_name ?? ""} onChange={(v) => set("trade_name", v)} />
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <Field id="rfc" label="RFC (12 caracteres)" value={f.rfc ?? ""} onChange={(v) => set("rfc", v)} required uppercase maxLength={12}
-              onBlur={onRfcBlur} error={rfcCheck && !rfcCheck.ok ? rfcCheck.msg : null}
-              hint={rfcCheck?.ok ? rfcCheck.msg : undefined}
-              trailing={rfcChecking ? <Loader2 className="size-4 animate-spin text-yo-txt-3" /> : rfcCheck?.ok ? <Check className="size-4 text-yo-ok" /> : undefined}
-            />
-            <Field id="incorporation_date" label="Fecha de constitución" type="date"
-              value={f.incorporation_date ?? ""} onChange={(v) => set("incorporation_date", v)} />
-          </div>
-          {rfcVerified && rfcBoxOpen && (
-            <div className={cn(
-              "rounded-lg border p-3 text-[12.5px]",
-              rfcVerified.match ? "border-yo-ok/40 bg-yo-ok/5 text-yo-txt" : "border-yo-danger/40 bg-yo-danger/5 text-yo-txt"
-            )}>
-              <div className="flex items-start justify-between gap-2">
-                <div className="flex-1">
-                  <p className="font-semibold">{rfcVerified.match ? "RFC verificado en el SAT" : "Los datos vinculados al RFC no coinciden"}</p>
-                  <p className="mt-1 text-yo-txt-2"><span className="text-yo-txt-3">Razón social:</span> {rfcVerified.razonSocial || rfcVerified.nombreCompleto || "—"}</p>
-                  <p className={cn("mt-1 text-[11px]", rfcVerified.match ? "text-yo-ok" : "text-yo-danger")}>
-                    {rfcVerified.match ? "La razón social coincide con la capturada." : "La razón social no coincide con la capturada."}
-                  </p>
-                </div>
-                <button type="button" onClick={() => setRfcBoxOpen(false)} className="text-yo-txt-3 hover:text-yo-txt text-xs">Cerrar</button>
+          {/* --- Selector de modo (PRIMER paso) --- */}
+          <fieldset className="rounded-xl border border-yo-border p-4">
+            <legend className="text-xs font-semibold uppercase tracking-widest text-yo-txt-2 px-1">¿Cómo quieres completar los datos fiscales de tu empresa?</legend>
+            <p className="mt-2 mb-3 text-sm text-yo-txt-2">
+              Elige un método para extraer RFC, razón social, régimen y domicilio automáticamente. Si no cuentas con estos documentos, puedes capturarlo manualmente.
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+              <FiscalModeButton icon={<FileCheck2 className="size-4" />} title="Constancia de Situación Fiscal"
+                desc="Sube la CSF de tu empresa (PDF o imagen)." active={fillMode === "csf"} onClick={() => setFillMode("csf")} />
+              <FiscalModeButton icon={<KeyRound className="size-4" />} title="e.firma vigente"
+                desc="Extrae RFC de la empresa y CURP del representante." active={fillMode === "efirma"} onClick={() => setFillMode("efirma")} />
+              <FiscalModeButton icon={<PencilLine className="size-4" />} title="Manualmente"
+                desc="Captura el RFC y valida la razón social en el SAT." active={fillMode === "manual"} onClick={() => setFillMode("manual")} />
+            </div>
+          </fieldset>
+
+          {/* --- CSF --- */}
+          {fillMode === "csf" && (
+            <fieldset className="rounded-xl border border-yo-border p-4">
+              <legend className="text-xs font-semibold uppercase tracking-widest text-yo-txt-2 px-1">Constancia de Situación Fiscal</legend>
+              <div className="mt-3 rounded-lg border border-dashed border-yo-border bg-yo-raised/40 p-4">
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <div className="inline-flex items-center gap-2 min-h-10 px-4 rounded-md bg-yo-ac hover:bg-yo-ac-h text-white text-sm font-semibold">
+                    {csfBusy ? <Loader2 className="size-4 animate-spin" /> : <Upload className="size-4" />}
+                    Subir constancia
+                  </div>
+                  <span className="text-xs text-yo-txt-3">PDF, JPG o PNG · máx 8 MB</span>
+                  <input type="file" accept="application/pdf,image/*" className="hidden"
+                    onChange={(e) => { const fi = e.target.files?.[0]; if (fi) void onCsfFile(fi); }} />
+                </label>
+                {csfErr && <p className="mt-2 text-xs text-yo-err">{csfErr}</p>}
               </div>
-              <p className="mt-2 text-[11px] text-yo-txt-3">Este recuadro se cerrará automáticamente en 5 segundos.</p>
-            </div>
+              {csfInfo && csfBoxOpen && (
+                <div className="relative mt-3 rounded-lg border border-yo-ok/30 bg-yo-ok/5 p-3 pr-9 text-sm">
+                  <button type="button" onClick={() => setCsfBoxOpen(false)} aria-label="Cerrar"
+                    className="absolute top-2 right-2 p-1 rounded-md text-yo-txt-3 hover:text-yo-txt hover:bg-yo-raised">
+                    <X className="size-4" />
+                  </button>
+                  <div className="flex items-center gap-2 text-yo-ok font-semibold">
+                    <Check className="size-4" /> Constancia leída correctamente
+                  </div>
+                  <dl className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 text-yo-txt text-[13px]">
+                    <div><dt className="text-xs text-yo-txt-3">RFC</dt><dd className="font-mono">{csfInfo.rfc || "—"}</dd></div>
+                    <div><dt className="text-xs text-yo-txt-3">Razón social</dt><dd>{csfInfo.razonSocial || "—"}</dd></div>
+                    <div><dt className="text-xs text-yo-txt-3">Nombre comercial</dt><dd>{csfInfo.nombreComercial || "—"}</dd></div>
+                    <div><dt className="text-xs text-yo-txt-3">Régimen</dt><dd>{csfInfo.regimenNombre || csfInfo.regimenes[0] || "—"}</dd></div>
+                    <div><dt className="text-xs text-yo-txt-3">Fecha de constitución</dt><dd>{csfInfo.fechaInicioOperaciones || "—"}</dd></div>
+                    <div><dt className="text-xs text-yo-txt-3">CP</dt><dd>{csfInfo.domicilio.cp || "—"}</dd></div>
+                    <div className="sm:col-span-2"><dt className="text-xs text-yo-txt-3">Domicilio</dt>
+                      <dd>{[csfInfo.domicilio.street, csfInfo.domicilio.ext, csfInfo.domicilio.colonia, csfInfo.domicilio.municipio, csfInfo.domicilio.estado].filter(Boolean).join(", ") || "—"}</dd>
+                    </div>
+                  </dl>
+                  <p className="mt-2 text-[11px] text-yo-txt-3">Este recuadro se cerrará automáticamente en 5 segundos.</p>
+                </div>
+              )}
+              {csfInfo && !csfBoxOpen && (
+                <div className="mt-3 inline-flex items-center gap-2 text-xs text-yo-ok">
+                  <Check className="size-3.5" /> Constancia leída — {csfInfo.razonSocial || csfInfo.rfc}
+                  <button type="button" onClick={() => setCsfBoxOpen(true)} className="underline text-yo-txt-3 hover:text-yo-txt">Ver detalle</button>
+                </div>
+              )}
+            </fieldset>
           )}
-          {rfcVerified && !rfcBoxOpen && (
-            <div className="inline-flex items-center gap-2 text-xs">
-              <Check className={cn("size-3.5", rfcVerified.match ? "text-yo-ok" : "text-yo-danger")} />
-              <span className={rfcVerified.match ? "text-yo-ok" : "text-yo-danger"}>
-                {rfcVerified.match ? "RFC validado" : "RFC no coincide"} — {rfcVerified.razonSocial || rfcVerified.nombreCompleto || "—"}
-              </span>
-              <button type="button" onClick={() => setRfcBoxOpen(true)} className="underline text-yo-txt-3 hover:text-yo-txt">Ver detalle</button>
-            </div>
+
+          {/* --- e.firma --- */}
+          {fillMode === "efirma" && (
+            <fieldset className="rounded-xl border border-yo-border p-4">
+              <legend className="text-xs font-semibold uppercase tracking-widest text-yo-txt-2 px-1">e.firma vigente (PM)</legend>
+              <p className="mt-2 mb-3 text-xs text-yo-txt-3">
+                Sube el <code className="font-mono">.cer</code> y <code className="font-mono">.key</code> de la empresa. Del certificado extraemos el RFC de la empresa y la CURP del representante legal.
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <EfirmaDropzone label="Certificado (.cer)" accept=".cer,application/x-x509-ca-cert,application/octet-stream"
+                  file={efCer} onFile={setEfCer} icon={<FileCheck2 className="size-4" />} />
+                <EfirmaDropzone label="Llave privada (.key)" accept=".key,application/octet-stream"
+                  file={efKey} onFile={setEfKey} icon={<KeyRound className="size-4" />} />
+              </div>
+              <div className="mt-3">
+                <Field id="ef_pass_pm" label="Contraseña de la llave privada" type="password" value={efPass} onChange={setEfPass} />
+              </div>
+              <div className="mt-3 flex items-center gap-3">
+                <button type="button" onClick={runEfirma} disabled={efBusy || !efCer || !efKey || !efPass}
+                  className="inline-flex items-center gap-2 min-h-10 px-4 rounded-md bg-yo-ac hover:bg-yo-ac-h text-white text-sm font-semibold disabled:opacity-50">
+                  {efBusy ? <Loader2 className="size-4 animate-spin" /> : <ShieldCheck className="size-4" />}
+                  Validar e.firma
+                </button>
+                {efErr && <p className="text-xs text-yo-err">{efErr}</p>}
+              </div>
+              {efInfo && efBoxOpen && (
+                <div className={cn(
+                  "relative mt-3 rounded-lg border p-3 pr-9 text-sm",
+                  efInfo.vigente === false ? "border-yo-danger/50 bg-yo-danger/10 text-yo-txt" : "border-yo-ok/30 bg-yo-ok/5"
+                )}>
+                  <button type="button" onClick={() => setEfBoxOpen(false)} aria-label="Cerrar"
+                    className="absolute top-2 right-2 p-1 rounded-md text-yo-txt-3 hover:text-yo-txt hover:bg-yo-raised">
+                    <X className="size-4" />
+                  </button>
+                  <div className={cn("flex items-center gap-2 font-semibold", efInfo.vigente === false ? "text-yo-danger" : "text-yo-ok")}>
+                    {efInfo.vigente === false
+                      ? <><AlertCircle className="size-4" /> e.firma NO VIGENTE en el SAT</>
+                      : <><Check className="size-4" /> e.firma leída correctamente</>}
+                  </div>
+                  <dl className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 text-yo-txt">
+                    <div><dt className="text-xs text-yo-txt-3">RFC empresa</dt><dd className="font-mono">{efInfo.rfc}</dd></div>
+                    <div><dt className="text-xs text-yo-txt-3">CURP representante</dt><dd className="font-mono">{efInfo.curp || "—"}</dd></div>
+                    <div className="sm:col-span-2"><dt className="text-xs text-yo-txt-3">Titular del certificado</dt><dd>{efInfo.nombre}</dd></div>
+                    <div><dt className="text-xs text-yo-txt-3">Serial</dt><dd className="font-mono">{efInfo.serial}</dd></div>
+                    <div><dt className="text-xs text-yo-txt-3">Vigencia SAT</dt>
+                      <dd className={efInfo.vigente === false ? "text-yo-danger font-semibold" : ""}>
+                        {efInfo.vigente === true ? "VIGENTE" : efInfo.vigente === false ? "NO VIGENTE" : "No verificado"}
+                      </dd></div>
+                    <div><dt className="text-xs text-yo-txt-3">Válido hasta</dt><dd>{new Date(efInfo.validTo).toLocaleDateString("es-MX")}</dd></div>
+                  </dl>
+                  {efInfo.vigente === false && (
+                    <p className="mt-2 text-[12px] text-yo-danger">
+                      No puedes continuar con este método. Renueva la e.firma en el SAT o usa otro método.
+                    </p>
+                  )}
+                </div>
+              )}
+            </fieldset>
           )}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <Field as="select" id="regimen_fiscal" label="Régimen fiscal (SAT)" value={f.regimen_fiscal ?? ""} onChange={(v) => set("regimen_fiscal", v)} required>
-              <option value="">Selecciona…</option>
-              {regimenes.map((r) => <option key={r.code} value={r.code}>{r.label}</option>)}
-            </Field>
-          </div>
+
+          {/* --- Datos fiscales de la empresa --- */}
+          {fillMode && (
+            <fieldset className="rounded-xl border border-yo-border p-4">
+              <legend className="text-xs font-semibold uppercase tracking-widest text-yo-txt-2 px-1">Datos de la empresa</legend>
+              {(fillMode === "manual" || fillMode === "efirma") && (
+                <p className="mt-2 mb-3 text-[12px] text-yo-txt-3 rounded-md border border-yo-warn/30 bg-yo-warn/5 p-2">
+                  La información capturada manualmente será revisada por el equipo de YOKTO antes de completar tu registro.
+                </p>
+              )}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-2">
+                <Field id="rfc" label="RFC (12 caracteres)" value={f.rfc ?? ""} onChange={(v) => set("rfc", v)} required uppercase maxLength={12}
+                  onBlur={fillMode === "manual" ? onRfcBlur : undefined}
+                  disabled={fillMode !== "manual"}
+                  error={rfcCheck && !rfcCheck.ok ? rfcCheck.msg : null}
+                  hint={rfcCheck?.ok ? rfcCheck.msg : undefined}
+                  trailing={rfcChecking ? <Loader2 className="size-4 animate-spin text-yo-txt-3" /> : rfcCheck?.ok ? <Check className="size-4 text-yo-ok" /> : undefined}
+                />
+                <Field id="legal_name" label="Razón social" value={f.legal_name ?? ""} onChange={(v) => set("legal_name", v)} required
+                  disabled={fillMode === "csf" || fillMode === "efirma"} />
+                <Field id="trade_name" label="Nombre comercial (opcional)" value={f.trade_name ?? ""} onChange={(v) => set("trade_name", v)}
+                  disabled={fillMode === "csf"} />
+                <Field id="incorporation_date" label="Fecha de constitución" type="date"
+                  value={f.incorporation_date ?? ""} onChange={(v) => set("incorporation_date", v)}
+                  disabled={fillMode === "csf"} required />
+                <Field as="select" id="regimen_fiscal" label="Régimen fiscal (SAT)" value={f.regimen_fiscal ?? ""} onChange={(v) => set("regimen_fiscal", v)} required
+                  disabled={fillMode === "csf"}>
+                  <option value="">Selecciona…</option>
+                  {regimenes.map((r) => <option key={r.code} value={r.code}>{r.label}</option>)}
+                </Field>
+              </div>
+              {rfcVerified && rfcBoxOpen && (
+                <div className={cn("mt-3 rounded-lg border p-3 text-[12.5px]",
+                  rfcVerified.match ? "border-yo-ok/40 bg-yo-ok/5 text-yo-txt" : "border-yo-danger/40 bg-yo-danger/5 text-yo-txt")}>
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex-1">
+                      <p className="font-semibold">{rfcVerified.match ? "RFC verificado en el SAT" : "El RFC no fue localizado o no coincide"}</p>
+                      <p className="mt-1 text-yo-txt-2"><span className="text-yo-txt-3">Razón social:</span> {rfcVerified.razonSocial || rfcVerified.nombreCompleto || "—"}</p>
+                    </div>
+                    <button type="button" onClick={() => setRfcBoxOpen(false)} className="text-yo-txt-3 hover:text-yo-txt text-xs">Cerrar</button>
+                  </div>
+                  <p className="mt-2 text-[11px] text-yo-txt-3">Este recuadro se cerrará automáticamente en 5 segundos.</p>
+                </div>
+              )}
+              {rfcVerified && !rfcBoxOpen && (
+                <div className="mt-3 inline-flex items-center gap-2 text-xs">
+                  <Check className={cn("size-3.5", rfcVerified.match ? "text-yo-ok" : "text-yo-danger")} />
+                  <span className={rfcVerified.match ? "text-yo-ok" : "text-yo-danger"}>
+                    {rfcVerified.razonSocial || rfcVerified.nombreCompleto || "RFC verificado"}
+                  </span>
+                  <button type="button" onClick={() => setRfcBoxOpen(true)} className="underline text-yo-txt-3 hover:text-yo-txt">Ver detalle</button>
+                </div>
+              )}
+            </fieldset>
+          )}
         </>
       )}
 
-      {tipo === "persona_moral" && (
+      {tipo === "persona_moral" && fillMode && (
         <fieldset className="rounded-xl border border-yo-border bg-yo-raised/50 p-4">
           <legend className="text-xs font-semibold uppercase tracking-widest text-yo-txt-2 px-1">Representante legal</legend>
+          <p className="mt-2 mb-3 text-xs text-yo-txt-3">
+            Captura la CURP del representante — validamos automáticamente en RENAPO y prellenamos su nombre.
+          </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-2">
-            <Field id="rep_full_name" label="Nombre completo" value={f.rep_full_name ?? ""} onChange={(v) => set("rep_full_name", v)} required />
-            <Field id="rep_role" label="Cargo" value={f.rep_role ?? ""} onChange={(v) => set("rep_role", v)} required placeholder="Administrador único" />
+            <Field id="rep_curp" label="CURP del representante (18)" value={f.rep_curp ?? ""} onChange={onRepCurpChange}
+              required uppercase maxLength={18} error={repCurpError}
+              disabled={fillMode === "efirma"}
+              trailing={
+                repCurpChecking ? <Loader2 className="size-4 animate-spin text-yo-txt-3" /> :
+                repCurpVerified ? <Check className="size-4 text-yo-ok" /> : undefined
+              }
+              hint={repCurpChecking ? "Consultando RENAPO…" : repCurpVerified ? "Validada en RENAPO." : "La validación se ejecuta automáticamente al capturar los 18 caracteres."}
+            />
+            <Field id="rep_full_name" label="Nombre completo" value={f.rep_full_name ?? ""} onChange={(v) => set("rep_full_name", v)} required
+              disabled={!!repCurpVerified} />
             <Field id="rep_rfc" label="RFC del representante" value={f.rep_rfc ?? ""} onChange={(v) => set("rep_rfc", v)} required uppercase maxLength={13} />
-            <Field id="rep_curp" label="CURP del representante" value={f.rep_curp ?? ""} onChange={(v) => set("rep_curp", v)} required uppercase maxLength={18} />
+            <Field id="rep_role" label="Cargo" value={f.rep_role ?? ""} onChange={(v) => set("rep_role", v)} required placeholder="Administrador único" />
           </div>
+          {repCurpVerified && repCurpBoxOpen && (
+            <div className="relative mt-3 rounded-lg border border-yo-ok/30 bg-yo-ok/5 p-3 pr-9 text-sm">
+              <button type="button" onClick={() => setRepCurpBoxOpen(false)} aria-label="Cerrar"
+                className="absolute top-2 right-2 p-1 rounded-md text-yo-txt-3 hover:text-yo-txt hover:bg-yo-raised">
+                <X className="size-4" />
+              </button>
+              <div className="flex items-center gap-2 text-yo-ok font-semibold">
+                <Check className="size-4" /> CURP del representante verificada en RENAPO
+              </div>
+              <dl className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 text-yo-txt">
+                <div><dt className="text-xs text-yo-txt-3">Nombre</dt><dd>{repCurpVerified.nombre}</dd></div>
+                <div><dt className="text-xs text-yo-txt-3">Apellido paterno</dt><dd>{repCurpVerified.apellidoPaterno}</dd></div>
+                <div><dt className="text-xs text-yo-txt-3">Apellido materno</dt><dd>{repCurpVerified.apellidoMaterno || "—"}</dd></div>
+                <div><dt className="text-xs text-yo-txt-3">Fecha de nacimiento</dt><dd>{repCurpVerified.fechaNacimiento ?? "—"}</dd></div>
+                <div><dt className="text-xs text-yo-txt-3">Sexo</dt><dd>{repCurpVerified.sexo}</dd></div>
+                <div><dt className="text-xs text-yo-txt-3">Estado de nacimiento</dt><dd>{repCurpVerified.estadoNacimiento}</dd></div>
+              </dl>
+              <p className="mt-2 text-[11px] text-yo-txt-3">Este recuadro se cerrará automáticamente en 5 segundos.</p>
+            </div>
+          )}
+          {repCurpVerified && !repCurpBoxOpen && (
+            <div className="mt-3 inline-flex items-center gap-2 text-xs text-yo-ok">
+              <Check className="size-3.5" /> CURP validada — {repCurpVerified.nombre} {repCurpVerified.apellidoPaterno}
+              <button type="button" onClick={() => setRepCurpBoxOpen(true)} className="underline text-yo-txt-3 hover:text-yo-txt">Ver detalle</button>
+            </div>
+          )}
         </fieldset>
       )}
 
