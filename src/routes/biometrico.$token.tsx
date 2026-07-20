@@ -38,6 +38,7 @@ function BiometricMobile() {
   const { token } = useParams({ from: "/biometrico/$token" });
   const get = useServerFn(getEnrollmentByToken);
   const cancel = useServerFn(cancelBiometricEnrollment);
+  const startCtx = useServerFn(registerBiometricStartContext);
   const [enroll, setEnroll] = useState<Enrollment | null>(null);
   const [phase, setPhase] = useState<Phase>("intro");
   const [idResult, setIdResult] = useState<IdResult | null>(null);
@@ -61,6 +62,31 @@ function BiometricMobile() {
   }, [get, token, phase]);
 
   useEffect(() => { void refresh(); /* eslint-disable-next-line */ }, []);
+
+  // Bitácora: al abrir la sesión en el móvil registramos IP pública, user-agent y GPS.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const user_agent = typeof navigator !== "undefined" ? navigator.userAgent.slice(0, 500) : undefined;
+      let ip: string | undefined;
+      try {
+        const r = await fetch("https://api.ipify.org?format=json");
+        if (r.ok) ip = (await r.json()).ip;
+      } catch { /* ignore */ }
+      const geo = await new Promise<{ lat: number; lng: number; accuracy?: number } | null>((resolve) => {
+        if (typeof navigator === "undefined" || !navigator.geolocation) return resolve(null);
+        navigator.geolocation.getCurrentPosition(
+          (p) => resolve({ lat: p.coords.latitude, lng: p.coords.longitude, accuracy: p.coords.accuracy }),
+          () => resolve(null),
+          { enableHighAccuracy: false, timeout: 6000, maximumAge: 60000 },
+        );
+      });
+      if (cancelled) return;
+      try { await startCtx({ data: { token, user_agent, ip, geo } }); } catch { /* best-effort */ }
+    })();
+    return () => { cancelled = true; };
+  }, [token, startCtx]);
+
 
   async function doCancel() {
     try { await cancel({ data: { token } }); } catch { /* ignore */ }
