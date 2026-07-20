@@ -560,19 +560,24 @@ export const submitKyc = createServerFn({ method: "POST" })
       .eq("user_id", userId);
     const types = new Set<string>((docs ?? []).map((d) => d.document_type as string));
 
-    const requiredPf: string[] = ["ine_frente", "ine_reverso"];
+    // Si hay enrolamiento biométrico completado, la ID (frente/reverso o pasaporte)
+    // ya fue capturada y validada por Nubarium — no requerir los mismos docs
+    // vía kyc_documents.
+    const { data: bio } = await supabase
+      .from("biometric_enrollments")
+      .select("status, id_type")
+      .eq("user_id", userId)
+      .eq("status", "completed")
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    const requiredPf: string[] = bio ? [] : ["ine_frente", "ine_reverso"];
     const requiredPm: string[] = ["acta_constitutiva", "poder_notarial", "cedula_fiscal"];
     const required = profile.account_type === "persona_fisica" ? requiredPf : requiredPm;
     const missing = required.filter((t) => !types.has(t));
     if (missing.length > 0) throw new Error(`Faltan documentos: ${missing.join(", ")}`);
 
-    const { data: clabes } = await supabase
-      .from("clabe_verifications")
-      .select("id")
-      .eq("user_id", userId)
-      .eq("status", "verified")
-      .limit(1);
-    if (!clabes || clabes.length === 0) throw new Error("Falta registrar y verificar tu CLABE");
 
     const { error } = await supabase
       .from("profiles")
