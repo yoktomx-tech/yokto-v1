@@ -1464,36 +1464,57 @@ export type Database = {
           accepted_at: string | null
           accepted_by: string | null
           created_at: string
+          curp_rfc: string | null
           email: string
+          email_sent_at: string | null
           expires_at: string
+          first_name: string | null
+          full_name: string | null
           id: string
           invited_by: string | null
+          last_name: string | null
+          nubarium_verified: boolean
           org_id: string
           org_role: Database["public"]["Enums"]["org_role"]
+          second_last_name: string | null
           token: string
         }
         Insert: {
           accepted_at?: string | null
           accepted_by?: string | null
           created_at?: string
+          curp_rfc?: string | null
           email: string
+          email_sent_at?: string | null
           expires_at?: string
+          first_name?: string | null
+          full_name?: string | null
           id?: string
           invited_by?: string | null
+          last_name?: string | null
+          nubarium_verified?: boolean
           org_id: string
           org_role: Database["public"]["Enums"]["org_role"]
+          second_last_name?: string | null
           token: string
         }
         Update: {
           accepted_at?: string | null
           accepted_by?: string | null
           created_at?: string
+          curp_rfc?: string | null
           email?: string
+          email_sent_at?: string | null
           expires_at?: string
+          first_name?: string | null
+          full_name?: string | null
           id?: string
           invited_by?: string | null
+          last_name?: string | null
+          nubarium_verified?: boolean
           org_id?: string
           org_role?: Database["public"]["Enums"]["org_role"]
+          second_last_name?: string | null
           token?: string
         }
         Relationships: [
