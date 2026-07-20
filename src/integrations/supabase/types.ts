@@ -347,6 +347,9 @@ export type Database = {
           address_doc_ok: boolean | null
           address_doc_path: string | null
           address_doc_type: string | null
+          complete_geo: Json | null
+          complete_ip: string | null
+          complete_user_agent: string | null
           completed_at: string | null
           created_at: string
           curp_match: boolean | null
@@ -364,6 +367,10 @@ export type Database = {
           ocr_curp: string | null
           ocr_data: Json | null
           selfie_path: string | null
+          start_geo: Json | null
+          start_ip: string | null
+          start_user_agent: string | null
+          started_at: string
           status: string
           token: string
           updated_at: string
@@ -376,6 +383,9 @@ export type Database = {
           address_doc_ok?: boolean | null
           address_doc_path?: string | null
           address_doc_type?: string | null
+          complete_geo?: Json | null
+          complete_ip?: string | null
+          complete_user_agent?: string | null
           completed_at?: string | null
           created_at?: string
           curp_match?: boolean | null
@@ -393,6 +403,10 @@ export type Database = {
           ocr_curp?: string | null
           ocr_data?: Json | null
           selfie_path?: string | null
+          start_geo?: Json | null
+          start_ip?: string | null
+          start_user_agent?: string | null
+          started_at?: string
           status?: string
           token: string
           updated_at?: string
@@ -405,6 +419,9 @@ export type Database = {
           address_doc_ok?: boolean | null
           address_doc_path?: string | null
           address_doc_type?: string | null
+          complete_geo?: Json | null
+          complete_ip?: string | null
+          complete_user_agent?: string | null
           completed_at?: string | null
           created_at?: string
           curp_match?: boolean | null
@@ -422,6 +439,10 @@ export type Database = {
           ocr_curp?: string | null
           ocr_data?: Json | null
           selfie_path?: string | null
+          start_geo?: Json | null
+          start_ip?: string | null
+          start_user_agent?: string | null
+          started_at?: string
           status?: string
           token?: string
           updated_at?: string
