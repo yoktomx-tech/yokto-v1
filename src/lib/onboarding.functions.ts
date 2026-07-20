@@ -286,6 +286,16 @@ export const lookupPostalCode = createServerFn({ method: "POST" })
       raw_response: (payload ?? {}) as never,
     });
 
+    const { logOnboardingApi } = await import("./onboarding-logger.server");
+    await logOnboardingApi({
+      user_id: context.userId, provider: "copomex", endpoint: "info_cp",
+      step: `3.cp.${data.source ?? "manual"}`,
+      status: success ? "success" : (httpErr ? "incomplete" : "failed"),
+      request_summary: { cp: data.cp, source: data.source ?? "manual" },
+      response_summary: (payload ?? {}) as Record<string, unknown>,
+      error_message: success ? null : (first?.error_message ?? httpErr ?? "CP no encontrado"),
+    });
+
     if (!success || !resp) {
       throw new Error(first?.error_message ?? "Código postal no encontrado");
     }
