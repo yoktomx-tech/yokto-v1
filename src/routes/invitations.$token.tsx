@@ -44,13 +44,14 @@ function AcceptInvitation() {
         {status === "checking" && <p className="text-sm text-yo-txt-3">Verificando…</p>}
         {status === "need_auth" && (
           <>
-            <p className="text-sm text-yo-txt-3 mb-4">Inicia sesión con el correo invitado para continuar.</p>
+            <p className="text-sm text-yo-txt-3 mb-4">Crea tu contraseña y completa tu identidad para unirte a la organización.</p>
             <a
-              href={`/auth?redirect=${encodeURIComponent(`/invitations/${token}`)}`}
+              href={`/invitations/${token}/onboarding`}
               className="inline-block px-4 py-2 rounded-md bg-yo-ac text-white text-sm font-medium"
             >
-              Iniciar sesión
+              Continuar registro
             </a>
+            <p className="mt-3 text-[11px] text-yo-txt-3">¿Ya tienes cuenta? <a href={`/auth?redirect=${encodeURIComponent(`/invitations/${token}`)}`} className="text-yo-ac hover:underline">Inicia sesión</a></p>
           </>
         )}
         {status === "accepting" && <p className="text-sm text-yo-txt-3">Uniéndote a la organización…</p>}
