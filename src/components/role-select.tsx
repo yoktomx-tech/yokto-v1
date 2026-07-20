@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { ChevronDown, Check, Store, ShoppingCart } from "lucide-react";
+import { ChevronDown, Check, Briefcase, ShoppingBag } from "lucide-react";
 import { useViewRole, type ViewRole } from "@/hooks/use-view-role";
 import { cn } from "@/lib/utils";
 
@@ -8,9 +8,9 @@ const ROLE_DESC: Record<ViewRole, string> = {
   buyer: "Fondeas operaciones y apruebas hitos entregados.",
 };
 
-const OPTS: { key: ViewRole; icon: typeof Store; label: string }[] = [
-  { key: "seller", icon: Store, label: "Vendedor" },
-  { key: "buyer", icon: ShoppingCart, label: "Comprador" },
+const OPTS: { key: ViewRole; icon: typeof Briefcase; label: string }[] = [
+  { key: "seller", icon: Briefcase, label: "Vendedor" },
+  { key: "buyer", icon: ShoppingBag, label: "Comprador" },
 ];
 
 /** Compact selector for the top header. */
@@ -34,14 +34,14 @@ export function RoleSelectHeader() {
     <div className="relative" ref={ref}>
       <button
         onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-2 h-9 px-2.5 rounded-md border border-yo-border bg-yo-bg hover:bg-yo-raised transition"
-        aria-label="Cambiar vista"
+        className="flex items-center gap-2.5 h-9 min-w-[168px] px-3 rounded-md border border-yo-border bg-yo-bg hover:bg-yo-raised transition"
+        aria-label="Cambiar rol"
         title={ROLE_DESC[role]}
       >
-        <CurrentIcon className="size-3.5 text-yo-ac shrink-0" />
-        <div className="flex flex-col leading-tight text-left">
+        <CurrentIcon className="size-4 text-yo-ac shrink-0" strokeWidth={2} />
+        <div className="flex flex-col leading-tight text-left flex-1">
           <span className="text-[10px] uppercase tracking-[0.14em] font-semibold text-yo-txt-3">
-            Vista
+            Rol
           </span>
           <span className="text-[12.5px] font-semibold text-yo-txt">{current.label}</span>
         </div>
@@ -51,7 +51,7 @@ export function RoleSelectHeader() {
       {open && (
         <div className="absolute top-full mt-1 right-0 z-50 w-64 rounded-md border border-yo-border bg-yo-surface shadow-lg overflow-hidden">
           <div className="px-2.5 pt-2 pb-1 text-[10px] uppercase tracking-[0.14em] font-semibold text-yo-txt-3">
-            Vista actual
+            Rol actual
           </div>
           {OPTS.map((opt) => {
             const Icon = opt.icon;
