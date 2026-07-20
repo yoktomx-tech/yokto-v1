@@ -658,9 +658,35 @@ export const validateCsfNubarium = createServerFn({ method: "POST" })
 
     const ident = (payload.datosIdentificacion as Record<string, string> | undefined) ?? {};
     const ubic = (payload.datosUbicacion as Record<string, string> | undefined) ?? {};
-    const regimenes = (payload.caracteristicasFiscales as Array<{ regimen: string; fechaAlta: string }> | undefined) ?? [];
+    const regimenesRaw = (payload.caracteristicasFiscales as Array<{ regimen: string; fechaAlta: string }> | undefined) ?? [];
 
     const street = [ubic.tipoVialidad, ubic.nombreVialidad].filter(Boolean).join(" ").trim();
+
+    // PM: Nubarium suele devolver `denominacionRazonSocial` o `razonSocial` a nivel raíz o dentro de datosIdentificacion.
+    const razonSocial = String(
+      (payload as Record<string, unknown>).denominacionRazonSocial ??
+      (payload as Record<string, unknown>).razonSocial ??
+      (ident as Record<string, string>).denominacionRazonSocial ??
+      (ident as Record<string, string>).razonSocial ??
+      ""
+    ).trim();
+    const nombreComercial = String(
+      (payload as Record<string, unknown>).nombreComercial ??
+      (ident as Record<string, string>).nombreComercial ??
+      ""
+    ).trim();
+    const fechaInicioOps = parseNubariumDateDMY(
+      String(
+        (payload as Record<string, unknown>).fechaInicioOperaciones ??
+        (ident as Record<string, string>).fechaInicioOperaciones ??
+        (ident as Record<string, string>).fechaConstitucion ??
+        ""
+      )
+    );
+
+    // Extraer código numérico del régimen (ej. "601 · General de Ley Personas Morales")
+    const firstReg = regimenesRaw[0]?.regimen ?? "";
+    const codeMatch = firstReg.match(/\b(6\d{2})\b/);
 
     return {
       rfc: String(payload.rfc ?? ""),
@@ -669,7 +695,12 @@ export const validateCsfNubarium = createServerFn({ method: "POST" })
       apellidoPaterno: ident.apellidoPaterno ?? "",
       apellidoMaterno: ident.apellidoMaterno ?? "",
       fechaNacimiento: parseNubariumDateDMY(ident.fechaNacimiento),
-      regimenes: regimenes.map((r) => r.regimen),
+      regimenes: regimenesRaw.map((r) => r.regimen),
+      razonSocial,
+      nombreComercial,
+      regimenCodigo: codeMatch?.[1] ?? "",
+      regimenNombre: firstReg.replace(/^\d+\s*[·-]?\s*/, "").trim(),
+      fechaInicioOperaciones: fechaInicioOps,
       domicilio: {
         street: street || (ubic.nombreVialidad ?? ""),
         ext: ubic.numeroExterior ?? "",
