@@ -580,12 +580,24 @@ function Review({ token, enroll, onDone, onError }: { token: string; enroll: Enr
 }
 
 function Done() {
+  const [left, setLeft] = useState(5);
+  useEffect(() => {
+    const t = setInterval(() => setLeft((v) => Math.max(0, v - 1)), 1000);
+    const close = setTimeout(() => {
+      try { window.close(); } catch { /* ignore */ }
+      // Fallback si el navegador no cierra la pestaña
+      try { window.location.href = "about:blank"; } catch { /* ignore */ }
+    }, 5000);
+    return () => { clearInterval(t); clearTimeout(close); };
+  }, []);
   return (
     <div className="rounded-xl border border-yo-ok/40 bg-yo-ok-bg p-6 text-center">
       <CheckCircle2 className="size-10 mx-auto text-yo-ok mb-2" />
       <h2 className="text-lg font-bold">¡Listo!</h2>
       <p className="text-sm text-yo-txt-2 mt-1">Regresa a tu computadora para continuar con el onboarding.</p>
-      <RefreshCw className="size-4 inline mt-3 text-yo-txt-3" />
+      <p className="mt-3 text-xs text-yo-txt-3">
+        Esta ventana se cerrará automáticamente en <b className="text-yo-txt tabular-nums">{left}</b> {left === 1 ? "segundo" : "segundos"}.
+      </p>
     </div>
   );
 }
