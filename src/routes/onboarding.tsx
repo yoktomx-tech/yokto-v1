@@ -2720,9 +2720,9 @@ function Step4AccountKind({ onSaved, onBack, setError }: {
 
             <div className="border-t border-yo-border pt-4">
               <p className="text-xs uppercase tracking-widest font-semibold text-yo-txt mb-1">Invitar miembros (opcional)</p>
-              <p className="text-[11px] text-yo-txt-3 mb-3">Se validan con RENAPO/SAT (Nubarium) y se les enviará el correo de invitación cuando concluyas tu registro. Vigencia de 48 horas.</p>
+              <p className="text-[11px] text-yo-txt-3 mb-3">Se validan con RENAPO/SAT y se les enviará el correo de invitación cuando concluyas tu registro. Vigencia de 48 horas.</p>
 
-              <div className="grid gap-2 sm:grid-cols-[1fr_1fr_180px_auto]">
+              <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_minmax(0,1fr)]">
                 <Field id="inv-email" label="Correo" value={newEmail} onChange={setNewEmail}
                   type="email" placeholder="colaborador@empresa.com" icon={<Mail className="size-4" />} />
                 <Field id="inv-doc" label="CURP o RFC" value={newDoc} onChange={setNewDoc}
@@ -2731,9 +2731,11 @@ function Step4AccountKind({ onSaved, onBack, setError }: {
                   onChange={(v) => setNewRole(v as InviteeDraft["role"])}>
                   {INV_ROLES.map((r) => <option key={r.v} value={r.v}>{r.label}</option>)}
                 </Field>
+              </div>
+              <div className="mt-2 flex justify-end">
                 <button type="button" onClick={requestAdd} disabled={addingBusy}
-                  className="h-11 mt-[22px] px-4 rounded-md border border-yo-border text-sm font-medium text-yo-txt hover:border-yo-ac hover:text-yo-ac transition disabled:opacity-50 whitespace-nowrap">
-                  {addingBusy ? <Loader2 className="size-4 animate-spin" /> : "Agregar"}
+                  className="inline-flex items-center gap-2 h-10 px-4 rounded-md bg-yo-ac hover:bg-yo-ac-h text-white text-sm font-semibold disabled:opacity-50 whitespace-nowrap">
+                  {addingBusy ? <Loader2 className="size-4 animate-spin" /> : <>+ Agregar miembro</>}
                 </button>
               </div>
 
