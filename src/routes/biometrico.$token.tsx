@@ -544,7 +544,7 @@ function SelfieCapture({ token, onDone, onError }: { token: string; onDone: () =
         {selfie && (
           <img src={`data:${selfie.mime};base64,${selfie.base64}`} alt="Selfie" className="absolute inset-0 w-full h-full object-cover" />
         )}
-        <div className="absolute inset-6 rounded-full border-2 border-yo-ac/80 pointer-events-none" />
+        <div ref={guideRef} className="absolute inset-6 rounded-full border-2 border-yo-ac/80 pointer-events-none" />
         {recording && (
           <>
             <span className="absolute top-3 left-3 bg-red-600 text-white text-[11px] px-2 py-0.5 rounded-full animate-pulse inline-flex items-center gap-1">
