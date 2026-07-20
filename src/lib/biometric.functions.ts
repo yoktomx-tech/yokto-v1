@@ -141,13 +141,41 @@ export const getEnrollmentByToken = createServerFn({ method: "POST" })
   .inputValidator((i: unknown) => z.object({ token: z.string().min(10) }).parse(i))
   .handler(async ({ data }) => {
     const { enrollment } = await loadByToken(data.token);
-    // Recuperar CURP registrada en perfil para mostrar contexto y comparar.
+    // Recuperar CURP/RFC del titular a validar biométricamente.
+    // PM: usar los datos del REPRESENTANTE LEGAL (no del creador del workspace).
     const admin = await getAdmin();
     const { data: profile } = await admin
       .from("profiles")
-      .select("first_name, last_name, curp, rfc, account_type")
+      .select("first_name, last_name, second_last_name, curp, rfc, account_type, legal_rep")
       .eq("id", enrollment.user_id)
       .maybeSingle();
+
+    let effectiveProfile: { first_name: string | null; last_name: string | null; curp: string | null; rfc: string | null; account_type: string | null } | null = null;
+    if (profile) {
+      if (profile.account_type === "persona_moral" && profile.legal_rep && typeof profile.legal_rep === "object") {
+        const rep = profile.legal_rep as { full_name?: string; curp?: string; rfc?: string };
+        const parts = String(rep.full_name ?? "").trim().split(/\s+/);
+        // Convención: "Nombre(s) ApellidoPaterno ApellidoMaterno" — el nombre puede tener 2 palabras.
+        const first_name = parts.length >= 3 ? parts.slice(0, parts.length - 2).join(" ") : (parts[0] ?? "");
+        const last_name = parts.length >= 2 ? parts[parts.length - 2] ?? "" : "";
+        effectiveProfile = {
+          first_name,
+          last_name,
+          curp: rep.curp ?? null,
+          rfc: rep.rfc ?? null,
+          account_type: profile.account_type,
+        };
+      } else {
+        effectiveProfile = {
+          first_name: profile.first_name,
+          last_name: [profile.last_name, profile.second_last_name].filter(Boolean).join(" ") || profile.last_name,
+          curp: profile.curp,
+          rfc: profile.rfc,
+          account_type: profile.account_type,
+        };
+      }
+    }
+
     return {
       id: enrollment.id,
       status: enrollment.status,
@@ -159,7 +187,7 @@ export const getEnrollmentByToken = createServerFn({ method: "POST" })
       face_match_ok: enrollment.face_match_ok,
       address_doc_ok: enrollment.address_doc_ok,
       lista_nominal_ok: enrollment.lista_nominal_ok,
-      profile: profile ?? null,
+      profile: effectiveProfile,
     };
   });
 
