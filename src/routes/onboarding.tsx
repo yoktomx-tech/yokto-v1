@@ -1729,6 +1729,10 @@ type ReviewProfile = {
   rfc: string | null;
   curp: string | null;
   regimen_fiscal: string | null;
+  fiscal_street: string | null;
+  fiscal_ext_number: string | null;
+  fiscal_int_number: string | null;
+  fiscal_colonia: string | null;
   fiscal_postal_code: string | null;
   fiscal_estado: string | null;
   fiscal_municipio: string | null;
@@ -1753,7 +1757,7 @@ function Step6Review({ onFinished, onBack, setError, loading, setLoading }: {
         const uid = u.user?.id; if (!uid) return;
         const [{ data: p }, { data: bio }, docs] = await Promise.all([
           supabase.from("profiles")
-            .select("email, account_type, first_name, last_name, second_last_name, legal_name, rfc, curp, regimen_fiscal, fiscal_postal_code, fiscal_estado, fiscal_municipio, mfa_status")
+            .select("email, account_type, first_name, last_name, second_last_name, legal_name, rfc, curp, regimen_fiscal, fiscal_street, fiscal_ext_number, fiscal_int_number, fiscal_colonia, fiscal_postal_code, fiscal_estado, fiscal_municipio, mfa_status")
             .eq("id", uid).maybeSingle(),
           supabase.from("biometric_enrollments").select("status").eq("user_id", uid).order("created_at", { ascending: false }).limit(1).maybeSingle(),
           listDocsFn({}).catch(() => []),
@@ -1784,6 +1788,25 @@ function Step6Review({ onFinished, onBack, setError, loading, setLoading }: {
     : (profile?.legal_name ?? "—");
   const mfa = profile?.mfa_status ?? "not_configured";
 
+  const regCatalog = isPF ? REGIMEN_FISICA : REGIMEN_MORAL;
+  const regEntry = regCatalog.find((r) => r.code === profile?.regimen_fiscal);
+  const regimenLabel = profile?.regimen_fiscal
+    ? (regEntry ? `${profile.regimen_fiscal} · ${regEntry.label.replace(/^\d+\s*[·-]\s*/, "")}` : profile.regimen_fiscal)
+    : "—";
+
+  const line1 = [
+    profile?.fiscal_street,
+    profile?.fiscal_ext_number && `#${profile.fiscal_ext_number}`,
+    profile?.fiscal_int_number && `Int. ${profile.fiscal_int_number}`,
+  ].filter(Boolean).join(" ");
+  const line2 = [
+    profile?.fiscal_colonia,
+    profile?.fiscal_municipio,
+    profile?.fiscal_estado,
+    profile?.fiscal_postal_code && `C.P. ${profile.fiscal_postal_code}`,
+  ].filter(Boolean).join(", ");
+  const domicilioFull = [line1, line2].filter(Boolean).join(" · ") || "—";
+
   return (
     <div className="flex flex-col gap-5">
       <div>
@@ -1803,12 +1826,10 @@ function Step6Review({ onFinished, onBack, setError, loading, setLoading }: {
           <ReviewRow k={isPF ? "Nombre completo" : "Razón social"} v={nombreCompleto || "—"} />
           <ReviewRow k="RFC" v={profile?.rfc ?? "—"} mono />
           {isPF && <ReviewRow k="CURP" v={profile?.curp ?? "—"} mono />}
-          <ReviewRow k="Régimen fiscal" v={profile?.regimen_fiscal ?? "—"} />
-          <ReviewRow
-            k="Domicilio fiscal"
-            v={[profile?.fiscal_municipio, profile?.fiscal_estado, profile?.fiscal_postal_code].filter(Boolean).join(", ") || "—"}
-          />
+          <ReviewRow k="Régimen fiscal" v={regimenLabel} />
+          <ReviewRow k="Domicilio fiscal" v={domicilioFull} />
         </ReviewSection>
+
 
         <ReviewSection title="Identidad" icon={<ShieldCheck className="size-4" />}>
           <ReviewRow
