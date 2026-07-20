@@ -261,13 +261,21 @@ function useCamera(facing: "user" | "environment") {
     }
   }, []);
 
-  const snap = useCallback(async (): Promise<{ base64: string; mime: string } | null> => {
+  const snap = useCallback(async (crop?: { xPct: number; yPct: number; wPct: number; hPct: number }): Promise<{ base64: string; mime: string } | null> => {
     const v = videoElRef.current;
     if (!v || !streamRef.current) return null;
+    const vw = v.videoWidth, vh = v.videoHeight;
+    let sx = 0, sy = 0, sw = vw, sh = vh;
+    if (crop) {
+      sx = Math.round(vw * crop.xPct);
+      sy = Math.round(vh * crop.yPct);
+      sw = Math.round(vw * crop.wPct);
+      sh = Math.round(vh * crop.hPct);
+    }
     const canvas = document.createElement("canvas");
-    canvas.width = v.videoWidth; canvas.height = v.videoHeight;
-    canvas.getContext("2d")?.drawImage(v, 0, 0);
-    const blob: Blob | null = await new Promise((r) => canvas.toBlob(r, "image/jpeg", 0.85));
+    canvas.width = sw; canvas.height = sh;
+    canvas.getContext("2d")?.drawImage(v, sx, sy, sw, sh, 0, 0, sw, sh);
+    const blob: Blob | null = await new Promise((r) => canvas.toBlob(r, "image/jpeg", 0.9));
     if (!blob) return null;
     return fileToBase64(blob);
   }, []);
