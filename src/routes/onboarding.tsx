@@ -2547,7 +2547,7 @@ function Step4AccountKind({ onSaved, onBack, setError }: {
   useEffect(() => {
     if (kind !== "team") return;
     if (!slugTouched) {
-      const auto = toSlug(orgName);
+      const auto = toSlug(orgName).slice(0, 32);
       if (auto && auto !== slug) setSlug(auto);
     }
   }, [orgName, kind, slugTouched, slug]);
