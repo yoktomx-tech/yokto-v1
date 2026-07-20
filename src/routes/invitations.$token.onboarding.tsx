@@ -296,7 +296,7 @@ function Step2Biometric({ onDone, onSkip, onBack, setError }: {
     setBusy(true); setError(null);
     try {
       const r = await startFn({});
-      const url = r.mobile_url ?? (r.token ? `${window.location.origin}/biometrico/${r.token}` : null);
+      const url = r.token ? `${window.location.origin}/biometrico/${r.token}` : null;
       if (!url) throw new Error("No se pudo iniciar el enrolamiento.");
       setLink(url);
       setQr(await QRCode.toDataURL(url, { margin: 1, width: 240 }));
