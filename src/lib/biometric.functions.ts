@@ -268,9 +268,12 @@ export const submitBiometricId = createServerFn({ method: "POST" })
       last_error: null,
     }).eq("id", enrollment.id);
 
-    // Comparar CURP con la del perfil + validar en RENAPO
-    const { data: profile } = await admin.from("profiles").select("curp").eq("id", enrollment.user_id).maybeSingle();
-    const profileCurp = String(profile?.curp ?? "").toUpperCase().trim();
+    // Comparar CURP con la del perfil (o la del representante legal si es PM) + validar en RENAPO
+    const { data: profile } = await admin.from("profiles").select("curp, account_type, legal_rep").eq("id", enrollment.user_id).maybeSingle();
+    const repCurp = profile?.account_type === "persona_moral" && profile.legal_rep && typeof profile.legal_rep === "object"
+      ? String((profile.legal_rep as { curp?: string }).curp ?? "")
+      : "";
+    const profileCurp = String((repCurp || profile?.curp) ?? "").toUpperCase().trim();
     let curpMatch: boolean | null = null;
     let renapoPayload: Record<string, unknown> | null = null;
 
