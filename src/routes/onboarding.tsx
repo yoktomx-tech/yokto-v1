@@ -716,9 +716,10 @@ function Step3Fiscal({ onSaved, onBack, setError, loading, setLoading }: {
     return () => clearTimeout(t);
   }, [rfcVerified, rfcBoxOpen]);
 
-  // Auto-cerrar el recuadro de e.firma tras 5s
+  // Auto-cerrar el recuadro de e.firma tras 5s (sólo si vigente)
   useEffect(() => {
     if (!efInfo || !efBoxOpen) return;
+    if (efInfo.vigente === false) return; // mantener visible si NO VIGENTE
     const t = setTimeout(() => setEfBoxOpen(false), 5000);
     return () => clearTimeout(t);
   }, [efInfo, efBoxOpen]);
@@ -890,6 +891,14 @@ function Step3Fiscal({ onSaved, onBack, setError, loading, setLoading }: {
         setError("Sube tu documento para extraer el RFC");
         return;
       }
+      if (fillMode === "efirma" && efInfo && efInfo.vigente === false) {
+        setError("Tu e.firma aparece como NO VIGENTE en el SAT. No puedes continuar con este método.");
+        return;
+      }
+    }
+    if (!f.regimen_fiscal) {
+      setError("Falta el tipo de régimen fiscal. Selecciónalo en la lista.");
+      return;
     }
     setError(null); setLoading(true);
     try {
@@ -921,7 +930,17 @@ function Step3Fiscal({ onSaved, onBack, setError, loading, setLoading }: {
       }
       onSaved();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Error al guardar");
+      const raw = e instanceof Error ? e.message : "Error al guardar";
+      let msg = raw;
+      try {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed[0]?.message) {
+          const issue = parsed[0];
+          if (issue.path?.includes("regimen_fiscal")) msg = "Falta el tipo de régimen fiscal. Selecciónalo en la lista.";
+          else msg = issue.message;
+        }
+      } catch { /* not json */ }
+      setError(msg);
     } finally { setLoading(false); }
   }
 
@@ -1008,14 +1027,22 @@ function Step3Fiscal({ onSaved, onBack, setError, loading, setLoading }: {
                 {efErr && <p className="text-xs text-yo-err">{efErr}</p>}
               </div>
               {efInfo && efBoxOpen && (
-                <div className="relative mt-3 rounded-lg border border-yo-ok/30 bg-yo-ok/5 p-3 pr-9 text-sm">
+                <div className={cn(
+                  "relative mt-3 rounded-lg border p-3 pr-9 text-sm",
+                  efInfo.vigente === false
+                    ? "border-yo-danger/50 bg-yo-danger/10 text-yo-txt"
+                    : "border-yo-ok/30 bg-yo-ok/5"
+                )}>
                   <button type="button" onClick={() => setEfBoxOpen(false)}
                     aria-label="Cerrar" title="Cerrar"
                     className="absolute top-2 right-2 p-1 rounded-md text-yo-txt-3 hover:text-yo-txt hover:bg-yo-raised">
                     <X className="size-4" />
                   </button>
-                  <div className="flex items-center gap-2 text-yo-ok font-semibold">
-                    <Check className="size-4" /> e.firma leída correctamente
+                  <div className={cn("flex items-center gap-2 font-semibold",
+                    efInfo.vigente === false ? "text-yo-danger" : "text-yo-ok")}>
+                    {efInfo.vigente === false
+                      ? <><AlertCircle className="size-4" /> e.firma NO VIGENTE en el SAT</>
+                      : <><Check className="size-4" /> e.firma leída correctamente</>}
                   </div>
                   <dl className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 text-yo-txt">
                     <div><dt className="text-xs text-yo-txt-3">RFC</dt><dd>{efInfo.rfc}</dd></div>
@@ -1023,17 +1050,19 @@ function Step3Fiscal({ onSaved, onBack, setError, loading, setLoading }: {
                     <div className="sm:col-span-2"><dt className="text-xs text-yo-txt-3">Titular</dt><dd>{efInfo.nombre}</dd></div>
                     <div><dt className="text-xs text-yo-txt-3">Serial</dt><dd className="font-mono">{efInfo.serial}</dd></div>
                     <div><dt className="text-xs text-yo-txt-3">Vigencia SAT</dt>
-                      <dd>{efInfo.vigente === true ? "VIGENTE" : efInfo.vigente === false ? "NO VIGENTE" : "No verificado"}</dd></div>
+                      <dd className={efInfo.vigente === false ? "text-yo-danger font-semibold" : ""}>
+                        {efInfo.vigente === true ? "VIGENTE" : efInfo.vigente === false ? "NO VIGENTE" : "No verificado"}
+                      </dd></div>
                     <div><dt className="text-xs text-yo-txt-3">Válido desde</dt><dd>{new Date(efInfo.validFrom).toLocaleDateString("es-MX")}</dd></div>
                     <div><dt className="text-xs text-yo-txt-3">Válido hasta</dt><dd>{new Date(efInfo.validTo).toLocaleDateString("es-MX")}</dd></div>
                   </dl>
-                  <p className="mt-2 text-[11px] text-yo-txt-3">Este recuadro se cerrará automáticamente en 5 segundos.</p>
-                </div>
-              )}
-              {efInfo && !efBoxOpen && (
-                <div className="mt-3 inline-flex items-center gap-2 text-xs text-yo-ok">
-                  <Check className="size-3.5" /> e.firma validada — {efInfo.nombre}
-                  <button type="button" onClick={() => setEfBoxOpen(true)} className="underline text-yo-txt-3 hover:text-yo-txt">Ver detalle</button>
+                  {efInfo.vigente === false ? (
+                    <p className="mt-2 text-[12px] text-yo-danger">
+                      No puedes continuar con este método. Renueva tu e.firma en el SAT o usa otro método (Constancia o Manual).
+                    </p>
+                  ) : (
+                    <p className="mt-2 text-[11px] text-yo-txt-3">Este recuadro se cerrará automáticamente en 5 segundos.</p>
+                  )}
                 </div>
               )}
             </fieldset>
@@ -1700,6 +1729,10 @@ type ReviewProfile = {
   rfc: string | null;
   curp: string | null;
   regimen_fiscal: string | null;
+  fiscal_street: string | null;
+  fiscal_ext_number: string | null;
+  fiscal_int_number: string | null;
+  fiscal_colonia: string | null;
   fiscal_postal_code: string | null;
   fiscal_estado: string | null;
   fiscal_municipio: string | null;
@@ -1724,7 +1757,7 @@ function Step6Review({ onFinished, onBack, setError, loading, setLoading }: {
         const uid = u.user?.id; if (!uid) return;
         const [{ data: p }, { data: bio }, docs] = await Promise.all([
           supabase.from("profiles")
-            .select("email, account_type, first_name, last_name, second_last_name, legal_name, rfc, curp, regimen_fiscal, fiscal_postal_code, fiscal_estado, fiscal_municipio, mfa_status")
+            .select("email, account_type, first_name, last_name, second_last_name, legal_name, rfc, curp, regimen_fiscal, fiscal_street, fiscal_ext_number, fiscal_int_number, fiscal_colonia, fiscal_postal_code, fiscal_estado, fiscal_municipio, mfa_status")
             .eq("id", uid).maybeSingle(),
           supabase.from("biometric_enrollments").select("status").eq("user_id", uid).order("created_at", { ascending: false }).limit(1).maybeSingle(),
           listDocsFn({}).catch(() => []),
@@ -1755,6 +1788,25 @@ function Step6Review({ onFinished, onBack, setError, loading, setLoading }: {
     : (profile?.legal_name ?? "—");
   const mfa = profile?.mfa_status ?? "not_configured";
 
+  const regCatalog = isPF ? REGIMEN_FISICA : REGIMEN_MORAL;
+  const regEntry = regCatalog.find((r) => r.code === profile?.regimen_fiscal);
+  const regimenLabel = profile?.regimen_fiscal
+    ? (regEntry ? `${profile.regimen_fiscal} · ${regEntry.label.replace(/^\d+\s*[·-]\s*/, "")}` : profile.regimen_fiscal)
+    : "—";
+
+  const line1 = [
+    profile?.fiscal_street,
+    profile?.fiscal_ext_number && `#${profile.fiscal_ext_number}`,
+    profile?.fiscal_int_number && `Int. ${profile.fiscal_int_number}`,
+  ].filter(Boolean).join(" ");
+  const line2 = [
+    profile?.fiscal_colonia,
+    profile?.fiscal_municipio,
+    profile?.fiscal_estado,
+    profile?.fiscal_postal_code && `C.P. ${profile.fiscal_postal_code}`,
+  ].filter(Boolean).join(", ");
+  const domicilioFull = [line1, line2].filter(Boolean).join(" · ") || "—";
+
   return (
     <div className="flex flex-col gap-5">
       <div>
@@ -1774,12 +1826,10 @@ function Step6Review({ onFinished, onBack, setError, loading, setLoading }: {
           <ReviewRow k={isPF ? "Nombre completo" : "Razón social"} v={nombreCompleto || "—"} />
           <ReviewRow k="RFC" v={profile?.rfc ?? "—"} mono />
           {isPF && <ReviewRow k="CURP" v={profile?.curp ?? "—"} mono />}
-          <ReviewRow k="Régimen fiscal" v={profile?.regimen_fiscal ?? "—"} />
-          <ReviewRow
-            k="Domicilio fiscal"
-            v={[profile?.fiscal_municipio, profile?.fiscal_estado, profile?.fiscal_postal_code].filter(Boolean).join(", ") || "—"}
-          />
+          <ReviewRow k="Régimen fiscal" v={regimenLabel} />
+          <ReviewRow k="Domicilio fiscal" v={domicilioFull} />
         </ReviewSection>
+
 
         <ReviewSection title="Identidad" icon={<ShieldCheck className="size-4" />}>
           <ReviewRow

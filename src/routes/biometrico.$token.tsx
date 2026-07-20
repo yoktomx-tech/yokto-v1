@@ -261,13 +261,21 @@ function useCamera(facing: "user" | "environment") {
     }
   }, []);
 
-  const snap = useCallback(async (): Promise<{ base64: string; mime: string } | null> => {
+  const snap = useCallback(async (crop?: { xPct: number; yPct: number; wPct: number; hPct: number }): Promise<{ base64: string; mime: string } | null> => {
     const v = videoElRef.current;
     if (!v || !streamRef.current) return null;
+    const vw = v.videoWidth, vh = v.videoHeight;
+    let sx = 0, sy = 0, sw = vw, sh = vh;
+    if (crop) {
+      sx = Math.round(vw * crop.xPct);
+      sy = Math.round(vh * crop.yPct);
+      sw = Math.round(vw * crop.wPct);
+      sh = Math.round(vh * crop.hPct);
+    }
     const canvas = document.createElement("canvas");
-    canvas.width = v.videoWidth; canvas.height = v.videoHeight;
-    canvas.getContext("2d")?.drawImage(v, 0, 0);
-    const blob: Blob | null = await new Promise((r) => canvas.toBlob(r, "image/jpeg", 0.85));
+    canvas.width = sw; canvas.height = sh;
+    canvas.getContext("2d")?.drawImage(v, sx, sy, sw, sh, 0, 0, sw, sh);
+    const blob: Blob | null = await new Promise((r) => canvas.toBlob(r, "image/jpeg", 0.9));
     if (!blob) return null;
     return fileToBase64(blob);
   }, []);
@@ -285,7 +293,8 @@ function IdCapture({ token, enroll, onDone, onError }: { token: string; enroll: 
   const [busy, setBusy] = useState(false);
 
   async function capture() {
-    const shot = await cam.snap();
+    // Recorte al contorno del recuadro guía (~4% horizontal, ~6% vertical)
+    const shot = await cam.snap({ xPct: 0.04, yPct: 0.06, wPct: 0.92, hPct: 0.88 });
     if (!shot) return;
     if (side === "front") setFront(shot);
     else setBack(shot);
@@ -571,12 +580,24 @@ function Review({ token, enroll, onDone, onError }: { token: string; enroll: Enr
 }
 
 function Done() {
+  const [left, setLeft] = useState(5);
+  useEffect(() => {
+    const t = setInterval(() => setLeft((v) => Math.max(0, v - 1)), 1000);
+    const close = setTimeout(() => {
+      try { window.close(); } catch { /* ignore */ }
+      // Fallback si el navegador no cierra la pestaña
+      try { window.location.href = "about:blank"; } catch { /* ignore */ }
+    }, 5000);
+    return () => { clearInterval(t); clearTimeout(close); };
+  }, []);
   return (
     <div className="rounded-xl border border-yo-ok/40 bg-yo-ok-bg p-6 text-center">
       <CheckCircle2 className="size-10 mx-auto text-yo-ok mb-2" />
       <h2 className="text-lg font-bold">¡Listo!</h2>
       <p className="text-sm text-yo-txt-2 mt-1">Regresa a tu computadora para continuar con el onboarding.</p>
-      <RefreshCw className="size-4 inline mt-3 text-yo-txt-3" />
+      <p className="mt-3 text-xs text-yo-txt-3">
+        Esta ventana se cerrará automáticamente en <b className="text-yo-txt tabular-nums">{left}</b> {left === 1 ? "segundo" : "segundos"}.
+      </p>
     </div>
   );
 }

@@ -560,19 +560,24 @@ export const submitKyc = createServerFn({ method: "POST" })
       .eq("user_id", userId);
     const types = new Set<string>((docs ?? []).map((d) => d.document_type as string));
 
-    const requiredPf: string[] = ["ine_frente", "ine_reverso"];
+    // Si hay enrolamiento biométrico completado, la ID (frente/reverso o pasaporte)
+    // ya fue capturada y validada por Nubarium — no requerir los mismos docs
+    // vía kyc_documents.
+    const { data: bio } = await supabase
+      .from("biometric_enrollments")
+      .select("status, id_type")
+      .eq("user_id", userId)
+      .eq("status", "completed")
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    const requiredPf: string[] = bio ? [] : ["ine_frente", "ine_reverso"];
     const requiredPm: string[] = ["acta_constitutiva", "poder_notarial", "cedula_fiscal"];
     const required = profile.account_type === "persona_fisica" ? requiredPf : requiredPm;
     const missing = required.filter((t) => !types.has(t));
     if (missing.length > 0) throw new Error(`Faltan documentos: ${missing.join(", ")}`);
 
-    const { data: clabes } = await supabase
-      .from("clabe_verifications")
-      .select("id")
-      .eq("user_id", userId)
-      .eq("status", "verified")
-      .limit(1);
-    if (!clabes || clabes.length === 0) throw new Error("Falta registrar y verificar tu CLABE");
 
     const { error } = await supabase
       .from("profiles")
@@ -761,7 +766,7 @@ export const validateFielSerialNubarium = createServerFn({ method: "POST" })
     rfc: z.string().min(12).max(13),
     serial: z.string().min(1),
   }).parse(i))
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
     const user = process.env.NUBARIUM_USER;
     const pass = process.env.NUBARIUM_PASSWORD;
     if (!user || !pass) throw new Error("Credenciales de Nubarium no configuradas");
@@ -779,6 +784,28 @@ export const validateFielSerialNubarium = createServerFn({ method: "POST" })
     let payload: Record<string, unknown> = {};
     try { payload = (await res.json()) as Record<string, unknown>; } catch { /* ignore */ }
     const estatus = String(payload.estatus ?? "");
+    const estatusCertificado = (payload.estatusCertificado as string) ?? "";
+    const vigente = estatusCertificado === "VIGENTE";
+
+    // Log del resultado de vigencia SAT vinculado al usuario/onboarding
+    try {
+      await context.supabase.from("audit_log").insert({
+        user_id: context.userId,
+        entity_type: "onboarding_efirma",
+        entity_id: context.userId,
+        action: "efirma.sat_vigencia",
+        new_data: {
+          rfc: data.rfc.toUpperCase(),
+          serial: data.serial,
+          estatus,
+          estatusCertificado,
+          vigente,
+          tipoCertificado: (payload.tipoCertificado as string) ?? null,
+          checked_at: new Date().toISOString(),
+        } as never,
+      });
+    } catch { /* logging best-effort */ }
+
     if (estatus !== "OK") {
       const msg = typeof payload.mensaje === "string" ? payload.mensaje : "El certificado no es válido en SAT";
       throw new Error(msg);
@@ -786,8 +813,8 @@ export const validateFielSerialNubarium = createServerFn({ method: "POST" })
     return {
       valid: true,
       tipoCertificado: (payload.tipoCertificado as string) ?? "",
-      estatusCertificado: (payload.estatusCertificado as string) ?? "",
-      vigente: payload.estatusCertificado === "VIGENTE",
+      estatusCertificado,
+      vigente,
       raw: JSON.stringify(payload),
     };
   });
