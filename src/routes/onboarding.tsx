@@ -2108,7 +2108,7 @@ function Step6Review({ onFinished, onBack, setError, loading, setLoading }: {
         const uid = u.user?.id; if (!uid) return;
         const [{ data: p }, { data: bio }, docs] = await Promise.all([
           supabase.from("profiles")
-            .select("email, account_type, first_name, last_name, second_last_name, legal_name, rfc, curp, regimen_fiscal, fiscal_street, fiscal_ext_number, fiscal_int_number, fiscal_colonia, fiscal_postal_code, fiscal_estado, fiscal_municipio, mfa_status")
+            .select("email, account_type, first_name, last_name, second_last_name, legal_name, trade_name, fecha_inicio_operaciones, legal_rep, rfc, curp, regimen_fiscal, fiscal_street, fiscal_ext_number, fiscal_int_number, fiscal_colonia, fiscal_postal_code, fiscal_estado, fiscal_municipio, mfa_status")
             .eq("id", uid).maybeSingle(),
           supabase.from("biometric_enrollments").select("status").eq("user_id", uid).order("created_at", { ascending: false }).limit(1).maybeSingle(),
           listDocsFn({}).catch(() => []),
