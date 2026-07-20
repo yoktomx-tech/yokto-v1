@@ -17,6 +17,10 @@ import {
   submitKyc,
   validateCsfNubarium, parseEfirma, validateFielSerialNubarium, lookupPostalCode,
 } from "@/lib/onboarding.functions";
+import {
+  checkOrgSlugAvailable, toSlug, validateInviteeIdentity,
+  createInvitationDraft, sendPendingInvitationEmails,
+} from "@/lib/invitee-onboarding.functions";
 import { validateRfc, normalizeRfc } from "@/lib/validations/rfc";
 import { validateCurp, normalizeCurp } from "@/lib/validations/curp";
 import { REGIMEN_FISICA, REGIMEN_MORAL, ESTADOS_MX } from "@/lib/validations/sat-catalogs";
