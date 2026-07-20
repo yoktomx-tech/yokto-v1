@@ -54,11 +54,22 @@ const STEPS: Array<{ id: StepId; title: string; desc: string }> = [
 const LS_KEY = "yokto.onboarding.v1";
 const LS_ORG = "yokto.onboarding.orgkind";
 
+export type InviteeDraft = {
+  email: string;
+  curp_rfc: string;
+  full_name: string;
+  first_name?: string;
+  last_name?: string;
+  second_last_name?: string;
+  role: "buyer_admin" | "buyer_user" | "seller_admin" | "seller_user" | "auditor";
+  confirmed: boolean;
+};
+
 export type OrgKindDraft = {
   kind: "individual" | "team";
   name?: string;
-  rfc?: string;
-  invitees?: { email: string; role: "ADMIN" | "FINANZAS" | "OPERADOR" | "READONLY" }[];
+  slug?: string;
+  invitees?: InviteeDraft[];
 };
 
 
