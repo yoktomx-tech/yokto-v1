@@ -634,7 +634,13 @@ function Step3Fiscal({ onSaved, onBack, setError, loading, setLoading }: {
   const [fillMode, setFillMode] = useState<FillMode>(null);
   const [csfBusy, setCsfBusy] = useState(false);
   const [csfErr, setCsfErr] = useState<string | null>(null);
-  const [csfInfo, setCsfInfo] = useState<{ regimenes: string[] } | null>(null);
+  const [csfInfo, setCsfInfo] = useState<null | {
+    rfc: string; razonSocial: string; nombreComercial: string;
+    regimenCodigo: string; regimenNombre: string; regimenes: string[];
+    fechaInicioOperaciones: string | null;
+    domicilio: { street: string; ext: string; int: string; colonia: string; municipio: string; estado: string; cp: string };
+  }>(null);
+  const [csfBoxOpen, setCsfBoxOpen] = useState(true);
   const [efBusy, setEfBusy] = useState(false);
   const [efErr, setEfErr] = useState<string | null>(null);
   const [efInfo, setEfInfo] = useState<null | {
@@ -645,6 +651,15 @@ function Step3Fiscal({ onSaved, onBack, setError, loading, setLoading }: {
   const [efKey, setEfKey] = useState<File | null>(null);
   const [efPass, setEfPass] = useState("");
   const [efBoxOpen, setEfBoxOpen] = useState(true);
+
+  // Representante legal (PM) — CURP RENAPO
+  const [repCurpError, setRepCurpError] = useState<string | null>(null);
+  const [repCurpChecking, setRepCurpChecking] = useState(false);
+  const [repCurpVerified, setRepCurpVerified] = useState<null | {
+    nombre: string; apellidoPaterno: string; apellidoMaterno: string;
+    sexo: string; fechaNacimiento: string | null; estadoNacimiento: string; estatusCurp: string;
+  }>(null);
+  const [repCurpBoxOpen, setRepCurpBoxOpen] = useState(true);
 
   // Postal code (Copomex) — se muestra sólo tras consulta exitosa
   const [cpBusy, setCpBusy] = useState(false);
