@@ -305,15 +305,14 @@ export const getInvitationByToken = createServerFn({ method: "POST" })
   });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 6) PÚBLICO — Completar onboarding del invitado (crea auth.users + membership)
+// 6) PÚBLICO — Paso 1: crea la cuenta auth.users + pre-carga profile con domicilio
+//    Devuelve el email para que el cliente inicie sesión y continúe biométrico/MFA.
 // ─────────────────────────────────────────────────────────────────────────────
-export const completeInviteeOnboarding = createServerFn({ method: "POST" })
+export const createInviteeAccount = createServerFn({ method: "POST" })
   .inputValidator((i: unknown) =>
     z.object({
       token: z.string().min(10),
       password: z.string().min(10).max(200),
-      biometric_completed: z.boolean().optional().default(false),
-      mfa_enrolled: z.boolean().optional().default(false),
     }).parse(i),
   )
   .handler(async ({ data }) => {
@@ -322,19 +321,22 @@ export const completeInviteeOnboarding = createServerFn({ method: "POST" })
     const { data: inv, error } = await supabaseAdmin
       .from("invitations")
       .select("id, org_id, email, org_role, expires_at, accepted_at, full_name, first_name, last_name, second_last_name, curp_rfc")
-      .eq("token", data.token)
-      .maybeSingle();
+      .eq("token", data.token).maybeSingle();
     if (error) throw error;
     if (!inv) throw new Error("Invitación no encontrada");
     if (inv.accepted_at) throw new Error("Invitación ya utilizada");
     if (new Date(inv.expires_at) < new Date()) throw new Error("Invitación expirada");
 
-    // Domicilio heredado
+    // ¿Existe ya un usuario con este email? Si sí, evitamos duplicar y solo devolvemos email.
+    const { data: existing } = await supabaseAdmin.auth.admin.listUsers();
+    const already = existing?.users?.find((u) => u.email?.toLowerCase() === inv.email.toLowerCase());
+    if (already) {
+      return { ok: true, email: inv.email, user_id: already.id, already_existed: true as const };
+    }
+
+    // Domicilio heredado (org o owner)
     const { data: org } = await supabaseAdmin
-      .from("organizations")
-      .select("id, name, domicilio_fiscal")
-      .eq("id", inv.org_id)
-      .maybeSingle();
+      .from("organizations").select("id, domicilio_fiscal").eq("id", inv.org_id).maybeSingle();
     let inheritedAddress: Record<string, string | null> = (org?.domicilio_fiscal as never) ?? {};
     if (!org?.domicilio_fiscal) {
       const { data: ownerMembership } = await supabaseAdmin
@@ -348,7 +350,6 @@ export const completeInviteeOnboarding = createServerFn({ method: "POST" })
       }
     }
 
-    // Crear usuario (email ya confirmado — validado vía invitación)
     const { data: created, error: userErr } = await supabaseAdmin.auth.admin.createUser({
       email: inv.email,
       password: data.password,
@@ -363,7 +364,6 @@ export const completeInviteeOnboarding = createServerFn({ method: "POST" })
     if (userErr || !created?.user) throw new Error(userErr?.message ?? "No se pudo crear la cuenta");
     const uid = created.user.id;
 
-    // Enriquecer profile (handle_new_user ya lo creó base)
     const isRfc13 = inv.curp_rfc?.length === 13;
     const isCurp = inv.curp_rfc?.length === 18;
     await supabaseAdmin.from("profiles").update({
@@ -380,25 +380,61 @@ export const completeInviteeOnboarding = createServerFn({ method: "POST" })
       fiscal_postal_code: inheritedAddress?.fiscal_postal_code ?? null,
       fiscal_municipio: inheritedAddress?.fiscal_municipio ?? null,
       fiscal_estado: inheritedAddress?.fiscal_estado ?? null,
+      onboarding_step: 1,
+    }).eq("id", uid);
+
+    return { ok: true, email: inv.email, user_id: uid, already_existed: false as const };
+  });
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 7) Paso final: crea membership y marca invitación aceptada
+// ─────────────────────────────────────────────────────────────────────────────
+export const finalizeInviteeOnboarding = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) =>
+    z.object({
+      token: z.string().min(10),
+      biometric_completed: z.boolean().optional().default(false),
+      mfa_enrolled: z.boolean().optional().default(false),
+    }).parse(i),
+  )
+  .handler(async ({ data, context }) => {
+    const { userId, claims } = context;
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    const { data: inv, error } = await supabaseAdmin
+      .from("invitations")
+      .select("id, org_id, email, org_role, expires_at, accepted_at")
+      .eq("token", data.token).maybeSingle();
+    if (error) throw error;
+    if (!inv) throw new Error("Invitación no encontrada");
+    if (inv.accepted_at) throw new Error("Invitación ya utilizada");
+    if (new Date(inv.expires_at) < new Date()) throw new Error("Invitación expirada");
+    const email = (claims as { email?: string })?.email?.toLowerCase();
+    if (email && email !== inv.email.toLowerCase()) {
+      throw new Error("La invitación fue enviada a otro correo. Inicia sesión con la cuenta correcta.");
+    }
+
+    // Membership (idempotente)
+    const { data: existingM } = await supabaseAdmin
+      .from("memberships").select("id").eq("org_id", inv.org_id).eq("user_id", userId).maybeSingle();
+    if (!existingM) {
+      await supabaseAdmin.from("memberships").insert({
+        org_id: inv.org_id, user_id: userId, org_role: inv.org_role, status: "active",
+      });
+    }
+
+    await supabaseAdmin.from("profiles").update({
       mfa_status: data.mfa_enrolled ? "enabled" : "not_configured",
       onboarding_completed: true,
       onboarding_step: 4,
       kyc_status: data.biometric_completed ? "in_review" : "pending",
-    }).eq("id", uid);
+    }).eq("id", userId);
 
-    // Membership con el rol de la invitación
-    await supabaseAdmin.from("memberships").insert({
-      org_id: inv.org_id,
-      user_id: uid,
-      org_role: inv.org_role,
-      status: "active",
-    });
-
-    // Marcar invitación aceptada
     await supabaseAdmin.from("invitations").update({
-      accepted_at: new Date().toISOString(),
-      accepted_by: uid,
+      accepted_at: new Date().toISOString(), accepted_by: userId,
     }).eq("id", inv.id);
 
-    return { ok: true, user_id: uid, org_id: inv.org_id };
+    return { ok: true, user_id: userId, org_id: inv.org_id };
   });
+
