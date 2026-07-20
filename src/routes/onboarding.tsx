@@ -2075,10 +2075,16 @@ function Step4Biometric({ onDone, onBack, setError }: {
         <button type="button" onClick={onBack} className="inline-flex items-center gap-1.5 text-sm text-yo-txt-2 hover:text-yo-txt">
           <ArrowLeft className="size-4" /> Regresar
         </button>
-        <button onClick={onDone} disabled={!finished}
-          className="inline-flex items-center gap-2 min-h-10 px-5 rounded-md bg-yo-ac hover:bg-yo-ac-h text-white text-sm font-semibold disabled:opacity-50">
-          Continuar <ArrowRight className="size-4" />
-        </button>
+        <div className="flex items-center gap-2">
+          <button type="button" onClick={onDone}
+            className="inline-flex items-center gap-2 min-h-10 px-4 rounded-md border border-yo-border bg-yo-surface hover:bg-yo-raised text-yo-txt-2 text-sm font-semibold">
+            Omitir por ahora
+          </button>
+          <button onClick={onDone} disabled={!finished}
+            className="inline-flex items-center gap-2 min-h-10 px-5 rounded-md bg-yo-ac hover:bg-yo-ac-h text-white text-sm font-semibold disabled:opacity-50">
+            Continuar <ArrowRight className="size-4" />
+          </button>
+        </div>
       </div>
     </div>
   );
