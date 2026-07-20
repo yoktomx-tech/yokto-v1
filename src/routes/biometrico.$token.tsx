@@ -332,10 +332,11 @@ function IdCapture({ token, enroll, onDone, onError }: { token: string; enroll: 
   const [front, setFront] = useState<{ base64: string; mime: string } | null>(null);
   const [back, setBack] = useState<{ base64: string; mime: string } | null>(null);
   const [busy, setBusy] = useState(false);
+  const guideRef = useRef<HTMLDivElement | null>(null);
 
   async function capture() {
-    // Recorte al contorno del recuadro guía (~4% horizontal, ~6% vertical)
-    const shot = await cam.snap({ xPct: 0.04, yPct: 0.06, wPct: 0.92, hPct: 0.88 });
+    // Recorte exacto al recuadro guía visible (no a porcentajes ciegos del video).
+    const shot = await cam.snap(guideRef.current);
     if (!shot) return;
     if (side === "front") setFront(shot);
     else setBack(shot);
@@ -368,9 +369,10 @@ function IdCapture({ token, enroll, onDone, onError }: { token: string; enroll: 
         {shot && (
           <img src={`data:${shot.mime};base64,${shot.base64}`} alt="Captura" className="absolute inset-0 w-full h-full object-cover" />
         )}
-        <div className="absolute inset-3 border-2 border-yo-ac/80 rounded-lg pointer-events-none" />
+        <div ref={guideRef} className="absolute inset-3 border-2 border-yo-ac/80 rounded-lg pointer-events-none" />
       </div>
       {cam.err && <p className="text-xs text-red-600">{cam.err}</p>}
+
 
       <div className="flex gap-2">
         {shot ? (
