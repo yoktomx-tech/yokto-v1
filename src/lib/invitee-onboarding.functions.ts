@@ -192,17 +192,16 @@ export const sendPendingInvitationEmails = createServerFn({ method: "POST" })
       .is("accepted_at", null);
     if (error) throw error;
 
-    // Intento de envío real vía @lovable.dev/email-js si está scaffoldeado.
-    let sender: null | ((args: {
-      to: string;
-      templateName: string;
-      templateData: Record<string, unknown>;
-      idempotencyKey?: string;
-    }) => Promise<{ sent: boolean; reason?: string }>) = null;
+    // Intento de envío real vía helper scaffoldeado. Si no existe, marca como pendiente.
+    type SendFn = (
+      templateName: string,
+      to: string,
+      opts?: { templateData?: Record<string, unknown>; idempotencyKey?: string },
+    ) => Promise<{ sent: boolean; reason?: string }>;
+    let sender: SendFn | null = null;
     try {
-      // Import dinámico para no romper si el scaffolding aún no existe
-      const mod = await import("@/lib/email-templates/send-email");
-      sender = mod.sendTemplateEmail as unknown as typeof sender;
+      const mod = (await import("@/lib/email-templates/send-email" as string)) as { sendTemplateEmail?: SendFn };
+      if (typeof mod.sendTemplateEmail === "function") sender = mod.sendTemplateEmail;
     } catch { /* email templates no scaffoldeados aún */ }
 
     const results: Array<{ id: string; email: string; sent: boolean; reason?: string }> = [];
@@ -212,9 +211,7 @@ export const sendPendingInvitationEmails = createServerFn({ method: "POST" })
       let reason: string | undefined;
       if (sender) {
         try {
-          const r = await sender({
-            to: inv.email,
-            templateName: "invitation-to-organization",
+          const r = await sender("invitation-to-organization", inv.email, {
             templateData: {
               inviteeName: inv.full_name ?? inv.email,
               organizationName: orgName,
