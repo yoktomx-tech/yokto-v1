@@ -4,8 +4,8 @@ import { useViewRole, type ViewRole } from "@/hooks/use-view-role";
 import { cn } from "@/lib/utils";
 
 const ROLE_DESC: Record<ViewRole, string> = {
-  seller: "Envías hitos y evidencia para liberar pagos.",
-  buyer: "Fondeas operaciones y apruebas hitos entregados.",
+  seller: "Entrega bienes o servicios y sube evidencia para acreditar las condiciones pactadas.",
+  buyer: "Fondea la operación y aprueba la liberación cuando se cumplen las condiciones.",
 };
 
 const OPTS: { key: ViewRole; icon: typeof Briefcase; label: string }[] = [
