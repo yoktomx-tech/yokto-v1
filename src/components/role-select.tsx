@@ -41,9 +41,8 @@ export function RoleSelectHeader() {
         <CurrentIcon className="size-4 text-yo-ac shrink-0" strokeWidth={2} />
         <div className="flex flex-col leading-tight text-left flex-1">
           <span className="text-[10px] uppercase tracking-[0.14em] font-semibold text-yo-txt-3">
-            Rol actual
+            Rol
           </span>
-
           <span className="text-[12.5px] font-semibold text-yo-txt">{current.label}</span>
         </div>
         <ChevronDown className={cn("size-3.5 text-yo-txt-3 transition-transform ml-0.5", open && "rotate-180")} />
