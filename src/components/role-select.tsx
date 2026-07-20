@@ -51,7 +51,7 @@ export function RoleSelectHeader() {
       {open && (
         <div className="absolute top-full mt-1 right-0 z-50 w-64 rounded-md border border-yo-border bg-yo-surface shadow-lg overflow-hidden">
           <div className="px-2.5 pt-2 pb-1 text-[10px] uppercase tracking-[0.14em] font-semibold text-yo-txt-3">
-            Vista actual
+            Rol actual
           </div>
           {OPTS.map((opt) => {
             const Icon = opt.icon;
