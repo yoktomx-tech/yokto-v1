@@ -855,38 +855,115 @@ function Step3Fiscal({ onSaved, onBack, setError, loading, setLoading }: {
 
 
   async function onCsfFile(file: File) {
-    setCsfErr(null); setCsfBusy(true); setCsfInfo(null);
+    setCsfErr(null); setCsfBusy(true); setCsfInfo(null); setCsfBoxOpen(true);
     try {
       const b64 = await fileToBase64(file);
       const r = await validateCsfFn({ data: { file_base64: b64, mime_type: file.type || "application/pdf" } });
-      // Elegir régimen: match contra catálogo por keyword; si no, dejar vacío para que el usuario elija.
-      const catalog = REGIMEN_FISICA;
-      const matched = catalog.find((c) =>
-        r.regimenes.some((rg) => rg.toLowerCase().includes(c.label.toLowerCase().split("·")[1]?.trim().slice(0, 15).toLowerCase() ?? ""))
-      );
-      setF((p) => ({
-        ...p,
-        rfc: r.rfc || p.rfc,
-        curp: r.curp || p.curp,
-        regimen_fiscal: matched?.code ?? p.regimen_fiscal,
-        fiscal_street: r.domicilio.street || p.fiscal_street,
-        fiscal_ext_number: r.domicilio.ext || p.fiscal_ext_number,
-        fiscal_int_number: r.domicilio.int || p.fiscal_int_number,
-        fiscal_colonia: r.domicilio.colonia || p.fiscal_colonia,
-        fiscal_municipio: r.domicilio.municipio || p.fiscal_municipio,
-        fiscal_estado: r.domicilio.estado || p.fiscal_estado,
-        fiscal_postal_code: r.domicilio.cp || p.fiscal_postal_code,
-      }));
-      setCsfInfo({ regimenes: r.regimenes });
+      const isPM = tipo === "persona_moral";
+      const catalog = isPM ? REGIMEN_MORAL : REGIMEN_FISICA;
+      // Match régimen por código explícito o por keyword.
+      const matched = (r.regimenCodigo && catalog.find((c) => c.code === r.regimenCodigo)) ||
+        catalog.find((c) =>
+          r.regimenes.some((rg) => rg.toLowerCase().includes(c.label.toLowerCase().split("·")[1]?.trim().slice(0, 15).toLowerCase() ?? ""))
+        );
+      setF((p) => {
+        const next: Record<string, string> = {
+          ...p,
+          rfc: r.rfc || p.rfc,
+          regimen_fiscal: matched?.code ?? r.regimenCodigo ?? p.regimen_fiscal,
+          fiscal_street: r.domicilio.street || p.fiscal_street,
+          fiscal_ext_number: r.domicilio.ext || p.fiscal_ext_number,
+          fiscal_int_number: r.domicilio.int || p.fiscal_int_number,
+          fiscal_colonia: r.domicilio.colonia || p.fiscal_colonia,
+          fiscal_municipio: r.domicilio.municipio || p.fiscal_municipio,
+          fiscal_estado: r.domicilio.estado || p.fiscal_estado,
+          fiscal_postal_code: r.domicilio.cp || p.fiscal_postal_code,
+        };
+        if (isPM) {
+          // Concatenar razón social + régimen para el campo legal_name.
+          const rs = r.razonSocial || [r.nombres, r.apellidoPaterno, r.apellidoMaterno].filter(Boolean).join(" ").trim();
+          const regTag = r.regimenNombre || (matched?.label.split("·")[1]?.trim() ?? "");
+          next.legal_name = rs && regTag ? `${rs} · ${regTag}` : (rs || p.legal_name);
+          next.trade_name = r.nombreComercial || p.trade_name;
+          next.incorporation_date = r.fechaInicioOperaciones || p.incorporation_date;
+        } else {
+          next.curp = r.curp || p.curp;
+        }
+        return next;
+      });
+      setCsfInfo({
+        rfc: r.rfc, razonSocial: r.razonSocial, nombreComercial: r.nombreComercial,
+        regimenCodigo: r.regimenCodigo, regimenNombre: r.regimenNombre, regimenes: r.regimenes,
+        fechaInicioOperaciones: r.fechaInicioOperaciones,
+        domicilio: r.domicilio,
+      });
       setRfcCheck({ ok: true, msg: "RFC extraído de tu constancia" });
     } catch (e) {
       setCsfErr(e instanceof Error ? e.message : "No se pudo procesar la constancia");
     } finally { setCsfBusy(false); }
   }
 
+  // Auto-cerrar recuadro CSF PM a los 5s
+  useEffect(() => {
+    if (!csfInfo || !csfBoxOpen) return;
+    const t = setTimeout(() => setCsfBoxOpen(false), 5000);
+    return () => clearTimeout(t);
+  }, [csfInfo, csfBoxOpen]);
+
+  const validateRepCurpAction = useCallback(async (curpValue: string) => {
+    setRepCurpError(null);
+    const norm = normalizeCurp(curpValue);
+    const local = validateCurp(norm);
+    if (!local.valid) { setRepCurpError(local.error ?? "CURP inválida"); return; }
+    setRepCurpChecking(true);
+    try {
+      const r = await validateCurpFn({ data: { curp: norm } });
+      setRepCurpVerified({
+        nombre: r.nombre, apellidoPaterno: r.apellidoPaterno, apellidoMaterno: r.apellidoMaterno,
+        sexo: r.sexo, fechaNacimiento: r.fechaNacimiento, estadoNacimiento: r.estadoNacimiento,
+        estatusCurp: r.estatusCurp,
+      });
+      setRepCurpBoxOpen(true);
+      setF((p) => ({
+        ...p,
+        rep_curp: norm,
+        rep_full_name: [r.nombre, r.apellidoPaterno, r.apellidoMaterno].filter(Boolean).join(" ").trim() || p.rep_full_name,
+      }));
+    } catch (e) {
+      setRepCurpError(e instanceof Error ? e.message : "No se pudo validar la CURP");
+    } finally { setRepCurpChecking(false); }
+  }, [validateCurpFn]);
+
+  // Auto-cerrar recuadro CURP representante 5s
+  useEffect(() => {
+    if (!repCurpVerified || !repCurpBoxOpen) return;
+    const t = setTimeout(() => setRepCurpBoxOpen(false), 5000);
+    return () => clearTimeout(t);
+  }, [repCurpVerified, repCurpBoxOpen]);
+
+  // Auto-validar CURP del representante en modo PM manual/e.firma
+  useEffect(() => {
+    if (tipo !== "persona_moral") return;
+    if (fillMode !== "manual" && fillMode !== "efirma") return;
+    const norm = normalizeCurp(f.rep_curp ?? "");
+    if (norm.length !== 18) return;
+    if (repCurpVerified || repCurpChecking) return;
+    if (!validateCurp(norm).valid) return;
+    const t = setTimeout(() => { void validateRepCurpAction(norm); }, 400);
+    return () => clearTimeout(t);
+  }, [f.rep_curp, tipo, fillMode, repCurpVerified, repCurpChecking, validateRepCurpAction]);
+
+  function onRepCurpChange(v: string) {
+    const norm = normalizeCurp(v);
+    set("rep_curp", norm);
+    if (repCurpVerified) { setRepCurpVerified(null); setRepCurpBoxOpen(true); }
+    setRepCurpError(null);
+  }
+
   async function runEfirma() {
     if (!efCer || !efKey || !efPass) { setEfErr("Sube tu .cer, .key e ingresa la contraseña"); return; }
     setEfErr(null); setEfBusy(true); setEfInfo(null);
+    const isPM = tipo === "persona_moral";
     try {
       const [cerB64, keyB64] = await Promise.all([fileToBase64(efCer), fileToBase64(efKey)]);
       const parsed = await parseEfirmaFn({ data: { cer_base64: cerB64, key_base64: keyB64, password: efPass } });
@@ -895,8 +972,39 @@ function Step3Fiscal({ onSaved, onBack, setError, loading, setLoading }: {
         const s = await validateSerialFn({ data: { rfc: parsed.rfc, serial: parsed.serial, serial_hex: parsed.serialHex, valid_to: parsed.validTo } });
         vigente = s.vigente;
       } catch { /* mostramos igual la info */ }
-      // Validar CURP contra RENAPO si tenemos
-      if (parsed.curp) {
+
+      if (isPM) {
+        // PM: RFC del cert → razón social; CURP del cert → representante legal.
+        setF((p) => ({ ...p, rfc: parsed.rfc || p.rfc, rep_curp: parsed.curp || p.rep_curp }));
+        if (parsed.rfc) {
+          try {
+            const rr = await getRfcRazonSocialFn({ data: { rfc: parsed.rfc, expected: "PM" } });
+            setRfcVerified({
+              tipo: rr.tipo, razonSocial: rr.razonSocial, nombres: rr.nombres,
+              apellidoPaterno: rr.apellidoPaterno, apellidoMaterno: rr.apellidoMaterno,
+              nombreCompleto: rr.nombreCompleto, match: true,
+            });
+            setRfcBoxOpen(true);
+            setF((p) => ({ ...p, legal_name: rr.razonSocial || rr.nombreCompleto || p.legal_name }));
+          } catch { /* dejar manual */ }
+        }
+        if (parsed.curp) {
+          try {
+            const cu = await validateCurpFn({ data: { curp: parsed.curp } });
+            setRepCurpVerified({
+              nombre: cu.nombre, apellidoPaterno: cu.apellidoPaterno, apellidoMaterno: cu.apellidoMaterno,
+              sexo: cu.sexo, fechaNacimiento: cu.fechaNacimiento, estadoNacimiento: cu.estadoNacimiento,
+              estatusCurp: cu.estatusCurp,
+            });
+            setRepCurpBoxOpen(true);
+            setF((p) => ({
+              ...p,
+              rep_full_name: [cu.nombre, cu.apellidoPaterno, cu.apellidoMaterno].filter(Boolean).join(" ").trim() || p.rep_full_name,
+            }));
+          } catch { /* editable */ }
+        }
+      } else if (parsed.curp) {
+        // PF: comportamiento original.
         try {
           const cu = await validateCurpFn({ data: { curp: parsed.curp } });
           setCurpVerified({
