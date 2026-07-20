@@ -2074,6 +2074,9 @@ type ReviewProfile = {
   last_name: string | null;
   second_last_name: string | null;
   legal_name: string | null;
+  trade_name: string | null;
+  fecha_inicio_operaciones: string | null;
+  legal_rep: { full_name?: string; rfc?: string; curp?: string; role?: string } | null;
   rfc: string | null;
   curp: string | null;
   regimen_fiscal: string | null;
