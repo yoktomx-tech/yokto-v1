@@ -1811,11 +1811,47 @@ function Step6Review({ onFinished, onBack, setError, loading, setLoading }: {
     })();
   }, [listDocsFn, setError]);
 
+  const createInviteFn = useServerFn(createInvitationDraft);
+  const sendInvitesFn = useServerFn(sendPendingInvitationEmails);
+
   async function finish() {
     if (!accepted) { setError("Confirma que la información es correcta."); return; }
     setError(null); setLoading(true);
     try {
       await submitFn({});
+
+      // Persistir invitaciones capturadas y enviar correos (best-effort)
+      try {
+        let draft: OrgKindDraft = { kind: "individual" };
+        try { const raw = localStorage.getItem(LS_ORG); if (raw) draft = JSON.parse(raw); } catch { /* noop */ }
+        const invitees = (draft.invitees ?? []).filter((i) => i.confirmed);
+        if (draft.kind === "team" && invitees.length) {
+          const { data: u } = await supabase.auth.getUser();
+          const uid = u.user?.id;
+          if (uid) {
+            const { data: org } = await supabase.from("organizations")
+              .select("id").eq("owner_user_id", uid).maybeSingle();
+            if (org?.id) {
+              for (const inv of invitees) {
+                try {
+                  await createInviteFn({ data: {
+                    org_id: org.id,
+                    email: inv.email,
+                    org_role: inv.role,
+                    curp_rfc: inv.curp_rfc,
+                    full_name: inv.full_name,
+                    first_name: inv.first_name ?? null,
+                    last_name: inv.last_name ?? null,
+                    second_last_name: inv.second_last_name ?? null,
+                  } });
+                } catch { /* continuar con las demás */ }
+              }
+              try { await sendInvitesFn({ data: { org_id: org.id } }); } catch { /* noop */ }
+            }
+          }
+        }
+      } catch { /* no bloquear la finalización del onboarding */ }
+
       onFinished();
     } catch (e) {
       setError(e instanceof Error ? e.message : "No se pudo enviar a verificación.");
