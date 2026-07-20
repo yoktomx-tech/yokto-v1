@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Maximize2, Minimize2, Moon, Sun } from "lucide-react";
 import { GlobalSearchBar } from "@/components/global-search-bar";
 import { NotificationsBell } from "@/components/notifications-bell";
-import { OrgRoleBadge } from "@/components/org-role-badge";
+import { RoleSelectHeader } from "@/components/role-select";
 import { TopbarQuickAccess } from "@/components/topbar-quick-access";
 import { TopbarQuickActions } from "@/components/topbar-quick-actions";
 import { UserMenu } from "@/components/user-menu";
