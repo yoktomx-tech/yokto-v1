@@ -39,8 +39,13 @@ export function RoleSelectHeader() {
         title={ROLE_DESC[role]}
       >
         <CurrentIcon className="size-3.5 text-yo-ac shrink-0" />
-        <span className="text-[12.5px] font-semibold text-yo-txt">{current.label}</span>
-        <ChevronDown className={cn("size-3.5 text-yo-txt-3 transition-transform", open && "rotate-180")} />
+        <div className="flex flex-col leading-tight text-left">
+          <span className="text-[10px] uppercase tracking-[0.14em] font-semibold text-yo-txt-3">
+            Vista
+          </span>
+          <span className="text-[12.5px] font-semibold text-yo-txt">{current.label}</span>
+        </div>
+        <ChevronDown className={cn("size-3.5 text-yo-txt-3 transition-transform ml-0.5", open && "rotate-180")} />
       </button>
 
       {open && (

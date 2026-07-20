@@ -5,7 +5,7 @@ import { useCurrentOrg } from "@/hooks/use-current-org";
 import { cn } from "@/lib/utils";
 
 const ROLE_LABEL: Record<string, string> = {
-  owner: "Owner",
+  owner: "Propietario",
   buyer_admin: "Comprador · Admin",
   buyer_user: "Comprador",
   seller_admin: "Vendedor · Admin",
