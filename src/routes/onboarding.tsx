@@ -716,9 +716,10 @@ function Step3Fiscal({ onSaved, onBack, setError, loading, setLoading }: {
     return () => clearTimeout(t);
   }, [rfcVerified, rfcBoxOpen]);
 
-  // Auto-cerrar el recuadro de e.firma tras 5s
+  // Auto-cerrar el recuadro de e.firma tras 5s (sólo si vigente)
   useEffect(() => {
     if (!efInfo || !efBoxOpen) return;
+    if (efInfo.vigente === false) return; // mantener visible si NO VIGENTE
     const t = setTimeout(() => setEfBoxOpen(false), 5000);
     return () => clearTimeout(t);
   }, [efInfo, efBoxOpen]);
