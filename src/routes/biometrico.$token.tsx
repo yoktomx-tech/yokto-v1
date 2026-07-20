@@ -499,7 +499,7 @@ function SelfieCapture({ token, onDone, onError }: { token: string; onDone: () =
     rec.onstop = async () => {
       const blob = new Blob(chunks.current, { type: "video/webm" });
       setVideoB64(await fileToBase64(blob));
-      const shot = await cam.snap();
+      const shot = await cam.snap(guideRef.current);
       if (shot) setSelfie(shot);
     };
     rec.start();
