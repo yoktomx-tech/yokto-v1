@@ -1026,14 +1026,22 @@ function Step3Fiscal({ onSaved, onBack, setError, loading, setLoading }: {
                 {efErr && <p className="text-xs text-yo-err">{efErr}</p>}
               </div>
               {efInfo && efBoxOpen && (
-                <div className="relative mt-3 rounded-lg border border-yo-ok/30 bg-yo-ok/5 p-3 pr-9 text-sm">
+                <div className={cn(
+                  "relative mt-3 rounded-lg border p-3 pr-9 text-sm",
+                  efInfo.vigente === false
+                    ? "border-yo-danger/50 bg-yo-danger/10 text-yo-txt"
+                    : "border-yo-ok/30 bg-yo-ok/5"
+                )}>
                   <button type="button" onClick={() => setEfBoxOpen(false)}
                     aria-label="Cerrar" title="Cerrar"
                     className="absolute top-2 right-2 p-1 rounded-md text-yo-txt-3 hover:text-yo-txt hover:bg-yo-raised">
                     <X className="size-4" />
                   </button>
-                  <div className="flex items-center gap-2 text-yo-ok font-semibold">
-                    <Check className="size-4" /> e.firma leída correctamente
+                  <div className={cn("flex items-center gap-2 font-semibold",
+                    efInfo.vigente === false ? "text-yo-danger" : "text-yo-ok")}>
+                    {efInfo.vigente === false
+                      ? <><AlertCircle className="size-4" /> e.firma NO VIGENTE en el SAT</>
+                      : <><Check className="size-4" /> e.firma leída correctamente</>}
                   </div>
                   <dl className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 text-yo-txt">
                     <div><dt className="text-xs text-yo-txt-3">RFC</dt><dd>{efInfo.rfc}</dd></div>
@@ -1041,17 +1049,19 @@ function Step3Fiscal({ onSaved, onBack, setError, loading, setLoading }: {
                     <div className="sm:col-span-2"><dt className="text-xs text-yo-txt-3">Titular</dt><dd>{efInfo.nombre}</dd></div>
                     <div><dt className="text-xs text-yo-txt-3">Serial</dt><dd className="font-mono">{efInfo.serial}</dd></div>
                     <div><dt className="text-xs text-yo-txt-3">Vigencia SAT</dt>
-                      <dd>{efInfo.vigente === true ? "VIGENTE" : efInfo.vigente === false ? "NO VIGENTE" : "No verificado"}</dd></div>
+                      <dd className={efInfo.vigente === false ? "text-yo-danger font-semibold" : ""}>
+                        {efInfo.vigente === true ? "VIGENTE" : efInfo.vigente === false ? "NO VIGENTE" : "No verificado"}
+                      </dd></div>
                     <div><dt className="text-xs text-yo-txt-3">Válido desde</dt><dd>{new Date(efInfo.validFrom).toLocaleDateString("es-MX")}</dd></div>
                     <div><dt className="text-xs text-yo-txt-3">Válido hasta</dt><dd>{new Date(efInfo.validTo).toLocaleDateString("es-MX")}</dd></div>
                   </dl>
-                  <p className="mt-2 text-[11px] text-yo-txt-3">Este recuadro se cerrará automáticamente en 5 segundos.</p>
-                </div>
-              )}
-              {efInfo && !efBoxOpen && (
-                <div className="mt-3 inline-flex items-center gap-2 text-xs text-yo-ok">
-                  <Check className="size-3.5" /> e.firma validada — {efInfo.nombre}
-                  <button type="button" onClick={() => setEfBoxOpen(true)} className="underline text-yo-txt-3 hover:text-yo-txt">Ver detalle</button>
+                  {efInfo.vigente === false ? (
+                    <p className="mt-2 text-[12px] text-yo-danger">
+                      No puedes continuar con este método. Renueva tu e.firma en el SAT o usa otro método (Constancia o Manual).
+                    </p>
+                  ) : (
+                    <p className="mt-2 text-[11px] text-yo-txt-3">Este recuadro se cerrará automáticamente en 5 segundos.</p>
+                  )}
                 </div>
               )}
             </fieldset>
