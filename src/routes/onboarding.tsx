@@ -1887,9 +1887,9 @@ function Step6Review({ onFinished, onBack, setError, loading, setLoading }: {
             return (
               <>
                 <ReviewRow k="Tipo" v={d.kind === "team" ? "Organización / equipo" : "Cuenta individual"} />
-                {d.kind === "team" && <ReviewRow k="Nombre" v={d.name || "Por definir más adelante"} tone={d.name ? undefined : "warn"} />}
-                {d.kind === "team" && <ReviewRow k="RFC" v={d.rfc || "Por definir más adelante"} mono tone={d.rfc ? undefined : "warn"} />}
-                {d.kind === "team" && <ReviewRow k="Invitaciones" v={`${d.invitees?.length ?? 0} miembro(s)`} />}
+                {d.kind === "team" && <ReviewRow k="Nombre comercial" v={d.name || "—"} tone={d.name ? undefined : "warn"} />}
+                {d.kind === "team" && <ReviewRow k="Espacio de trabajo" v={d.slug || "—"} mono tone={d.slug ? undefined : "warn"} />}
+                {d.kind === "team" && <ReviewRow k="Invitaciones" v={`${(d.invitees ?? []).filter(i => i.confirmed).length} miembro(s) verificado(s)`} /> }
               </>
             );
           })()}
