@@ -200,7 +200,8 @@ export const sendPendingInvitationEmails = createServerFn({ method: "POST" })
     ) => Promise<{ sent: boolean; reason?: string }>;
     let sender: SendFn | null = null;
     try {
-      const mod = (await import("@/lib/email-templates/send-email" as string)) as { sendTemplateEmail?: SendFn };
+      const modPath = ["@", "lib", "email-templates", "send-email"].join("/");
+      const mod = (await import(/* @vite-ignore */ modPath)) as { sendTemplateEmail?: SendFn };
       if (typeof mod.sendTemplateEmail === "function") sender = mod.sendTemplateEmail;
     } catch { /* email templates no scaffoldeados aún */ }
 
