@@ -293,7 +293,8 @@ function IdCapture({ token, enroll, onDone, onError }: { token: string; enroll: 
   const [busy, setBusy] = useState(false);
 
   async function capture() {
-    const shot = await cam.snap();
+    // Recorte al contorno del recuadro guía (~4% horizontal, ~6% vertical)
+    const shot = await cam.snap({ xPct: 0.04, yPct: 0.06, wPct: 0.92, hPct: 0.88 });
     if (!shot) return;
     if (side === "front") setFront(shot);
     else setBack(shot);
