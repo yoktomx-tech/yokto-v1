@@ -210,7 +210,10 @@ function OnboardingWizard() {
           )}
           {step === 7 && session && (
             <Step6Review
-              onFinished={() => { sessionStorage.setItem("yokto.onboarding.intentional_exit", "1"); navigate({ to: "/onboarding/pendiente" }); }} onBack={goPrev}
+              onFinished={() => {
+                sessionStorage.setItem("yokto.onboarding.intentional_exit", "1");
+                supabase.auth.signOut().finally(() => navigate({ to: "/auth" }));
+              }} onBack={goPrev}
               setError={setError} loading={loading} setLoading={setLoading}
             />
           )}
