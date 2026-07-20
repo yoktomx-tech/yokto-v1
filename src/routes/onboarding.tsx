@@ -2691,18 +2691,17 @@ function Step4AccountKind({ onSaved, onBack, setError }: {
                 {slugStatus === "taken" && <AlertCircle className="size-3 text-yo-err" />}
               </label>
               <div className="flex items-center rounded-md border border-yo-border bg-yo-bg overflow-hidden focus-within:border-yo-ac">
-                <span className="pl-3 pr-1 text-xs text-yo-txt-3 select-none">yokto.app/</span>
                 <input
                   id="org-slug"
                   value={slug}
-                  onChange={(ev) => { setSlug(toSlug(ev.target.value)); setSlugTouched(true); }}
-                  className="flex-1 bg-transparent py-2.5 pr-3 text-sm text-yo-txt outline-none font-mono"
+                  onChange={(ev) => { setSlug(toSlug(ev.target.value).slice(0, 32)); setSlugTouched(true); }}
+                  className="flex-1 bg-transparent py-2.5 px-3 text-sm text-yo-txt outline-none font-mono"
                   placeholder="mi-empresa"
-                  maxLength={48}
+                  maxLength={32}
                   autoComplete="off"
                 />
                 {slugTouched && (
-                  <button type="button" onClick={() => { setSlugTouched(false); setSlug(toSlug(orgName)); }}
+                  <button type="button" onClick={() => { setSlugTouched(false); setSlug(toSlug(orgName).slice(0, 32)); }}
                     className="mr-2 text-[11px] text-yo-txt-3 hover:text-yo-ac">Cambiar</button>
                 )}
               </div>
