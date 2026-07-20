@@ -587,6 +587,7 @@ function SelfieCapture({ token, onDone, onError }: { token: string; onDone: () =
 // ─── Review ──────────────────────────────────────────────────────────────────
 function Review({ token, enroll, onDone, onError }: { token: string; enroll: Enrollment; onDone: () => void; onError: (m: string | null) => void }) {
   const confirm = useServerFn(confirmBiometricEnrollment);
+  const completeCtx = useServerFn(registerBiometricCompleteContext);
   const [busy, setBusy] = useState(false);
   const ocr = (enroll?.ocr_data ?? {}) as Record<string, unknown>;
   const name = String(ocr.nombre ?? [ocr.nombres, ocr.apellidoPaterno, ocr.apellidoMaterno].filter(Boolean).join(" ")).trim();
@@ -600,7 +601,24 @@ function Review({ token, enroll, onDone, onError }: { token: string; enroll: Enr
   ];
   async function send() {
     setBusy(true); onError(null);
-    try { await confirm({ data: { token } }); onDone(); }
+    try {
+      // Bitácora de cierre: IP, user-agent y GPS al confirmar.
+      try {
+        const user_agent = typeof navigator !== "undefined" ? navigator.userAgent.slice(0, 500) : undefined;
+        let ip: string | undefined;
+        try { const r = await fetch("https://api.ipify.org?format=json"); if (r.ok) ip = (await r.json()).ip; } catch { /* ignore */ }
+        const geo = await new Promise<{ lat: number; lng: number; accuracy?: number } | null>((resolve) => {
+          if (typeof navigator === "undefined" || !navigator.geolocation) return resolve(null);
+          navigator.geolocation.getCurrentPosition(
+            (p) => resolve({ lat: p.coords.latitude, lng: p.coords.longitude, accuracy: p.coords.accuracy }),
+            () => resolve(null),
+            { enableHighAccuracy: false, timeout: 6000, maximumAge: 60000 },
+          );
+        });
+        await completeCtx({ data: { token, user_agent, ip, geo } });
+      } catch { /* best-effort */ }
+      await confirm({ data: { token } }); onDone();
+    }
     catch (e) { onError((e as Error).message); }
     finally { setBusy(false); }
   }
