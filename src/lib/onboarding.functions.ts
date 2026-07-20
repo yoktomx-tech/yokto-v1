@@ -39,16 +39,27 @@ export const getRfcRazonSocial = createServerFn({ method: "POST" })
     rfc: z.string().min(12).max(13),
     expected: z.enum(["PF", "PM"]).optional(),
   }).parse(i))
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
+    const { logOnboardingApi } = await import("./onboarding-logger.server");
     const local = validateRfc(data.rfc, data.expected);
-    if (!local.valid) throw new Error(local.error ?? "RFC inválido");
+    if (!local.valid) {
+      await logOnboardingApi({
+        user_id: context.userId, provider: "internal", endpoint: "validate_rfc.local",
+        account_type: data.expected === "PM" ? "persona_moral" : data.expected === "PF" ? "persona_fisica" : null,
+        step: "3.rfc", status: "failed", error_message: local.error ?? "RFC inválido",
+        request_summary: { rfc: data.rfc, expected: data.expected },
+      });
+      throw new Error(local.error ?? "RFC inválido");
+    }
 
     const user = process.env.NUBARIUM_USER;
     const pass = process.env.NUBARIUM_PASSWORD;
     if (!user || !pass) throw new Error("Credenciales de Nubarium no configuradas");
     const auth = Buffer.from(`${user}:${pass}`).toString("base64");
     const rfc = data.rfc.toUpperCase();
+    const account_type: "persona_moral" | "persona_fisica" = rfc.length === 12 ? "persona_moral" : "persona_fisica";
 
+    const t0 = Date.now();
     let res: Response;
     try {
       res = await fetch("https://sat.nubarium.com/sat/v1/obtener-razonsocial", {
@@ -57,6 +68,11 @@ export const getRfcRazonSocial = createServerFn({ method: "POST" })
         body: JSON.stringify({ rfc }),
       });
     } catch {
+      await logOnboardingApi({
+        user_id: context.userId, provider: "nubarium", endpoint: "sat/obtener-razonsocial",
+        account_type, step: "3.rfc", status: "incomplete", duration_ms: Date.now() - t0,
+        request_summary: { rfc }, error_message: "No se pudo contactar al servicio SAT (Nubarium)",
+      });
       throw new Error("No se pudo contactar al servicio SAT (Nubarium)");
     }
 
@@ -66,6 +82,11 @@ export const getRfcRazonSocial = createServerFn({ method: "POST" })
     const estatus = String(payload.estatus ?? "");
     if (estatus !== "OK") {
       const msg = typeof payload.mensaje === "string" ? payload.mensaje : "RFC no encontrado en el SAT";
+      await logOnboardingApi({
+        user_id: context.userId, provider: "nubarium", endpoint: "sat/obtener-razonsocial",
+        account_type, step: "3.rfc", status: "failed", http_status: res.status, duration_ms: Date.now() - t0,
+        request_summary: { rfc }, response_summary: payload, error_message: msg,
+      });
       throw new Error(msg);
     }
 
@@ -73,8 +94,13 @@ export const getRfcRazonSocial = createServerFn({ method: "POST" })
     const nombres = String(payload.nombres ?? payload.nombre ?? "");
     const apellidoPaterno = String(payload.apellidoPaterno ?? "");
     const apellidoMaterno = String(payload.apellidoMaterno ?? "");
-    // tipo persona: si el RFC tiene 13 caracteres → PF, 12 → PM
     const tipo: "PF" | "PM" = rfc.length === 13 ? "PF" : "PM";
+
+    await logOnboardingApi({
+      user_id: context.userId, provider: "nubarium", endpoint: "sat/obtener-razonsocial",
+      account_type, step: "3.rfc", status: "success", http_status: res.status, duration_ms: Date.now() - t0,
+      request_summary: { rfc }, response_summary: payload,
+    });
 
     return {
       valid: true,
