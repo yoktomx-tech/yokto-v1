@@ -692,13 +692,15 @@ export const validateCsfNubarium = createServerFn({ method: "POST" })
     file_base64: z.string(),
     mime_type: z.string(),
   }).parse(i))
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
+    const { logOnboardingApi } = await import("./onboarding-logger.server");
     const user = process.env.NUBARIUM_USER;
     const pass = process.env.NUBARIUM_PASSWORD;
     if (!user || !pass) throw new Error("Credenciales de Nubarium no configuradas");
     const auth = Buffer.from(`${user}:${pass}`).toString("base64");
     const tipo = data.mime_type.includes("pdf") ? "pdf" : "imagen";
 
+    const t0 = Date.now();
     let res: Response;
     try {
       res = await fetch("https://api.nubarium.com/sat/v1/consultar_cif", {
@@ -707,6 +709,12 @@ export const validateCsfNubarium = createServerFn({ method: "POST" })
         body: JSON.stringify({ tipo, documento: data.file_base64 }),
       });
     } catch {
+      await logOnboardingApi({
+        user_id: context.userId, provider: "nubarium", endpoint: "sat/consultar_cif",
+        step: "3.csf", status: "incomplete", duration_ms: Date.now() - t0,
+        request_summary: { tipo, mime_type: data.mime_type },
+        error_message: "No se pudo contactar al servicio SAT (Nubarium)",
+      });
       throw new Error("No se pudo contactar al servicio SAT (Nubarium)");
     }
 
@@ -715,8 +723,19 @@ export const validateCsfNubarium = createServerFn({ method: "POST" })
     const estatus = String(payload.estatus ?? "");
     if (estatus !== "OK") {
       const msg = typeof payload.mensaje === "string" ? payload.mensaje : "No se pudo leer la constancia";
+      await logOnboardingApi({
+        user_id: context.userId, provider: "nubarium", endpoint: "sat/consultar_cif",
+        step: "3.csf", status: "failed", http_status: res.status, duration_ms: Date.now() - t0,
+        request_summary: { tipo, mime_type: data.mime_type }, response_summary: payload, error_message: msg,
+      });
       throw new Error(msg);
     }
+
+    await logOnboardingApi({
+      user_id: context.userId, provider: "nubarium", endpoint: "sat/consultar_cif",
+      step: "3.csf", status: "success", http_status: res.status, duration_ms: Date.now() - t0,
+      request_summary: { tipo, mime_type: data.mime_type }, response_summary: payload,
+    });
 
     const ident = (payload.datosIdentificacion as Record<string, string> | undefined) ?? {};
     const ubic = (payload.datosUbicacion as Record<string, string> | undefined) ?? {};
