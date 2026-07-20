@@ -1024,6 +1024,22 @@ export const validateFielSerialNubarium = createServerFn({ method: "POST" })
       });
     } catch { /* best-effort */ }
 
+    try {
+      const { logOnboardingApi } = await import("./onboarding-logger.server");
+      const status: "success" | "failed" | "incomplete" =
+        estatus === "OK" ? "success" : (best ? "failed" : "incomplete");
+      await logOnboardingApi({
+        user_id: context.userId, provider: "nubarium", endpoint: "sat/validar-serial",
+        step: "3.efirma.serial", status, http_status: best?.httpStatus ?? null,
+        request_summary: {
+          rfc: data.rfc.toUpperCase(), serial_input: data.serial,
+          serial_tried: best?.serialTried ?? null, candidates_count: candidates.length,
+        },
+        response_summary: { estatus, estado_sat: estadoSat, vigente, tipoCertificado, raw: payload },
+        error_message: estatus === "OK" ? null : (typeof payload.mensaje === "string" ? payload.mensaje : null),
+      });
+    } catch { /* best-effort */ }
+
     if (estatus !== "OK" && localVigente !== true && vigente !== null) {
       const msg = typeof payload.mensaje === "string" && payload.mensaje
         ? payload.mensaje
