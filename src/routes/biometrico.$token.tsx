@@ -288,24 +288,38 @@ function useCamera(facing: "user" | "environment") {
     }
   }, []);
 
-  const snap = useCallback(async (crop?: { xPct: number; yPct: number; wPct: number; hPct: number }): Promise<{ base64: string; mime: string } | null> => {
+  const snap = useCallback(async (guideEl?: HTMLElement | null): Promise<{ base64: string; mime: string } | null> => {
     const v = videoElRef.current;
     if (!v || !streamRef.current) return null;
     const vw = v.videoWidth, vh = v.videoHeight;
+    if (!vw || !vh) return null;
+
     let sx = 0, sy = 0, sw = vw, sh = vh;
-    if (crop) {
-      sx = Math.round(vw * crop.xPct);
-      sy = Math.round(vh * crop.yPct);
-      sw = Math.round(vw * crop.wPct);
-      sh = Math.round(vh * crop.hPct);
+    if (guideEl) {
+      const vrect = v.getBoundingClientRect();
+      const grect = guideEl.getBoundingClientRect();
+      // object-cover: la imagen se escala para cubrir el contenedor;
+      // parte sale del recorte visible. Calculamos ese factor.
+      const scale = Math.max(vrect.width / vw, vrect.height / vh);
+      const contentW = vw * scale;
+      const contentH = vh * scale;
+      const contentX = (vrect.width - contentW) / 2; // negativo si se recorta lateralmente
+      const contentY = (vrect.height - contentH) / 2;
+      const gx = grect.left - vrect.left;
+      const gy = grect.top - vrect.top;
+      sx = Math.max(0, Math.round((gx - contentX) / scale));
+      sy = Math.max(0, Math.round((gy - contentY) / scale));
+      sw = Math.max(1, Math.min(vw - sx, Math.round(grect.width / scale)));
+      sh = Math.max(1, Math.min(vh - sy, Math.round(grect.height / scale)));
     }
     const canvas = document.createElement("canvas");
     canvas.width = sw; canvas.height = sh;
     canvas.getContext("2d")?.drawImage(v, sx, sy, sw, sh, 0, 0, sw, sh);
-    const blob: Blob | null = await new Promise((r) => canvas.toBlob(r, "image/jpeg", 0.9));
+    const blob: Blob | null = await new Promise((r) => canvas.toBlob(r, "image/jpeg", 0.92));
     if (!blob) return null;
     return fileToBase64(blob);
   }, []);
+
 
   return { videoRef, ready, err, snap, streamRef };
 }
