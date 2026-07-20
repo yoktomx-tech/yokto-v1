@@ -8,6 +8,7 @@ import {
 import {
   getEnrollmentByToken, submitBiometricId, submitBiometricSelfie,
   confirmBiometricEnrollment, cancelBiometricEnrollment,
+  registerBiometricStartContext, registerBiometricCompleteContext,
 } from "@/lib/biometric.functions";
 import { YoktoLogo } from "@/components/logo";
 
