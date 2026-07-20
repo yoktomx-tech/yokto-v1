@@ -1077,6 +1077,7 @@ function Step3Fiscal({ onSaved, onBack, setError, loading, setLoading }: {
         setError("Valida la CURP del representante legal");
         return;
       }
+    }
     if (!f.regimen_fiscal) {
       setError("Falta el tipo de régimen fiscal. Selecciónalo en la lista.");
       return;
