@@ -2666,11 +2666,16 @@ function Step4AccountKind({ onSaved, onBack, setError }: {
         <>
           <div className="rounded-lg border border-yo-ac/30 bg-yo-ac-bg/50 px-4 py-3 flex gap-3">
             <ShieldCheck className="size-4 text-yo-ac shrink-0 mt-0.5" />
-            <div className="text-xs text-yo-txt-2 leading-relaxed">
-              La cuenta que estás creando será una <span className="font-semibold text-yo-txt">cuenta de Administrador</span>.
-              Toda la configuración de la organización (RFC, régimen fiscal, cuentas bancarias, KYB) podrás completarla
-              una vez registrada la cuenta. También podrás invitar más participantes en cualquier momento desde
-              <span className="font-medium"> Configuración → Equipo</span>.
+            <div className="text-xs text-yo-txt-2 leading-relaxed space-y-3">
+              <p>
+                La cuenta que estás creando será una <span className="font-semibold text-yo-txt">cuenta de Administrador</span>.
+                Toda la configuración de la organización (RFC, régimen fiscal, cuentas bancarias, KYB) podrás completarla
+                una vez registrada la cuenta. También podrás invitar más participantes en cualquier momento desde
+                <span className="font-medium"> Configuración → Equipo</span>.
+              </p>
+              <p>
+                Puedes omitir este paso: podrás registrar e invitar miembros más tarde desde <span className="font-semibold text-yo-txt">Configuración › Equipo</span> cuando lo necesites.
+              </p>
             </div>
           </div>
 
@@ -2721,9 +2726,8 @@ function Step4AccountKind({ onSaved, onBack, setError }: {
             <div className="border-t border-yo-border pt-4">
               <p className="text-xs uppercase tracking-widest font-semibold text-yo-txt mb-1">Invitar miembros (opcional)</p>
               <p className="text-[11px] text-yo-txt-3 mb-2">Se validan con RENAPO/SAT y se les enviará el correo de invitación cuando concluyas tu registro. Vigencia de 48 horas.</p>
-              <div className="mb-3 rounded-md border border-yo-border bg-yo-raised/40 px-3 py-2 text-[11px] text-yo-txt-2">
-                Puedes omitir este paso: podrás registrar e invitar miembros más tarde desde <span className="font-semibold text-yo-txt">Configuración › Equipo</span> cuando lo necesites.
-              </div>
+
+
 
               <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_minmax(0,1fr)]">
                 <Field id="inv-email" label="Correo" value={newEmail} onChange={setNewEmail}
