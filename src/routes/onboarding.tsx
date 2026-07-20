@@ -2726,9 +2726,8 @@ function Step4AccountKind({ onSaved, onBack, setError }: {
             <div className="border-t border-yo-border pt-4">
               <p className="text-xs uppercase tracking-widest font-semibold text-yo-txt mb-1">Invitar miembros (opcional)</p>
               <p className="text-[11px] text-yo-txt-3 mb-2">Se validan con RENAPO/SAT y se les enviará el correo de invitación cuando concluyas tu registro. Vigencia de 48 horas.</p>
-              <div className="mb-3 rounded-md border border-yo-border bg-yo-raised/40 px-3 py-2 text-[11px] text-yo-txt-2">
-                Puedes omitir este paso: podrás registrar e invitar miembros más tarde desde <span className="font-semibold text-yo-txt">Configuración › Equipo</span> cuando lo necesites.
-              </div>
+
+
 
               <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_minmax(0,1fr)]">
                 <Field id="inv-email" label="Correo" value={newEmail} onChange={setNewEmail}
