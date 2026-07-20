@@ -502,3 +502,42 @@ export const cancelBiometricEnrollment = createServerFn({ method: "POST" })
     await admin.from("biometric_enrollments").update({ status: "failed", last_error: "Cancelado por el usuario" }).eq("token", data.token);
     return { ok: true };
   });
+
+// ─── 9. Bitácora del móvil (IP, user-agent, geolocalización) ─────────────────
+const GeoSchema = z.object({ lat: z.number(), lng: z.number(), accuracy: z.number().optional() }).nullable().optional();
+export const registerBiometricStartContext = createServerFn({ method: "POST" })
+  .inputValidator((i: unknown) => z.object({
+    token: z.string().min(10),
+    user_agent: z.string().max(500).optional(),
+    ip: z.string().max(64).optional(),
+    geo: GeoSchema,
+  }).parse(i))
+  .handler(async ({ data }) => {
+    const { admin, enrollment } = await loadByToken(data.token);
+    // Solo se registra la primera vez que el móvil abre la sesión.
+    const payload: Record<string, unknown> = { started_at: new Date().toISOString() };
+    if (data.user_agent) payload.start_user_agent = data.user_agent;
+    if (data.ip) payload.start_ip = data.ip;
+    if (data.geo) payload.start_geo = data.geo;
+    await admin.from("biometric_enrollments").update(payload as never).eq("id", enrollment.id);
+    return { ok: true };
+  });
+
+export const registerBiometricCompleteContext = createServerFn({ method: "POST" })
+  .inputValidator((i: unknown) => z.object({
+    token: z.string().min(10),
+    user_agent: z.string().max(500).optional(),
+    ip: z.string().max(64).optional(),
+    geo: GeoSchema,
+  }).parse(i))
+  .handler(async ({ data }) => {
+    const admin = await getAdmin();
+    const payload: Record<string, unknown> = {};
+    if (data.user_agent) payload.complete_user_agent = data.user_agent;
+    if (data.ip) payload.complete_ip = data.ip;
+    if (data.geo) payload.complete_geo = data.geo;
+    if (Object.keys(payload).length === 0) return { ok: true };
+    await admin.from("biometric_enrollments").update(payload as never).eq("token", data.token);
+    return { ok: true };
+  });
+

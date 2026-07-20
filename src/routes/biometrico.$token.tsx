@@ -8,6 +8,7 @@ import {
 import {
   getEnrollmentByToken, submitBiometricId, submitBiometricSelfie,
   confirmBiometricEnrollment, cancelBiometricEnrollment,
+  registerBiometricStartContext, registerBiometricCompleteContext,
 } from "@/lib/biometric.functions";
 import { YoktoLogo } from "@/components/logo";
 
@@ -37,6 +38,7 @@ function BiometricMobile() {
   const { token } = useParams({ from: "/biometrico/$token" });
   const get = useServerFn(getEnrollmentByToken);
   const cancel = useServerFn(cancelBiometricEnrollment);
+  const startCtx = useServerFn(registerBiometricStartContext);
   const [enroll, setEnroll] = useState<Enrollment | null>(null);
   const [phase, setPhase] = useState<Phase>("intro");
   const [idResult, setIdResult] = useState<IdResult | null>(null);
@@ -60,6 +62,31 @@ function BiometricMobile() {
   }, [get, token, phase]);
 
   useEffect(() => { void refresh(); /* eslint-disable-next-line */ }, []);
+
+  // Bitácora: al abrir la sesión en el móvil registramos IP pública, user-agent y GPS.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const user_agent = typeof navigator !== "undefined" ? navigator.userAgent.slice(0, 500) : undefined;
+      let ip: string | undefined;
+      try {
+        const r = await fetch("https://api.ipify.org?format=json");
+        if (r.ok) ip = (await r.json()).ip;
+      } catch { /* ignore */ }
+      const geo = await new Promise<{ lat: number; lng: number; accuracy?: number } | null>((resolve) => {
+        if (typeof navigator === "undefined" || !navigator.geolocation) return resolve(null);
+        navigator.geolocation.getCurrentPosition(
+          (p) => resolve({ lat: p.coords.latitude, lng: p.coords.longitude, accuracy: p.coords.accuracy }),
+          () => resolve(null),
+          { enableHighAccuracy: false, timeout: 6000, maximumAge: 60000 },
+        );
+      });
+      if (cancelled) return;
+      try { await startCtx({ data: { token, user_agent, ip, geo } }); } catch { /* best-effort */ }
+    })();
+    return () => { cancelled = true; };
+  }, [token, startCtx]);
+
 
   async function doCancel() {
     try { await cancel({ data: { token } }); } catch { /* ignore */ }
@@ -261,24 +288,38 @@ function useCamera(facing: "user" | "environment") {
     }
   }, []);
 
-  const snap = useCallback(async (crop?: { xPct: number; yPct: number; wPct: number; hPct: number }): Promise<{ base64: string; mime: string } | null> => {
+  const snap = useCallback(async (guideEl?: HTMLElement | null): Promise<{ base64: string; mime: string } | null> => {
     const v = videoElRef.current;
     if (!v || !streamRef.current) return null;
     const vw = v.videoWidth, vh = v.videoHeight;
+    if (!vw || !vh) return null;
+
     let sx = 0, sy = 0, sw = vw, sh = vh;
-    if (crop) {
-      sx = Math.round(vw * crop.xPct);
-      sy = Math.round(vh * crop.yPct);
-      sw = Math.round(vw * crop.wPct);
-      sh = Math.round(vh * crop.hPct);
+    if (guideEl) {
+      const vrect = v.getBoundingClientRect();
+      const grect = guideEl.getBoundingClientRect();
+      // object-cover: la imagen se escala para cubrir el contenedor;
+      // parte sale del recorte visible. Calculamos ese factor.
+      const scale = Math.max(vrect.width / vw, vrect.height / vh);
+      const contentW = vw * scale;
+      const contentH = vh * scale;
+      const contentX = (vrect.width - contentW) / 2; // negativo si se recorta lateralmente
+      const contentY = (vrect.height - contentH) / 2;
+      const gx = grect.left - vrect.left;
+      const gy = grect.top - vrect.top;
+      sx = Math.max(0, Math.round((gx - contentX) / scale));
+      sy = Math.max(0, Math.round((gy - contentY) / scale));
+      sw = Math.max(1, Math.min(vw - sx, Math.round(grect.width / scale)));
+      sh = Math.max(1, Math.min(vh - sy, Math.round(grect.height / scale)));
     }
     const canvas = document.createElement("canvas");
     canvas.width = sw; canvas.height = sh;
     canvas.getContext("2d")?.drawImage(v, sx, sy, sw, sh, 0, 0, sw, sh);
-    const blob: Blob | null = await new Promise((r) => canvas.toBlob(r, "image/jpeg", 0.9));
+    const blob: Blob | null = await new Promise((r) => canvas.toBlob(r, "image/jpeg", 0.92));
     if (!blob) return null;
     return fileToBase64(blob);
   }, []);
+
 
   return { videoRef, ready, err, snap, streamRef };
 }
@@ -291,10 +332,11 @@ function IdCapture({ token, enroll, onDone, onError }: { token: string; enroll: 
   const [front, setFront] = useState<{ base64: string; mime: string } | null>(null);
   const [back, setBack] = useState<{ base64: string; mime: string } | null>(null);
   const [busy, setBusy] = useState(false);
+  const guideRef = useRef<HTMLDivElement | null>(null);
 
   async function capture() {
-    // Recorte al contorno del recuadro guía (~4% horizontal, ~6% vertical)
-    const shot = await cam.snap({ xPct: 0.04, yPct: 0.06, wPct: 0.92, hPct: 0.88 });
+    // Recorte exacto al recuadro guía visible (no a porcentajes ciegos del video).
+    const shot = await cam.snap(guideRef.current);
     if (!shot) return;
     if (side === "front") setFront(shot);
     else setBack(shot);
@@ -327,9 +369,10 @@ function IdCapture({ token, enroll, onDone, onError }: { token: string; enroll: 
         {shot && (
           <img src={`data:${shot.mime};base64,${shot.base64}`} alt="Captura" className="absolute inset-0 w-full h-full object-cover" />
         )}
-        <div className="absolute inset-3 border-2 border-yo-ac/80 rounded-lg pointer-events-none" />
+        <div ref={guideRef} className="absolute inset-3 border-2 border-yo-ac/80 rounded-lg pointer-events-none" />
       </div>
       {cam.err && <p className="text-xs text-red-600">{cam.err}</p>}
+
 
       <div className="flex gap-2">
         {shot ? (
@@ -435,6 +478,7 @@ function SelfieCapture({ token, onDone, onError }: { token: string; onDone: () =
   const [countdown, setCountdown] = useState(0);
   const chunks = useRef<Blob[]>([]);
   const recRef = useRef<MediaRecorder | null>(null);
+  const guideRef = useRef<HTMLDivElement | null>(null);
 
   // Mensajes de guía que se rotan durante la grabación.
   const REC_MS = 5000;
@@ -455,7 +499,7 @@ function SelfieCapture({ token, onDone, onError }: { token: string; onDone: () =
     rec.onstop = async () => {
       const blob = new Blob(chunks.current, { type: "video/webm" });
       setVideoB64(await fileToBase64(blob));
-      const shot = await cam.snap();
+      const shot = await cam.snap(guideRef.current);
       if (shot) setSelfie(shot);
     };
     rec.start();
@@ -500,7 +544,7 @@ function SelfieCapture({ token, onDone, onError }: { token: string; onDone: () =
         {selfie && (
           <img src={`data:${selfie.mime};base64,${selfie.base64}`} alt="Selfie" className="absolute inset-0 w-full h-full object-cover" />
         )}
-        <div className="absolute inset-6 rounded-full border-2 border-yo-ac/80 pointer-events-none" />
+        <div ref={guideRef} className="absolute inset-6 rounded-full border-2 border-yo-ac/80 pointer-events-none" />
         {recording && (
           <>
             <span className="absolute top-3 left-3 bg-red-600 text-white text-[11px] px-2 py-0.5 rounded-full animate-pulse inline-flex items-center gap-1">
@@ -543,6 +587,7 @@ function SelfieCapture({ token, onDone, onError }: { token: string; onDone: () =
 // ─── Review ──────────────────────────────────────────────────────────────────
 function Review({ token, enroll, onDone, onError }: { token: string; enroll: Enrollment; onDone: () => void; onError: (m: string | null) => void }) {
   const confirm = useServerFn(confirmBiometricEnrollment);
+  const completeCtx = useServerFn(registerBiometricCompleteContext);
   const [busy, setBusy] = useState(false);
   const ocr = (enroll?.ocr_data ?? {}) as Record<string, unknown>;
   const name = String(ocr.nombre ?? [ocr.nombres, ocr.apellidoPaterno, ocr.apellidoMaterno].filter(Boolean).join(" ")).trim();
@@ -556,7 +601,24 @@ function Review({ token, enroll, onDone, onError }: { token: string; enroll: Enr
   ];
   async function send() {
     setBusy(true); onError(null);
-    try { await confirm({ data: { token } }); onDone(); }
+    try {
+      // Bitácora de cierre: IP, user-agent y GPS al confirmar.
+      try {
+        const user_agent = typeof navigator !== "undefined" ? navigator.userAgent.slice(0, 500) : undefined;
+        let ip: string | undefined;
+        try { const r = await fetch("https://api.ipify.org?format=json"); if (r.ok) ip = (await r.json()).ip; } catch { /* ignore */ }
+        const geo = await new Promise<{ lat: number; lng: number; accuracy?: number } | null>((resolve) => {
+          if (typeof navigator === "undefined" || !navigator.geolocation) return resolve(null);
+          navigator.geolocation.getCurrentPosition(
+            (p) => resolve({ lat: p.coords.latitude, lng: p.coords.longitude, accuracy: p.coords.accuracy }),
+            () => resolve(null),
+            { enableHighAccuracy: false, timeout: 6000, maximumAge: 60000 },
+          );
+        });
+        await completeCtx({ data: { token, user_agent, ip, geo } });
+      } catch { /* best-effort */ }
+      await confirm({ data: { token } }); onDone();
+    }
     catch (e) { onError((e as Error).message); }
     finally { setBusy(false); }
   }

@@ -765,29 +765,69 @@ export const validateFielSerialNubarium = createServerFn({ method: "POST" })
   .inputValidator((i: unknown) => z.object({
     rfc: z.string().min(12).max(13),
     serial: z.string().min(1),
+    serial_hex: z.string().optional(),
+    valid_to: z.string().optional(),
   }).parse(i))
   .handler(async ({ data, context }) => {
     const user = process.env.NUBARIUM_USER;
     const pass = process.env.NUBARIUM_PASSWORD;
     if (!user || !pass) throw new Error("Credenciales de Nubarium no configuradas");
     const auth = Buffer.from(`${user}:${pass}`).toString("base64");
-    let res: Response;
-    try {
-      res = await fetch("https://api.nubarium.com/sat/v1/validar-serial", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "Authorization": `Basic ${auth}` },
-        body: JSON.stringify({ rfc: data.rfc.toUpperCase(), serial: data.serial }),
-      });
-    } catch {
-      throw new Error("No se pudo contactar al servicio SAT (Nubarium)");
-    }
-    let payload: Record<string, unknown> = {};
-    try { payload = (await res.json()) as Record<string, unknown>; } catch { /* ignore */ }
-    const estatus = String(payload.estatus ?? "");
-    const estatusCertificado = (payload.estatusCertificado as string) ?? "";
-    const vigente = estatusCertificado === "VIGENTE";
 
-    // Log del resultado de vigencia SAT vinculado al usuario/onboarding
+    // Construir candidatos de serial (SAT acepta distintos formatos según cert).
+    const candidates = new Set<string>();
+    const base = data.serial.trim();
+    candidates.add(base);
+    if (/^\d+$/.test(base)) {
+      candidates.add(base.padStart(20, "0"));
+      candidates.add(base.replace(/^0+/, "") || "0");
+    }
+    if (data.serial_hex) {
+      const hex = data.serial_hex.toLowerCase().replace(/[^0-9a-f]/g, "");
+      try {
+        const clean = hex.replace(/^00/, "");
+        const bytes = clean.match(/.{2}/g) ?? [];
+        const ascii = bytes.map((b) => String.fromCharCode(parseInt(b, 16))).join("");
+        if (/^\d{16,25}$/.test(ascii)) candidates.add(ascii);
+      } catch { /* ignore */ }
+      try { candidates.add(BigInt("0x" + hex).toString()); } catch { /* ignore */ }
+    }
+
+    // Vigencia local (fuente de verdad primaria por fechas del certificado).
+    const now = Date.now();
+    const localVigente = data.valid_to ? new Date(data.valid_to).getTime() > now : null;
+
+    let best: { serialTried: string; payload: Record<string, unknown>; httpStatus: number | null } | null = null;
+    let anyOk = false;
+    for (const serial of candidates) {
+      let httpStatus: number | null = null;
+      let payload: Record<string, unknown> = {};
+      try {
+        const res = await fetch("https://api.nubarium.com/sat/v1/validar-serial", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "Authorization": `Basic ${auth}` },
+          body: JSON.stringify({ rfc: data.rfc.toUpperCase(), serial }),
+        });
+        httpStatus = res.status;
+        try { payload = (await res.json()) as Record<string, unknown>; } catch { /* ignore */ }
+      } catch {
+        continue;
+      }
+      const okThis = String(payload.estatus ?? "").toUpperCase() === "OK";
+      // Preferimos siempre una respuesta OK sobre una que no lo sea.
+      if (okThis && !anyOk) { best = { serialTried: serial, payload, httpStatus }; anyOk = true; }
+      else if (!best) { best = { serialTried: serial, payload, httpStatus }; }
+      if (okThis) break;
+    }
+
+    const payload = best?.payload ?? {};
+    const estatus = String(payload.estatus ?? "").toUpperCase();
+    const estatusCertificado = String(payload.estatusCertificado ?? payload.estatus_certificado ?? "").toUpperCase();
+    // Vigente si SAT lo confirma explícitamente O si el certificado local no ha expirado y SAT no dice lo contrario.
+    const satSaysVigente = estatusCertificado === "VIGENTE";
+    const satSaysNoVigente = estatusCertificado && estatusCertificado !== "VIGENTE";
+    const vigente = satSaysNoVigente ? false : (satSaysVigente || (estatus === "OK" && localVigente === true));
+
     try {
       await context.supabase.from("audit_log").insert({
         user_id: context.userId,
@@ -796,24 +836,31 @@ export const validateFielSerialNubarium = createServerFn({ method: "POST" })
         action: "efirma.sat_vigencia",
         new_data: {
           rfc: data.rfc.toUpperCase(),
-          serial: data.serial,
+          serial_input: data.serial,
+          serial_tried: best?.serialTried ?? null,
+          candidates_tried: [...candidates],
+          http_status: best?.httpStatus ?? null,
           estatus,
           estatusCertificado,
           vigente,
+          vigente_local: localVigente,
           tipoCertificado: (payload.tipoCertificado as string) ?? null,
+          raw: payload,
           checked_at: new Date().toISOString(),
         } as never,
       });
-    } catch { /* logging best-effort */ }
+    } catch { /* best-effort */ }
 
-    if (estatus !== "OK") {
-      const msg = typeof payload.mensaje === "string" ? payload.mensaje : "El certificado no es válido en SAT";
+    if (estatus !== "OK" && localVigente !== true) {
+      const msg = typeof payload.mensaje === "string" && payload.mensaje
+        ? payload.mensaje
+        : "El SAT no reconoce este certificado con el RFC indicado.";
       throw new Error(msg);
     }
     return {
       valid: true,
       tipoCertificado: (payload.tipoCertificado as string) ?? "",
-      estatusCertificado,
+      estatusCertificado: estatusCertificado || (localVigente === false ? "CADUCADO" : ""),
       vigente,
       raw: JSON.stringify(payload),
     };

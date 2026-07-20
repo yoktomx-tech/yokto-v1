@@ -79,7 +79,7 @@ function OnboardingWizard() {
             if (!mounted || !p) return;
             if (p.onboarding_completed || p.kyc_status === "in_review" || p.kyc_status === "approved") {
               sessionStorage.setItem("yokto.onboarding.intentional_exit", "1");
-              navigate({ to: "/onboarding/pendiente" });
+              supabase.auth.signOut().finally(() => navigate({ to: "/auth" }));
               return;
             }
             const next = Math.max(2, Math.min(7, (p.onboarding_step ?? 1) + 1)) as StepId;
@@ -210,7 +210,10 @@ function OnboardingWizard() {
           )}
           {step === 7 && session && (
             <Step6Review
-              onFinished={() => { sessionStorage.setItem("yokto.onboarding.intentional_exit", "1"); navigate({ to: "/onboarding/pendiente" }); }} onBack={goPrev}
+              onFinished={() => {
+                sessionStorage.setItem("yokto.onboarding.intentional_exit", "1");
+                supabase.auth.signOut().finally(() => navigate({ to: "/auth" }));
+              }} onBack={goPrev}
               setError={setError} loading={loading} setLoading={setLoading}
             />
           )}
@@ -859,7 +862,7 @@ function Step3Fiscal({ onSaved, onBack, setError, loading, setLoading }: {
       const parsed = await parseEfirmaFn({ data: { cer_base64: cerB64, key_base64: keyB64, password: efPass } });
       let vigente: boolean | null = null;
       try {
-        const s = await validateSerialFn({ data: { rfc: parsed.rfc, serial: parsed.serial } });
+        const s = await validateSerialFn({ data: { rfc: parsed.rfc, serial: parsed.serial, serial_hex: parsed.serialHex, valid_to: parsed.validTo } });
         vigente = s.vigente;
       } catch { /* mostramos igual la info */ }
       // Validar CURP contra RENAPO si tenemos
