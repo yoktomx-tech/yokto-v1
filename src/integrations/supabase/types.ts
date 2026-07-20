@@ -1649,6 +1649,60 @@ export type Database = {
         }
         Relationships: []
       }
+      onboarding_api_logs: {
+        Row: {
+          account_type: string | null
+          created_at: string
+          duration_ms: number | null
+          endpoint: string
+          error_message: string | null
+          http_status: number | null
+          id: string
+          ip_address: string | null
+          provider: string
+          request_summary: Json | null
+          response_summary: Json | null
+          status: string
+          step: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          account_type?: string | null
+          created_at?: string
+          duration_ms?: number | null
+          endpoint: string
+          error_message?: string | null
+          http_status?: number | null
+          id?: string
+          ip_address?: string | null
+          provider: string
+          request_summary?: Json | null
+          response_summary?: Json | null
+          status: string
+          step?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          account_type?: string | null
+          created_at?: string
+          duration_ms?: number | null
+          endpoint?: string
+          error_message?: string | null
+          http_status?: number | null
+          id?: string
+          ip_address?: string | null
+          provider?: string
+          request_summary?: Json | null
+          response_summary?: Json | null
+          status?: string
+          step?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       organizations: {
         Row: {
           created_at: string

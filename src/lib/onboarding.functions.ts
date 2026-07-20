@@ -39,16 +39,27 @@ export const getRfcRazonSocial = createServerFn({ method: "POST" })
     rfc: z.string().min(12).max(13),
     expected: z.enum(["PF", "PM"]).optional(),
   }).parse(i))
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
+    const { logOnboardingApi } = await import("./onboarding-logger.server");
     const local = validateRfc(data.rfc, data.expected);
-    if (!local.valid) throw new Error(local.error ?? "RFC inválido");
+    if (!local.valid) {
+      await logOnboardingApi({
+        user_id: context.userId, provider: "internal", endpoint: "validate_rfc.local",
+        account_type: data.expected === "PM" ? "persona_moral" : data.expected === "PF" ? "persona_fisica" : null,
+        step: "3.rfc", status: "failed", error_message: local.error ?? "RFC inválido",
+        request_summary: { rfc: data.rfc, expected: data.expected },
+      });
+      throw new Error(local.error ?? "RFC inválido");
+    }
 
     const user = process.env.NUBARIUM_USER;
     const pass = process.env.NUBARIUM_PASSWORD;
     if (!user || !pass) throw new Error("Credenciales de Nubarium no configuradas");
     const auth = Buffer.from(`${user}:${pass}`).toString("base64");
     const rfc = data.rfc.toUpperCase();
+    const account_type: "persona_moral" | "persona_fisica" = rfc.length === 12 ? "persona_moral" : "persona_fisica";
 
+    const t0 = Date.now();
     let res: Response;
     try {
       res = await fetch("https://sat.nubarium.com/sat/v1/obtener-razonsocial", {
@@ -57,6 +68,11 @@ export const getRfcRazonSocial = createServerFn({ method: "POST" })
         body: JSON.stringify({ rfc }),
       });
     } catch {
+      await logOnboardingApi({
+        user_id: context.userId, provider: "nubarium", endpoint: "sat/obtener-razonsocial",
+        account_type, step: "3.rfc", status: "incomplete", duration_ms: Date.now() - t0,
+        request_summary: { rfc }, error_message: "No se pudo contactar al servicio SAT (Nubarium)",
+      });
       throw new Error("No se pudo contactar al servicio SAT (Nubarium)");
     }
 
@@ -66,6 +82,11 @@ export const getRfcRazonSocial = createServerFn({ method: "POST" })
     const estatus = String(payload.estatus ?? "");
     if (estatus !== "OK") {
       const msg = typeof payload.mensaje === "string" ? payload.mensaje : "RFC no encontrado en el SAT";
+      await logOnboardingApi({
+        user_id: context.userId, provider: "nubarium", endpoint: "sat/obtener-razonsocial",
+        account_type, step: "3.rfc", status: "failed", http_status: res.status, duration_ms: Date.now() - t0,
+        request_summary: { rfc }, response_summary: payload, error_message: msg,
+      });
       throw new Error(msg);
     }
 
@@ -73,8 +94,13 @@ export const getRfcRazonSocial = createServerFn({ method: "POST" })
     const nombres = String(payload.nombres ?? payload.nombre ?? "");
     const apellidoPaterno = String(payload.apellidoPaterno ?? "");
     const apellidoMaterno = String(payload.apellidoMaterno ?? "");
-    // tipo persona: si el RFC tiene 13 caracteres → PF, 12 → PM
     const tipo: "PF" | "PM" = rfc.length === 13 ? "PF" : "PM";
+
+    await logOnboardingApi({
+      user_id: context.userId, provider: "nubarium", endpoint: "sat/obtener-razonsocial",
+      account_type, step: "3.rfc", status: "success", http_status: res.status, duration_ms: Date.now() - t0,
+      request_summary: { rfc }, response_summary: payload,
+    });
 
     return {
       valid: true,
@@ -102,8 +128,16 @@ export const validateCurpNubarium = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((i: unknown) => z.object({ curp: z.string().min(18).max(18) }).parse(i))
   .handler(async ({ data, context }) => {
+    const { logOnboardingApi } = await import("./onboarding-logger.server");
     const local = validateCurp(data.curp);
-    if (!local.valid) throw new Error(local.error ?? "CURP inválida");
+    if (!local.valid) {
+      await logOnboardingApi({
+        user_id: context.userId, provider: "internal", endpoint: "validate_curp.local",
+        step: "3.curp", status: "failed", request_summary: { curp: data.curp },
+        error_message: local.error ?? "CURP inválida",
+      });
+      throw new Error(local.error ?? "CURP inválida");
+    }
 
     const user = process.env.NUBARIUM_USER;
     const pass = process.env.NUBARIUM_PASSWORD;
@@ -112,6 +146,7 @@ export const validateCurpNubarium = createServerFn({ method: "POST" })
     const curp = data.curp.toUpperCase();
     const auth = Buffer.from(`${user}:${pass}`).toString("base64");
 
+    const t0 = Date.now();
     let res: Response;
     try {
       res = await fetch("https://curp.nubarium.com/renapo/v3/valida_curp", {
@@ -123,6 +158,11 @@ export const validateCurpNubarium = createServerFn({ method: "POST" })
         body: JSON.stringify({ curp }),
       });
     } catch {
+      await logOnboardingApi({
+        user_id: context.userId, provider: "renapo", endpoint: "renapo/valida_curp",
+        step: "3.curp", status: "incomplete", duration_ms: Date.now() - t0,
+        request_summary: { curp }, error_message: "No se pudo contactar al servicio de validación (Nubarium)",
+      });
       throw new Error("No se pudo contactar al servicio de validación (Nubarium)");
     }
 
@@ -133,8 +173,14 @@ export const validateCurpNubarium = createServerFn({ method: "POST" })
     const codigoMensaje = String(payload.codigoMensaje ?? "");
 
     if (estatus !== "OK") {
-      if (codigoMensaje === "-1") throw new Error("Servicio de validación saturado, intenta en unos minutos");
-      const msg = typeof payload.mensaje === "string" ? payload.mensaje : "CURP no válida en RENAPO";
+      const msg = codigoMensaje === "-1"
+        ? "Servicio de validación saturado, intenta en unos minutos"
+        : (typeof payload.mensaje === "string" ? payload.mensaje : "CURP no válida en RENAPO");
+      await logOnboardingApi({
+        user_id: context.userId, provider: "renapo", endpoint: "renapo/valida_curp",
+        step: "3.curp", status: "failed", http_status: res.status, duration_ms: Date.now() - t0,
+        request_summary: { curp }, response_summary: payload, error_message: msg,
+      });
       throw new Error(msg);
     }
 
@@ -159,6 +205,12 @@ export const validateCurpNubarium = createServerFn({ method: "POST" })
       estatus,
       raw_response: payload as never,
       provider: "nubarium",
+    });
+
+    await logOnboardingApi({
+      user_id: context.userId, provider: "renapo", endpoint: "renapo/valida_curp",
+      step: "3.curp", status: "success", http_status: res.status, duration_ms: Date.now() - t0,
+      request_summary: { curp }, response_summary: payload,
     });
 
     return {
@@ -232,6 +284,16 @@ export const lookupPostalCode = createServerFn({ method: "POST" })
       pais: resp?.pais ?? null,
       error: success ? null : (first?.error_message ?? httpErr ?? "CP no encontrado"),
       raw_response: (payload ?? {}) as never,
+    });
+
+    const { logOnboardingApi } = await import("./onboarding-logger.server");
+    await logOnboardingApi({
+      user_id: context.userId, provider: "copomex", endpoint: "info_cp",
+      step: `3.cp.${data.source ?? "manual"}`,
+      status: success ? "success" : (httpErr ? "incomplete" : "failed"),
+      request_summary: { cp: data.cp, source: data.source ?? "manual" },
+      response_summary: (payload ?? {}) as Record<string, unknown>,
+      error_message: success ? null : (first?.error_message ?? httpErr ?? "CP no encontrado"),
     });
 
     if (!success || !resp) {
@@ -630,13 +692,15 @@ export const validateCsfNubarium = createServerFn({ method: "POST" })
     file_base64: z.string(),
     mime_type: z.string(),
   }).parse(i))
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
+    const { logOnboardingApi } = await import("./onboarding-logger.server");
     const user = process.env.NUBARIUM_USER;
     const pass = process.env.NUBARIUM_PASSWORD;
     if (!user || !pass) throw new Error("Credenciales de Nubarium no configuradas");
     const auth = Buffer.from(`${user}:${pass}`).toString("base64");
     const tipo = data.mime_type.includes("pdf") ? "pdf" : "imagen";
 
+    const t0 = Date.now();
     let res: Response;
     try {
       res = await fetch("https://api.nubarium.com/sat/v1/consultar_cif", {
@@ -645,6 +709,12 @@ export const validateCsfNubarium = createServerFn({ method: "POST" })
         body: JSON.stringify({ tipo, documento: data.file_base64 }),
       });
     } catch {
+      await logOnboardingApi({
+        user_id: context.userId, provider: "nubarium", endpoint: "sat/consultar_cif",
+        step: "3.csf", status: "incomplete", duration_ms: Date.now() - t0,
+        request_summary: { tipo, mime_type: data.mime_type },
+        error_message: "No se pudo contactar al servicio SAT (Nubarium)",
+      });
       throw new Error("No se pudo contactar al servicio SAT (Nubarium)");
     }
 
@@ -653,8 +723,19 @@ export const validateCsfNubarium = createServerFn({ method: "POST" })
     const estatus = String(payload.estatus ?? "");
     if (estatus !== "OK") {
       const msg = typeof payload.mensaje === "string" ? payload.mensaje : "No se pudo leer la constancia";
+      await logOnboardingApi({
+        user_id: context.userId, provider: "nubarium", endpoint: "sat/consultar_cif",
+        step: "3.csf", status: "failed", http_status: res.status, duration_ms: Date.now() - t0,
+        request_summary: { tipo, mime_type: data.mime_type }, response_summary: payload, error_message: msg,
+      });
       throw new Error(msg);
     }
+
+    await logOnboardingApi({
+      user_id: context.userId, provider: "nubarium", endpoint: "sat/consultar_cif",
+      step: "3.csf", status: "success", http_status: res.status, duration_ms: Date.now() - t0,
+      request_summary: { tipo, mime_type: data.mime_type }, response_summary: payload,
+    });
 
     const ident = (payload.datosIdentificacion as Record<string, string> | undefined) ?? {};
     const ubic = (payload.datosUbicacion as Record<string, string> | undefined) ?? {};
@@ -940,6 +1021,22 @@ export const validateFielSerialNubarium = createServerFn({ method: "POST" })
           raw: payload,
           checked_at: new Date().toISOString(),
         } as never,
+      });
+    } catch { /* best-effort */ }
+
+    try {
+      const { logOnboardingApi } = await import("./onboarding-logger.server");
+      const status: "success" | "failed" | "incomplete" =
+        estatus === "OK" ? "success" : (best ? "failed" : "incomplete");
+      await logOnboardingApi({
+        user_id: context.userId, provider: "nubarium", endpoint: "sat/validar-serial",
+        step: "3.efirma.serial", status, http_status: best?.httpStatus ?? null,
+        request_summary: {
+          rfc: data.rfc.toUpperCase(), serial_input: data.serial,
+          serial_tried: best?.serialTried ?? null, candidates_count: candidates.length,
+        },
+        response_summary: { estatus, estado_sat: estadoSat, vigente, tipoCertificado, raw: payload },
+        error_message: estatus === "OK" ? null : (typeof payload.mensaje === "string" ? payload.mensaje : null),
       });
     } catch { /* best-effort */ }
 
