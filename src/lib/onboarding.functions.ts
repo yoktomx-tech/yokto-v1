@@ -766,7 +766,7 @@ export const validateFielSerialNubarium = createServerFn({ method: "POST" })
     rfc: z.string().min(12).max(13),
     serial: z.string().min(1),
   }).parse(i))
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
     const user = process.env.NUBARIUM_USER;
     const pass = process.env.NUBARIUM_PASSWORD;
     if (!user || !pass) throw new Error("Credenciales de Nubarium no configuradas");
@@ -784,6 +784,28 @@ export const validateFielSerialNubarium = createServerFn({ method: "POST" })
     let payload: Record<string, unknown> = {};
     try { payload = (await res.json()) as Record<string, unknown>; } catch { /* ignore */ }
     const estatus = String(payload.estatus ?? "");
+    const estatusCertificado = (payload.estatusCertificado as string) ?? "";
+    const vigente = estatusCertificado === "VIGENTE";
+
+    // Log del resultado de vigencia SAT vinculado al usuario/onboarding
+    try {
+      await context.supabase.from("audit_log").insert({
+        user_id: context.userId,
+        entity_type: "onboarding_efirma",
+        entity_id: context.userId,
+        action: "efirma.sat_vigencia",
+        new_data: {
+          rfc: data.rfc.toUpperCase(),
+          serial: data.serial,
+          estatus,
+          estatusCertificado,
+          vigente,
+          tipoCertificado: (payload.tipoCertificado as string) ?? null,
+          checked_at: new Date().toISOString(),
+        } as never,
+      });
+    } catch { /* logging best-effort */ }
+
     if (estatus !== "OK") {
       const msg = typeof payload.mensaje === "string" ? payload.mensaje : "El certificado no es válido en SAT";
       throw new Error(msg);
@@ -791,8 +813,8 @@ export const validateFielSerialNubarium = createServerFn({ method: "POST" })
     return {
       valid: true,
       tipoCertificado: (payload.tipoCertificado as string) ?? "",
-      estatusCertificado: (payload.estatusCertificado as string) ?? "",
-      vigente: payload.estatusCertificado === "VIGENTE",
+      estatusCertificado,
+      vigente,
       raw: JSON.stringify(payload),
     };
   });
