@@ -1059,6 +1059,24 @@ function Step3Fiscal({ onSaved, onBack, setError, loading, setLoading }: {
         return;
       }
     }
+    if (tipo === "persona_moral") {
+      if (!fillMode) { setError("Selecciona cómo quieres completar los datos fiscales de tu empresa"); return; }
+      if ((fillMode === "csf" || fillMode === "efirma") && !f.rfc) {
+        setError("Sube tu documento para extraer el RFC");
+        return;
+      }
+      if (fillMode === "manual" && !rfcVerified) {
+        setError("Valida el RFC de tu empresa antes de continuar");
+        return;
+      }
+      if (fillMode === "efirma" && efInfo && efInfo.vigente === false) {
+        setError("Tu e.firma aparece como NO VIGENTE en el SAT. No puedes continuar con este método.");
+        return;
+      }
+      if (!repCurpVerified) {
+        setError("Valida la CURP del representante legal");
+        return;
+      }
     if (!f.regimen_fiscal) {
       setError("Falta el tipo de régimen fiscal. Selecciónalo en la lista.");
       return;
