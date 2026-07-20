@@ -2252,16 +2252,35 @@ function Step6Review({ onFinished, onBack, setError, loading, setLoading }: {
           <ReviewRow k="Documentos entregados" v={`${docsCount} archivo(s)`} />
         </ReviewSection>
 
-        <ReviewSection title="Organización" icon={<Building2 className="size-4" />}>
+        <ReviewSection title="Espacio de trabajo" icon={<Building2 className="size-4" />}>
           {(() => {
             let d: OrgKindDraft = { kind: "individual" };
             try { const raw = localStorage.getItem(LS_ORG); if (raw) d = JSON.parse(raw); } catch { /* noop */ }
+            const confirmed = (d.invitees ?? []).filter((i) => i.confirmed);
+            if (d.kind !== "team") {
+              return <ReviewRow k="Tipo" v="Cuenta individual" />;
+            }
             return (
               <>
-                <ReviewRow k="Tipo" v={d.kind === "team" ? "Organización / equipo" : "Cuenta individual"} />
-                {d.kind === "team" && <ReviewRow k="Nombre comercial" v={d.name || "—"} tone={d.name ? undefined : "warn"} />}
-                {d.kind === "team" && <ReviewRow k="Espacio de trabajo" v={d.slug || "—"} mono tone={d.slug ? undefined : "warn"} />}
-                {d.kind === "team" && <ReviewRow k="Invitaciones" v={`${(d.invitees ?? []).filter(i => i.confirmed).length} miembro(s) verificado(s)`} /> }
+                <ReviewRow k="Tipo" v="Organización / equipo" />
+                <ReviewRow k="Nombre comercial" v={d.name || "—"} tone={d.name ? undefined : "warn"} />
+                <ReviewRow k="Espacio de trabajo" v={d.slug ? `${d.slug}.yokto.mx` : "—"} mono tone={d.slug ? undefined : "warn"} />
+                <ReviewRow k="Miembros invitados" v={`${confirmed.length} verificado(s)`} tone={confirmed.length ? "ok" : undefined} />
+                {confirmed.length > 0 && (
+                  <div className="pt-2 mt-1 border-t border-yo-border/60 space-y-1.5">
+                    {confirmed.map((i) => (
+                      <div key={i.email} className="flex items-start justify-between gap-3 text-xs">
+                        <div className="min-w-0">
+                          <p className="text-yo-txt-1 truncate">{i.full_name || "Sin nombre"}</p>
+                          <p className="text-yo-txt-3 font-mono truncate">{i.curp_rfc} · {i.email}</p>
+                        </div>
+                        <span className="shrink-0 px-1.5 py-0.5 rounded bg-yo-bg-2 border border-yo-border text-[10px] uppercase tracking-wider text-yo-txt-2">
+                          {INV_ROLES.find((r) => r.v === i.role)?.label ?? i.role}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </>
             );
           })()}
