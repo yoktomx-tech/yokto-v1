@@ -2264,7 +2264,7 @@ function Step6Review({ onFinished, onBack, setError, loading, setLoading }: {
               <>
                 <ReviewRow k="Tipo" v="Organización / equipo" />
                 <ReviewRow k="Nombre comercial" v={d.name || "—"} tone={d.name ? undefined : "warn"} />
-                <ReviewRow k="Espacio de trabajo" v={d.slug ? `${d.slug}.yokto.mx` : "—"} mono tone={d.slug ? undefined : "warn"} />
+                <ReviewRow k="Espacio de trabajo" v={d.slug || "—"} mono tone={d.slug ? undefined : "warn"} />
                 <ReviewRow k="Miembros invitados" v={`${confirmed.length} verificado(s)`} tone={confirmed.length ? "ok" : undefined} />
                 {confirmed.length > 0 && (
                   <div className="pt-2 mt-1 border-t border-yo-border/60 space-y-1.5">
