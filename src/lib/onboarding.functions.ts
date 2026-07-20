@@ -760,6 +760,65 @@ export const parseEfirma = createServerFn({ method: "POST" })
     };
   });
 
+function normalizeSatText(value: unknown): string {
+  return String(value ?? "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim()
+    .toUpperCase();
+}
+
+function parseSatDateTime(value: unknown): number | null {
+  if (typeof value !== "string" || !value.trim()) return null;
+  const raw = value.trim();
+  const ymd = raw.match(/^(\d{4})-(\d{2})-(\d{2})(?:[ T](\d{2}):(\d{2}):(\d{2}))?$/);
+  if (ymd) {
+    const [, y, mo, d, h = "23", mi = "59", s = "59"] = ymd;
+    return Date.UTC(Number(y), Number(mo) - 1, Number(d), Number(h), Number(mi), Number(s));
+  }
+  const dmy = raw.match(/^(\d{2})[-/](\d{2})[-/](\d{4})(?:[ T](\d{2}):(\d{2}):(\d{2}))?$/);
+  if (dmy) {
+    const [, d, mo, y, h = "23", mi = "59", s = "59"] = dmy;
+    return Date.UTC(Number(y), Number(mo) - 1, Number(d), Number(h), Number(mi), Number(s));
+  }
+  const parsed = Date.parse(raw);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function buildSatSerialCandidates(serial: string, serialHex?: string): string[] {
+  const candidates = new Set<string>();
+  const add = (value: string | null | undefined) => {
+    if (!value) return;
+    const clean = value.trim();
+    if (!clean) return;
+    const digits = clean.replace(/\D/g, "");
+    if (!digits) return;
+    candidates.add(digits);
+    if (digits.length < 20) candidates.add(digits.padStart(20, "0"));
+    if (digits.length > 20) candidates.add(digits.slice(-20));
+    for (const match of digits.matchAll(/\d{20}/g)) candidates.add(match[0]);
+  };
+
+  add(serial);
+  if (serialHex) {
+    const hex = serialHex.toLowerCase().replace(/[^0-9a-f]/g, "");
+    if (hex) {
+      try {
+        const clean = hex.replace(/^(00)+/, "");
+        const bytes = clean.match(/.{2}/g) ?? [];
+        const ascii = bytes.map((b) => String.fromCharCode(parseInt(b, 16))).join("");
+        add(ascii);
+      } catch { /* ignore */ }
+      try { add(BigInt("0x" + hex).toString()); } catch { /* ignore */ }
+    }
+  }
+
+  return [...candidates].sort((a, b) => {
+    const score = (v: string) => (/^\d{20}$/.test(v) ? 0 : /^\d+$/.test(v) ? 1 : 2);
+    return score(a) - score(b);
+  });
+}
+
 export const validateFielSerialNubarium = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((i: unknown) => z.object({
@@ -774,24 +833,9 @@ export const validateFielSerialNubarium = createServerFn({ method: "POST" })
     if (!user || !pass) throw new Error("Credenciales de Nubarium no configuradas");
     const auth = Buffer.from(`${user}:${pass}`).toString("base64");
 
-    // Construir candidatos de serial (SAT acepta distintos formatos según cert).
-    const candidates = new Set<string>();
-    const base = data.serial.trim();
-    candidates.add(base);
-    if (/^\d+$/.test(base)) {
-      candidates.add(base.padStart(20, "0"));
-      candidates.add(base.replace(/^0+/, "") || "0");
-    }
-    if (data.serial_hex) {
-      const hex = data.serial_hex.toLowerCase().replace(/[^0-9a-f]/g, "");
-      try {
-        const clean = hex.replace(/^00/, "");
-        const bytes = clean.match(/.{2}/g) ?? [];
-        const ascii = bytes.map((b) => String.fromCharCode(parseInt(b, 16))).join("");
-        if (/^\d{16,25}$/.test(ascii)) candidates.add(ascii);
-      } catch { /* ignore */ }
-      try { candidates.add(BigInt("0x" + hex).toString()); } catch { /* ignore */ }
-    }
+    // Nubarium documenta `serial` como el número SAT de 20 dígitos y responde
+    // con `estado`, `fecha_inicio` y `fecha_fin` (no `estatusCertificado`).
+    const candidates = buildSatSerialCandidates(data.serial, data.serial_hex);
 
     // Vigencia local (fuente de verdad primaria por fechas del certificado).
     const now = Date.now();
@@ -822,11 +866,25 @@ export const validateFielSerialNubarium = createServerFn({ method: "POST" })
 
     const payload = best?.payload ?? {};
     const estatus = String(payload.estatus ?? "").toUpperCase();
-    const estatusCertificado = String(payload.estatusCertificado ?? payload.estatus_certificado ?? "").toUpperCase();
-    // Vigente si SAT lo confirma explícitamente O si el certificado local no ha expirado y SAT no dice lo contrario.
-    const satSaysVigente = estatusCertificado === "VIGENTE";
-    const satSaysNoVigente = estatusCertificado && estatusCertificado !== "VIGENTE";
-    const vigente = satSaysNoVigente ? false : (satSaysVigente || (estatus === "OK" && localVigente === true));
+    const estadoSat = normalizeSatText(payload.estado ?? payload.estatusCertificado ?? payload.estatus_certificado);
+    const tipoCertificado = String(payload.tipo ?? payload.tipoCertificado ?? payload.tipo_certificado ?? "");
+    const fechaInicioSat = String(payload.fecha_inicio ?? payload.fechaInicio ?? "");
+    const fechaFinSat = String(payload.fecha_fin ?? payload.fechaFin ?? "");
+    const satFinTs = parseSatDateTime(fechaFinSat);
+    const satFechaVigente = satFinTs === null ? null : satFinTs > now;
+    const satSaysVigente = estadoSat.includes("ACTIVO") || estadoSat.includes("VIGENTE");
+    const satSaysNoVigente = ["REVOCADO", "CANCELADO", "CADUC", "INACTIVO", "NO VIGENTE", "INVALIDO", "SUSPENDIDO"]
+      .some((word) => estadoSat.includes(word));
+    // Fuente primaria: respuesta directa de Nubarium/SAT (`estado` + `fecha_fin`).
+    // Si Nubarium no reconoce el serial pero el certificado local no está caduco,
+    // no lo marcamos como NO VIGENTE: queda como no verificado para evitar falsos negativos.
+    const vigente = estatus === "OK"
+      ? satSaysNoVigente
+        ? false
+        : satSaysVigente
+          ? satFechaVigente === false ? false : true
+          : satFechaVigente ?? localVigente
+      : localVigente === false ? false : null;
 
     try {
       await context.supabase.from("audit_log").insert({
@@ -838,20 +896,23 @@ export const validateFielSerialNubarium = createServerFn({ method: "POST" })
           rfc: data.rfc.toUpperCase(),
           serial_input: data.serial,
           serial_tried: best?.serialTried ?? null,
-          candidates_tried: [...candidates],
+          candidates_tried: candidates,
           http_status: best?.httpStatus ?? null,
           estatus,
-          estatusCertificado,
+          estado_sat: estadoSat,
           vigente,
           vigente_local: localVigente,
-          tipoCertificado: (payload.tipoCertificado as string) ?? null,
+          vigente_fecha_sat: satFechaVigente,
+          tipoCertificado,
+          fecha_inicio_sat: fechaInicioSat || null,
+          fecha_fin_sat: fechaFinSat || null,
           raw: payload,
           checked_at: new Date().toISOString(),
         } as never,
       });
     } catch { /* best-effort */ }
 
-    if (estatus !== "OK" && localVigente !== true) {
+    if (estatus !== "OK" && localVigente !== true && vigente !== null) {
       const msg = typeof payload.mensaje === "string" && payload.mensaje
         ? payload.mensaje
         : "El SAT no reconoce este certificado con el RFC indicado.";
@@ -859,8 +920,8 @@ export const validateFielSerialNubarium = createServerFn({ method: "POST" })
     }
     return {
       valid: true,
-      tipoCertificado: (payload.tipoCertificado as string) ?? "",
-      estatusCertificado: estatusCertificado || (localVigente === false ? "CADUCADO" : ""),
+      tipoCertificado,
+      estatusCertificado: estadoSat || (satFechaVigente === false || localVigente === false ? "CADUCADO" : ""),
       vigente,
       raw: JSON.stringify(payload),
     };
