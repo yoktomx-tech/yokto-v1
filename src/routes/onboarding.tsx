@@ -862,7 +862,7 @@ function Step3Fiscal({ onSaved, onBack, setError, loading, setLoading }: {
       const parsed = await parseEfirmaFn({ data: { cer_base64: cerB64, key_base64: keyB64, password: efPass } });
       let vigente: boolean | null = null;
       try {
-        const s = await validateSerialFn({ data: { rfc: parsed.rfc, serial: parsed.serial } });
+        const s = await validateSerialFn({ data: { rfc: parsed.rfc, serial: parsed.serial, serial_hex: parsed.serialHex, valid_to: parsed.validTo } });
         vigente = s.vigente;
       } catch { /* mostramos igual la info */ }
       // Validar CURP contra RENAPO si tenemos
