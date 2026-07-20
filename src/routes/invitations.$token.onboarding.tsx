@@ -37,7 +37,7 @@ type Address = {
 type LoadState =
   | { status: "loading" }
   | { status: "error"; message: string }
-  | { status: "ok"; invitation: { id: string; email: string; org_role: string; expires_at: string; full_name: string | null; first_name: string | null; last_name: string | null; second_last_name: string | null; curp_rfc: string | null }; organization: { id?: string; name?: string; slug?: string }; address: Address | null };
+  | { status: "ok"; invitation: { id: string; email: string; org_role: string; expires_at: string; full_name: string | null; first_name: string | null; last_name: string | null; second_last_name: string | null; curp_rfc: string | null }; organization: { id?: string | null; name?: string | null; slug?: string | null }; address: Address | null };
 
 function InviteeOnboarding() {
   const { token } = Route.useParams();

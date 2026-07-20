@@ -44,6 +44,7 @@ import { Route as AuthenticatedPldIndexRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedDisputesIndexRouteImport } from './routes/_authenticated/disputes.index'
 import { Route as AuthenticatedCrmIndexRouteImport } from './routes/_authenticated/crm.index'
 import { Route as AuthenticatedAnalyticsIndexRouteImport } from './routes/_authenticated/analytics.index'
+import { Route as InvitationsTokenOnboardingRouteImport } from './routes/invitations.$token.onboarding'
 import { Route as BackofficeAdminSupportRouteImport } from './routes/_backoffice/admin.support'
 import { Route as BackofficeAdminRolesRouteImport } from './routes/_backoffice/admin.roles'
 import { Route as BackofficeAdminKycRouteImport } from './routes/_backoffice/admin.kyc'
@@ -300,6 +301,12 @@ const AuthenticatedAnalyticsIndexRoute =
     id: '/',
     path: '/',
     getParentRoute: () => AuthenticatedAnalyticsRoute,
+  } as any)
+const InvitationsTokenOnboardingRoute =
+  InvitationsTokenOnboardingRouteImport.update({
+    id: '/onboarding',
+    path: '/onboarding',
+    getParentRoute: () => InvitationsTokenRoute,
   } as any)
 const BackofficeAdminSupportRoute = BackofficeAdminSupportRouteImport.update({
   id: '/admin/support',
@@ -768,7 +775,7 @@ export interface FileRoutesByFullPath {
   '/teams': typeof AuthenticatedTeamsRouteWithChildren
   '/transactions': typeof AuthenticatedTransactionsRouteWithChildren
   '/biometrico/$token': typeof BiometricoTokenRoute
-  '/invitations/$token': typeof InvitationsTokenRoute
+  '/invitations/$token': typeof InvitationsTokenRouteWithChildren
   '/analytics/aprobaciones': typeof AuthenticatedAnalyticsAprobacionesRoute
   '/analytics/contratos': typeof AuthenticatedAnalyticsContratosRoute
   '/analytics/cumplimiento': typeof AuthenticatedAnalyticsCumplimientoRoute
@@ -827,6 +834,7 @@ export interface FileRoutesByFullPath {
   '/admin/kyc': typeof BackofficeAdminKycRoute
   '/admin/roles': typeof BackofficeAdminRolesRoute
   '/admin/support': typeof BackofficeAdminSupportRouteWithChildren
+  '/invitations/$token/onboarding': typeof InvitationsTokenOnboardingRoute
   '/analytics/': typeof AuthenticatedAnalyticsIndexRoute
   '/crm/': typeof AuthenticatedCrmIndexRoute
   '/disputes/': typeof AuthenticatedDisputesIndexRoute
@@ -873,7 +881,7 @@ export interface FileRoutesByTo {
   '/reports': typeof AuthenticatedReportsRoute
   '/score': typeof AuthenticatedScoreRoute
   '/biometrico/$token': typeof BiometricoTokenRoute
-  '/invitations/$token': typeof InvitationsTokenRoute
+  '/invitations/$token': typeof InvitationsTokenRouteWithChildren
   '/analytics/aprobaciones': typeof AuthenticatedAnalyticsAprobacionesRoute
   '/analytics/contratos': typeof AuthenticatedAnalyticsContratosRoute
   '/analytics/cumplimiento': typeof AuthenticatedAnalyticsCumplimientoRoute
@@ -930,6 +938,7 @@ export interface FileRoutesByTo {
   '/admin/kyc': typeof BackofficeAdminKycRoute
   '/admin/roles': typeof BackofficeAdminRolesRoute
   '/admin/support': typeof BackofficeAdminSupportRouteWithChildren
+  '/invitations/$token/onboarding': typeof InvitationsTokenOnboardingRoute
   '/analytics': typeof AuthenticatedAnalyticsIndexRoute
   '/crm': typeof AuthenticatedCrmIndexRoute
   '/disputes': typeof AuthenticatedDisputesIndexRoute
@@ -985,7 +994,7 @@ export interface FileRoutesById {
   '/_authenticated/teams': typeof AuthenticatedTeamsRouteWithChildren
   '/_authenticated/transactions': typeof AuthenticatedTransactionsRouteWithChildren
   '/biometrico/$token': typeof BiometricoTokenRoute
-  '/invitations/$token': typeof InvitationsTokenRoute
+  '/invitations/$token': typeof InvitationsTokenRouteWithChildren
   '/_authenticated/analytics/aprobaciones': typeof AuthenticatedAnalyticsAprobacionesRoute
   '/_authenticated/analytics/contratos': typeof AuthenticatedAnalyticsContratosRoute
   '/_authenticated/analytics/cumplimiento': typeof AuthenticatedAnalyticsCumplimientoRoute
@@ -1044,6 +1053,7 @@ export interface FileRoutesById {
   '/_backoffice/admin/kyc': typeof BackofficeAdminKycRoute
   '/_backoffice/admin/roles': typeof BackofficeAdminRolesRoute
   '/_backoffice/admin/support': typeof BackofficeAdminSupportRouteWithChildren
+  '/invitations/$token/onboarding': typeof InvitationsTokenOnboardingRoute
   '/_authenticated/analytics/': typeof AuthenticatedAnalyticsIndexRoute
   '/_authenticated/crm/': typeof AuthenticatedCrmIndexRoute
   '/_authenticated/disputes/': typeof AuthenticatedDisputesIndexRoute
@@ -1157,6 +1167,7 @@ export interface FileRouteTypes {
     | '/admin/kyc'
     | '/admin/roles'
     | '/admin/support'
+    | '/invitations/$token/onboarding'
     | '/analytics/'
     | '/crm/'
     | '/disputes/'
@@ -1260,6 +1271,7 @@ export interface FileRouteTypes {
     | '/admin/kyc'
     | '/admin/roles'
     | '/admin/support'
+    | '/invitations/$token/onboarding'
     | '/analytics'
     | '/crm'
     | '/disputes'
@@ -1373,6 +1385,7 @@ export interface FileRouteTypes {
     | '/_backoffice/admin/kyc'
     | '/_backoffice/admin/roles'
     | '/_backoffice/admin/support'
+    | '/invitations/$token/onboarding'
     | '/_authenticated/analytics/'
     | '/_authenticated/crm/'
     | '/_authenticated/disputes/'
@@ -1411,7 +1424,7 @@ export interface RootRouteChildren {
   ResetPasswordRoute: typeof ResetPasswordRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   BiometricoTokenRoute: typeof BiometricoTokenRoute
-  InvitationsTokenRoute: typeof InvitationsTokenRoute
+  InvitationsTokenRoute: typeof InvitationsTokenRouteWithChildren
   ApiPublicHooksDisputeDeadlinesRoute: typeof ApiPublicHooksDisputeDeadlinesRoute
   ApiPublicHooksSupportSlaRoute: typeof ApiPublicHooksSupportSlaRoute
   ApiPublicHooksVerificamexPennyTestRoute: typeof ApiPublicHooksVerificamexPennyTestRoute
@@ -1665,6 +1678,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/analytics/'
       preLoaderRoute: typeof AuthenticatedAnalyticsIndexRouteImport
       parentRoute: typeof AuthenticatedAnalyticsRoute
+    }
+    '/invitations/$token/onboarding': {
+      id: '/invitations/$token/onboarding'
+      path: '/onboarding'
+      fullPath: '/invitations/$token/onboarding'
+      preLoaderRoute: typeof InvitationsTokenOnboardingRouteImport
+      parentRoute: typeof InvitationsTokenRoute
     }
     '/_backoffice/admin/support': {
       id: '/_backoffice/admin/support'
@@ -2582,6 +2602,17 @@ const BackofficeRouteWithChildren = BackofficeRoute._addFileChildren(
   BackofficeRouteChildren,
 )
 
+interface InvitationsTokenRouteChildren {
+  InvitationsTokenOnboardingRoute: typeof InvitationsTokenOnboardingRoute
+}
+
+const InvitationsTokenRouteChildren: InvitationsTokenRouteChildren = {
+  InvitationsTokenOnboardingRoute: InvitationsTokenOnboardingRoute,
+}
+
+const InvitationsTokenRouteWithChildren =
+  InvitationsTokenRoute._addFileChildren(InvitationsTokenRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
@@ -2592,7 +2623,7 @@ const rootRouteChildren: RootRouteChildren = {
   ResetPasswordRoute: ResetPasswordRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   BiometricoTokenRoute: BiometricoTokenRoute,
-  InvitationsTokenRoute: InvitationsTokenRoute,
+  InvitationsTokenRoute: InvitationsTokenRouteWithChildren,
   ApiPublicHooksDisputeDeadlinesRoute: ApiPublicHooksDisputeDeadlinesRoute,
   ApiPublicHooksSupportSlaRoute: ApiPublicHooksSupportSlaRoute,
   ApiPublicHooksVerificamexPennyTestRoute:
