@@ -2264,7 +2264,7 @@ function Step6Review({ onFinished, onBack, setError, loading, setLoading }: {
               <>
                 <ReviewRow k="Tipo" v="Organización / equipo" />
                 <ReviewRow k="Nombre comercial" v={d.name || "—"} tone={d.name ? undefined : "warn"} />
-                <ReviewRow k="Espacio de trabajo" v={d.slug ? `${d.slug}.yokto.mx` : "—"} mono tone={d.slug ? undefined : "warn"} />
+                <ReviewRow k="Espacio de trabajo" v={d.slug || "—"} mono tone={d.slug ? undefined : "warn"} />
                 <ReviewRow k="Miembros invitados" v={`${confirmed.length} verificado(s)`} tone={confirmed.length ? "ok" : undefined} />
                 {confirmed.length > 0 && (
                   <div className="pt-2 mt-1 border-t border-yo-border/60 space-y-1.5">
@@ -2547,7 +2547,7 @@ function Step4AccountKind({ onSaved, onBack, setError }: {
   useEffect(() => {
     if (kind !== "team") return;
     if (!slugTouched) {
-      const auto = toSlug(orgName);
+      const auto = toSlug(orgName).slice(0, 32);
       if (auto && auto !== slug) setSlug(auto);
     }
   }, [orgName, kind, slugTouched, slug]);
@@ -2691,18 +2691,17 @@ function Step4AccountKind({ onSaved, onBack, setError }: {
                 {slugStatus === "taken" && <AlertCircle className="size-3 text-yo-err" />}
               </label>
               <div className="flex items-center rounded-md border border-yo-border bg-yo-bg overflow-hidden focus-within:border-yo-ac">
-                <span className="pl-3 pr-1 text-xs text-yo-txt-3 select-none">yokto.app/</span>
                 <input
                   id="org-slug"
                   value={slug}
-                  onChange={(ev) => { setSlug(toSlug(ev.target.value)); setSlugTouched(true); }}
-                  className="flex-1 bg-transparent py-2.5 pr-3 text-sm text-yo-txt outline-none font-mono"
+                  onChange={(ev) => { setSlug(toSlug(ev.target.value).slice(0, 32)); setSlugTouched(true); }}
+                  className="flex-1 bg-transparent py-2.5 px-3 text-sm text-yo-txt outline-none font-mono"
                   placeholder="mi-empresa"
-                  maxLength={48}
+                  maxLength={32}
                   autoComplete="off"
                 />
                 {slugTouched && (
-                  <button type="button" onClick={() => { setSlugTouched(false); setSlug(toSlug(orgName)); }}
+                  <button type="button" onClick={() => { setSlugTouched(false); setSlug(toSlug(orgName).slice(0, 32)); }}
                     className="mr-2 text-[11px] text-yo-txt-3 hover:text-yo-ac">Cambiar</button>
                 )}
               </div>
@@ -2721,9 +2720,9 @@ function Step4AccountKind({ onSaved, onBack, setError }: {
 
             <div className="border-t border-yo-border pt-4">
               <p className="text-xs uppercase tracking-widest font-semibold text-yo-txt mb-1">Invitar miembros (opcional)</p>
-              <p className="text-[11px] text-yo-txt-3 mb-3">Se validan con RENAPO/SAT (Nubarium) y se les enviará el correo de invitación cuando concluyas tu registro. Vigencia de 48 horas.</p>
+              <p className="text-[11px] text-yo-txt-3 mb-3">Se validan con RENAPO/SAT y se les enviará el correo de invitación cuando concluyas tu registro. Vigencia de 48 horas.</p>
 
-              <div className="grid gap-2 sm:grid-cols-[1fr_1fr_180px_auto]">
+              <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_minmax(0,1fr)]">
                 <Field id="inv-email" label="Correo" value={newEmail} onChange={setNewEmail}
                   type="email" placeholder="colaborador@empresa.com" icon={<Mail className="size-4" />} />
                 <Field id="inv-doc" label="CURP o RFC" value={newDoc} onChange={setNewDoc}
@@ -2732,9 +2731,11 @@ function Step4AccountKind({ onSaved, onBack, setError }: {
                   onChange={(v) => setNewRole(v as InviteeDraft["role"])}>
                   {INV_ROLES.map((r) => <option key={r.v} value={r.v}>{r.label}</option>)}
                 </Field>
+              </div>
+              <div className="mt-2 flex justify-end">
                 <button type="button" onClick={requestAdd} disabled={addingBusy}
-                  className="h-11 mt-[22px] px-4 rounded-md border border-yo-border text-sm font-medium text-yo-txt hover:border-yo-ac hover:text-yo-ac transition disabled:opacity-50 whitespace-nowrap">
-                  {addingBusy ? <Loader2 className="size-4 animate-spin" /> : "Agregar"}
+                  className="inline-flex items-center gap-2 h-10 px-4 rounded-md bg-yo-ac hover:bg-yo-ac-h text-white text-sm font-semibold disabled:opacity-50 whitespace-nowrap">
+                  {addingBusy ? <Loader2 className="size-4 animate-spin" /> : <>+ Agregar miembro</>}
                 </button>
               </div>
 
