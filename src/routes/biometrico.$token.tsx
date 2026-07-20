@@ -478,6 +478,7 @@ function SelfieCapture({ token, onDone, onError }: { token: string; onDone: () =
   const [countdown, setCountdown] = useState(0);
   const chunks = useRef<Blob[]>([]);
   const recRef = useRef<MediaRecorder | null>(null);
+  const guideRef = useRef<HTMLDivElement | null>(null);
 
   // Mensajes de guía que se rotan durante la grabación.
   const REC_MS = 5000;
