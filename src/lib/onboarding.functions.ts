@@ -128,8 +128,16 @@ export const validateCurpNubarium = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((i: unknown) => z.object({ curp: z.string().min(18).max(18) }).parse(i))
   .handler(async ({ data, context }) => {
+    const { logOnboardingApi } = await import("./onboarding-logger.server");
     const local = validateCurp(data.curp);
-    if (!local.valid) throw new Error(local.error ?? "CURP inválida");
+    if (!local.valid) {
+      await logOnboardingApi({
+        user_id: context.userId, provider: "internal", endpoint: "validate_curp.local",
+        step: "3.curp", status: "failed", request_summary: { curp: data.curp },
+        error_message: local.error ?? "CURP inválida",
+      });
+      throw new Error(local.error ?? "CURP inválida");
+    }
 
     const user = process.env.NUBARIUM_USER;
     const pass = process.env.NUBARIUM_PASSWORD;
@@ -138,6 +146,7 @@ export const validateCurpNubarium = createServerFn({ method: "POST" })
     const curp = data.curp.toUpperCase();
     const auth = Buffer.from(`${user}:${pass}`).toString("base64");
 
+    const t0 = Date.now();
     let res: Response;
     try {
       res = await fetch("https://curp.nubarium.com/renapo/v3/valida_curp", {
@@ -149,6 +158,11 @@ export const validateCurpNubarium = createServerFn({ method: "POST" })
         body: JSON.stringify({ curp }),
       });
     } catch {
+      await logOnboardingApi({
+        user_id: context.userId, provider: "renapo", endpoint: "renapo/valida_curp",
+        step: "3.curp", status: "incomplete", duration_ms: Date.now() - t0,
+        request_summary: { curp }, error_message: "No se pudo contactar al servicio de validación (Nubarium)",
+      });
       throw new Error("No se pudo contactar al servicio de validación (Nubarium)");
     }
 
@@ -159,8 +173,14 @@ export const validateCurpNubarium = createServerFn({ method: "POST" })
     const codigoMensaje = String(payload.codigoMensaje ?? "");
 
     if (estatus !== "OK") {
-      if (codigoMensaje === "-1") throw new Error("Servicio de validación saturado, intenta en unos minutos");
-      const msg = typeof payload.mensaje === "string" ? payload.mensaje : "CURP no válida en RENAPO";
+      const msg = codigoMensaje === "-1"
+        ? "Servicio de validación saturado, intenta en unos minutos"
+        : (typeof payload.mensaje === "string" ? payload.mensaje : "CURP no válida en RENAPO");
+      await logOnboardingApi({
+        user_id: context.userId, provider: "renapo", endpoint: "renapo/valida_curp",
+        step: "3.curp", status: "failed", http_status: res.status, duration_ms: Date.now() - t0,
+        request_summary: { curp }, response_summary: payload, error_message: msg,
+      });
       throw new Error(msg);
     }
 
@@ -185,6 +205,12 @@ export const validateCurpNubarium = createServerFn({ method: "POST" })
       estatus,
       raw_response: payload as never,
       provider: "nubarium",
+    });
+
+    await logOnboardingApi({
+      user_id: context.userId, provider: "renapo", endpoint: "renapo/valida_curp",
+      step: "3.curp", status: "success", http_status: res.status, duration_ms: Date.now() - t0,
+      request_summary: { curp }, response_summary: payload,
     });
 
     return {
