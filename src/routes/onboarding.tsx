@@ -79,7 +79,7 @@ function OnboardingWizard() {
             if (!mounted || !p) return;
             if (p.onboarding_completed || p.kyc_status === "in_review" || p.kyc_status === "approved") {
               sessionStorage.setItem("yokto.onboarding.intentional_exit", "1");
-              navigate({ to: "/onboarding/pendiente" });
+              supabase.auth.signOut().finally(() => navigate({ to: "/auth" }));
               return;
             }
             const next = Math.max(2, Math.min(7, (p.onboarding_step ?? 1) + 1)) as StepId;
