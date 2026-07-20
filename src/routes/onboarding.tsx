@@ -2074,6 +2074,9 @@ type ReviewProfile = {
   last_name: string | null;
   second_last_name: string | null;
   legal_name: string | null;
+  trade_name: string | null;
+  incorporation_date: string | null;
+  legal_rep: { full_name?: string; rfc?: string; curp?: string; role?: string } | null;
   rfc: string | null;
   curp: string | null;
   regimen_fiscal: string | null;
@@ -2105,7 +2108,7 @@ function Step6Review({ onFinished, onBack, setError, loading, setLoading }: {
         const uid = u.user?.id; if (!uid) return;
         const [{ data: p }, { data: bio }, docs] = await Promise.all([
           supabase.from("profiles")
-            .select("email, account_type, first_name, last_name, second_last_name, legal_name, rfc, curp, regimen_fiscal, fiscal_street, fiscal_ext_number, fiscal_int_number, fiscal_colonia, fiscal_postal_code, fiscal_estado, fiscal_municipio, mfa_status")
+            .select("email, account_type, first_name, last_name, second_last_name, legal_name, trade_name, incorporation_date, legal_rep, rfc, curp, regimen_fiscal, fiscal_street, fiscal_ext_number, fiscal_int_number, fiscal_colonia, fiscal_postal_code, fiscal_estado, fiscal_municipio, mfa_status")
             .eq("id", uid).maybeSingle(),
           supabase.from("biometric_enrollments").select("status").eq("user_id", uid).order("created_at", { ascending: false }).limit(1).maybeSingle(),
           listDocsFn({}).catch(() => []),
@@ -2206,13 +2209,38 @@ function Step6Review({ onFinished, onBack, setError, loading, setLoading }: {
           <ReviewRow k="Tipo" v={isPF ? "Persona Física" : profile?.account_type === "persona_moral" ? "Persona Moral" : "—"} />
         </ReviewSection>
 
-        <ReviewSection title="Datos fiscales" icon={<FileText className="size-4" />}>
+        <ReviewSection title={isPF ? "Datos fiscales" : "Datos de la persona moral"} icon={<FileText className="size-4" />}>
           <ReviewRow k={isPF ? "Nombre completo" : "Razón social"} v={nombreCompleto || "—"} />
+          {!isPF && <ReviewRow k="Nombre comercial" v={profile?.trade_name ?? "—"} />}
           <ReviewRow k="RFC" v={profile?.rfc ?? "—"} mono />
           {isPF && <ReviewRow k="CURP" v={profile?.curp ?? "—"} mono />}
           <ReviewRow k="Régimen fiscal" v={regimenLabel} />
+          {!isPF && (
+            <ReviewRow
+              k="Inicio de operaciones"
+              v={profile?.incorporation_date
+                ? new Date(profile.incorporation_date).toLocaleDateString("es-MX", { year: "numeric", month: "long", day: "numeric" })
+                : "—"}
+            />
+          )}
           <ReviewRow k="Domicilio fiscal" v={domicilioFull} />
         </ReviewSection>
+
+        {!isPF && (
+          <ReviewSection title="Representante legal" icon={<ShieldCheck className="size-4" />}>
+            <ReviewRow k="Nombre" v={profile?.legal_rep?.full_name ?? "—"} />
+            <ReviewRow k="CURP" v={profile?.legal_rep?.curp ?? "—"} mono />
+            <ReviewRow k="RFC" v={profile?.legal_rep?.rfc ?? "—"} mono />
+            <ReviewRow
+              k="Cargo"
+              v={profile?.legal_rep?.role === "administrador_unico" ? "Administrador único"
+                : profile?.legal_rep?.role === "apoderado_legal" ? "Apoderado legal"
+                : profile?.legal_rep?.role === "socio" ? "Socio"
+                : profile?.legal_rep?.role ?? "—"}
+            />
+          </ReviewSection>
+        )}
+
 
 
         <ReviewSection title="Identidad" icon={<ShieldCheck className="size-4" />}>
