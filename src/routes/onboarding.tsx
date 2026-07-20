@@ -1597,10 +1597,7 @@ function Step3Fiscal({ onSaved, onBack, setError, loading, setLoading }: {
       )}
 
       {(() => {
-        const showAddress =
-          tipo === "persona_moral" ||
-          fillMode === "csf" ||
-          ((fillMode === "manual" || fillMode === "efirma"));
+        const showAddress = !!fillMode;
         if (!showAddress) return null;
         const cpFromCsf = fillMode === "csf" && !!f.fiscal_postal_code;
         const showRest = cpLocked || cpFromCsf;
