@@ -35,7 +35,9 @@ function AuthedLayout() {
       <OrgProvider>
         <ViewRoleProvider>
           <AppShell displayName={name} sgyScore={500}>
-            <Outlet />
+            <EmailVerificationGate>
+              <Outlet />
+            </EmailVerificationGate>
           </AppShell>
         </ViewRoleProvider>
       </OrgProvider>
