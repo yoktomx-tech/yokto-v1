@@ -197,13 +197,16 @@ export const saveTransactionMonto = createServerFn({ method: "POST" })
     // Volumen histórico del pagador (últimos 12m) para descuento
     const desde = new Date();
     desde.setMonth(desde.getMonth() - 12);
-    const { data: hist } = await context.supabase
-      .from("transactions")
-      .select("amount_cents")
-      .eq("buyer_id", tx.buyer_id)
-      .in("status", ["funded", "released", "in_progress", "conditions_met"])
-      .gte("created_at", desde.toISOString());
-    const volumen = (hist ?? []).reduce((s, r) => s + (r.amount_cents ?? 0), 0) / 100;
+    const volumen = tx.buyer_id
+      ? (await context.supabase
+          .from("transactions")
+          .select("amount_cents")
+          .eq("buyer_id", tx.buyer_id)
+          .in("status", ["funded", "released", "in_progress", "conditions_met"])
+          .gte("created_at", desde.toISOString())
+        ).data?.reduce((s, r) => s + (r.amount_cents ?? 0), 0) ?? 0
+      : 0;
+    const volumenPesos = volumen / 100;
 
     const fee = calcularFee(data.sector as SectorId, data.step4.monto, volumen);
     const amount_cents = Math.round(data.step4.monto * 100);
