@@ -20,11 +20,11 @@ const KPIS = [
 ];
 
 const OPERACIONES = [
-  { n: "YOKTO-2026-00045", d: "Flete DF → Monterrey", sector: "Autotransporte", estado: "ACTIVA",     creado: "María G.",   monto: 320_000, retenido: 320_000, hitos: "3/4", ult: "hace 1h" },
-  { n: "YOKTO-2026-00051", d: "Consultoría fiscal",   sector: "Servicios",      estado: "EN_HITOS",   creado: "Juan M.",    monto: 180_000, retenido: 120_000, hitos: "2/3", ult: "hace 3h" },
-  { n: "YOKTO-2026-00028", d: "Materiales construc.", sector: "Construcción",   estado: "DISPUTA",    creado: "Juan M.",    monto: 940_000, retenido: 780_000, hitos: "5/7", ult: "ayer" },
-  { n: "YOKTO-2026-00034", d: "Contenedor import.",   sector: "Comercio ext.",  estado: "FONDEADA",   creado: "María G.",   monto: 2_100_000, retenido: 2_100_000, hitos: "0/6", ult: "hoy" },
-  { n: "YOKTO-2026-00033", d: "Suministro refacc.",   sector: "Autotransporte", estado: "LIBERADA",   creado: "Juan M.",    monto: 42_000,  retenido: 0,        hitos: "1/1", ult: "hoy" },
+  { n: "OP2607190001", d: "Flete DF → Monterrey", sector: "Autotransporte", estado: "ACTIVA",     creado: "María G.",   monto: 320_000, retenido: 320_000, hitos: "3/4", ult: "hace 1h" },
+  { n: "OP2607190002", d: "Consultoría fiscal",   sector: "Servicios",      estado: "EN_HITOS",   creado: "Juan M.",    monto: 180_000, retenido: 120_000, hitos: "2/3", ult: "hace 3h" },
+  { n: "OP2607180001", d: "Materiales construc.", sector: "Construcción",   estado: "DISPUTA",    creado: "Juan M.",    monto: 940_000, retenido: 780_000, hitos: "5/7", ult: "ayer" },
+  { n: "OP2607210001", d: "Contenedor import.",   sector: "Comercio ext.",  estado: "FONDEADA",   creado: "María G.",   monto: 2_100_000, retenido: 2_100_000, hitos: "0/6", ult: "hoy" },
+  { n: "OP2607210002", d: "Suministro refacc.",   sector: "Autotransporte", estado: "LIBERADA",   creado: "Juan M.",    monto: 42_000,  retenido: 0,        hitos: "1/1", ult: "hoy" },
 ];
 
 const ESTADO_TONE: Record<string, { bg: string; text: string }> = {

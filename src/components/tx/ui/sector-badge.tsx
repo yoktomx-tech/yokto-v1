@@ -1,4 +1,5 @@
 import { getSectorUi } from "@/lib/tx-catalog";
+import { getSectorIcon } from "@/lib/sector-icons";
 import { cn } from "@/lib/utils";
 
 type Props = {
@@ -10,6 +11,7 @@ type Props = {
 
 export function SectorBadge({ sector, size = "md", showLabel = true, className }: Props) {
   const cfg = getSectorUi(sector);
+  const Icon = getSectorIcon(sector);
   return (
     <span
       className={cn(
@@ -19,7 +21,7 @@ export function SectorBadge({ sector, size = "md", showLabel = true, className }
       )}
       style={{ backgroundColor: cfg.bg, color: cfg.txt }}
     >
-      <span aria-hidden>{cfg.emoji}</span>
+      <Icon aria-hidden className={size === "sm" ? "h-3 w-3" : "h-3.5 w-3.5"} />
       {showLabel && <span>{cfg.label}</span>}
     </span>
   );

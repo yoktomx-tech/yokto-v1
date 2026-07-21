@@ -113,7 +113,7 @@ function exampleToUnified(ex: OperationExample, id: string, currentUserId: strin
 
   return {
     id,
-    numero: `YOKTO-DEMO-${ex.id.replace("EJ-", "")}`,
+    numero: `OP-DEMO-${ex.id.replace("EJ-", "")}`,
     title: ex.label,
     description: ex.descripcion,
     sector: ex.sector,

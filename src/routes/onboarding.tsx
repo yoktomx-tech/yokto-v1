@@ -1905,7 +1905,7 @@ function Step5MFA({ onDone, onBack, setError, loading, setLoading }: {
         }
         const { data, error } = await supabase.auth.mfa.enroll({
           factorType: "totp",
-          friendlyName: `YOKTO-${Date.now()}`,
+          friendlyName: `OP${Date.now()}`,
         });
         if (error) throw error;
         if (cancelled) return;

@@ -182,7 +182,7 @@ function InviteDialog({ onClose }: { onClose: () => void }) {
             </select>
           </Field>
           <Field label="Vincular a operación (opcional)">
-            <input value={txId} onChange={(e) => setTxId(e.target.value)} placeholder="YOKTO-YYYY-NNNNN" className="h-10 w-full px-3 rounded-md border border-yo-border text-sm font-mono focus:outline-none focus:border-[#4F46E5]" />
+            <input value={txId} onChange={(e) => setTxId(e.target.value)} placeholder="OPAAMMDDNNNN" className="h-10 w-full px-3 rounded-md border border-yo-border text-sm font-mono focus:outline-none focus:border-[#4F46E5]" />
           </Field>
         </div>
         <Field label="Mensaje (opcional)">

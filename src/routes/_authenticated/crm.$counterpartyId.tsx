@@ -307,9 +307,9 @@ function TabResumen({ c, interactions }: { c: Counterparty; interactions: Intera
 
 function TabOperaciones({ c }: { c: Counterparty }) {
   const rows = [
-    { id: "YOKTO-2026-00312", status: "released",  amount: 520_000, at: "hace 3 días" },
-    { id: "YOKTO-2026-00287", status: "in_progress", amount: 740_000, at: "hace 12 días" },
-    { id: "YOKTO-2026-00201", status: "released",  amount: 305_000, at: "hace 45 días" },
+    { id: "OP2607180005", status: "released",  amount: 520_000, at: "hace 3 días" },
+    { id: "OP2607100003", status: "in_progress", amount: 740_000, at: "hace 12 días" },
+    { id: "OP2606050007", status: "released",  amount: 305_000, at: "hace 45 días" },
   ].slice(0, Math.min(3, c.metrics.totalOps));
   if (rows.length === 0) return <EmptyBlock text="Aún no hay operaciones registradas con esta contraparte." />;
   return (

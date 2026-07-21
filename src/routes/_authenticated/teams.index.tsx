@@ -101,10 +101,10 @@ function TeamsPanel() {
           </header>
           <ul className="divide-y divide-yo-border">
             {[
-              { who: "María García", what: "creó operación", target: "YOKTO-2026-00034", when: "hace 12 min" },
+              { who: "María García", what: "creó operación", target: "OP2607210001", when: "hace 12 min" },
               { who: "Ana Ruiz",     what: "aprobó hito por", target: formatMoney(240_000), when: "hace 1 h" },
-              { who: "Sistema",      what: "validó REP parcialidad 2/4 en", target: "YOKTO-2026-00051", when: "hace 2 h" },
-              { who: "Juan P. Mora", what: "subió contrato firmado en", target: "YOKTO-2026-00028", when: "hace 3 h" },
+              { who: "Sistema",      what: "validó REP parcialidad 2/4 en", target: "OP2607190002", when: "hace 2 h" },
+              { who: "Juan P. Mora", what: "subió contrato firmado en", target: "OP2607180001", when: "hace 3 h" },
               { who: "Luis A.",      what: "editó workflow", target: "Liberaciones generales", when: "ayer" },
             ].map((e, i) => (
               <li key={i} className="px-5 py-3 flex items-center gap-3 text-[13px]">
