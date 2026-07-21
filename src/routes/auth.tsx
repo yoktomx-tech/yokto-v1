@@ -160,8 +160,8 @@ function AuthPage() {
             <br />se cumpla.
           </h1>
           <p className="mt-6 text-base text-yokto-text-2 leading-relaxed max-w-md">
-            Retención de fondos en pasarelas certificadas y liberación únicamente cuando se verifican
-            las condiciones acordadas entre las partes.
+            Tu dinero se guarda de forma segura y solo se entrega cuando ambas partes confirman
+            que todo se cumplió como se acordó.
           </p>
 
           <ul className="mt-8 flex flex-col gap-3 text-sm text-yokto-text-2">
