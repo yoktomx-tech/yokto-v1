@@ -2900,6 +2900,21 @@ export type Database = {
           },
         ]
       }
+      transaction_daily_counter: {
+        Row: {
+          last_seq: number
+          op_date: string
+        }
+        Insert: {
+          last_seq?: number
+          op_date: string
+        }
+        Update: {
+          last_seq?: number
+          op_date?: string
+        }
+        Relationships: []
+      }
       transaction_documents: {
         Row: {
           cfdi_fecha: string | null
