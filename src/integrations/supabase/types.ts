@@ -3106,7 +3106,7 @@ export type Database = {
           amount_cents: number
           auto_release_global: boolean | null
           beneficiario_nombre: string | null
-          buyer_id: string
+          buyer_id: string | null
           cancelled_at: string | null
           clabe_virtual: string | null
           comision_cents: number | null
@@ -3131,6 +3131,7 @@ export type Database = {
           ip_creacion: unknown
           iva_comision_cents: number | null
           numero: string | null
+          pagador_nombre: string | null
           payment_method: Database["public"]["Enums"]["payment_method"]
           released_at: string | null
           repse_requerido: boolean | null
@@ -3146,7 +3147,7 @@ export type Database = {
           amount_cents: number
           auto_release_global?: boolean | null
           beneficiario_nombre?: string | null
-          buyer_id: string
+          buyer_id?: string | null
           cancelled_at?: string | null
           clabe_virtual?: string | null
           comision_cents?: number | null
@@ -3171,6 +3172,7 @@ export type Database = {
           ip_creacion?: unknown
           iva_comision_cents?: number | null
           numero?: string | null
+          pagador_nombre?: string | null
           payment_method?: Database["public"]["Enums"]["payment_method"]
           released_at?: string | null
           repse_requerido?: boolean | null
@@ -3186,7 +3188,7 @@ export type Database = {
           amount_cents?: number
           auto_release_global?: boolean | null
           beneficiario_nombre?: string | null
-          buyer_id?: string
+          buyer_id?: string | null
           cancelled_at?: string | null
           clabe_virtual?: string | null
           comision_cents?: number | null
@@ -3211,6 +3213,7 @@ export type Database = {
           ip_creacion?: unknown
           iva_comision_cents?: number | null
           numero?: string | null
+          pagador_nombre?: string | null
           payment_method?: Database["public"]["Enums"]["payment_method"]
           released_at?: string | null
           repse_requerido?: boolean | null
