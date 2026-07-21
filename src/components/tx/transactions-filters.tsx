@@ -64,9 +64,7 @@ export const TransactionsFilters = forwardRef<HTMLInputElement, Props>(function 
           <SelectContent>
             <SelectItem value="ALL">Todos los sectores</SelectItem>
             {(Object.keys(SECTOR_UI_CFG) as SectorUiId[]).map((k) => (
-              <SelectItem key={k} value={k}>
-                {SECTOR_UI_CFG[k].emoji} {SECTOR_UI_CFG[k].label}
-              </SelectItem>
+              <SelectItem key={k} value={k}>{SECTOR_UI_CFG[k].label}</SelectItem>
             ))}
           </SelectContent>
         </Select>

@@ -6,6 +6,7 @@ import {
   type SectorId, type HitoDraft,
 } from "@/lib/sectors";
 import { SECTOR_CFG, DOC_BASE, DOC_BY_SECTOR, EVIDENCE_TYPES } from "@/lib/operations-catalog";
+import { getSectorIcon } from "@/lib/sector-icons";
 
 import {
   searchCounterpart,
@@ -689,7 +690,7 @@ function Step1Tipo({
                   <Check className="h-3 w-3" />
                 </span>
               )}
-              <div className="text-2xl" style={{ color: c.color }}>{c.emoji}</div>
+              {(() => { const I = getSectorIcon(s.id); return <I className="h-7 w-7" style={{ color: c.color }} strokeWidth={1.75} />; })()}
               <div className="mt-2 text-sm font-semibold text-yo-txt">{s.titulo}</div>
               <div className="mt-0.5 text-xs text-yo-txt-2 line-clamp-2">{s.descripcion}</div>
               <div className="mt-3 flex flex-wrap gap-1.5">
@@ -1542,7 +1543,7 @@ function Step6Revision(props: {
 
       <ReviewSection title="Resumen general">
         <ReviewGrid rows={[
-          ["Sector", <span key="s">{sectorCfg?.emoji} {sectorDef?.titulo}</span>],
+          ["Sector", <span key="s" className="inline-flex items-center gap-1.5">{sectorDef && (() => { const I = getSectorIcon(sectorDef.id); return <I className="h-4 w-4" style={{ color: sectorCfg?.color }} />; })()} {sectorDef?.titulo}</span>],
           ["Subtipo", subtipo || "—"],
           ["Descripción", <span key="d" className="text-sm whitespace-pre-wrap">{descripcion}</span>, true],
           ["Fechas estimadas", `${fechaInicio || "—"} → ${fechaFin || "—"}`],
