@@ -49,8 +49,8 @@ function FiscalBody() {
   };
 
   const alertas = [
-    "CFDI YOKTO-2026-0015 con FormaPago distinta a 99.",
-    "REP 2/3 en operación YOKTO-2026-0012 pendiente de validación.",
+    "CFDI OP2607150001 con FormaPago distinta a 99.",
+    "REP 2/3 en operación OP2607120001 pendiente de validación.",
     "Coherencia fiscal baja detectada (< 50%) en 1 documento.",
   ];
 

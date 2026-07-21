@@ -74,7 +74,7 @@ function SearchPage() {
                 criteria === "EMAIL" ? "contacto@empresa.mx" :
                 criteria === "YOKTO_ID" ? "YKT-00000" :
                 criteria === "NAME" ? "Nombre o razón social" :
-                criteria === "OP" ? "YOKTO-2026-00000" :
+                criteria === "OP" ? "OPAAMMDDNNNN" :
                 "RFC, CURP, email, YOKTO ID, razón social o número de operación"
               }
               className="w-full h-11 pl-10 pr-3 rounded-md border border-yo-border bg-white text-sm font-mono focus:outline-none focus:border-[#4F46E5]"

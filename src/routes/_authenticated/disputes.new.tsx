@@ -20,7 +20,7 @@ export const Route = createFileRoute("/_authenticated/disputes/new")({
   component: NewDisputePage,
 });
 
-const OP_NUMERO = "YOKTO-2026-00048";
+const OP_NUMERO = "OP2607200001";
 const OP_TITLE = "Flete Mazatlán → Monterrey";
 const HITO_LABEL = "Entrega en destino";
 const DISPUTABLE_CENTS = 120_000_000; // $1,200,000
