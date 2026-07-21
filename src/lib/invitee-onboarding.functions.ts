@@ -192,43 +192,28 @@ export const sendPendingInvitationEmails = createServerFn({ method: "POST" })
       .is("accepted_at", null);
     if (error) throw error;
 
-    // Intento de envío real vía helper scaffoldeado. Si no existe, marca como pendiente.
-    type SendFn = (
-      templateName: string,
-      to: string,
-      opts?: { templateData?: Record<string, unknown>; idempotencyKey?: string },
-    ) => Promise<{ sent: boolean; reason?: string }>;
-    let sender: SendFn | null = null;
-    try {
-      const modPath = ["@", "lib", "email-templates", "send-email"].join("/");
-      const mod = (await import(/* @vite-ignore */ modPath)) as { sendTemplateEmail?: SendFn };
-      if (typeof mod.sendTemplateEmail === "function") sender = mod.sendTemplateEmail;
-    } catch { /* email templates no scaffoldeados aún */ }
+    const { sendTemplateEmail } = await import("@/lib/email-templates/send-email");
 
     const results: Array<{ id: string; email: string; sent: boolean; reason?: string }> = [];
     for (const inv of rows ?? []) {
       const orgName = (inv as any).organizations?.name ?? "YOKTO";
       let sent = false;
       let reason: string | undefined;
-      if (sender) {
-        try {
-          const r = await sender("invitation-to-organization", inv.email, {
-            templateData: {
-              inviteeName: inv.full_name ?? inv.email,
-              organizationName: orgName,
-              orgRole: inv.org_role,
-              acceptUrl: `${process.env.APP_URL ?? "https://secure-trust-mx.lovable.app"}/invitations/${inv.token}/onboarding`,
-              expiresAt: inv.expires_at,
-            },
-            idempotencyKey: `invitation-${inv.id}`,
-          });
-          sent = !!r?.sent;
-          if (!sent) reason = r?.reason;
-        } catch (e) {
-          reason = e instanceof Error ? e.message : "send_failed";
-        }
-      } else {
-        reason = "email_domain_not_configured";
+      try {
+        const r = await sendTemplateEmail("invitation-to-organization", inv.email, {
+          templateData: {
+            inviteeName: inv.full_name ?? inv.email,
+            organizationName: orgName,
+            orgRole: inv.org_role,
+            acceptUrl: `${process.env.APP_URL ?? "https://secure-trust-mx.lovable.app"}/invitations/${inv.token}/onboarding`,
+            expiresAt: inv.expires_at,
+          },
+          idempotencyKey: `invitation-${inv.id}`,
+        });
+        sent = !!r?.sent;
+        if (!sent) reason = r?.reason;
+      } catch (e) {
+        reason = e instanceof Error ? e.message : "send_failed";
       }
       // Marcamos email_sent_at incluso si no hay dominio para no reintentar en bucle;
       // el owner puede reenviar manualmente desde Equipo.
