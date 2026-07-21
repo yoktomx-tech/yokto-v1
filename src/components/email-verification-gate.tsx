@@ -152,17 +152,14 @@ export function EmailVerificationGate({ children }: { children: React.ReactNode 
   }
 
   return (
-    <div className="min-h-screen grid place-items-center bg-background px-4 py-10">
-      <div className="w-full max-w-lg rounded-2xl border border-border bg-card shadow-xl p-8">
-        {/* Logo */}
-        <div className="flex justify-center mb-6">
-          <YoktoLogo variant="auto" className="h-8" />
-        </div>
+    <div className="min-h-screen flex flex-col items-center bg-background px-4 py-10">
+      {/* Logo fuera del recuadro */}
+      <div className="mb-8">
+        <YoktoLogo variant="auto" className="h-10" />
+      </div>
 
+      <div className="w-full max-w-lg rounded-2xl border border-border bg-card shadow-xl p-8">
         <div className="text-center mb-6">
-          <div className="mx-auto h-12 w-12 rounded-xl bg-primary/10 grid place-items-center mb-3">
-            <ShieldCheck className="h-6 w-6 text-primary" />
-          </div>
           <h1 className="text-xl font-semibold text-foreground">Verifica tu correo electrónico</h1>
           <p className="text-sm text-muted-foreground mt-2">
             Enviamos un código de 6 dígitos a{" "}
@@ -171,6 +168,7 @@ export function EmailVerificationGate({ children }: { children: React.ReactNode 
             </span>
           </p>
         </div>
+
 
         {/* Explicación */}
         <div className="mb-6 rounded-lg border border-border bg-muted/30 p-4 text-xs text-muted-foreground space-y-2">
