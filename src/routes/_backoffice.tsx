@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { AdminShell } from "@/components/admin/admin-shell";
 import { getMyInternalRole } from "@/lib/admin/admin.functions";
+import { EmailVerificationGate } from "@/components/email-verification-gate";
 
 export const Route = createFileRoute("/_backoffice")({
   ssr: false,
