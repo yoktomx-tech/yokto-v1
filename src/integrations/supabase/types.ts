@@ -1079,6 +1079,7 @@ export type Database = {
           expires_at: string
           id: string
           ip: string | null
+          locked_until: string | null
           purpose: string
           user_agent: string | null
           user_id: string
@@ -1092,6 +1093,7 @@ export type Database = {
           expires_at: string
           id?: string
           ip?: string | null
+          locked_until?: string | null
           purpose?: string
           user_agent?: string | null
           user_id: string
@@ -1105,6 +1107,7 @@ export type Database = {
           expires_at?: string
           id?: string
           ip?: string | null
+          locked_until?: string | null
           purpose?: string
           user_agent?: string | null
           user_id?: string

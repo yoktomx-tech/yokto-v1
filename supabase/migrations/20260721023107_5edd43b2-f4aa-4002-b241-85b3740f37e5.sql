@@ -1,0 +1,1 @@
+ALTER TABLE public.email_verification_otps ADD COLUMN IF NOT EXISTS locked_until timestamptz;
