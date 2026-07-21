@@ -50,21 +50,20 @@ export const upsertTransactionDraft = createServerFn({ method: "POST" })
     const buyer_id = soyPagador ? context.userId : (step2.contraparte_user_id ?? null);
     const seller_id = soyPagador ? (step2.contraparte_user_id ?? null) : context.userId;
 
-    // Si el usuario es beneficiario y la contraparte (pagador) es invitada, el pagador debe existir:
-    // guardamos solo un borrador provisional donde buyer_id = context.userId como propietario temporal
-    // y beneficiario_* se ignora — el spec exige pagador identificado. Aquí lo bloqueamos.
-    if (!soyPagador && !step2.contraparte_user_id) {
-      throw new Error("Si eres beneficiario, la contraparte (pagador) debe tener cuenta YOKTO. Pídele que se registre y vuelve a intentarlo.");
-    }
-
-    const counterpart_email = soyPagador ? (step2.contraparte_email ?? null) : null;
-    const counterpart_nombre = soyPagador ? (step2.contraparte_nombre ?? null) : null;
+    // Nueva regla: cualquiera de las dos partes puede ser una invitación.
+    // Cuando la contraparte no tiene cuenta YOKTO todavía, guardamos su nombre
+    // y correo en los campos correspondientes según el rol invitado.
+    const invitedEmail = step2.contraparte_user_id ? null : (step2.contraparte_email ?? null);
+    const invitedNombre = step2.contraparte_user_id ? null : (step2.contraparte_nombre ?? null);
 
     const payload = {
-      buyer_id: buyer_id ?? context.userId,
+      buyer_id,
       seller_id,
-      counterparty_email: counterpart_email,
-      beneficiario_nombre: counterpart_nombre,
+      counterparty_email: invitedEmail,
+      // Si el usuario es pagador y la contraparte es invitada => beneficiario invitado
+      beneficiario_nombre: soyPagador ? invitedNombre : null,
+      // Si el usuario es beneficiario y la contraparte es invitada => pagador invitado
+      pagador_nombre: !soyPagador ? invitedNombre : null,
       title: step2.descripcion.slice(0, 120),
       description: step2.descripcion,
       sector: step1.sector,
@@ -198,15 +197,18 @@ export const saveTransactionMonto = createServerFn({ method: "POST" })
     // Volumen histórico del pagador (últimos 12m) para descuento
     const desde = new Date();
     desde.setMonth(desde.getMonth() - 12);
-    const { data: hist } = await context.supabase
-      .from("transactions")
-      .select("amount_cents")
-      .eq("buyer_id", tx.buyer_id)
-      .in("status", ["funded", "released", "in_progress", "conditions_met"])
-      .gte("created_at", desde.toISOString());
-    const volumen = (hist ?? []).reduce((s, r) => s + (r.amount_cents ?? 0), 0) / 100;
+    const volumen = tx.buyer_id
+      ? (await context.supabase
+          .from("transactions")
+          .select("amount_cents")
+          .eq("buyer_id", tx.buyer_id)
+          .in("status", ["funded", "released", "in_progress", "conditions_met"])
+          .gte("created_at", desde.toISOString())
+        ).data?.reduce((s, r) => s + (r.amount_cents ?? 0), 0) ?? 0
+      : 0;
+    const volumenPesos = volumen / 100;
 
-    const fee = calcularFee(data.sector as SectorId, data.step4.monto, volumen);
+    const fee = calcularFee(data.sector as SectorId, data.step4.monto, volumenPesos);
     const amount_cents = Math.round(data.step4.monto * 100);
     const comision_cents = Math.round(fee.comision_final * 100);
     const iva_comision_cents = Math.round(fee.iva_comision * 100);

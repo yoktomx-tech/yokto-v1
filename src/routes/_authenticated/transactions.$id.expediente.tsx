@@ -40,7 +40,7 @@ type UnifiedTx = {
   title: string;
   description: string;
   sector: string;
-  buyer_id: string;
+  buyer_id: string | null;
   seller_id: string | null;
   counterparty_email: string | null;
   beneficiario_nombre: string | null;
