@@ -48,8 +48,10 @@ function BackofficeGate() {
   }
 
   return (
-    <AdminShell role={data.role}>
-      <Outlet />
-    </AdminShell>
+    <EmailVerificationGate>
+      <AdminShell role={data.role}>
+        <Outlet />
+      </AdminShell>
+    </EmailVerificationGate>
   );
 }
