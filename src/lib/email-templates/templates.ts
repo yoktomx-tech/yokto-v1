@@ -37,15 +37,26 @@ function esc(s: unknown) {
     .replace(/"/g, "&quot;");
 }
 
+const APP_URL = "https://secure-trust-mx.lovable.app";
+const LOGO_WHITE_URL = `${APP_URL}/__l5e/assets-v1/455036be-3bc3-4666-b142-df20e71b68cb/yokto-wordmark-white.png`;
+const LOGO_ICON_URL = `${APP_URL}/__l5e/assets-v1/3d609bfc-1cda-429e-90aa-8332c44644e4/yokto-icon.png`;
+
 function shell(subject: string, inner: string) {
   return `<!doctype html>
 <html lang="es">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(subject)}</title></head>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>${esc(subject)}</title>
+  <link rel="icon" type="image/png" href="${LOGO_ICON_URL}">
+</head>
 <body style="margin:0;padding:0;background:#f4f4f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#18181b;">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f5;padding:32px 12px;">
     <tr><td align="center">
       <table role="presentation" width="560" cellpadding="0" cellspacing="0" style="max-width:560px;background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.06);">
-        <tr><td style="background:#8B5CF6;padding:20px 28px;color:#ffffff;font-weight:700;font-size:18px;letter-spacing:0.5px;">YOKTO</td></tr>
+        <tr><td style="background:#8B5CF6;padding:20px 28px;" align="left">
+          <img src="${LOGO_WHITE_URL}" alt="YOKTO" height="24" style="display:block;height:24px;width:auto;border:0;outline:none;text-decoration:none;">
+        </td></tr>
         ${inner}
         <tr><td style="padding:16px 28px 28px 28px;border-top:1px solid #e4e4e7;font-size:12px;color:#a1a1aa;">
           © YOKTO · Pago Seguro contra Cumplimiento
@@ -55,6 +66,7 @@ function shell(subject: string, inner: string) {
   </table>
 </body></html>`;
 }
+
 
 function renderInvitation(d: TemplateData["invitation-to-organization"]) {
   const roleLabel = ROLE_LABEL[d.orgRole] ?? d.orgRole;
