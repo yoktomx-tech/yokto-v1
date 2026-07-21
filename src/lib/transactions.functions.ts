@@ -50,21 +50,20 @@ export const upsertTransactionDraft = createServerFn({ method: "POST" })
     const buyer_id = soyPagador ? context.userId : (step2.contraparte_user_id ?? null);
     const seller_id = soyPagador ? (step2.contraparte_user_id ?? null) : context.userId;
 
-    // Si el usuario es beneficiario y la contraparte (pagador) es invitada, el pagador debe existir:
-    // guardamos solo un borrador provisional donde buyer_id = context.userId como propietario temporal
-    // y beneficiario_* se ignora — el spec exige pagador identificado. Aquí lo bloqueamos.
-    if (!soyPagador && !step2.contraparte_user_id) {
-      throw new Error("Si eres beneficiario, la contraparte (pagador) debe tener cuenta YOKTO. Pídele que se registre y vuelve a intentarlo.");
-    }
-
-    const counterpart_email = soyPagador ? (step2.contraparte_email ?? null) : null;
-    const counterpart_nombre = soyPagador ? (step2.contraparte_nombre ?? null) : null;
+    // Nueva regla: cualquiera de las dos partes puede ser una invitación.
+    // Cuando la contraparte no tiene cuenta YOKTO todavía, guardamos su nombre
+    // y correo en los campos correspondientes según el rol invitado.
+    const invitedEmail = step2.contraparte_user_id ? null : (step2.contraparte_email ?? null);
+    const invitedNombre = step2.contraparte_user_id ? null : (step2.contraparte_nombre ?? null);
 
     const payload = {
-      buyer_id: buyer_id ?? context.userId,
+      buyer_id,
       seller_id,
-      counterparty_email: counterpart_email,
-      beneficiario_nombre: counterpart_nombre,
+      counterparty_email: invitedEmail,
+      // Si el usuario es pagador y la contraparte es invitada => beneficiario invitado
+      beneficiario_nombre: soyPagador ? invitedNombre : null,
+      // Si el usuario es beneficiario y la contraparte es invitada => pagador invitado
+      pagador_nombre: !soyPagador ? invitedNombre : null,
       title: step2.descripcion.slice(0, 120),
       description: step2.descripcion,
       sector: step1.sector,
