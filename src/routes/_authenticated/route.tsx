@@ -5,6 +5,7 @@ import { AppShell } from "@/components/app-shell";
 import { OrgProvider } from "@/hooks/use-current-org";
 import { ViewRoleProvider } from "@/hooks/use-view-role";
 import { AuthUserProvider } from "@/hooks/use-auth-user";
+import { EmailVerificationGate } from "@/components/email-verification-gate";
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
@@ -31,13 +32,15 @@ function AuthedLayout() {
 
   return (
     <AuthUserProvider value={{ userId: user.id, email: user.email ?? null, displayName: name }}>
-      <OrgProvider>
-        <ViewRoleProvider>
-          <AppShell displayName={name} sgyScore={500}>
-            <Outlet />
-          </AppShell>
-        </ViewRoleProvider>
-      </OrgProvider>
+      <EmailVerificationGate>
+        <OrgProvider>
+          <ViewRoleProvider>
+            <AppShell displayName={name} sgyScore={500}>
+              <Outlet />
+            </AppShell>
+          </ViewRoleProvider>
+        </OrgProvider>
+      </EmailVerificationGate>
     </AuthUserProvider>
   );
 }

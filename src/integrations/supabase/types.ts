@@ -1036,6 +1036,81 @@ export type Database = {
           },
         ]
       }
+      email_verification_log: {
+        Row: {
+          created_at: string
+          detail: Json | null
+          email: string
+          event: string
+          id: string
+          ip: string | null
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          detail?: Json | null
+          email: string
+          event: string
+          id?: string
+          ip?: string | null
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          detail?: Json | null
+          email?: string
+          event?: string
+          id?: string
+          ip?: string | null
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      email_verification_otps: {
+        Row: {
+          attempts: number
+          code_hash: string
+          consumed_at: string | null
+          created_at: string
+          email: string
+          expires_at: string
+          id: string
+          ip: string | null
+          purpose: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          attempts?: number
+          code_hash: string
+          consumed_at?: string | null
+          created_at?: string
+          email: string
+          expires_at: string
+          id?: string
+          ip?: string | null
+          purpose?: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          attempts?: number
+          code_hash?: string
+          consumed_at?: string | null
+          created_at?: string
+          email?: string
+          expires_at?: string
+          id?: string
+          ip?: string | null
+          purpose?: string
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       fiscal_documents: {
         Row: {
           aceptado_at: string | null
@@ -2321,6 +2396,7 @@ export type Database = {
           created_at: string
           curp: string | null
           email: string | null
+          email_verified_at: string | null
           first_name: string | null
           fiscal_address: string | null
           fiscal_colonia: string | null
@@ -2361,6 +2437,7 @@ export type Database = {
           created_at?: string
           curp?: string | null
           email?: string | null
+          email_verified_at?: string | null
           first_name?: string | null
           fiscal_address?: string | null
           fiscal_colonia?: string | null
@@ -2403,6 +2480,7 @@ export type Database = {
           created_at?: string
           curp?: string | null
           email?: string | null
+          email_verified_at?: string | null
           first_name?: string | null
           fiscal_address?: string | null
           fiscal_colonia?: string | null
