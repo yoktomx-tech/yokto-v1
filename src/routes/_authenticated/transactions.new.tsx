@@ -556,7 +556,7 @@ function LiveSummary({
         <SummaryRow label="Sector">
           {sectorDef ? (
             <span className="inline-flex items-center gap-1.5">
-              <span>{sectorCfg?.emoji}</span>
+              {(() => { const I = getSectorIcon(sectorDef.id); return <I className="h-4 w-4" style={{ color: sectorCfg?.color }} />; })()}
               <span className="text-yo-txt">{sectorDef.titulo}</span>
             </span>
           ) : <span className="text-yo-txt-3">Sin definir</span>}
