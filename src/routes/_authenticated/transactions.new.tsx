@@ -17,6 +17,7 @@ import {
   signAndActivateTransaction,
 } from "@/lib/transactions.functions";
 import { Step1Schema, Step2Schema, Step3Schema, Step4Schema, Step5Schema } from "@/lib/validations/transaction";
+import { useViewRole } from "@/hooks/use-view-role";
 import { ContractStep, isContractStepValid } from "@/components/tx/contract-step";
 import {
   DEFAULT_CONTRACT_STATE, DEFAULT_FISCAL_CONFIG, USO_CFDI_OPTIONS,
@@ -49,6 +50,8 @@ const fmtMoney = (n: number) =>
 function NewOperationWizard() {
   const { user } = Route.useRouteContext();
   const navigate = useNavigate();
+  const { role: viewRole } = useViewRole();
+  const rolFromView: Rol = viewRole === "buyer" ? "PAGADOR" : "BENEFICIARIO";
 
   const [step, setStep] = useState(1);
   const [txId, setTxId] = useState<string | null>(null);
@@ -66,9 +69,11 @@ function NewOperationWizard() {
   const [fechaInicio, setFechaInicio] = useState<string>(new Date().toISOString().slice(0, 10));
   const [fechaFin, setFechaFin] = useState<string>("");
 
-  // Paso 2
-  const [rol, setRol] = useState<Rol>("PAGADOR");
+  // Paso 2 — el rol se hereda del selector global (Comprador/Vendedor) en la barra superior
+  const [rol, setRol] = useState<Rol>(rolFromView);
+  useEffect(() => { setRol(rolFromView); }, [rolFromView]);
   const [contraparte, setContraparte] = useState<Contraparte | null>(null);
+
 
   // Paso 3 & 4 — hitos con documentos, evidencia y checklist
   const [hitos, setHitos] = useState<HitoDraft[]>([]);
@@ -811,24 +816,28 @@ function Step2Partes({
         <p className="text-sm text-yo-txt-2 mt-0.5">Define tu rol y busca o invita a la contraparte.</p>
       </div>
 
-      {/* Rol */}
+      {/* Rol — heredado del selector global en la barra superior */}
       <div>
         <label className="block text-sm font-medium text-yo-txt mb-2">Tu rol en esta operación</label>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          <RoleCard
-            active={rol === "PAGADOR"}
-            onClick={() => setRol("PAGADOR")}
-            title="Comprador / Pagador"
-            bullets={["Deposita mediante pasarela", "Revisa evidencia", "Aprueba hitos", "Puede abrir disputa"]}
-          />
-          <RoleCard
-            active={rol === "BENEFICIARIO"}
-            onClick={() => setRol("BENEFICIARIO")}
-            title="Vendedor / Beneficiario"
-            bullets={["Acepta condiciones", "Carga documentos y evidencia", "Cumple hitos", "Recibe liberaciones"]}
-          />
+        <div className="rounded-lg border border-yo-border bg-yo-raised/40 p-4">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <div className="flex items-center gap-2">
+                <Badge tone="accent" dot>{rol === "PAGADOR" ? "Comprador / Pagador" : "Vendedor / Beneficiario"}</Badge>
+              </div>
+              <p className="text-xs text-yo-txt-2 mt-2">
+                {rol === "PAGADOR"
+                  ? "Depositas los fondos, revisas evidencia, apruebas hitos y puedes abrir disputa."
+                  : "Aceptas condiciones, cargas documentos y evidencia, cumples hitos y recibes las liberaciones."}
+              </p>
+            </div>
+            <p className="text-[11px] text-yo-txt-3 shrink-0 max-w-[180px] text-right leading-snug">
+              Cambia tu rol desde el selector <span className="font-medium text-yo-txt-2">ROL</span> en la barra superior.
+            </p>
+          </div>
         </div>
       </div>
+
 
       {/* Búsqueda */}
       <div>
