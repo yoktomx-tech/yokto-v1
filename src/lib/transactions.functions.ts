@@ -208,7 +208,7 @@ export const saveTransactionMonto = createServerFn({ method: "POST" })
       : 0;
     const volumenPesos = volumen / 100;
 
-    const fee = calcularFee(data.sector as SectorId, data.step4.monto, volumen);
+    const fee = calcularFee(data.sector as SectorId, data.step4.monto, volumenPesos);
     const amount_cents = Math.round(data.step4.monto * 100);
     const comision_cents = Math.round(fee.comision_final * 100);
     const iva_comision_cents = Math.round(fee.iva_comision * 100);
