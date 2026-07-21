@@ -50,6 +50,8 @@ const fmtMoney = (n: number) =>
 function NewOperationWizard() {
   const { user } = Route.useRouteContext();
   const navigate = useNavigate();
+  const { role: viewRole } = useViewRole();
+  const rolFromView: Rol = viewRole === "buyer" ? "PAGADOR" : "BENEFICIARIO";
 
   const [step, setStep] = useState(1);
   const [txId, setTxId] = useState<string | null>(null);
@@ -67,9 +69,11 @@ function NewOperationWizard() {
   const [fechaInicio, setFechaInicio] = useState<string>(new Date().toISOString().slice(0, 10));
   const [fechaFin, setFechaFin] = useState<string>("");
 
-  // Paso 2
-  const [rol, setRol] = useState<Rol>("PAGADOR");
+  // Paso 2 — el rol se hereda del selector global (Comprador/Vendedor) en la barra superior
+  const [rol, setRol] = useState<Rol>(rolFromView);
+  useEffect(() => { setRol(rolFromView); }, [rolFromView]);
   const [contraparte, setContraparte] = useState<Contraparte | null>(null);
+
 
   // Paso 3 & 4 — hitos con documentos, evidencia y checklist
   const [hitos, setHitos] = useState<HitoDraft[]>([]);
