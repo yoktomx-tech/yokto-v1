@@ -1,7 +1,7 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Mail, ShieldCheck, RefreshCw, LogOut, Timer, Lock } from "lucide-react";
+import { Mail, RefreshCw, Timer, Lock, ShieldCheck, Clock, Ban } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import {
   getEmailVerificationStatus,
@@ -9,7 +9,7 @@ import {
   verifyEmailOtp,
 } from "@/lib/email-verification.functions";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { YoktoLogo } from "@/components/logo";
 import { toast } from "sonner";
 
 const OTP_TTL_SECONDS = 5 * 60;
