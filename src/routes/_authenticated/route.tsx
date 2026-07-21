@@ -32,15 +32,15 @@ function AuthedLayout() {
 
   return (
     <AuthUserProvider value={{ userId: user.id, email: user.email ?? null, displayName: name }}>
-      <OrgProvider>
-        <ViewRoleProvider>
-          <AppShell displayName={name} sgyScore={500}>
-            <EmailVerificationGate>
+      <EmailVerificationGate>
+        <OrgProvider>
+          <ViewRoleProvider>
+            <AppShell displayName={name} sgyScore={500}>
               <Outlet />
-            </EmailVerificationGate>
-          </AppShell>
-        </ViewRoleProvider>
-      </OrgProvider>
+            </AppShell>
+          </ViewRoleProvider>
+        </OrgProvider>
+      </EmailVerificationGate>
     </AuthUserProvider>
   );
 }
