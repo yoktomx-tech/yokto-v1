@@ -17,6 +17,7 @@ import {
   signAndActivateTransaction,
 } from "@/lib/transactions.functions";
 import { Step1Schema, Step2Schema, Step3Schema, Step4Schema, Step5Schema } from "@/lib/validations/transaction";
+import { useViewRole } from "@/hooks/use-view-role";
 import { ContractStep, isContractStepValid } from "@/components/tx/contract-step";
 import {
   DEFAULT_CONTRACT_STATE, DEFAULT_FISCAL_CONFIG, USO_CFDI_OPTIONS,
