@@ -155,8 +155,9 @@ export function EmailVerificationGate({ children }: { children: React.ReactNode 
     <div className="min-h-screen flex flex-col items-center bg-background px-4 py-10">
       {/* Logo fuera del recuadro */}
       <div className="mb-8">
-        <YoktoLogo variant="auto" className="h-10" />
+        <YoktoLogo variant="auto" className="h-6 w-auto" />
       </div>
+
 
       <div className="w-full max-w-lg rounded-2xl border border-border bg-card shadow-xl p-8">
         <div className="text-center mb-6">
