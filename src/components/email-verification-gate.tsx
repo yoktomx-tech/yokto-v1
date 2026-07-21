@@ -1,7 +1,7 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Mail, ShieldCheck, RefreshCw, LogOut, Timer, Lock } from "lucide-react";
+import { Mail, RefreshCw, Timer, Lock, ShieldCheck, Clock, Ban } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import {
   getEmailVerificationStatus,
@@ -9,7 +9,7 @@ import {
   verifyEmailOtp,
 } from "@/lib/email-verification.functions";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { YoktoLogo } from "@/components/logo";
 import { toast } from "sonner";
 
 const OTP_TTL_SECONDS = 5 * 60;
@@ -153,24 +153,47 @@ export function EmailVerificationGate({ children }: { children: React.ReactNode 
 
   return (
     <div className="min-h-screen grid place-items-center bg-background px-4 py-10">
-      <div className="w-full max-w-md rounded-2xl border border-border bg-card shadow-xl p-8">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="h-11 w-11 rounded-xl bg-primary/10 grid place-items-center">
-            <ShieldCheck className="h-6 w-6 text-primary" />
-          </div>
-          <div>
-            <h1 className="text-lg font-semibold text-foreground">Verifica tu correo</h1>
-            <p className="text-xs text-muted-foreground">Requerido para activar tu cuenta</p>
-          </div>
+      <div className="w-full max-w-lg rounded-2xl border border-border bg-card shadow-xl p-8">
+        {/* Logo */}
+        <div className="flex justify-center mb-6">
+          <YoktoLogo variant="auto" className="h-8" />
         </div>
 
-        <p className="text-sm text-muted-foreground mb-4">
-          Enviamos un código de 6 dígitos a{" "}
-          <span className="text-foreground font-medium inline-flex items-center gap-1">
-            <Mail className="h-3.5 w-3.5" /> {data.email}
-          </span>
-          .
-        </p>
+        <div className="text-center mb-6">
+          <div className="mx-auto h-12 w-12 rounded-xl bg-primary/10 grid place-items-center mb-3">
+            <ShieldCheck className="h-6 w-6 text-primary" />
+          </div>
+          <h1 className="text-xl font-semibold text-foreground">Verifica tu correo electrónico</h1>
+          <p className="text-sm text-muted-foreground mt-2">
+            Enviamos un código de 6 dígitos a{" "}
+            <span className="text-foreground font-medium inline-flex items-center gap-1">
+              <Mail className="h-3.5 w-3.5" /> {data.email}
+            </span>
+          </p>
+        </div>
+
+        {/* Explicación */}
+        <div className="mb-6 rounded-lg border border-border bg-muted/30 p-4 text-xs text-muted-foreground space-y-2">
+          <p className="text-foreground font-medium text-sm">¿Por qué es necesario?</p>
+          <ul className="space-y-1.5">
+            <li className="flex gap-2">
+              <ShieldCheck className="h-3.5 w-3.5 mt-0.5 text-primary flex-shrink-0" />
+              <span><strong className="text-foreground">Seguridad de tu cuenta:</strong> confirma que el correo te pertenece y evita accesos no autorizados.</span>
+            </li>
+            <li className="flex gap-2">
+              <Mail className="h-3.5 w-3.5 mt-0.5 text-primary flex-shrink-0" />
+              <span><strong className="text-foreground">Comunicaciones críticas:</strong> notificaciones de operaciones, liberaciones de fondos, disputas y alertas de cumplimiento se envían a este correo.</span>
+            </li>
+            <li className="flex gap-2">
+              <Clock className="h-3.5 w-3.5 mt-0.5 text-primary flex-shrink-0" />
+              <span><strong className="text-foreground">Recuperación:</strong> es el canal oficial para restablecer contraseña y confirmar cambios sensibles.</span>
+            </li>
+            <li className="flex gap-2">
+              <Ban className="h-3.5 w-3.5 mt-0.5 text-primary flex-shrink-0" />
+              <span><strong className="text-foreground">Cumplimiento PLD/FT:</strong> YOKTO requiere identificar de forma fehaciente a cada usuario antes de operar.</span>
+            </li>
+          </ul>
+        </div>
 
         {isLocked && (
           <div className="mb-4 rounded-lg border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive flex items-start gap-2">
@@ -186,54 +209,44 @@ export function EmailVerificationGate({ children }: { children: React.ReactNode 
         )}
 
         <form onSubmit={handleVerify} className="space-y-4">
-          <div>
-            <Input
-              value={code}
-              onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
-              inputMode="numeric"
-              autoFocus
-              disabled={isLocked}
-              placeholder="••••••"
-              className="text-center text-2xl tracking-[0.5em] font-mono h-14"
-            />
+          <OtpBoxes value={code} onChange={setCode} disabled={isLocked} onComplete={() => handleVerify()} />
 
-            {/* Barra de progreso de expiración */}
-            {expiresAt && (
-              <div className="mt-3">
-                <div className="flex items-center justify-between text-xs mb-1">
-                  <span className="inline-flex items-center gap-1.5 text-muted-foreground">
-                    <Timer className="h-3.5 w-3.5" />
-                    {remainingMs > 0 ? "Expira en" : "Expirado"}
-                  </span>
-                  <span
-                    className={`font-mono tabular-nums ${
-                      remainingMs === 0
-                        ? "text-destructive"
-                        : remainingSec <= 30
-                        ? "text-amber-500"
-                        : "text-foreground"
-                    }`}
-                  >
-                    {mm}:{ss}
-                  </span>
-                </div>
-                <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden">
-                  <div
-                    className={`h-full transition-all duration-1000 ${
-                      remainingSec <= 30 ? "bg-destructive" : "bg-primary"
-                    }`}
-                    style={{ width: `${progressPct}%` }}
-                  />
-                </div>
+          {/* Barra de progreso de expiración */}
+          {expiresAt && (
+            <div>
+              <div className="flex items-center justify-between text-xs mb-1">
+                <span className="inline-flex items-center gap-1.5 text-muted-foreground">
+                  <Timer className="h-3.5 w-3.5" />
+                  {remainingMs > 0 ? "El código expira en" : "Código expirado"}
+                </span>
+                <span
+                  className={`font-mono tabular-nums ${
+                    remainingMs === 0
+                      ? "text-destructive"
+                      : remainingSec <= 30
+                      ? "text-amber-500"
+                      : "text-foreground"
+                  }`}
+                >
+                  {mm}:{ss}
+                </span>
               </div>
-            )}
+              <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden">
+                <div
+                  className={`h-full transition-all duration-1000 ${
+                    remainingSec <= 30 ? "bg-destructive" : "bg-primary"
+                  }`}
+                  style={{ width: `${progressPct}%` }}
+                />
+              </div>
+            </div>
+          )}
 
-            {attemptsRemaining !== null && !isLocked && attemptsRemaining < 5 && (
-              <p className="mt-2 text-xs text-amber-500 text-center">
-                Intentos restantes: {attemptsRemaining}
-              </p>
-            )}
-          </div>
+          {attemptsRemaining !== null && !isLocked && attemptsRemaining < 5 && (
+            <p className="text-xs text-amber-500 text-center">
+              Intentos restantes: {attemptsRemaining}
+            </p>
+          )}
 
           <Button
             type="submit"
@@ -243,7 +256,7 @@ export function EmailVerificationGate({ children }: { children: React.ReactNode 
             {verifying ? "Verificando…" : "Verificar y continuar"}
           </Button>
 
-          <div className="flex items-center justify-between text-xs">
+          <div className="flex items-center justify-between text-xs pt-2">
             <button
               type="button"
               onClick={handleResend}
@@ -260,13 +273,91 @@ export function EmailVerificationGate({ children }: { children: React.ReactNode 
             <button
               type="button"
               onClick={handleSignOut}
-              className="inline-flex items-center gap-1.5 text-muted-foreground hover:text-foreground"
+              className="text-muted-foreground hover:text-foreground"
             >
-              <LogOut className="h-3.5 w-3.5" /> Cerrar sesión
+              Cerrar sesión
             </button>
           </div>
         </form>
       </div>
+    </div>
+  );
+}
+
+function OtpBoxes({
+  value,
+  onChange,
+  disabled,
+  onComplete,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  disabled?: boolean;
+  onComplete?: () => void;
+}) {
+  const inputsRef = useRef<Array<HTMLInputElement | null>>([]);
+  const digits = value.padEnd(6, " ").slice(0, 6).split("");
+
+  function setDigit(i: number, d: string) {
+    const clean = d.replace(/\D/g, "");
+    if (!clean) {
+      const next = value.slice(0, i) + value.slice(i + 1);
+      onChange(next);
+      return;
+    }
+    const arr = value.padEnd(6, " ").split("");
+    arr[i] = clean[0];
+    const joined = arr.join("").replace(/\s/g, "");
+    onChange(joined.slice(0, 6));
+    if (i < 5) inputsRef.current[i + 1]?.focus();
+    if (joined.length === 6) onComplete?.();
+  }
+
+  function handlePaste(e: React.ClipboardEvent<HTMLInputElement>) {
+    const text = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
+    if (!text) return;
+    e.preventDefault();
+    onChange(text);
+    const focusIdx = Math.min(text.length, 5);
+    inputsRef.current[focusIdx]?.focus();
+    if (text.length === 6) onComplete?.();
+  }
+
+  function handleKeyDown(i: number, e: React.KeyboardEvent<HTMLInputElement>) {
+    if (e.key === "Backspace") {
+      if (!digits[i].trim() && i > 0) {
+        inputsRef.current[i - 1]?.focus();
+        const arr = value.split("");
+        arr.splice(i - 1, 1);
+        onChange(arr.join(""));
+        e.preventDefault();
+      }
+    } else if (e.key === "ArrowLeft" && i > 0) {
+      inputsRef.current[i - 1]?.focus();
+    } else if (e.key === "ArrowRight" && i < 5) {
+      inputsRef.current[i + 1]?.focus();
+    }
+  }
+
+  return (
+    <div className="flex gap-2 justify-center" onPaste={handlePaste}>
+      {Array.from({ length: 6 }).map((_, i) => (
+        <input
+          key={i}
+          ref={(el) => { inputsRef.current[i] = el; }}
+          type="text"
+          inputMode="numeric"
+          maxLength={1}
+          disabled={disabled}
+          value={digits[i].trim()}
+          onChange={(e) => setDigit(i, e.target.value)}
+          onKeyDown={(e) => handleKeyDown(i, e)}
+          onPaste={handlePaste}
+          onFocus={(e) => e.currentTarget.select()}
+          autoFocus={i === 0}
+          className="h-14 w-12 rounded-lg border border-input bg-background text-center text-2xl font-mono font-semibold text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary disabled:opacity-50 transition-all"
+        />
+      ))}
     </div>
   );
 }
