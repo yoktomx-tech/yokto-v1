@@ -165,7 +165,7 @@ function AuthPage() {
           </p>
 
           <ul className="mt-8 flex flex-col gap-3 text-sm text-yokto-text-2">
-            {["Pago detenido hasta cumplir lo acordado", "Identidades verificadas", "Todo documentado y facturado"].map((f) => (
+            {["Pago retenido hasta cumplir lo acordado", "Identidades verificadas", "Todo documentado y facturado"].map((f) => (
               <li key={f} className="flex items-center gap-3">
                 <span className="grid place-items-center size-6 rounded-md bg-yokto-accent/10 border border-yokto-accent/25 text-yokto-accent">
                   <ShieldCheck className="size-3.5" />
