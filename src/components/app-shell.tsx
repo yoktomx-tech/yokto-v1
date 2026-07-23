@@ -170,7 +170,7 @@ function SidebarContent({
       </div>
 
 
-      <nav className={cn("flex-1 overflow-y-auto p-3 space-y-0.5", collapsed && "px-2")}>
+      <nav className={cn("flex-1 overflow-y-auto p-3 space-y-1.5", collapsed && "px-2 space-y-2")}>
         {nav.map((item) => {
           const active = pathname === item.to || pathname.startsWith(item.to + "/");
           const Icon = item.icon;
