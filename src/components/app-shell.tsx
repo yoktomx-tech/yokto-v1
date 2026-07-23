@@ -2,11 +2,12 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import {
   LayoutDashboard, Briefcase, PackageCheck, AlertTriangle, Banknote,
-  Users, Users2, Star, Menu, X, ClipboardCheck, BarChart3,
+  Users, Users2, Star, Menu, X, ClipboardCheck, BarChart3, Building2,
   ChevronLeft, ChevronRight,
 } from "lucide-react";
 import { CumplexLogo } from "@/components/logo";
 import { OrgSwitcher } from "@/components/org-switcher";
+import { useCurrentOrg } from "@/hooks/use-current-org";
 import { useViewRole } from "@/hooks/use-view-role";
 import { useAuthUser } from "@/hooks/use-auth-user";
 import { AppHeader } from "@/components/app-header";
