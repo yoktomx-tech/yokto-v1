@@ -116,7 +116,7 @@ function SidebarContent({
     <>
       <div className="px-5 py-5 flex justify-center">
         <Link to="/dashboard" onClick={onNavigate} className="inline-flex items-center justify-center">
-          <CumplexLogo variant="auto" className="h-9 w-auto" />
+          <CumplexLogo variant="auto" className="h-9 w-auto -translate-x-1" />
         </Link>
       </div>
 
