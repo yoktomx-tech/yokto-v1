@@ -144,6 +144,8 @@ function SidebarContent({
   const cfg = LEVEL_CFG[level];
   const tone = TONE_CLASSES[cfg.tone];
   const pct = Math.min(100, Math.max(0, score));
+  const { orgs, currentOrg } = useCurrentOrg();
+  const orgCount = orgs.length;
 
   return (
     <>
