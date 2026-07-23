@@ -2,7 +2,7 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import {
   LayoutDashboard, Briefcase, PackageCheck, AlertTriangle, Banknote,
-  Users, Users2, Star, Menu, X, ClipboardCheck, BarChart3, Building2,
+  Users, Users2, Star, Menu, X, ClipboardCheck, BarChart3, Building2, User,
   ChevronLeft, ChevronRight,
 } from "lucide-react";
 import { CumplexLogo } from "@/components/logo";
