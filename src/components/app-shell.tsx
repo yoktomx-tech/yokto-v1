@@ -2,11 +2,12 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import {
   LayoutDashboard, Briefcase, PackageCheck, AlertTriangle, Banknote,
-  Users, Users2, Star, Menu, X, ClipboardCheck, BarChart3,
+  Users, Users2, Star, Menu, X, ClipboardCheck, BarChart3, Building2,
   ChevronLeft, ChevronRight,
 } from "lucide-react";
 import { CumplexLogo } from "@/components/logo";
 import { OrgSwitcher } from "@/components/org-switcher";
+import { useCurrentOrg } from "@/hooks/use-current-org";
 import { useViewRole } from "@/hooks/use-view-role";
 import { useAuthUser } from "@/hooks/use-auth-user";
 import { AppHeader } from "@/components/app-header";
@@ -143,6 +144,8 @@ function SidebarContent({
   const cfg = LEVEL_CFG[level];
   const tone = TONE_CLASSES[cfg.tone];
   const pct = Math.min(100, Math.max(0, score));
+  const { orgs, currentOrg } = useCurrentOrg();
+  const orgCount = orgs.length;
 
   return (
     <>
@@ -185,7 +188,7 @@ function SidebarContent({
                   : "text-yo-txt-2 hover:text-yo-txt hover:bg-yo-raised"
               )}
             >
-              <Icon className={cn("size-4 shrink-0", active ? "text-yo-ac" : "text-yo-txt-3")} />
+              <Icon className={cn("shrink-0", collapsed ? "size-5" : "size-4", active ? "text-yo-ac" : "text-yo-txt-3")} />
               {!collapsed && <span className="truncate">{item.label}</span>}
             </Link>
           );
@@ -195,13 +198,22 @@ function SidebarContent({
       {collapsed ? (
         <div className="border-t border-yo-border p-2 flex flex-col items-center gap-2">
           <Link
+            to="/settings/organization"
+            onClick={onNavigate}
+            title={`Espacios de trabajo: ${orgCount}${currentOrg ? ` · Actual: ${currentOrg.name}` : ""}`}
+            className="relative size-10 grid place-items-center rounded-md border border-yo-border bg-yo-bg hover:bg-yo-raised transition"
+          >
+            <Building2 className="size-5 text-yo-txt-2" />
+            <span className="absolute -bottom-1 -right-1 text-[10px] font-semibold px-1 rounded bg-yo-ac text-white">{orgCount}</span>
+          </Link>
+          <Link
             to="/score"
             onClick={onNavigate}
             title={`Score ${score}/100 · ${cfg.label}`}
-            className="relative size-9 grid place-items-center rounded-md border border-yo-border bg-yo-bg hover:bg-yo-raised transition"
+            className="relative size-10 grid place-items-center rounded-md border border-yo-border bg-yo-bg hover:bg-yo-raised transition"
           >
-            <Star className="size-4 text-yo-ac" />
-            <span className={cn("absolute -bottom-1 -right-1 text-[9px] font-semibold px-1 rounded", tone.bg, tone.text)}>{score}</span>
+            <Star className="size-5 text-yo-ac" />
+            <span className={cn("absolute -bottom-1 -right-1 text-[10px] font-semibold px-1 rounded", tone.bg, tone.text)}>{score}</span>
           </Link>
         </div>
       ) : (
