@@ -146,7 +146,7 @@ function MobileShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-dvh bg-yo-bg text-yo-txt">
       <header className="px-5 py-4 border-b border-yo-border bg-yo-surface">
-        <CumplexLogo variant="auto" className="h-6" />
+        <CumplexLogo variant="auto" className="h-7" />
       </header>
       <main className="max-w-md mx-auto px-4 py-5 flex flex-col gap-4">{children}</main>
     </div>

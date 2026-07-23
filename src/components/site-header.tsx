@@ -33,7 +33,7 @@ export function SiteHeader() {
     >
       <div className="container-editorial flex h-16 items-center justify-between">
         <Link to="/" className="flex items-center gap-2.5 group" onClick={() => setOpen(false)} aria-label="Cumplex — Inicio">
-          <CumplexLogo variant="auto" className="h-6 w-auto transition group-hover:opacity-80" />
+          <CumplexLogo variant="auto" className="h-7 w-auto transition group-hover:opacity-80" />
         </Link>
 
         <nav className="hidden md:flex items-center gap-1" />

@@ -98,7 +98,7 @@ function InviteeOnboarding() {
     <div className="min-h-dvh bg-yo-bg text-yo-txt">
       <header className="border-b border-yo-border bg-yo-surface">
         <div className="mx-auto max-w-3xl px-4 sm:px-6 py-3 flex items-center justify-between">
-          <CumplexLogo className="h-6" />
+          <CumplexLogo className="h-7" />
           <div className="text-[11px] text-yo-txt-3">Invitación · {org.name ?? "Organización"}</div>
         </div>
       </header>

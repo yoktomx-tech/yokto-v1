@@ -30,7 +30,7 @@ export function AdminShell({ role, children }: { role: InternalRole; children: R
       <aside className="hidden md:flex md:w-60 lg:w-64 shrink-0 flex-col border-r border-yo-border bg-yo-surface sticky top-0 h-dvh">
         <div className="px-5 py-5 border-b border-yo-border flex items-center justify-between gap-2">
           <Link to="/admin" className="inline-flex items-center">
-            <CumplexLogo variant="auto" className="h-6 w-auto" />
+            <CumplexLogo variant="auto" className="h-7 w-auto" />
           </Link>
           <span className="inline-flex items-center gap-1 text-[9px] font-semibold uppercase tracking-wider text-yo-err bg-yo-err-bg border border-yo-err/25 px-1.5 py-0.5 rounded">
             <ShieldCheck className="size-3" />
