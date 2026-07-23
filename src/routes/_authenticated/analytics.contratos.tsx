@@ -5,7 +5,7 @@ import {
 import { contractsList, CONTRACT_CFG } from "@/lib/analytics-mock";
 
 export const Route = createFileRoute("/_authenticated/analytics/contratos")({
-  head: () => ({ meta: [{ title: "Contratos — Analytics — YOKTO" }, { name: "robots", content: "noindex" }] }),
+  head: () => ({ meta: [{ title: "Contratos — Analytics — CUMPLEX" }, { name: "robots", content: "noindex" }] }),
   component: ContractsReport,
 });
 

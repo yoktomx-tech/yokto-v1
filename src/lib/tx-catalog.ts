@@ -41,7 +41,7 @@ export const STATUS_CFG: Record<UiStatus, StatusCfg> = {
   PENDING_FUNDING:    { label: "Por fondear",          tone: "warn",    description: "El comprador debe realizar el pago." },
   FUNDED:             { label: "Fondos retenidos",     tone: "accent",  description: "El pago fue procesado por la pasarela certificada." },
   IN_PROGRESS:        { label: "En curso",             tone: "accent",  description: "Existen hitos pendientes de cumplimiento." },
-  IN_VERIFICATION:    { label: "En verificación",      tone: "info",    description: "Yokto/verificador revisa evidencia o documentos." },
+  IN_VERIFICATION:    { label: "En verificación",      tone: "info",    description: "Cumplex/verificador revisa evidencia o documentos." },
   READY_FOR_APPROVAL: { label: "Lista para aprobar",   tone: "info",    description: "Evidencia enviada, esperando aprobación del comprador." },
   READY_TO_RELEASE:   { label: "Lista para liberar",   tone: "ok",      description: "Condiciones cumplidas para liberar fondos." },
   PARTIALLY_RELEASED: { label: "Liberación parcial",   tone: "ok",      description: "Ya se liberó una parcialidad al vendedor." },
@@ -159,7 +159,7 @@ export function getSectorUi(sector: string | null | undefined): SectorUiCfg {
 // ─── Cajas informativas legales reutilizables (§20) ─────────────────────────
 export const LEGAL_COPY = {
   fundsCustody:
-    "Yokto no custodia fondos. Los recursos se procesan y retienen exclusivamente mediante pasarelas certificadas. Yokto ordena liberaciones o devoluciones conforme al cumplimiento validado.",
+    "Cumplex no custodia fondos. Los recursos se procesan y retienen exclusivamente mediante pasarelas certificadas. Cumplex ordena liberaciones o devoluciones conforme al cumplimiento validado.",
   conditionalRelease:
     "Una liberación solo puede ejecutarse cuando las condiciones del hito estén cumplidas, la evidencia esté validada y no exista una disputa activa.",
   activeDispute:
@@ -167,5 +167,5 @@ export const LEGAL_COPY = {
   missingDocuments:
     "Esta operación tiene documentos o evidencias pendientes. Completa los requisitos para avanzar al siguiente estado.",
   ledgerNotice:
-    "El ledger interno refleja eventos y referencias de la pasarela. No representa custodia directa de fondos por parte de Yokto.",
+    "El ledger interno refleja eventos y referencias de la pasarela. No representa custodia directa de fondos por parte de Cumplex.",
 } as const;

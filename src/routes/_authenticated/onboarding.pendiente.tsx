@@ -7,7 +7,7 @@ import { getKycStatus, listOwnKycDocuments } from "@/lib/onboarding.functions";
 export const Route = createFileRoute("/_authenticated/onboarding/pendiente")({
   head: () => ({
     meta: [
-      { title: "Verificación en curso — YOKTO" },
+      { title: "Verificación en curso — CUMPLEX" },
       { name: "robots", content: "noindex" },
     ],
   }),

@@ -260,12 +260,12 @@ export const MOCK_INVITATIONS: Invitation[] = [
   {
     id: "inv-000001", email: "compras@marinamex.com", displayName: "Marina Distribución MX",
     rfcHint: "MDM", sector: "COMERCIO_EXTERIOR",
-    message: "Formalicemos las importaciones Q4 mediante YOKTO.",
+    message: "Formalicemos las importaciones Q4 mediante CUMPLEX.",
     status: "PENDIENTE", invitedAt: daysAgo(2), expiresAt: daysAhead(12), invitedBy: "admin@yokto.mx",
   },
   {
     id: "inv-000002", email: "legal@arqverde.mx", displayName: "Arquitectura Verde",
-    sector: "CONSTRUCCION", linkedTxId: "YOKTO-2026-00187",
+    sector: "CONSTRUCCION", linkedTxId: "CUMPLEX-2026-00187",
     status: "PENDIENTE", invitedAt: daysAgo(5), expiresAt: daysAhead(9), invitedBy: "ops@yokto.mx",
   },
   {
@@ -280,12 +280,12 @@ export const MOCK_INVITATIONS: Invitation[] = [
 ];
 
 export const MOCK_INTERACTIONS: Interaction[] = [
-  { id: "ix-1", counterpartyId: MOCK_COUNTERPARTIES[0].id, kind: "OPERACION_LIBERADA", at: daysAgo(3), actor: "Comprador", detail: "Liberación total operación YOKTO-2026-00312 por $520,000", txId: "YOKTO-2026-00312" },
-  { id: "ix-2", counterpartyId: MOCK_COUNTERPARTIES[0].id, kind: "CFDI_RECIBIDO", at: daysAgo(4), actor: "Sistema", detail: "CFDI PPD folio A-1284 validado contra SAT", txId: "YOKTO-2026-00312" },
-  { id: "ix-3", counterpartyId: MOCK_COUNTERPARTIES[0].id, kind: "OPERACION_CREADA", at: daysAgo(11), actor: "María López", detail: "Nueva operación de transporte León → Monterrey", txId: "YOKTO-2026-00318" },
-  { id: "ix-4", counterpartyId: MOCK_COUNTERPARTIES[1].id, kind: "APROBACION", at: daysAgo(9), actor: "Comprador", detail: "Hito 2 aprobado con observaciones menores", txId: "YOKTO-2026-00287" },
-  { id: "ix-5", counterpartyId: MOCK_COUNTERPARTIES[1].id, kind: "DOCUMENTO_SOLICITADO", at: daysAgo(12), actor: "Equipo YOKTO", detail: "Solicitud de bitácora fotográfica" },
-  { id: "ix-6", counterpartyId: MOCK_COUNTERPARTIES[4].id, kind: "DISPUTA_RESUELTA", at: daysAgo(62), actor: "Mediador YOKTO", detail: "Resolución parcial a favor del comprador (60/40)" },
+  { id: "ix-1", counterpartyId: MOCK_COUNTERPARTIES[0].id, kind: "OPERACION_LIBERADA", at: daysAgo(3), actor: "Comprador", detail: "Liberación total operación CUMPLEX-2026-00312 por $520,000", txId: "CUMPLEX-2026-00312" },
+  { id: "ix-2", counterpartyId: MOCK_COUNTERPARTIES[0].id, kind: "CFDI_RECIBIDO", at: daysAgo(4), actor: "Sistema", detail: "CFDI PPD folio A-1284 validado contra SAT", txId: "CUMPLEX-2026-00312" },
+  { id: "ix-3", counterpartyId: MOCK_COUNTERPARTIES[0].id, kind: "OPERACION_CREADA", at: daysAgo(11), actor: "María López", detail: "Nueva operación de transporte León → Monterrey", txId: "CUMPLEX-2026-00318" },
+  { id: "ix-4", counterpartyId: MOCK_COUNTERPARTIES[1].id, kind: "APROBACION", at: daysAgo(9), actor: "Comprador", detail: "Hito 2 aprobado con observaciones menores", txId: "CUMPLEX-2026-00287" },
+  { id: "ix-5", counterpartyId: MOCK_COUNTERPARTIES[1].id, kind: "DOCUMENTO_SOLICITADO", at: daysAgo(12), actor: "Equipo CUMPLEX", detail: "Solicitud de bitácora fotográfica" },
+  { id: "ix-6", counterpartyId: MOCK_COUNTERPARTIES[4].id, kind: "DISPUTA_RESUELTA", at: daysAgo(62), actor: "Mediador CUMPLEX", detail: "Resolución parcial a favor del comprador (60/40)" },
 ];
 
 export const MOCK_DOC_REQUESTS: DocumentRequest[] = [

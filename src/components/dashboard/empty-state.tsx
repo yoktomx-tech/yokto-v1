@@ -20,7 +20,7 @@ export function EmptyStateDashboard({ name }: { name: string }) {
         </svg>
 
         <h2 className="text-2xl sm:text-3xl font-bold text-yo-txt tracking-tight">
-          Bienvenido a YOKTO, {name}
+          Bienvenido a CUMPLEX, {name}
         </h2>
         <p className="mt-2 text-sm text-yo-txt-2">
           Protege tu primer pago contra cumplimiento en menos de 5 minutos.
@@ -29,7 +29,7 @@ export function EmptyStateDashboard({ name }: { name: string }) {
         <div className="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-3 text-left">
           <Step n={1} icon={UserPlus} title="Invita a tu contraparte" desc="Comparte por email." />
           <Step n={2} icon={ListChecks} title="Define condiciones" desc="Hitos que activan la liberación." />
-          <Step n={3} icon={ShieldCheck} title="Deposita y opera" desc="YOKTO retiene y libera." />
+          <Step n={3} icon={ShieldCheck} title="Deposita y opera" desc="CUMPLEX retiene y libera." />
         </div>
 
         <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">

@@ -194,7 +194,7 @@ function TeamsPanel() {
         </div>
 
         <p className="text-[11px] text-yo-txt-3 leading-relaxed px-1">
-          Los fondos son procesados y retenidos por la pasarela certificada. YOKTO no custodia recursos.
+          Los fondos son procesados y retenidos por la pasarela certificada. CUMPLEX no custodia recursos.
         </p>
       </aside>
     </div>

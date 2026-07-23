@@ -35,7 +35,7 @@ export function TransactionsMetricsGrid({ role, data }: Props) {
           { key: "release",  label: "Pagos por liberar",       value: <MoneyDisplay amount={data.readyToRelease} size="xl" showCurrency={false} />, tone: "ok" as const, icon: <ArrowUpRight className="h-4 w-4" />, color: "#059669", hint: "Sujetos a validación" },
           { key: "deliver",  label: "Entregables pendientes",  value: data.pendingDeliverables, tone: "warn" as const,  icon: <Send className="h-4 w-4" />,        color: "#D97706", hint: "Requieren evidencia" },
           { key: "changes",  label: "Correcciones solicitadas", value: data.changesRequested,   tone: "err" as const,   icon: <XCircle className="h-4 w-4" />,     color: "#DC2626", hint: "Atención inmediata" },
-          { key: "review",   label: "Evidencias en revisión",  value: data.evidenceInReview,   tone: "info" as const,  icon: <FileClock className="h-4 w-4" />,   color: "#0284C7", hint: "Con Yokto o comprador" },
+          { key: "review",   label: "Evidencias en revisión",  value: data.evidenceInReview,   tone: "info" as const,  icon: <FileClock className="h-4 w-4" />,   color: "#0284C7", hint: "Con Cumplex o comprador" },
           { key: "released", label: "Pagos liberados",         value: <MoneyDisplay amount={data.releasedTotal} size="xl" showCurrency={false} />, tone: "ok" as const, icon: <CheckCircle2 className="h-4 w-4" />, color: "#059669", hint: "Histórico total" },
         ];
 

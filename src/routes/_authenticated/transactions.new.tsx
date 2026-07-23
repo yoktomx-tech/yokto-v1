@@ -30,7 +30,7 @@ import {
 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/transactions/new")({
-  head: () => ({ meta: [{ title: "Crear operación protegida — YOKTO" }, { name: "robots", content: "noindex" }] }),
+  head: () => ({ meta: [{ title: "Crear operación protegida — CUMPLEX" }, { name: "robots", content: "noindex" }] }),
   component: NewOperationWizard,
 });
 
@@ -638,9 +638,9 @@ function NoCustodyCard() {
       <div className="flex items-start gap-2">
         <Info className="h-4 w-4 text-yo-info shrink-0 mt-0.5" />
         <div className="text-xs text-yo-txt-2 leading-relaxed">
-          <p className="font-semibold text-yo-info mb-1">YOKTO no custodia fondos</p>
+          <p className="font-semibold text-yo-info mb-1">CUMPLEX no custodia fondos</p>
           <p>
-            El pago es procesado y retenido por una pasarela certificada. YOKTO registra
+            El pago es procesado y retenido por una pasarela certificada. CUMPLEX registra
             condiciones, evidencia y eventos para ordenar liberación o devolución conforme
             a la operación.
           </p>
@@ -673,7 +673,7 @@ function Step1Tipo({
       <div className="rounded-lg bg-yo-ac-bg border border-[#C7D2FE] p-3 flex items-start gap-2">
         <Sparkles className="h-4 w-4 text-yo-ac-txt shrink-0 mt-0.5" />
         <p className="text-xs text-yo-ac-txt">
-          Al elegir un sector, YOKTO precargará hitos, documentos y evidencia comunes. Podrás editarlos antes de activar.
+          Al elegir un sector, CUMPLEX precargará hitos, documentos y evidencia comunes. Podrás editarlos antes de activar.
         </p>
       </div>
 
@@ -875,7 +875,7 @@ function Step2Partes({
         )}
         {results && results.length === 0 && !inviteMode && (
           <div className="mt-2 rounded-md border border-yo-border bg-yo-raised p-3 text-sm text-yo-txt-2 flex items-center justify-between gap-3">
-            <span>No encontramos a esa contraparte en YOKTO.</span>
+            <span>No encontramos a esa contraparte en CUMPLEX.</span>
             <button type="button" onClick={() => { setInviteMode(true); setInviteEmail(query.includes("@") ? query : ""); }}
               className="text-yo-ac hover:text-yo-ac-h text-sm font-medium">
               Invitar contraparte
@@ -920,7 +920,7 @@ function Step2Partes({
               <div className="mt-0.5 text-sm font-semibold text-yo-txt">{contraparte.nombre}</div>
               <div className="text-xs text-yo-txt-2 font-mono">
                 {contraparte.email}{contraparte.rfc ? ` · ${contraparte.rfc}` : ""}
-                {" · "}{contraparte.user_id ? "usuario YOKTO" : "por invitar"}
+                {" · "}{contraparte.user_id ? "usuario CUMPLEX" : "por invitar"}
               </div>
             </div>
             <button type="button" onClick={() => { setContraparte(null); setQuery(""); }}
@@ -965,7 +965,7 @@ const TIPOS_VERIF: Array<{ id: HitoDraft["tipo_verificacion"]; label: string }> 
   { id: "GPS", label: "GPS / tracking" },
   { id: "CHECKLIST", label: "Checklist" },
   { id: "AUTOMATICO", label: "Automático" },
-  { id: "MANUAL_YOKTO", label: "Verificado por YOKTO" },
+  { id: "MANUAL_YOKTO", label: "Verificado por CUMPLEX" },
 ];
 
 function Step3Hitos({
@@ -1182,7 +1182,7 @@ function Step4Cumplimiento({
         <div>
           <h3 className="text-sm font-semibold text-yo-txt">Cumplimiento fiscal (CFDI PPD + REP)</h3>
           <p className="text-xs text-yo-txt-2 mt-0.5">
-            YOKTO no emite CFDI. El vendedor los timbra con su PAC y los sube; YOKTO valida SAT, RFCs, monto, método PPD, forma 99, TFD y coherencia con la operación.
+            CUMPLEX no emite CFDI. El vendedor los timbra con su PAC y los sube; CUMPLEX valida SAT, RFCs, monto, método PPD, forma 99, TFD y coherencia con la operación.
           </p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -1445,7 +1445,7 @@ function Step5Pago({
           ))}
         </div>
         <p className="mt-2 text-xs text-yo-txt-3">
-          El pago será procesado por la pasarela seleccionada. YOKTO no recibe ni custodia directamente los fondos.
+          El pago será procesado por la pasarela seleccionada. CUMPLEX no recibe ni custodia directamente los fondos.
         </p>
       </div>
 
@@ -1567,7 +1567,7 @@ function Step6Revision(props: {
             <div className="text-xs text-yo-txt-3 font-mono">{contraparte?.email}{contraparte?.rfc ? ` · ${contraparte.rfc}` : ""}</div>
           </span>],
           ["Estado", contraparte?.user_id
-            ? <Badge tone="ok" dot>Usuario YOKTO</Badge>
+            ? <Badge tone="ok" dot>Usuario CUMPLEX</Badge>
             : <Badge tone="warn" dot>Por invitar</Badge>],
         ]} />
       </ReviewSection>
@@ -1629,7 +1629,7 @@ function Step6Revision(props: {
 
       <ReviewSection title="Contrato">
         <ReviewGrid rows={[
-          ["Método", contract.method === "UPLOADED_PDF" ? "PDF cargado" : contract.method === "GENERATED" ? "Generado por YOKTO" : "—"],
+          ["Método", contract.method === "UPLOADED_PDF" ? "PDF cargado" : contract.method === "GENERATED" ? "Generado por CUMPLEX" : "—"],
           ["Plantilla / archivo", contract.method === "UPLOADED_PDF" ? (contract.pdfName ?? "—") : (contract.templateKey ?? "—")],
           ["Hash SHA-256", contract.pdfHash ? <span key="h" className="font-mono text-xs">{contract.pdfHash.slice(0, 24)}…</span> : "—"],
           ["Firma comprador", contract.buyerSignatureMethod === "AUTOGRAFA_BIOMETRICA" ? "Autógrafa + biometría" : contract.buyerSignatureMethod === "EFIRMA_SAT" ? "e.firma SAT" : "—"],
@@ -1644,7 +1644,7 @@ function Step6Revision(props: {
           <Check3 checked={aceptaCumplimiento} onChange={setAceptaCumplimiento}
             label="Entiendo que la liberación depende del cumplimiento de los hitos y evidencia configurada." />
           <Check3 checked={aceptaRetencion} onChange={setAceptaRetencion}
-            label="Entiendo que los fondos son procesados y retenidos por la pasarela de pago, no por YOKTO." />
+            label="Entiendo que los fondos son procesados y retenidos por la pasarela de pago, no por CUMPLEX." />
           <Check3 checked={aceptaContrato} onChange={setAceptaContrato}
             label="Confirmo el contrato y el método de firma seleccionado para ambas partes." />
           <Check3 checked={aceptaTraza} onChange={setAceptaTraza}
@@ -1655,7 +1655,7 @@ function Step6Revision(props: {
       <div className="rounded-lg bg-yo-info-bg border border-[#BAE6FD] p-4 flex items-start gap-2">
         <ShieldCheck className="h-4 w-4 text-yo-info shrink-0 mt-0.5" />
         <p className="text-xs text-yo-txt-2">
-          YOKTO no custodia fondos. El pago es procesado y retenido por una pasarela certificada. YOKTO registra
+          CUMPLEX no custodia fondos. El pago es procesado y retenido por una pasarela certificada. CUMPLEX registra
           condiciones, evidencia y eventos para ordenar liberación o devolución conforme a la operación.
         </p>
       </div>
@@ -1725,7 +1725,7 @@ function ActivationModal({ rol, firmando, onClose, onConfirm }: {
           <div className="rounded-lg bg-yo-info-bg border border-[#BAE6FD] p-3 flex items-start gap-2">
             <Info className="h-4 w-4 text-yo-info shrink-0 mt-0.5" />
             <p className="text-xs text-yo-txt-2">
-              YOKTO no custodia fondos. La retención y liberación se realiza mediante la pasarela de pago integrada
+              CUMPLEX no custodia fondos. La retención y liberación se realiza mediante la pasarela de pago integrada
               conforme a las reglas aceptadas por las partes.
             </p>
           </div>

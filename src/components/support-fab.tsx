@@ -45,7 +45,7 @@ export function SupportFAB() {
           <aside className="fixed bottom-5 right-5 z-50 w-[360px] max-h-[80vh] rounded-xl bg-yo-surface border border-yo-border shadow-2xl flex flex-col overflow-hidden">
             <header className="p-4 bg-[#F5F3FF] border-b border-yo-border flex items-start justify-between">
               <div>
-                <p className="text-[11px] uppercase tracking-wider text-[#7C3AED] font-semibold">Soporte YOKTO</p>
+                <p className="text-[11px] uppercase tracking-wider text-[#7C3AED] font-semibold">Soporte CUMPLEX</p>
                 <h3 className="text-sm font-semibold text-yo-txt mt-0.5">¿En qué te ayudamos?</h3>
               </div>
               <button onClick={() => setOpen(false)} className="text-yo-txt-3 hover:text-yo-txt">

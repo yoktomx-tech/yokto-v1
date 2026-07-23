@@ -22,7 +22,7 @@ import { InfoBox } from "@/components/tx/ui/info-box";
 
 export const Route = createFileRoute("/_authenticated/cumplimiento")({
   head: () => ({ meta: [
-    { title: "Cumplimiento de operación — YOKTO" },
+    { title: "Cumplimiento de operación — CUMPLEX" },
     { name: "robots", content: "noindex" },
   ]}),
   component: CumplimientoPage,
@@ -210,7 +210,7 @@ function CumplimientoPage() {
       />
 
       <NoCustodyBanner
-        message="Este panel es tu bandeja operativa como vendedor. YOKTO valida las evidencias que subas y, cuando el comprador aprueba, ordena la liberación a la pasarela. YOKTO no custodia fondos."
+        message="Este panel es tu bandeja operativa como vendedor. CUMPLEX valida las evidencias que subas y, cuando el comprador aprueba, ordena la liberación a la pasarela. CUMPLEX no custodia fondos."
       />
 
       <InfoBox tone="info" title="Cómo funciona el cumplimiento">
@@ -864,7 +864,7 @@ function ObsTab({ hito, onFix }: { hito: Hito | null; onFix: (o: Observation) =>
 
 function TimelineTab() {
   const events = [
-    { d: "2026-07-14 10:20", who: "Verificador Yokto", a: "Emitió observación", o: "DOC-8831 · CFDI entrega parcial" },
+    { d: "2026-07-14 10:20", who: "Verificador Cumplex", a: "Emitió observación", o: "DOC-8831 · CFDI entrega parcial" },
     { d: "2026-07-14 09:12", who: "Tú", a: "Cargó evidencia", o: "EV-3312 · Video recorrido zona B" },
     { d: "2026-07-14 09:10", who: "Tú", a: "Cargó evidencia", o: "EV-3311 · Fotos avance zona A" },
     { d: "2026-06-21 14:03", who: "Backoffice", a: "Aprobó hito", o: "MILE-001 · Anticipo documental" },
@@ -898,7 +898,7 @@ function CandadosTab({ op }: { op: Operation }) {
     <div className="space-y-2">
       <div className="rounded-md border border-[#FEF3C7] bg-[#FFFBEB] p-3 text-[12px] text-[#92400E] flex gap-2">
         <Lock className="size-4 mt-0.5" />
-        <div>Estos candados impiden que el hito pueda enviarse a revisión o que YOKTO ordene liberaciones a la pasarela.</div>
+        <div>Estos candados impiden que el hito pueda enviarse a revisión o que CUMPLEX ordene liberaciones a la pasarela.</div>
       </div>
       {op.locks.map((lk, i) => (
         <div key={i} className="rounded-md border border-yo-border p-3">
@@ -1005,7 +1005,7 @@ function FiscalTab({ op }: { op: Operation }) {
     <div className="space-y-3">
       <div className="rounded-md border border-[#FEF3C7] bg-[#FFFBEB] p-3 text-[12px] text-[#92400E] flex gap-2">
         <Info className="size-4 mt-0.5" />
-        <div>YOKTO no emite CFDI ni REP. Debes generarlos en tu PAC o sistema contable y subir el XML timbrado.</div>
+        <div>CUMPLEX no emite CFDI ni REP. Debes generarlos en tu PAC o sistema contable y subir el XML timbrado.</div>
       </div>
 
       <div className="rounded-md border border-yo-border p-3">
@@ -1275,7 +1275,7 @@ function MarkReadyModal({ op, hito, onClose }: { op: Operation; hito: Hito; onCl
     >
       <div className="rounded-md border border-yo-border bg-yo-raised/40 p-3 text-[12px] text-yo-txt-2 flex gap-2">
         <Info className="size-4 mt-0.5 text-yo-ac" />
-        <div>Confirma que cada requisito está cargado y correcto. Una vez enviado, el verificador Yokto tendrá 48h para dictaminar.</div>
+        <div>Confirma que cada requisito está cargado y correcto. Una vez enviado, el verificador Cumplex tendrá 48h para dictaminar.</div>
       </div>
       <ul className="space-y-1.5">
         {hito.checklist.map((c, i) => (

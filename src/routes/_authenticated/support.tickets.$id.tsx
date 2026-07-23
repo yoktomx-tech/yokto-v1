@@ -116,7 +116,7 @@ function TicketDetail() {
                     </ul>
                   )}
                   <p className={`mt-1 text-[10px] ${mine ? "text-white/60" : "text-yo-txt-3"}`}>
-                    {m.author_kind === "internal" ? "Equipo YOKTO" : "Tú"} · {new Date(m.created_at).toLocaleString("es-MX")}
+                    {m.author_kind === "internal" ? "Equipo CUMPLEX" : "Tú"} · {new Date(m.created_at).toLocaleString("es-MX")}
                   </p>
                 </div>
               </div>

@@ -15,7 +15,7 @@ import type { TxStatus } from "@/lib/tx";
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
     meta: [
-      { title: "Panel — YOKTO" },
+      { title: "Panel — CUMPLEX" },
       { name: "robots", content: "noindex" },
     ],
   }),
@@ -150,7 +150,7 @@ function Dashboard() {
               Hola, {displayName}.
             </h1>
             <p className="mt-1 text-sm text-yo-txt-2">
-              Este es tu centro de control YOKTO. Fondos custodiados, transacciones activas y alertas críticas.
+              Este es tu centro de control CUMPLEX. Fondos custodiados, transacciones activas y alertas críticas.
             </p>
           </div>
 
@@ -186,7 +186,7 @@ function Dashboard() {
                 />
                 <MetricCard
                   loading={loading}
-                  titulo="Tu Score YOKTO"
+                  titulo="Tu Score CUMPLEX"
                   valor={metrics.score}
                   formato="NUMERO"
                   icon={Star}

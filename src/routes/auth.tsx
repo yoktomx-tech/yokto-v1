@@ -4,7 +4,7 @@ import { z } from "zod";
 import { Mail, Lock, Eye, EyeOff, User, Loader2, ShieldCheck, ArrowRight, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
-import { YoktoLogo } from "@/components/logo";
+import { CumplexLogo } from "@/components/logo";
 
 const searchSchema = z.object({
   redirect: z.string().optional(),
@@ -15,8 +15,8 @@ export const Route = createFileRoute("/auth")({
   validateSearch: (s) => searchSchema.parse(s),
   head: () => ({
     meta: [
-      { title: "Acceso — YOKTO" },
-      { name: "description", content: "Ingresa o crea tu cuenta en YOKTO, plataforma profesional de escrow digital." },
+      { title: "Acceso — CUMPLEX" },
+      { name: "description", content: "Ingresa o crea tu cuenta en CUMPLEX, plataforma profesional de escrow digital." },
       { name: "robots", content: "noindex" },
     ],
   }),
@@ -144,7 +144,7 @@ function AuthPage() {
         />
 
         <div className="relative flex items-center gap-2.5">
-          <YoktoLogo variant="auto" className="h-7 w-auto" />
+          <CumplexLogo variant="auto" className="h-7 w-auto" />
         </div>
 
         <div className="relative max-w-lg">
@@ -177,7 +177,7 @@ function AuthPage() {
         </div>
 
         <div className="relative flex items-center justify-between text-xs text-yokto-text-3">
-          <span>© {new Date().getFullYear()} YOKTO</span>
+          <span>© {new Date().getFullYear()} CUMPLEX</span>
           <span className="uppercase tracking-widest">v2.0 · MX</span>
         </div>
       </aside>
@@ -187,7 +187,7 @@ function AuthPage() {
         <div className="w-full max-w-sm">
           {/* Mobile brand */}
           <div className="lg:hidden mb-8 flex items-center gap-2.5">
-            <YoktoLogo variant="auto" className="h-7 w-auto" />
+            <CumplexLogo variant="auto" className="h-7 w-auto" />
           </div>
 
           <div className="rounded-2xl bg-yokto-card border border-white/[0.06] shadow-lg p-7 sm:p-8">

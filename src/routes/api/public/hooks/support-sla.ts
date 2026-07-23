@@ -163,14 +163,14 @@ function renderHtml(t: TicketLite, kind: Kind, name: string | null): string {
   return `<!doctype html><html><body style="font-family:system-ui,-apple-system,sans-serif;background:#fff;color:#18181B;padding:24px;">
     <div style="max-width:560px;margin:0 auto;">
       <div style="border-left:4px solid ${color};padding:8px 16px;margin-bottom:16px;">
-        <p style="margin:0;font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:${color};font-weight:700;">YOKTO · Soporte</p>
+        <p style="margin:0;font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:${color};font-weight:700;">CUMPLEX · Soporte</p>
         <h1 style="margin:6px 0 0;font-size:18px;">${escape(title)}</h1>
       </div>
       <p>Hola ${escape(name ?? "equipo")},</p>
       <p>${escape(body)}</p>
       <p><a href="${url}" style="display:inline-block;background:#18181B;color:#fff;text-decoration:none;padding:10px 16px;border-radius:8px;font-weight:600;font-size:13px;">Abrir ticket</a></p>
       <hr style="border:none;border-top:1px solid #E5E7EB;margin:24px 0;" />
-      <p style="font-size:11px;color:#6B7280;">Notificación automática de YOKTO. No responder a este correo.</p>
+      <p style="font-size:11px;color:#6B7280;">Notificación automática de CUMPLEX. No responder a este correo.</p>
     </div>
   </body></html>`;
 }

@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 import { PageHeader } from "@/components/page-header";
 
 export const Route = createFileRoute("/_authenticated/notifications")({
-  head: () => ({ meta: [{ title: "Notificaciones — YOKTO" }, { name: "robots", content: "noindex" }] }),
+  head: () => ({ meta: [{ title: "Notificaciones — CUMPLEX" }, { name: "robots", content: "noindex" }] }),
   component: NotificationsPage,
 });
 

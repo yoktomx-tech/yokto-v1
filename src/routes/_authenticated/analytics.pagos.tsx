@@ -12,7 +12,7 @@ import {
 } from "recharts";
 
 export const Route = createFileRoute("/_authenticated/analytics/pagos")({
-  head: () => ({ meta: [{ title: "Pagos — Analytics — YOKTO" }, { name: "robots", content: "noindex" }] }),
+  head: () => ({ meta: [{ title: "Pagos — Analytics — CUMPLEX" }, { name: "robots", content: "noindex" }] }),
   component: PagosReport,
 });
 
@@ -35,7 +35,7 @@ function PagosReport() {
     <div className="space-y-6">
       <div className="rounded-lg border border-yo-info bg-[#F0F9FF] p-3">
         <p className="text-[12px] text-[#0C4A6E]">
-          Los importes mostrados corresponden a operaciones procesadas y retenidas a través de la pasarela de pago integrada. <b>YOKTO no custodia fondos</b>.
+          Los importes mostrados corresponden a operaciones procesadas y retenidas a través de la pasarela de pago integrada. <b>CUMPLEX no custodia fondos</b>.
         </p>
       </div>
 
@@ -44,7 +44,7 @@ function PagosReport() {
         <MetricCard label="Retenidos" value={fmtMoney(totals.held)} accent="warn" />
         <MetricCard label="Liberados" value={fmtMoney(totals.released)} accent="ok" />
         <MetricCard label="Reembolsos" value={fmtMoney(totals.refunded)} accent="err" />
-        <MetricCard label="Comisiones YOKTO" value={fmtMoney(totals.commission)} accent="info" />
+        <MetricCard label="Comisiones CUMPLEX" value={fmtMoney(totals.commission)} accent="info" />
       </div>
 
       <ChartCard title="Volumen por periodo">

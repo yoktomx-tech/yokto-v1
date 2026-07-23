@@ -40,7 +40,7 @@ function AdminRoles() {
     <>
       <AdminPageHeader
         title="Roles internos"
-        description="Delegación de permisos del staff YOKTO — requiere motivo y MFA"
+        description="Delegación de permisos del staff CUMPLEX — requiere motivo y MFA"
         actions={
           <button onClick={() => setShowAssign(true)}
             className="px-4 py-2 bg-yo-ac hover:bg-yo-ac-h rounded-lg text-xs font-semibold text-yo-txt">

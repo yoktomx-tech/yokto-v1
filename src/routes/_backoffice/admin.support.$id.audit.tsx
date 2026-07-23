@@ -78,7 +78,7 @@ function TicketAudit() {
       },
       didDrawPage: (dat) => {
         doc.setFontSize(8); doc.setTextColor(120);
-        doc.text(`YOKTO · Confidencial · pág ${dat.pageNumber}`, 40, doc.internal.pageSize.getHeight() - 20);
+        doc.text(`CUMPLEX · Confidencial · pág ${dat.pageNumber}`, 40, doc.internal.pageSize.getHeight() - 20);
       },
     });
     doc.save(`auditoria-${t?.numero ?? id.slice(0,8)}.pdf`);

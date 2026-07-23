@@ -2,7 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Menu, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { YoktoLogo } from "@/components/logo";
+import { CumplexLogo } from "@/components/logo";
 
 const nav = [] as const;
 
@@ -32,8 +32,8 @@ export function SiteHeader() {
       }`}
     >
       <div className="container-editorial flex h-16 items-center justify-between">
-        <Link to="/" className="flex items-center gap-2.5 group" onClick={() => setOpen(false)} aria-label="YOKTO — Inicio">
-          <YoktoLogo variant="auto" className="h-6 w-auto transition group-hover:opacity-80" />
+        <Link to="/" className="flex items-center gap-2.5 group" onClick={() => setOpen(false)} aria-label="CUMPLEX — Inicio">
+          <CumplexLogo variant="auto" className="h-6 w-auto transition group-hover:opacity-80" />
         </Link>
 
         <nav className="hidden md:flex items-center gap-1" />

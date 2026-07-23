@@ -40,7 +40,7 @@ function AcceptInvitation() {
     <div className="min-h-dvh grid place-items-center bg-yo-bg p-4">
       <div className="max-w-sm w-full rounded-lg border border-yo-border bg-yo-surface p-6 text-center">
         <Mail className="size-8 mx-auto text-yo-ac mb-3" />
-        <h1 className="text-lg font-bold text-yo-txt mb-2">Invitación a YOKTO</h1>
+        <h1 className="text-lg font-bold text-yo-txt mb-2">Invitación a CUMPLEX</h1>
         {status === "checking" && <p className="text-sm text-yo-txt-3">Verificando…</p>}
         {status === "need_auth" && (
           <>

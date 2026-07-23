@@ -358,7 +358,7 @@ export const listPaymentMovements = createServerFn({ method: "GET" })
           kind: "comision",
           amount_cents: po.commission_cents,
           currency: po.currency,
-          description: `Comisión YOKTO${numero ? " · " + numero : ""}`,
+          description: `Comisión CUMPLEX${numero ? " · " + numero : ""}`,
           transaction_numero: numero,
           status: po.status,
           provider_ref: po.provider_ref,

@@ -57,7 +57,7 @@ import { getPldOverview } from "@/lib/pld.functions";
 export const Route = createFileRoute("/_authenticated/score")({
   head: () => ({
     meta: [
-      { title: "Perfil de Cumplimiento — YOKTO" },
+      { title: "Perfil de Cumplimiento — CUMPLEX" },
       { name: "robots", content: "noindex" },
     ],
   }),
@@ -360,7 +360,7 @@ function ScoreCard({ profile }: { profile: ReturnType<typeof getMockProfile> }) 
         </p>
         <p className="text-[11px] text-yo-txt-3 mt-3 flex items-start gap-1.5">
           <Info className="size-3.5 shrink-0 mt-0.5" />
-          Este score se calcula únicamente con información generada dentro de operaciones en YOKTO.
+          Este score se calcula únicamente con información generada dentro de operaciones en CUMPLEX.
         </p>
       </div>
     </div>
@@ -909,7 +909,7 @@ function CompleteProfileDrawer({ profile, onClose, onUpload }: { profile: Compli
         <div className="rounded-lg border border-[#EBEBF0] bg-[#F0F9FF] p-3 flex gap-2">
           <Info className="size-4 text-[#0284C7] shrink-0 mt-0.5" />
           <p className="text-xs text-[#0C4A6E]">
-            El tipo de perfil modifica los requisitos mínimos para crear, aceptar o participar en una operación dentro de YOKTO.
+            El tipo de perfil modifica los requisitos mínimos para crear, aceptar o participar en una operación dentro de CUMPLEX.
           </p>
         </div>
 
@@ -937,7 +937,7 @@ function DisclaimerCard() {
   return (
     <div className="rounded-lg border border-yo-border bg-yo-raised p-4">
       <p className="text-[11px] text-yo-txt-2 leading-relaxed">
-        El Perfil de Cumplimiento es un indicador interno basado en datos de operaciones realizadas en YOKTO. No
+        El Perfil de Cumplimiento es un indicador interno basado en datos de operaciones realizadas en CUMPLEX. No
         constituye calificación crediticia, dictamen financiero ni garantía de cumplimiento.
       </p>
     </div>
@@ -1014,7 +1014,7 @@ function ScoreExplainDrawer({ comp, onClose }: { comp: ScoreComponent; onClose: 
         <div className="rounded-lg border border-[#EBEBF0] bg-[#F0F9FF] p-3 flex gap-2">
           <Info className="size-4 text-[#0284C7] shrink-0 mt-0.5" />
           <p className="text-xs text-[#0C4A6E]">
-            Este indicador se recalcula automáticamente conforme cierras nuevas operaciones en YOKTO.
+            Este indicador se recalcula automáticamente conforme cierras nuevas operaciones en CUMPLEX.
           </p>
         </div>
       </div>
@@ -1100,7 +1100,7 @@ function RecalcModal({ onClose }: { onClose: () => void }) {
     >
       <p className="text-sm text-yo-txt-2">
         Tu score se actualizará con la información más reciente de operaciones, hitos, documentos y disputas registradas
-        en YOKTO. El resultado puede tardar unos segundos.
+        en CUMPLEX. El resultado puede tardar unos segundos.
       </p>
     </Modal>
   );

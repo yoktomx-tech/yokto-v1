@@ -4,7 +4,7 @@ import { PageHeader } from "@/components/page-header";
 import { AnalyticsShell } from "@/components/analytics/analytics-shell";
 
 export const Route = createFileRoute("/_authenticated/analytics")({
-  head: () => ({ meta: [{ title: "Analytics — YOKTO" }, { name: "robots", content: "noindex" }] }),
+  head: () => ({ meta: [{ title: "Analytics — CUMPLEX" }, { name: "robots", content: "noindex" }] }),
   component: AnalyticsLayout,
 });
 

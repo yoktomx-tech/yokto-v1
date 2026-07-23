@@ -15,7 +15,7 @@ const searchSchema = z.object({
 });
 
 export const Route = createFileRoute("/_authenticated/disputes/new")({
-  head: () => ({ meta: [{ title: "Abrir disputa — YOKTO" }, { name: "robots", content: "noindex" }] }),
+  head: () => ({ meta: [{ title: "Abrir disputa — CUMPLEX" }, { name: "robots", content: "noindex" }] }),
   validateSearch: (s) => searchSchema.parse(s),
   component: NewDisputePage,
 });

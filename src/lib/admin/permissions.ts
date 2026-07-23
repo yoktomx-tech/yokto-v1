@@ -1,4 +1,4 @@
-// Matriz de permisos del backoffice interno YOKTO — fuente única de verdad.
+// Matriz de permisos del backoffice interno CUMPLEX — fuente única de verdad.
 // Se usa tanto en UI (ocultar menús) como en API (requirePermission).
 
 export type InternalRole =

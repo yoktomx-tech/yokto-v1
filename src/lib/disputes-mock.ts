@@ -228,12 +228,12 @@ export const MOCK_DISPUTES: Dispute[] = [
     messages: [
       { id: "msg1", sender_role: "buyer",  sender_name: "Industrias Norte SA", visibility: "public", body: "Abrimos disputa por documentación incompleta en la entrega final.", created_at: iso(now - days(4)) },
       { id: "msg2", sender_role: "seller", sender_name: "Transportes Delta",   visibility: "public", body: "Adjuntamos la carta porte y evidencia GPS del primer tramo.", created_at: iso(now - days(3)) },
-      { id: "msg3", sender_role: "internal", sender_name: "Mediación YOKTO", visibility: "public", body: "Solicitamos al vendedor entregar sellos del destino final.", created_at: iso(now - days(1)) },
+      { id: "msg3", sender_role: "internal", sender_name: "Mediación CUMPLEX", visibility: "public", body: "Solicitamos al vendedor entregar sellos del destino final.", created_at: iso(now - days(1)) },
     ],
     timeline: [
       { at: iso(now - days(4)), actor: "Industrias Norte SA", action: "Disputa abierta" },
       { at: iso(now - days(3)), actor: "Transportes Delta",   action: "Evidencia agregada: Carta Porte v1.pdf", hash: "9AF3...82C1" },
-      { at: iso(now - days(1)), actor: "Mediación YOKTO",     action: "Evidencia adicional solicitada" },
+      { at: iso(now - days(1)), actor: "Mediación CUMPLEX",     action: "Evidencia adicional solicitada" },
       { at: iso(now - days(0.2)), actor: "Transportes Delta", action: "Comentario enviado" },
     ],
   },
@@ -298,7 +298,7 @@ export const MOCK_DISPUTES: Dispute[] = [
     sla_due_at: iso(now + days(1)),
     created_at: iso(now - days(9)),
     updated_at: iso(now - days(0.5)),
-    last_activity_by: "Mediación YOKTO",
+    last_activity_by: "Mediación CUMPLEX",
     milestones: [
       { id: "m1", label: "Hito 2 · Entregables fase 2", status: "LISTO_REVISION", affected_amount_cents: 4_500_000, evidence_state: "COMPLETA", due_at: iso(now - days(2)) },
     ],
@@ -306,14 +306,14 @@ export const MOCK_DISPUTES: Dispute[] = [
     messages: [],
     timeline: [
       { at: iso(now - days(9)), actor: "Grupo Alfa",       action: "Disputa abierta" },
-      { at: iso(now - days(0.5)), actor: "Mediación YOKTO", action: "Resolución propuesta: parcial" },
+      { at: iso(now - days(0.5)), actor: "Mediación CUMPLEX", action: "Resolución propuesta: parcial" },
     ],
     resolution: {
       resolution_type: "PARTIAL",
       amount_release_cents: 2_500_000,
       amount_refund_cents: 2_000_000,
       rationale: "Se acredita cumplimiento parcial. Se libera monto proporcional a entregables aceptados.",
-      proposed_by: "Mediación YOKTO",
+      proposed_by: "Mediación CUMPLEX",
       proposed_at: iso(now - days(0.5)),
       accepted_by_buyer: false,
       accepted_by_seller: false,
@@ -343,7 +343,7 @@ export const MOCK_DISPUTES: Dispute[] = [
     sla_due_at: iso(now - days(15)),
     created_at: iso(now - days(30)),
     updated_at: iso(now - days(10)),
-    last_activity_by: "Mediación YOKTO",
+    last_activity_by: "Mediación CUMPLEX",
     milestones: [
       { id: "m1", label: "Hito 3 · Liberación aduanal", status: "RESUELTO", affected_amount_cents: 18_500_000, evidence_state: "COMPLETA", due_at: iso(now - days(20)) },
     ],
@@ -351,14 +351,14 @@ export const MOCK_DISPUTES: Dispute[] = [
     messages: [],
     timeline: [
       { at: iso(now - days(30)), actor: "Manufactura Sigma", action: "Disputa abierta" },
-      { at: iso(now - days(10)), actor: "Mediación YOKTO",   action: "Resolución final: liberar" },
+      { at: iso(now - days(10)), actor: "Mediación CUMPLEX",   action: "Resolución final: liberar" },
     ],
     resolution: {
       resolution_type: "RELEASE",
       amount_release_cents: 18_500_000,
       amount_refund_cents: 0,
       rationale: "Documentación corregida y validada. Procede liberación total.",
-      proposed_by: "Mediación YOKTO",
+      proposed_by: "Mediación CUMPLEX",
       proposed_at: iso(now - days(12)),
       accepted_by_buyer: true,
       accepted_by_seller: true,

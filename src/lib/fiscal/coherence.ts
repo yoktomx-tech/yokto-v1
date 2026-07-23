@@ -1,4 +1,4 @@
-// Validaciones de coherencia CFDI PPD vs Transacción YOKTO
+// Validaciones de coherencia CFDI PPD vs Transacción CUMPLEX
 // Cada check devuelve { code, severity, ok, message }
 
 import type { ParsedCFDI } from "./cfdi-parser";

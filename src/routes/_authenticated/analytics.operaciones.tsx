@@ -10,7 +10,7 @@ import {
 } from "@/lib/analytics-mock";
 
 export const Route = createFileRoute("/_authenticated/analytics/operaciones")({
-  head: () => ({ meta: [{ title: "Operaciones — Analytics — YOKTO" }, { name: "robots", content: "noindex" }] }),
+  head: () => ({ meta: [{ title: "Operaciones — Analytics — CUMPLEX" }, { name: "robots", content: "noindex" }] }),
   component: OperacionesReport,
 });
 

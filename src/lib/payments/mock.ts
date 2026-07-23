@@ -14,7 +14,7 @@ function rand(n: number) {
   return s;
 }
 
-// CLABE ficticia (18 dígitos, prefijo YOKTO 646180 = STP)
+// CLABE ficticia (18 dígitos, prefijo CUMPLEX 646180 = STP)
 function fakeClabe() {
   return `646180${rand(12)}`;
 }
@@ -33,7 +33,7 @@ export const mockProvider: PaymentProvider = {
         status: "requires_payment",
         clabe: fakeClabe(),
         referenceCode: `YKT${rand(8)}`,
-        beneficiary: "YOKTO ESCROW SIMULADO",
+        beneficiary: "CUMPLEX ESCROW SIMULADO",
         bank: "STP (Sandbox)",
         expiresAt,
       };

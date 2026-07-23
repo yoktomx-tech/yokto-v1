@@ -290,7 +290,7 @@ function representativesFor(personType: PersonType): Representative[] {
 
 function docsFor(personType: PersonType, role: ViewRole): ComplianceDoc[] {
   const base: ComplianceDoc[] = [
-    { id: "d1", name: "Identificación oficial (INE)", category: "IDENTIDAD", status: "APPROVED", updatedAt: iso(45), reviewedBy: "Compliance YOKTO", hash: "a1f2…9c7d", required: true },
+    { id: "d1", name: "Identificación oficial (INE)", category: "IDENTIDAD", status: "APPROVED", updatedAt: iso(45), reviewedBy: "Compliance CUMPLEX", hash: "a1f2…9c7d", required: true },
     { id: "d2", name: "Constancia de Situación Fiscal", category: "FISCAL", status: "APPROVED", expiresAt: isoFuture(15), updatedAt: iso(30), reviewedBy: "Automático", hash: "b8e1…4a2c", required: true },
     { id: "d3", name: "Comprobante de domicilio", category: "IDENTIDAD", status: "PENDING", updatedAt: iso(2), reviewedBy: "—", required: true },
   ];
@@ -299,7 +299,7 @@ function docsFor(personType: PersonType, role: ViewRole): ComplianceDoc[] {
     return [
       ...base,
       { id: "d4", name: "CURP validada (RENAPO)", category: "IDENTIDAD", status: "APPROVED", updatedAt: iso(10), reviewedBy: "Automático" },
-      { id: "d5", name: "Opinión de cumplimiento SAT", category: "FISCAL", status: "EXPIRED", expiresAt: iso(5), updatedAt: iso(120), reviewedBy: "Compliance YOKTO", notes: "Renovar y adjuntar nueva versión." },
+      { id: "d5", name: "Opinión de cumplimiento SAT", category: "FISCAL", status: "EXPIRED", expiresAt: iso(5), updatedAt: iso(120), reviewedBy: "Compliance CUMPLEX", notes: "Renovar y adjuntar nueva versión." },
     ];
   }
 
@@ -308,9 +308,9 @@ function docsFor(personType: PersonType, role: ViewRole): ComplianceDoc[] {
       ...base,
       { id: "d4", name: "CURP validada (RENAPO)", category: "IDENTIDAD", status: "APPROVED", updatedAt: iso(10), reviewedBy: "Automático" },
       { id: "d5", name: "Opinión de cumplimiento SAT", category: "FISCAL", status: "PENDING", updatedAt: iso(1), reviewedBy: "—", notes: "Requerido para operaciones de mayor monto." },
-      { id: "d6", name: "Comprobante de actividad económica", category: "OPERATIVO", status: "APPROVED", updatedAt: iso(20), reviewedBy: "Compliance YOKTO" },
+      { id: "d6", name: "Comprobante de actividad económica", category: "OPERATIVO", status: "APPROVED", updatedAt: iso(20), reviewedBy: "Compliance CUMPLEX" },
       ...(role === "seller"
-        ? [{ id: "d7", name: "Carátula bancaria", category: "BANCARIO" as DocCategory, status: "APPROVED" as DocStatus, updatedAt: iso(60), reviewedBy: "Compliance YOKTO", required: true }]
+        ? [{ id: "d7", name: "Carátula bancaria", category: "BANCARIO" as DocCategory, status: "APPROVED" as DocStatus, updatedAt: iso(60), reviewedBy: "Compliance CUMPLEX", required: true }]
         : []),
     ];
   }
@@ -318,16 +318,16 @@ function docsFor(personType: PersonType, role: ViewRole): ComplianceDoc[] {
   // PM
   const pmDocs: ComplianceDoc[] = [
     { id: "d1", name: "Constancia de Situación Fiscal", category: "FISCAL", status: "APPROVED", expiresAt: isoFuture(15), updatedAt: iso(30), reviewedBy: "Automático", hash: "b8e1…4a2c", required: true },
-    { id: "d2", name: "Acta constitutiva", category: "CORPORATIVO", status: "APPROVED", updatedAt: iso(90), reviewedBy: "Compliance YOKTO", required: true },
+    { id: "d2", name: "Acta constitutiva", category: "CORPORATIVO", status: "APPROVED", updatedAt: iso(90), reviewedBy: "Compliance CUMPLEX", required: true },
     { id: "d3", name: "Poder del representante legal", category: "LEGAL", status: "PENDING", updatedAt: iso(3), reviewedBy: "—", required: true, notes: "Validando facultades." },
-    { id: "d4", name: "Identificación del representante legal", category: "IDENTIDAD", status: "APPROVED", updatedAt: iso(45), reviewedBy: "Compliance YOKTO", required: true },
-    { id: "d5", name: "Comprobante de domicilio fiscal", category: "FISCAL", status: "APPROVED", updatedAt: iso(20), reviewedBy: "Compliance YOKTO", required: true },
+    { id: "d4", name: "Identificación del representante legal", category: "IDENTIDAD", status: "APPROVED", updatedAt: iso(45), reviewedBy: "Compliance CUMPLEX", required: true },
+    { id: "d5", name: "Comprobante de domicilio fiscal", category: "FISCAL", status: "APPROVED", updatedAt: iso(20), reviewedBy: "Compliance CUMPLEX", required: true },
     { id: "d6", name: "Opinión de cumplimiento SAT", category: "FISCAL", status: "PENDING", updatedAt: iso(1), reviewedBy: "—", notes: "Recomendado para operaciones B2B." },
   ];
   if (role === "seller") {
     pmDocs.push(
-      { id: "d7", name: "Carátula bancaria / cuenta receptora", category: "BANCARIO", status: "APPROVED", updatedAt: iso(60), reviewedBy: "Compliance YOKTO", required: true },
-      { id: "d8", name: "Carta Porte (permiso sectorial)", category: "SECTORIAL", status: "EXPIRED", expiresAt: iso(2), updatedAt: iso(180), reviewedBy: "Compliance YOKTO", notes: "Renovar antes de operar en transporte." },
+      { id: "d7", name: "Carátula bancaria / cuenta receptora", category: "BANCARIO", status: "APPROVED", updatedAt: iso(60), reviewedBy: "Compliance CUMPLEX", required: true },
+      { id: "d8", name: "Carta Porte (permiso sectorial)", category: "SECTORIAL", status: "EXPIRED", expiresAt: iso(2), updatedAt: iso(180), reviewedBy: "Compliance CUMPLEX", notes: "Renovar antes de operar en transporte." },
     );
   }
   return pmDocs;
@@ -530,9 +530,9 @@ export function getMockProfile(role: ViewRole, personType: PersonType = "PM"): C
 
   const audit: AuditEntry[] = [
     { date: iso(0), event: "Score recalculado", user: "Sistema", module: "Perfil", result: `${score - 3} → ${score}` },
-    { date: iso(1), event: "Documento aprobado", user: "Compliance YOKTO", module: "Documentos", result: "Aprobado" },
+    { date: iso(1), event: "Documento aprobado", user: "Compliance CUMPLEX", module: "Documentos", result: "Aprobado" },
     { date: iso(4), event: "Documento reemplazado", user: "Usuario", module: "Documentos", result: "En revisión" },
-    { date: iso(20), event: personType === "PM" ? "KYB aprobado" : "KYC aprobado", user: "Compliance YOKTO", module: "Verificación", result: "Aprobado" },
+    { date: iso(20), event: personType === "PM" ? "KYB aprobado" : "KYC aprobado", user: "Compliance CUMPLEX", module: "Verificación", result: "Aprobado" },
     { date: iso(30), event: "Perfil creado", user: "Sistema", module: "Perfil", result: "Creado" },
   ];
 

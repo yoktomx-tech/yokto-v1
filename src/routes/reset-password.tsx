@@ -2,12 +2,12 @@ import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Lock, Eye, EyeOff, Loader2, ArrowRight, CheckCircle2, ArrowLeft } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { YoktoLogo } from "@/components/logo";
+import { CumplexLogo } from "@/components/logo";
 
 export const Route = createFileRoute("/reset-password")({
   head: () => ({
     meta: [
-      { title: "Nueva contraseña — YOKTO" },
+      { title: "Nueva contraseña — CUMPLEX" },
       { name: "robots", content: "noindex" },
     ],
   }),
@@ -79,7 +79,7 @@ function ResetPasswordPage() {
     <div className="min-h-dvh grid place-items-center bg-yokto-base text-yokto-text-1 px-5 py-12">
       <div className="w-full max-w-sm">
         <div className="mb-8 flex items-center gap-2.5 justify-center">
-          <YoktoLogo variant="auto" className="h-7 w-auto" />
+          <CumplexLogo variant="auto" className="h-7 w-auto" />
         </div>
 
         <div className="rounded-2xl bg-yokto-card border border-white/[0.06] shadow-lg p-7 sm:p-8">

@@ -13,7 +13,7 @@ export const Route = createFileRoute("/_authenticated/crm/search")({
 
 function SearchPage() {
   const [q, setQ] = useState("");
-  const [criteria, setCriteria] = useState<"AUTO" | "RFC" | "CURP" | "EMAIL" | "YOKTO_ID" | "NAME" | "OP">("AUTO");
+  const [criteria, setCriteria] = useState<"AUTO" | "RFC" | "CURP" | "EMAIL" | "CUMPLEX_ID" | "NAME" | "OP">("AUTO");
   const [submitted, setSubmitted] = useState(false);
 
   const results = useMemo(() => {
@@ -36,17 +36,17 @@ function SearchPage() {
         <PageHeader
           icon={Search}
           title="Buscar contraparte"
-          subtitle="Localiza personas físicas, morales o freelancers ya verificados en YOKTO. Nunca se muestran datos sensibles sin relación operativa."
+          subtitle="Localiza personas físicas, morales o freelancers ya verificados en CUMPLEX. Nunca se muestran datos sensibles sin relación operativa."
         />
       </div>
 
       <InfoBox tone="info" title="Privacidad por diseño">
-        Sólo verás la información pública mínima (nombre público, YOKTO ID enmascarado, sector). Los datos completos (RFC, CURP, domicilio) se revelan al abrir una operación conjunta.
+        Sólo verás la información pública mínima (nombre público, CUMPLEX ID enmascarado, sector). Los datos completos (RFC, CURP, domicilio) se revelan al abrir una operación conjunta.
       </InfoBox>
 
       <section className="bg-white border border-yo-border rounded-lg p-4 flex flex-col gap-3">
         <div className="flex flex-wrap items-center gap-2">
-          {(["AUTO", "RFC", "CURP", "EMAIL", "YOKTO_ID", "NAME", "OP"] as const).map((k) => (
+          {(["AUTO", "RFC", "CURP", "EMAIL", "CUMPLEX_ID", "NAME", "OP"] as const).map((k) => (
             <button
               key={k}
               onClick={() => setCriteria(k)}
@@ -54,7 +54,7 @@ function SearchPage() {
                 ? "bg-[#EEF2FF] border-[#4F46E5] text-[#3730A3] font-semibold"
                 : "bg-white border-yo-border text-yo-txt-2 hover:text-yo-txt")}
             >
-              {k === "AUTO" ? "Autodetectar" : k === "YOKTO_ID" ? "YOKTO ID" : k === "NAME" ? "Nombre / Razón social" : k === "OP" ? "Número de operación" : k}
+              {k === "AUTO" ? "Autodetectar" : k === "CUMPLEX_ID" ? "CUMPLEX ID" : k === "NAME" ? "Nombre / Razón social" : k === "OP" ? "Número de operación" : k}
             </button>
           ))}
         </div>
@@ -72,10 +72,10 @@ function SearchPage() {
                 criteria === "RFC" ? "Ej. TNB120315AA1" :
                 criteria === "CURP" ? "Ej. LOSM880412MDFPRR07" :
                 criteria === "EMAIL" ? "contacto@empresa.mx" :
-                criteria === "YOKTO_ID" ? "YKT-00000" :
+                criteria === "CUMPLEX_ID" ? "YKT-00000" :
                 criteria === "NAME" ? "Nombre o razón social" :
                 criteria === "OP" ? "OPAAMMDDNNNN" :
-                "RFC, CURP, email, YOKTO ID, razón social o número de operación"
+                "RFC, CURP, email, CUMPLEX ID, razón social o número de operación"
               }
               className="w-full h-11 pl-10 pr-3 rounded-md border border-yo-border bg-white text-sm font-mono focus:outline-none focus:border-[#4F46E5]"
             />
@@ -151,7 +151,7 @@ function NotFoundBlock({ query }: { query: string }) {
       <div className="mx-auto size-12 rounded-full bg-[#FFFBEB] grid place-items-center text-[#B45309]">
         <Search className="size-6" />
       </div>
-      <h3 className="mt-3 text-base font-semibold text-yo-txt">Sin coincidencias en el directorio YOKTO</h3>
+      <h3 className="mt-3 text-base font-semibold text-yo-txt">Sin coincidencias en el directorio CUMPLEX</h3>
       <p className="mt-1 text-sm text-yo-txt-2 max-w-md mx-auto">
         No encontramos una contraparte registrada para <span className="font-mono">{query}</span>. Puedes enviarle una invitación formal para que se registre y quede vinculada a tu red.
       </p>
