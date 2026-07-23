@@ -40,14 +40,14 @@ function PrivacyPage() {
       <SettingsCard icon={Eye} title="Visibilidad ante contrapartes">
         <SettingsRow label="Quién puede verte en búsquedas">
           <select value={visibility} onChange={(e) => setVisibility(e.target.value as any)} className="h-9 rounded-md border border-yo-border bg-background px-2 text-sm">
-            <option value="public">Público (cualquier usuario YOKTO)</option>
+            <option value="public">Público (cualquier usuario CUMPLEX)</option>
             <option value="counterparties">Sólo contrapartes con las que operé</option>
             <option value="private">Privado (solo por invitación)</option>
           </select>
         </SettingsRow>
       </SettingsCard>
 
-      <SettingsCard icon={Lock} title="Política de retención" description="YOKTO conserva evidencia probatoria según regulaciones fiscales y AML.">
+      <SettingsCard icon={Lock} title="Política de retención" description="CUMPLEX conserva evidencia probatoria según regulaciones fiscales y AML.">
         <ul className="text-[13px] text-yo-txt-2 space-y-2">
           <li>· Expedientes de operación: <b>10 años</b> desde el cierre (Art. 30 CFF).</li>
           <li>· Comprobantes CFDI y REP: <b>5 años</b>.</li>

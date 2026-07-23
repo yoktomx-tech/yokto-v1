@@ -390,7 +390,7 @@ function contract(status: ContractStatus, both = false): ContractInfo {
   return {
     status,
     method: "GENERADO_AUTOMATICO",
-    templateName: "Contrato YOKTO — Servicios",
+    templateName: "Contrato CUMPLEX — Servicios",
     version: 2,
     hash: "9f2a…c81e",
     signatures: [
@@ -470,7 +470,7 @@ type RawApproval = Omit<Approval, "checklist" | "locks" | "status"> & {
 const RAW: RawApproval[] = [
   {
     id: "a1", approval_folio: "AP-2026-0041",
-    transaction_id: "t1", transaction_folio: "YOKTO-2026-00048", transaction_title: "Transporte de acero estructural",
+    transaction_id: "t1", transaction_folio: "CUMPLEX-2026-00048", transaction_title: "Transporte de acero estructural",
     seller_name: "Transportes García S.A.", seller_rfc: "TRAGAR010101AAA", sector: "AUTOTRANSPORTE",
     milestone_id: "m1", milestone_title: "Entrega en destino", milestone_order: 2,
     associated_amount: 6_800_000, commission_pct: 0.018, vat_pct: 0.16,
@@ -514,7 +514,7 @@ const RAW: RawApproval[] = [
   },
   {
     id: "a2", approval_folio: "AP-2026-0042",
-    transaction_id: "t2", transaction_folio: "YOKTO-2026-00072", transaction_title: "Compra de vehículo seminuevo",
+    transaction_id: "t2", transaction_folio: "CUMPLEX-2026-00072", transaction_title: "Compra de vehículo seminuevo",
     seller_name: "Automotriz Rivera", seller_rfc: "AUR010101XX0", sector: "VEHICULOS",
     milestone_id: "m2", milestone_title: "Inspección física del vehículo", milestone_order: 1,
     associated_amount: 42_000_000, commission_pct: 0.018, vat_pct: 0.16,
@@ -536,7 +536,7 @@ const RAW: RawApproval[] = [
   },
   {
     id: "a3", approval_folio: "AP-2026-0043",
-    transaction_id: "t3", transaction_folio: "YOKTO-2026-00022", transaction_title: "Importación equipo médico",
+    transaction_id: "t3", transaction_folio: "CUMPLEX-2026-00022", transaction_title: "Importación equipo médico",
     seller_name: "MedGlobal Trade", seller_rfc: "MGT150520AB1", sector: "COMERCIO_EXTERIOR",
     milestone_id: "m3", milestone_title: "Liberación aduanal", milestone_order: 2,
     associated_amount: 18_500_000, commission_pct: 0.02, vat_pct: 0.16,
@@ -558,7 +558,7 @@ const RAW: RawApproval[] = [
   },
   {
     id: "a4", approval_folio: "AP-2026-0038",
-    transaction_id: "t4", transaction_folio: "YOKTO-2026-00009", transaction_title: "Consultoría estratégica Q2",
+    transaction_id: "t4", transaction_folio: "CUMPLEX-2026-00009", transaction_title: "Consultoría estratégica Q2",
     seller_name: "Nova Advisors", seller_rfc: "NAD190215XY2", sector: "SERVICIOS",
     milestone_id: "m4", milestone_title: "Entregable Fase 1", milestone_order: 1,
     associated_amount: 4_200_000, commission_pct: 0.02, vat_pct: 0.16,
@@ -584,7 +584,7 @@ const RAW: RawApproval[] = [
   },
   {
     id: "a5", approval_folio: "AP-2026-0031",
-    transaction_id: "t5", transaction_folio: "YOKTO-2026-00005", transaction_title: "Venta departamento 302",
+    transaction_id: "t5", transaction_folio: "CUMPLEX-2026-00005", transaction_title: "Venta departamento 302",
     seller_name: "Inmobiliaria Palma", seller_rfc: "IPA050718QR3", sector: "INMOBILIARIO",
     milestone_id: "m5", milestone_title: "Escrituración", milestone_order: 3,
     associated_amount: 285_000_000, commission_pct: 0.012, vat_pct: 0.16,
@@ -606,7 +606,7 @@ const RAW: RawApproval[] = [
   },
   {
     id: "a6", approval_folio: "AP-2026-0025",
-    transaction_id: "t6", transaction_folio: "YOKTO-2026-00003", transaction_title: "Obra civil fase 2",
+    transaction_id: "t6", transaction_folio: "CUMPLEX-2026-00003", transaction_title: "Obra civil fase 2",
     seller_name: "Constructora Delta", seller_rfc: "CDE120830PL4", sector: "CONSTRUCCION",
     milestone_id: "m6", milestone_title: "Avance físico 50%", milestone_order: 2,
     associated_amount: 32_000_000, commission_pct: 0.02, vat_pct: 0.16,

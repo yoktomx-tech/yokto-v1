@@ -21,7 +21,7 @@ const CATEGORIES: Category[] = [
   { id: "payments", label: "Pagos y payouts", description: "Depósitos, liberaciones y reembolsos." },
   { id: "fiscal", label: "Fiscal", description: "CFDIs, REPs y validaciones SAT." },
   { id: "team", label: "Equipo", description: "Invitaciones y cambios de rol." },
-  { id: "product", label: "Producto", description: "Novedades y anuncios de YOKTO." },
+  { id: "product", label: "Producto", description: "Novedades y anuncios de CUMPLEX." },
 ];
 
 const CHANNELS: { id: Channel; label: string }[] = [

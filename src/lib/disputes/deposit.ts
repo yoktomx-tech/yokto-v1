@@ -1,7 +1,7 @@
 // Cálculo del depósito de seriedad para abrir una disputa.
-// Regla YOKTO: 2% del monto en disputa, mínimo $500 MXN, máximo $50,000 MXN.
+// Regla CUMPLEX: 2% del monto en disputa, mínimo $500 MXN, máximo $50,000 MXN.
 // El depósito se devuelve al activador si gana la disputa;
-// se retiene por YOKTO si la disputa se resuelve en su contra.
+// se retiene por CUMPLEX si la disputa se resuelve en su contra.
 
 export type DepositType = "minimo" | "porcentual" | "maximo";
 

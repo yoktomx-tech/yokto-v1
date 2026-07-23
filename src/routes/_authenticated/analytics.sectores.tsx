@@ -5,7 +5,7 @@ import {
 import { sectorBreakdown, SECTOR_CFG, fmtMoneyFull, fmtMoney, type SectorKey } from "@/lib/analytics-mock";
 
 export const Route = createFileRoute("/_authenticated/analytics/sectores")({
-  head: () => ({ meta: [{ title: "Sectores — Analytics — YOKTO" }, { name: "robots", content: "noindex" }] }),
+  head: () => ({ meta: [{ title: "Sectores — Analytics — CUMPLEX" }, { name: "robots", content: "noindex" }] }),
   component: SectorsReport,
 });
 

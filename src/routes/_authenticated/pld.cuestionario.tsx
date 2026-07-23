@@ -11,7 +11,7 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/_authenticated/pld/cuestionario")({
   head: () => ({
     meta: [
-      { title: "Cuestionario PLD/FT — YOKTO" },
+      { title: "Cuestionario PLD/FT — CUMPLEX" },
       { name: "robots", content: "noindex" },
     ],
   }),

@@ -196,7 +196,7 @@ export const sendPendingInvitationEmails = createServerFn({ method: "POST" })
 
     const results: Array<{ id: string; email: string; sent: boolean; reason?: string }> = [];
     for (const inv of rows ?? []) {
-      const orgName = (inv as any).organizations?.name ?? "YOKTO";
+      const orgName = (inv as any).organizations?.name ?? "CUMPLEX";
       let sent = false;
       let reason: string | undefined;
       try {

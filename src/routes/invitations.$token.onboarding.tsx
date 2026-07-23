@@ -16,13 +16,13 @@ import {
   getInvitationByToken, createInviteeAccount, finalizeInviteeOnboarding,
 } from "@/lib/invitee-onboarding.functions";
 import { startBiometricEnrollment, getMyBiometricEnrollment } from "@/lib/biometric.functions";
-import { YoktoLogo } from "@/components/logo";
+import { CumplexLogo } from "@/components/logo";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/invitations/$token/onboarding")({
   ssr: false,
   head: () => ({ meta: [
-    { title: "Aceptar invitación — YOKTO" },
+    { title: "Aceptar invitación — CUMPLEX" },
     { name: "robots", content: "noindex" },
   ] }),
   component: InviteeOnboarding,
@@ -98,7 +98,7 @@ function InviteeOnboarding() {
     <div className="min-h-dvh bg-yo-bg text-yo-txt">
       <header className="border-b border-yo-border bg-yo-surface">
         <div className="mx-auto max-w-3xl px-4 sm:px-6 py-3 flex items-center justify-between">
-          <YoktoLogo className="h-6" />
+          <CumplexLogo className="h-6" />
           <div className="text-[11px] text-yo-txt-3">Invitación · {org.name ?? "Organización"}</div>
         </div>
       </header>
@@ -228,7 +228,7 @@ function Step1Account({ token, inv, org, addr, onDone, setError }: {
       <div>
         <h2 className="text-2xl font-bold tracking-tight">Bienvenido{inv.first_name ? `, ${inv.first_name}` : ""}</h2>
         <p className="mt-1 text-sm text-yo-txt-2">
-          Fuiste invitado a unirte a <span className="font-semibold text-yo-txt">{org.name}</span> en YOKTO.
+          Fuiste invitado a unirte a <span className="font-semibold text-yo-txt">{org.name}</span> en CUMPLEX.
           Confirma tus datos y define una contraseña para continuar.
         </p>
       </div>
@@ -379,7 +379,7 @@ function Step3Mfa({ email, onDone, onBack, setError }: {
   async function enroll() {
     setError(null); setBusy(true);
     try {
-      const { data, error } = await supabase.auth.mfa.enroll({ factorType: "totp", friendlyName: "YOKTO" });
+      const { data, error } = await supabase.auth.mfa.enroll({ factorType: "totp", friendlyName: "CUMPLEX" });
       if (error) throw error;
       setFactorId(data.id);
       setSecret((data as { totp?: { secret?: string } }).totp?.secret ?? null);

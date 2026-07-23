@@ -10,11 +10,11 @@ type Props = {
 };
 
 /**
- * YOKTO wordmark. Use variant="dark" on light backgrounds and
+ * CUMPLEX wordmark. Use variant="dark" on light backgrounds and
  * variant="white" on dark backgrounds. "auto" swaps via the `dark` class.
  * Use variant="icon" for compact/collapsed contexts (favicon-style mark).
  */
-export function YoktoLogo({ variant = "dark", className, alt = "YOKTO" }: Props) {
+export function CumplexLogo({ variant = "dark", className, alt = "CUMPLEX" }: Props) {
   if (variant === "icon") {
     return (
       <img

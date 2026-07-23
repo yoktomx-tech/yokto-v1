@@ -9,7 +9,7 @@ import {
   verifyEmailOtp,
 } from "@/lib/email-verification.functions";
 import { Button } from "@/components/ui/button";
-import { YoktoLogo } from "@/components/logo";
+import { CumplexLogo } from "@/components/logo";
 import { toast } from "sonner";
 
 const OTP_TTL_SECONDS = 5 * 60;
@@ -155,7 +155,7 @@ export function EmailVerificationGate({ children }: { children: React.ReactNode 
     <div className="min-h-screen flex flex-col items-center bg-background px-4 py-10">
       {/* Logo fuera del recuadro */}
       <div className="mb-8">
-        <YoktoLogo variant="auto" className="h-6 w-auto" />
+        <CumplexLogo variant="auto" className="h-6 w-auto" />
       </div>
 
 
@@ -189,7 +189,7 @@ export function EmailVerificationGate({ children }: { children: React.ReactNode 
             </li>
             <li className="flex gap-2">
               <Ban className="h-3.5 w-3.5 mt-0.5 text-primary flex-shrink-0" />
-              <span><strong className="text-foreground">Cumplimiento PLD/FT:</strong> YOKTO requiere identificar de forma fehaciente a cada usuario antes de operar.</span>
+              <span><strong className="text-foreground">Cumplimiento PLD/FT:</strong> CUMPLEX requiere identificar de forma fehaciente a cada usuario antes de operar.</span>
             </li>
           </ul>
         </div>

@@ -233,7 +233,7 @@ export const MOCK_WORKFLOWS: Workflow[] = [
 export const MOCK_APPROVAL_INSTANCES: ApprovalInstance[] = [
   {
     id: "ai1", action_type: "RELEASE_FUNDS", action_label: "Liberar hito",
-    operacion_numero: "YOKTO-2026-00045", operacion_descripcion: "Flete DF → Monterrey (10 t)",
+    operacion_numero: "CUMPLEX-2026-00045", operacion_descripcion: "Flete DF → Monterrey (10 t)",
     solicitante: "María García", monto_mxn: 320_000,
     nivel_actual: 2, total_niveles: 3, aprobador_rol: "FINANZAS",
     sla_horas_restantes: 6, estado: "EN_PROGRESO",
@@ -249,7 +249,7 @@ export const MOCK_APPROVAL_INSTANCES: ApprovalInstance[] = [
   },
   {
     id: "ai2", action_type: "APPROVE_MILESTONE", action_label: "Aprobar hito",
-    operacion_numero: "YOKTO-2026-00051", operacion_descripcion: "Servicio de consultoría fiscal",
+    operacion_numero: "CUMPLEX-2026-00051", operacion_descripcion: "Servicio de consultoría fiscal",
     solicitante: "Juan Pablo Mora", monto_mxn: 180_000,
     nivel_actual: 1, total_niveles: 2, aprobador_rol: "FINANZAS",
     sla_horas_restantes: 22, estado: "PENDIENTE",
@@ -279,7 +279,7 @@ export const MOCK_APPROVAL_INSTANCES: ApprovalInstance[] = [
   },
   {
     id: "ai4", action_type: "REFUND_FUNDS", action_label: "Devolver fondos",
-    operacion_numero: "YOKTO-2026-00028", operacion_descripcion: "Materiales de construcción",
+    operacion_numero: "CUMPLEX-2026-00028", operacion_descripcion: "Materiales de construcción",
     solicitante: "María García", monto_mxn: 78_000,
     nivel_actual: 1, total_niveles: 1, aprobador_rol: "FINANZAS",
     sla_horas_restantes: -2, estado: "EXPIRADO",
@@ -292,7 +292,7 @@ export const MOCK_APPROVAL_INSTANCES: ApprovalInstance[] = [
   },
   {
     id: "ai5", action_type: "RELEASE_FUNDS", action_label: "Liberar hito",
-    operacion_numero: "YOKTO-2026-00033", operacion_descripcion: "Suministro de refacciones",
+    operacion_numero: "CUMPLEX-2026-00033", operacion_descripcion: "Suministro de refacciones",
     solicitante: "Juan Pablo Mora", monto_mxn: 42_000,
     nivel_actual: 1, total_niveles: 1, aprobador_rol: "OPERADOR",
     sla_horas_restantes: 18, estado: "APROBADO",
@@ -356,7 +356,7 @@ export const WEBHOOK_EVENTS = [
 
 export const MOCK_INTEGRATIONS: Integration[] = [
   { id: "int1", nombre: "Webhooks", descripcion: "Envía eventos de operación a tu sistema.", estado: "CONFIGURADO", eventos_activos: 8, detalle: "Último envío hace 2 h" },
-  { id: "int2", nombre: "ERP genérico (API)", descripcion: "Conecta tu ERP mediante la API REST de YOKTO.", estado: "CONFIGURADO", detalle: "SAP · 12,430 requests" },
+  { id: "int2", nombre: "ERP genérico (API)", descripcion: "Conecta tu ERP mediante la API REST de CUMPLEX.", estado: "CONFIGURADO", detalle: "SAP · 12,430 requests" },
   { id: "int3", nombre: "Contabilidad y fiscal", descripcion: "Exporta CFDI, REP y ledger a tu contabilidad.", estado: "NO_CONFIGURADO" },
   { id: "int4", nombre: "TMS / GPS logística", descripcion: "Comparte tracking en tiempo real con la operación.", estado: "CONFIGURADO", detalle: "2 vehículos activos" },
   { id: "int5", nombre: "CRM", descripcion: "Sincroniza contrapartes y contactos con tu CRM.", estado: "NO_CONFIGURADO" },
@@ -365,11 +365,11 @@ export const MOCK_INTEGRATIONS: Integration[] = [
 
 export const MOCK_AUDIT: AuditEvent[] = [
   { id: "ae1", fecha: "2026-07-15T10:45:00Z", actor: "Luis Hernández", rol: "ADMIN", action: "Miembro invitado", entity: "nuevo.operador@copacifico.mx", ip: "201.120.10.4", result: "SUCCESS" },
-  { id: "ae2", fecha: "2026-07-15T09:30:00Z", actor: "Ana Ruiz", rol: "FINANZAS", action: "Hito aprobado", entity: "YOKTO-2026-00045 · Hito 2", operacion: "YOKTO-2026-00045", ip: "187.144.90.2", result: "SUCCESS" },
-  { id: "ae3", fecha: "2026-07-15T09:12:00Z", actor: "María García", rol: "OPERADOR", action: "Aprobación bloqueada por límite", entity: "YOKTO-2026-00045", operacion: "YOKTO-2026-00045", ip: "10.0.0.32", result: "DENIED" },
+  { id: "ae2", fecha: "2026-07-15T09:30:00Z", actor: "Ana Ruiz", rol: "FINANZAS", action: "Hito aprobado", entity: "CUMPLEX-2026-00045 · Hito 2", operacion: "CUMPLEX-2026-00045", ip: "187.144.90.2", result: "SUCCESS" },
+  { id: "ae3", fecha: "2026-07-15T09:12:00Z", actor: "María García", rol: "OPERADOR", action: "Aprobación bloqueada por límite", entity: "CUMPLEX-2026-00045", operacion: "CUMPLEX-2026-00045", ip: "10.0.0.32", result: "DENIED" },
   { id: "ae4", fecha: "2026-07-14T18:00:00Z", actor: "Luis Hernández", rol: "ADMIN", action: "Workflow editado", entity: "Workflow general de liberaciones", ip: "201.120.10.4", result: "SUCCESS" },
   { id: "ae5", fecha: "2026-07-14T15:30:00Z", actor: "Sistema", rol: "ADMIN", action: "API Key creada", entity: "yk_live_c92e (TMS logística)", ip: "—", result: "SUCCESS" },
-  { id: "ae6", fecha: "2026-07-14T11:00:00Z", actor: "Ana Ruiz", rol: "FINANZAS", action: "Fondos liberados", entity: "YOKTO-2026-00033 · $42,000 MXN", operacion: "YOKTO-2026-00033", ip: "187.144.90.2", result: "SUCCESS" },
+  { id: "ae6", fecha: "2026-07-14T11:00:00Z", actor: "Ana Ruiz", rol: "FINANZAS", action: "Fondos liberados", entity: "CUMPLEX-2026-00033 · $42,000 MXN", operacion: "CUMPLEX-2026-00033", ip: "187.144.90.2", result: "SUCCESS" },
   { id: "ae7", fecha: "2026-07-13T08:44:00Z", actor: "Carla Estrada", rol: "READONLY", action: "Exportación denegada", entity: "Reporte operaciones", ip: "10.0.0.15", result: "DENIED" },
   { id: "ae8", fecha: "2026-07-12T16:20:00Z", actor: "Luis Hernández", rol: "ADMIN", action: "API Key revocada", entity: "yk_live_legacy…", ip: "201.120.10.4", result: "SUCCESS" },
 ];

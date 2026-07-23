@@ -39,7 +39,7 @@ export function recommendedTemplate(sector: SectorId): ContractTemplate {
 }
 
 // Bloque legal obligatorio en todos los contratos generados.
-export const YOKTO_LEGAL_BLOCK = `Las partes reconocen que YOKTO actúa únicamente como plataforma tecnológica y tercero neutral para estructurar, verificar y documentar condiciones de cumplimiento. YOKTO no custodia fondos, no capta recursos del público, no realiza intermediación financiera y no actúa como entidad financiera. Los recursos son procesados, retenidos, liberados o devueltos exclusivamente mediante la pasarela de pagos certificada correspondiente, conforme a sus propias reglas operativas y a las instrucciones derivadas del cumplimiento de la operación.`;
+export const CUMPLEX_LEGAL_BLOCK = `Las partes reconocen que CUMPLEX actúa únicamente como plataforma tecnológica y tercero neutral para estructurar, verificar y documentar condiciones de cumplimiento. CUMPLEX no custodia fondos, no capta recursos del público, no realiza intermediación financiera y no actúa como entidad financiera. Los recursos son procesados, retenidos, liberados o devueltos exclusivamente mediante la pasarela de pagos certificada correspondiente, conforme a sus propias reglas operativas y a las instrucciones derivadas del cumplimiento de la operación.`;
 
 export type ContractState = {
   method: ContractMethod | null;
@@ -47,7 +47,7 @@ export type ContractState = {
   title: string;
   version: string;
   alreadySigned: boolean;
-  requiresYoktoSignature: boolean;
+  requiresCumplexSignature: boolean;
   requiresBuyerSignature: boolean;
   requiresSellerSignature: boolean;
   buyerSignatureMethod: SignatureMethod | null;
@@ -70,7 +70,7 @@ export const DEFAULT_CONTRACT_STATE: ContractState = {
   title: "Contrato de operación protegida",
   version: "v1.0",
   alreadySigned: false,
-  requiresYoktoSignature: true,
+  requiresCumplexSignature: true,
   requiresBuyerSignature: true,
   requiresSellerSignature: true,
   buyerSignatureMethod: null,

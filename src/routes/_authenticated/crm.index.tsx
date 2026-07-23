@@ -124,7 +124,7 @@ function RelationshipsListPage() {
           <input
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder="Filtrar por nombre, RFC, YOKTO ID o email"
+            placeholder="Filtrar por nombre, RFC, CUMPLEX ID o email"
             className="w-full h-9 pl-9 pr-3 rounded-md border border-yo-border bg-white text-sm focus:outline-none focus:border-[#4F46E5]"
           />
         </div>
@@ -285,7 +285,7 @@ function EmptyState({ onSearch }: { onSearch: () => void }) {
       </div>
       <h3 className="mt-3 text-base font-semibold text-yo-txt">Sin contrapartes en esta vista</h3>
       <p className="mt-1 text-sm text-yo-txt-2 max-w-md mx-auto">
-        Empieza buscando una contraparte por RFC, CURP, email o YOKTO ID. Si no está registrada, puedes invitarla formalmente.
+        Empieza buscando una contraparte por RFC, CURP, email o CUMPLEX ID. Si no está registrada, puedes invitarla formalmente.
       </p>
       <div className="mt-4 inline-flex gap-2">
         <button onClick={onSearch} className="h-9 px-3 inline-flex items-center gap-2 rounded-md bg-[#4F46E5] text-white text-sm font-medium hover:bg-[#4338CA]">

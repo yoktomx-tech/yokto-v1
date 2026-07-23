@@ -239,7 +239,7 @@ export function FiscalPanel({ transactionId, canUpload, userId }: Props) {
         <div>
           <h3 className="font-display text-2xl tracking-wide">Documentos fiscales</h3>
           <p className="text-sm text-muted-foreground mt-1">
-            Sube el XML del CFDI PPD o Complemento de Pago (REP) ya timbrado. YOKTO validará su coherencia contra la transacción.
+            Sube el XML del CFDI PPD o Complemento de Pago (REP) ya timbrado. CUMPLEX validará su coherencia contra la transacción.
           </p>
         </div>
         {canUpload && (

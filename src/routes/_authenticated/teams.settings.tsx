@@ -115,7 +115,7 @@ function FiscalSection() {
         <Field label="Domicilio fiscal"><Input defaultValue={TEAM.domicilio_fiscal} /></Field>
       </div>
       <p className="mt-4 text-[11.5px] text-yo-txt-3">
-        YOKTO no emite CFDI ni REP. Los datos fiscales se utilizan para validar coherencia con documentos de la operación.
+        CUMPLEX no emite CFDI ni REP. Los datos fiscales se utilizan para validar coherencia con documentos de la operación.
       </p>
       <SaveBar />
     </>
@@ -134,7 +134,7 @@ function BrandSection() {
         </Field>
         <Field label="Logo empresarial (URL)"><Input defaultValue="" /></Field>
         <Field label="Firma o leyenda para reportes" hint="Aparece al pie de exportaciones PDF.">
-          <textarea rows={3} defaultValue="Comercializadora del Pacífico — Documento generado por YOKTO"
+          <textarea rows={3} defaultValue="Comercializadora del Pacífico — Documento generado por CUMPLEX"
             className="w-full px-3 py-2 text-[13px] rounded-md border border-yo-border focus:border-yo-ac focus:outline-none" />
         </Field>
       </div>
@@ -182,7 +182,7 @@ function RulesSection() {
       <Toggle defaultChecked label="Requerir CFDI PPD antes de liberar fondos" />
       <Toggle defaultChecked label="Requerir REP posterior a liberación" />
       <Toggle defaultChecked label="Requerir workflow para montos mayores a $200,000 MXN" />
-      <Toggle label="Requerir backoffice YOKTO para sectores sensibles (Inmobiliario, Comercio ext.)" />
+      <Toggle label="Requerir backoffice CUMPLEX para sectores sensibles (Inmobiliario, Comercio ext.)" />
       <Toggle defaultChecked label="Bloquear liberaciones cuando existe disputa activa" />
       <SaveBar />
     </>

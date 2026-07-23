@@ -391,7 +391,7 @@ const RAW_OPS: Array<Omit<Operation, "contract" | "fiscal" | "sectorRequirements
           { id: "EV-3312", title: "Video recorrido zona B", type: "Video", status: "EN_VALIDACION", hasGps: false, capturedAt: "2026-07-13 11:00", uploadedAt: "2026-07-14 09:12" },
         ],
         observations: [
-          { id: "OBS-991", severity: "Corrección obligatoria", targetLabel: "CFDI entrega parcial", message: "El monto del XML no coincide con el hito pactado ($185,000).", author: "Verificador Yokto", date: "2026-07-14", status: "Abierta" },
+          { id: "OBS-991", severity: "Corrección obligatoria", targetLabel: "CFDI entrega parcial", message: "El monto del XML no coincide con el hito pactado ($185,000).", author: "Verificador Cumplex", date: "2026-07-14", status: "Abierta" },
         ],
         checklist: [
           { label: "CFDI cargado y validado", state: "reject" },

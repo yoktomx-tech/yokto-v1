@@ -3,7 +3,7 @@ import {
   LayoutDashboard, UserCheck, FileSearch, ShieldAlert, Scale, LifeBuoy,
   LineChart, Users, Settings2, Activity, ScrollText, ShieldCheck,
 } from "lucide-react";
-import { YoktoLogo } from "@/components/logo";
+import { CumplexLogo } from "@/components/logo";
 import { hasPermission, INTERNAL_ROLE_LABEL, type InternalRole, type Resource } from "@/lib/admin/permissions";
 import { cn } from "@/lib/utils";
 
@@ -30,7 +30,7 @@ export function AdminShell({ role, children }: { role: InternalRole; children: R
       <aside className="hidden md:flex md:w-60 lg:w-64 shrink-0 flex-col border-r border-yo-border bg-yo-surface sticky top-0 h-dvh">
         <div className="px-5 py-5 border-b border-yo-border flex items-center justify-between gap-2">
           <Link to="/admin" className="inline-flex items-center">
-            <YoktoLogo variant="auto" className="h-6 w-auto" />
+            <CumplexLogo variant="auto" className="h-6 w-auto" />
           </Link>
           <span className="inline-flex items-center gap-1 text-[9px] font-semibold uppercase tracking-wider text-yo-err bg-yo-err-bg border border-yo-err/25 px-1.5 py-0.5 rounded">
             <ShieldCheck className="size-3" />
@@ -74,7 +74,7 @@ export function AdminShell({ role, children }: { role: InternalRole; children: R
       <div className="flex-1 min-w-0 flex flex-col">
         <header className="h-16 bg-yo-surface border-b border-yo-border flex items-center justify-between px-6">
           <div>
-            <p className="text-[10px] uppercase tracking-[0.14em] font-semibold text-yo-txt-3">Backoffice YOKTO</p>
+            <p className="text-[10px] uppercase tracking-[0.14em] font-semibold text-yo-txt-3">Backoffice CUMPLEX</p>
             <h1 className="text-sm font-semibold text-yo-txt">Panel interno de operación</h1>
           </div>
           <div className="text-[11px] text-yo-txt-3">

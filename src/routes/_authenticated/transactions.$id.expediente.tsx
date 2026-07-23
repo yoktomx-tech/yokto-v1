@@ -19,7 +19,7 @@ import { txHash } from "@/lib/tx-hash";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/transactions/$id/expediente")({
-  head: () => ({ meta: [{ title: "Expediente de operación — YOKTO" }, { name: "robots", content: "noindex" }] }),
+  head: () => ({ meta: [{ title: "Expediente de operación — CUMPLEX" }, { name: "robots", content: "noindex" }] }),
   component: ExpedienteView,
 });
 
@@ -454,7 +454,7 @@ function ExpedienteView() {
           )}
           {["PENDING_FUNDING", "IN_VERIFICATION"].includes(ui) && (
             <InfoBox tone="warn" title="Requiere atención">
-              {ui === "PENDING_FUNDING" ? "El comprador debe fondear para iniciar." : "Yokto está verificando la evidencia."}
+              {ui === "PENDING_FUNDING" ? "El comprador debe fondear para iniciar." : "Cumplex está verificando la evidencia."}
             </InfoBox>
           )}
         </aside>
@@ -627,7 +627,7 @@ function TabPagos({ tx, held, released, commission }: { tx: UnifiedTx; held: num
   const rows = [
     { concepto: "Fondeo del comprador", monto: held || tx.amount_cents, fecha: tx.created_at, estado: held > 0 ? "Retenido" : "Pendiente" },
     { concepto: "Liberación al vendedor", monto: released, fecha: released > 0 ? tx.delivery_deadline : null, estado: released > 0 ? "Liberado" : "Pendiente" },
-    { concepto: "Comisión Yokto", monto: commission, fecha: released > 0 ? tx.delivery_deadline : null, estado: released > 0 ? "Cobrada" : "Pendiente" },
+    { concepto: "Comisión Cumplex", monto: commission, fecha: released > 0 ? tx.delivery_deadline : null, estado: released > 0 ? "Cobrada" : "Pendiente" },
   ];
   return (
     <div>

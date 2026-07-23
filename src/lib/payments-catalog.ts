@@ -166,7 +166,7 @@ export function formatMoney(cents: number, currency = "MXN"): string {
 
 export const LEGAL_COPY = {
   noCustody:
-    "Yokto no custodia fondos. Los pagos, retenciones, liberaciones y reembolsos son procesados por la pasarela certificada configurada para cada operación. Yokto solo verifica condiciones y ordena la acción correspondiente conforme a las reglas pactadas.",
+    "Cumplex no custodia fondos. Los pagos, retenciones, liberaciones y reembolsos son procesados por la pasarela certificada configurada para cada operación. Cumplex solo verifica condiciones y ordena la acción correspondiente conforme a las reglas pactadas.",
   disputeActive:
     "Esta operación tiene una disputa activa. Las liberaciones relacionadas permanecerán pausadas hasta que exista resolución o acuerdo registrado.",
   processorError:
@@ -180,11 +180,11 @@ export const LEGAL_COPY = {
   refundInfo:
     "El reembolso será procesado por la pasarela. Los tiempos pueden variar según el método de pago utilizado.",
   releaseConfirm:
-    "Esta acción enviará una orden de liberación a la pasarela configurada. Yokto no transfiere fondos directamente; la pasarela procesará la liberación conforme a sus tiempos y reglas.",
+    "Esta acción enviará una orden de liberación a la pasarela configurada. Cumplex no transfiere fondos directamente; la pasarela procesará la liberación conforme a sus tiempos y reglas.",
   fiscalNote:
-    "Los comprobantes fiscales asociados al pago deben reflejar la forma de pago real utilizada por el comprador y, cuando aplique, el complemento de pago correspondiente. Yokto muestra la trazabilidad documental, pero la emisión fiscal corresponde a las partes obligadas.",
+    "Los comprobantes fiscales asociados al pago deben reflejar la forma de pago real utilizada por el comprador y, cuando aplique, el complemento de pago correspondiente. Cumplex muestra la trazabilidad documental, pero la emisión fiscal corresponde a las partes obligadas.",
   ledgerNote:
-    "El ledger muestra movimientos registrados y conciliados con la pasarela. No representa una cuenta de depósito ni custodia de fondos por parte de Yokto.",
+    "El ledger muestra movimientos registrados y conciliados con la pasarela. No representa una cuenta de depósito ni custodia de fondos por parte de Cumplex.",
 };
 
 // ============= TONE CLASSES =============

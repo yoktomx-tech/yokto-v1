@@ -6,7 +6,7 @@ import {
 import { exportsList, CURRENT_PLAN } from "@/lib/analytics-mock";
 
 export const Route = createFileRoute("/_authenticated/analytics/exportaciones")({
-  head: () => ({ meta: [{ title: "Exportaciones — Analytics — YOKTO" }, { name: "robots", content: "noindex" }] }),
+  head: () => ({ meta: [{ title: "Exportaciones — Analytics — CUMPLEX" }, { name: "robots", content: "noindex" }] }),
   component: ExportsReport,
 });
 

@@ -166,7 +166,7 @@ function TeamApprovalsPage() {
                   className="w-full px-3 py-2 text-[13px] rounded-md border border-yo-border focus:border-yo-ac focus:outline-none" />
               </div>
               <div className="rounded-md bg-yo-info-bg border border-yo-info/20 p-3 text-[11.5px] text-yo-txt-2">
-                YOKTO registra esta acción como parte de la auditoría interna de tu equipo.
+                CUMPLEX registra esta acción como parte de la auditoría interna de tu equipo.
               </div>
             </div>
             <footer className="px-5 py-3 border-t border-yo-border flex justify-end gap-2">

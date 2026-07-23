@@ -19,7 +19,7 @@ function IntegrationsPage() {
     <div className="space-y-5">
       <div>
         <h2 className="text-[15px] font-semibold text-yo-txt">Integraciones empresariales</h2>
-        <p className="text-[12.5px] text-yo-txt-3">Conecta YOKTO con tu ecosistema operativo. Todas las integraciones registran auditoría.</p>
+        <p className="text-[12.5px] text-yo-txt-3">Conecta CUMPLEX con tu ecosistema operativo. Todas las integraciones registran auditoría.</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

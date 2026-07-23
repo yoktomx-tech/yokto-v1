@@ -15,7 +15,7 @@ import {
 } from "@/lib/analytics-mock";
 
 export const Route = createFileRoute("/_authenticated/analytics/")({
-  head: () => ({ meta: [{ title: "Resumen — Analytics — YOKTO" }, { name: "robots", content: "noindex" }] }),
+  head: () => ({ meta: [{ title: "Resumen — Analytics — CUMPLEX" }, { name: "robots", content: "noindex" }] }),
   component: AnalyticsOverview,
 });
 

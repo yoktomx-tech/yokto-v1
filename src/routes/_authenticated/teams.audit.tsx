@@ -101,7 +101,7 @@ function AuditPage() {
       </div>
 
       <p className="text-[11px] text-yo-txt-3">
-        YOKTO registra cada acción del equipo como parte del expediente auditable. La retención cumple con requisitos empresariales.
+        CUMPLEX registra cada acción del equipo como parte del expediente auditable. La retención cumple con requisitos empresariales.
       </p>
     </div>
   );

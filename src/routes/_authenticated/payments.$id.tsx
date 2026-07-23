@@ -10,7 +10,7 @@ import { derivePaymentStatus, type UiPaymentStatus } from "@/lib/payments-catalo
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/payments/$id")({
-  head: () => ({ meta: [{ title: "Detalle de pago — YOKTO" }, { name: "robots", content: "noindex" }] }),
+  head: () => ({ meta: [{ title: "Detalle de pago — CUMPLEX" }, { name: "robots", content: "noindex" }] }),
   component: PaymentDetailPage,
 });
 
@@ -357,7 +357,7 @@ function PaymentDetailPage() {
               Reembolsar
             </button>
             <p className="text-[11px] text-yo-t2 pt-1">
-              YOKTO no custodia fondos. Todas las operaciones ocurren en la pasarela.
+              CUMPLEX no custodia fondos. Todas las operaciones ocurren en la pasarela.
             </p>
           </div>
         </aside>

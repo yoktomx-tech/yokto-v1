@@ -5,7 +5,7 @@ import {
 import { approvalsList, fmtMoneyFull } from "@/lib/analytics-mock";
 
 export const Route = createFileRoute("/_authenticated/analytics/aprobaciones")({
-  head: () => ({ meta: [{ title: "Aprobaciones — Analytics — YOKTO" }, { name: "robots", content: "noindex" }] }),
+  head: () => ({ meta: [{ title: "Aprobaciones — Analytics — CUMPLEX" }, { name: "robots", content: "noindex" }] }),
   component: ApprovalsReport,
 });
 

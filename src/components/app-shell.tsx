@@ -4,7 +4,7 @@ import {
   LayoutDashboard, Briefcase, PackageCheck, AlertTriangle, Banknote,
   Users, Users2, Star, Menu, X, ClipboardCheck, BarChart3, Landmark,
 } from "lucide-react";
-import { YoktoLogo } from "@/components/logo";
+import { CumplexLogo } from "@/components/logo";
 import { OrgSwitcher } from "@/components/org-switcher";
 import { useViewRole } from "@/hooks/use-view-role";
 import { useAuthUser } from "@/hooks/use-auth-user";
@@ -116,7 +116,7 @@ function SidebarContent({
     <>
       <div className="px-5 py-5 border-b border-yo-border flex justify-center">
         <Link to="/dashboard" onClick={onNavigate} className="inline-flex items-center justify-center">
-          <YoktoLogo variant="auto" className="h-6 w-auto" />
+          <CumplexLogo variant="auto" className="h-6 w-auto" />
         </Link>
       </div>
 

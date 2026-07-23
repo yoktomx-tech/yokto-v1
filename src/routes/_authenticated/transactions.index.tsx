@@ -25,7 +25,7 @@ type SearchParams = {
 };
 
 export const Route = createFileRoute("/_authenticated/transactions/")({
-  head: () => ({ meta: [{ title: "Transacciones — YOKTO" }, { name: "robots", content: "noindex" }] }),
+  head: () => ({ meta: [{ title: "Transacciones — CUMPLEX" }, { name: "robots", content: "noindex" }] }),
   validateSearch: (s: Record<string, unknown>): SearchParams => ({
     tab: (s.tab as TabId) || undefined,
     q: typeof s.q === "string" ? s.q : undefined,
@@ -290,7 +290,7 @@ function TransactionsList() {
           <EmptyState
             title="Sin resultados"
             description={rows.length === 0
-              ? "Aún no participas en operaciones YOKTO."
+              ? "Aún no participas en operaciones CUMPLEX."
               : "No hay operaciones que coincidan con los filtros actuales."}
           />
         ) : (

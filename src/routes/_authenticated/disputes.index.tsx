@@ -14,7 +14,7 @@ import { cn } from "@/lib/utils";
 import { PageHeader } from "@/components/page-header";
 
 export const Route = createFileRoute("/_authenticated/disputes/")({
-  head: () => ({ meta: [{ title: "Disputas — YOKTO" }, { name: "robots", content: "noindex" }] }),
+  head: () => ({ meta: [{ title: "Disputas — CUMPLEX" }, { name: "robots", content: "noindex" }] }),
   component: DisputesModule,
 });
 

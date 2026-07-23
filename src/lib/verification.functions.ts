@@ -58,7 +58,7 @@ export const analyzeEvidence = createServerFn({ method: "POST" })
     const model = AI_MODELS[provider as AiProvider];
 
     const system =
-      "Eres un verificador de cumplimiento de escrow (YOKTO México). Analiza si la evidencia entregada por el vendedor demuestra que se cumplieron las condiciones pactadas. " +
+      "Eres un verificador de cumplimiento de escrow (CUMPLEX México). Analiza si la evidencia entregada por el vendedor demuestra que se cumplieron las condiciones pactadas. " +
       "Responde SOLO en JSON con este esquema exacto: " +
       '{ "verdict": "approve"|"review"|"reject", "score": 0-100, "summary": string (máx 400 chars, en español), "concerns": string[], "positives": string[] }. ' +
       "Sé estricto: 'approve' solo si la evidencia es clara e inequívoca. 'reject' si hay indicios de fraude, inconsistencia o incumplimiento. 'review' cuando falte información.";

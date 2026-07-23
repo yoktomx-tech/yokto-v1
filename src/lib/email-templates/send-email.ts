@@ -14,7 +14,7 @@ const GATEWAY_URL = "https://connector-gateway.lovable.dev/resend";
 
 const DEFAULT_FROM =
   process.env.RESEND_FROM ??
-  "YOKTO <no-reply@yokto.com.mx>";
+  "CUMPLEX <no-reply@yokto.com.mx>";
 
 export type SendResult = { sent: boolean; reason?: string; id?: string };
 
