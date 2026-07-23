@@ -5,7 +5,7 @@ import { getRequest, getRequestIP } from "@tanstack/react-start/server";
 
 const uuid = z.string().uuid();
 
-const INTERNAL_ROLES_SUPPORT = ["SOPORTE_N1","AGENTE_ESCROW","OFICIAL_CUMPLIMIENTO","CUMPLEX_SUPER_ADMIN"] as const;
+const INTERNAL_ROLES_SUPPORT = ["SOPORTE_N1","AGENTE_ESCROW","OFICIAL_CUMPLIMIENTO","YOKTO_SUPER_ADMIN"] as const;
 
 async function requireInternalRole(userId: string, allowed: readonly string[]) {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -120,7 +120,7 @@ export const adminEscalateTicket = createServerFn({ method: "POST" })
   .inputValidator((d: { id: string; type: "conflict"|"pld_ft"|"financial"|"technical"; reason: string }) =>
     z.object({ id: uuid, type: z.enum(["conflict","pld_ft","financial","technical"]), reason: z.string().trim().min(6).max(1000) }).parse(d))
   .handler(async ({ context, data }) => {
-    const rol = await requireInternalRole(context.userId, ["SOPORTE_N1","CUMPLEX_SUPER_ADMIN"]);
+    const rol = await requireInternalRole(context.userId, ["SOPORTE_N1","YOKTO_SUPER_ADMIN"]);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const before = await ticketSnapshot(data.id);
     const { error } = await supabaseAdmin.from("support_tickets").update({

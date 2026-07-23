@@ -110,7 +110,7 @@ async function notifyTicket(
     .from("internal_role_assignments")
     .select("user_id, rol")
     .eq("activo", true)
-    .in("rol", ["AGENTE_SOPORTE", "CUMPLEX_SUPER_ADMIN"] as never)
+    .in("rol", ["AGENTE_SOPORTE", "YOKTO_SUPER_ADMIN"] as never)
     .limit(50);
   for (const s of staff ?? []) if (s.user_id) staffIds.add(s.user_id as string);
 

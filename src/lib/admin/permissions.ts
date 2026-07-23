@@ -2,7 +2,7 @@
 // Se usa tanto en UI (ocultar menús) como en API (requirePermission).
 
 export type InternalRole =
-  | "CUMPLEX_SUPER_ADMIN"
+  | "YOKTO_SUPER_ADMIN"
   | "ANALISTA_KYC"
   | "ANALISTA_DOCUMENTAL"
   | "OFICIAL_CUMPLIMIENTO"
@@ -39,7 +39,7 @@ export type Action =
 export type PermissionLevel = "NONE" | "VIEW" | "ACT";
 
 export const INTERNAL_ROLE_LABEL: Record<InternalRole, string> = {
-  CUMPLEX_SUPER_ADMIN: "Super Administrador",
+  YOKTO_SUPER_ADMIN: "Super Administrador",
   ANALISTA_KYC: "Analista KYC",
   ANALISTA_DOCUMENTAL: "Analista Documental",
   OFICIAL_CUMPLIMIENTO: "Oficial de Cumplimiento",
@@ -49,7 +49,7 @@ export const INTERNAL_ROLE_LABEL: Record<InternalRole, string> = {
 };
 
 export const INTERNAL_ROLES: InternalRole[] = [
-  "CUMPLEX_SUPER_ADMIN",
+  "YOKTO_SUPER_ADMIN",
   "ANALISTA_KYC",
   "ANALISTA_DOCUMENTAL",
   "OFICIAL_CUMPLIMIENTO",
@@ -59,7 +59,7 @@ export const INTERNAL_ROLES: InternalRole[] = [
 ];
 
 export const INTERNAL_ROLE_PERMISSIONS: Record<InternalRole, Partial<Record<Resource, PermissionLevel>>> = {
-  CUMPLEX_SUPER_ADMIN: {
+  YOKTO_SUPER_ADMIN: {
     admin_dashboard: "ACT", kyc: "ACT", documentos: "ACT", compliance: "ACT",
     disputas: "ACT", soporte: "ACT", finanzas: "ACT", usuarios: "ACT",
     plataforma: "ACT", roles: "ACT", auditoria: "ACT", health: "ACT",
@@ -93,7 +93,7 @@ export function hasPermission(
   action: Action = "ver",
 ): boolean {
   if (!role) return false;
-  if (role === "CUMPLEX_SUPER_ADMIN") return true;
+  if (role === "YOKTO_SUPER_ADMIN") return true;
   const level = INTERNAL_ROLE_PERMISSIONS[role]?.[resource] ?? "NONE";
   if (action === "ver") return level === "VIEW" || level === "ACT";
   return level === "ACT";
@@ -106,7 +106,7 @@ export function describePermissions(role: InternalRole): { resource: Resource; l
   ];
   return all.map((r) => ({
     resource: r,
-    level: (role === "CUMPLEX_SUPER_ADMIN" ? "ACT" : (INTERNAL_ROLE_PERMISSIONS[role]?.[r] ?? "NONE")) as PermissionLevel,
+    level: (role === "YOKTO_SUPER_ADMIN" ? "ACT" : (INTERNAL_ROLE_PERMISSIONS[role]?.[r] ?? "NONE")) as PermissionLevel,
   }));
 }
 

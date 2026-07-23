@@ -25,7 +25,7 @@ function AdminRoles() {
   const [showAssign, setShowAssign] = useState(false);
   const [revokeId, setRevokeId] = useState<string | null>(null);
 
-  if (me?.role !== "CUMPLEX_SUPER_ADMIN") {
+  if (me?.role !== "YOKTO_SUPER_ADMIN") {
     return (
       <>
         <AdminPageHeader title="Roles internos" />

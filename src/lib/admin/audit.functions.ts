@@ -4,7 +4,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 const uuid = z.string().uuid();
 const INTERNAL_ROLES_SUPPORT = [
-  "AGENTE_SOPORTE", "AGENTE_ESCROW", "OFICIAL_CUMPLIMIENTO", "CUMPLEX_SUPER_ADMIN",
+  "AGENTE_SOPORTE", "AGENTE_ESCROW", "OFICIAL_CUMPLIMIENTO", "YOKTO_SUPER_ADMIN",
 ] as const;
 
 
