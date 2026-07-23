@@ -22,7 +22,7 @@ import { InfoBox } from "@/components/tx/ui/info-box";
 
 export const Route = createFileRoute("/_authenticated/cumplimiento")({
   head: () => ({ meta: [
-    { title: "Cumplimiento de operación — CUMPLEX" },
+    { title: "Cumplimiento de operación — Cumplex" },
     { name: "robots", content: "noindex" },
   ]}),
   component: CumplimientoPage,
@@ -210,7 +210,7 @@ function CumplimientoPage() {
       />
 
       <NoCustodyBanner
-        message="Este panel es tu bandeja operativa como vendedor. CUMPLEX valida las evidencias que subas y, cuando el comprador aprueba, ordena la liberación a la pasarela. CUMPLEX no custodia fondos."
+        message="Este panel es tu bandeja operativa como vendedor. Cumplex valida las evidencias que subas y, cuando el comprador aprueba, ordena la liberación a la pasarela. Cumplex no custodia fondos."
       />
 
       <InfoBox tone="info" title="Cómo funciona el cumplimiento">
@@ -898,7 +898,7 @@ function CandadosTab({ op }: { op: Operation }) {
     <div className="space-y-2">
       <div className="rounded-md border border-[#FEF3C7] bg-[#FFFBEB] p-3 text-[12px] text-[#92400E] flex gap-2">
         <Lock className="size-4 mt-0.5" />
-        <div>Estos candados impiden que el hito pueda enviarse a revisión o que CUMPLEX ordene liberaciones a la pasarela.</div>
+        <div>Estos candados impiden que el hito pueda enviarse a revisión o que Cumplex ordene liberaciones a la pasarela.</div>
       </div>
       {op.locks.map((lk, i) => (
         <div key={i} className="rounded-md border border-yo-border p-3">
@@ -1005,7 +1005,7 @@ function FiscalTab({ op }: { op: Operation }) {
     <div className="space-y-3">
       <div className="rounded-md border border-[#FEF3C7] bg-[#FFFBEB] p-3 text-[12px] text-[#92400E] flex gap-2">
         <Info className="size-4 mt-0.5" />
-        <div>CUMPLEX no emite CFDI ni REP. Debes generarlos en tu PAC o sistema contable y subir el XML timbrado.</div>
+        <div>Cumplex no emite CFDI ni REP. Debes generarlos en tu PAC o sistema contable y subir el XML timbrado.</div>
       </div>
 
       <div className="rounded-md border border-yo-border p-3">

@@ -39,7 +39,7 @@ export function recommendedTemplate(sector: SectorId): ContractTemplate {
 }
 
 // Bloque legal obligatorio en todos los contratos generados.
-export const CUMPLEX_LEGAL_BLOCK = `Las partes reconocen que CUMPLEX actúa únicamente como plataforma tecnológica y tercero neutral para estructurar, verificar y documentar condiciones de cumplimiento. CUMPLEX no custodia fondos, no capta recursos del público, no realiza intermediación financiera y no actúa como entidad financiera. Los recursos son procesados, retenidos, liberados o devueltos exclusivamente mediante la pasarela de pagos certificada correspondiente, conforme a sus propias reglas operativas y a las instrucciones derivadas del cumplimiento de la operación.`;
+export const Cumplex_LEGAL_BLOCK = `Las partes reconocen que Cumplex actúa únicamente como plataforma tecnológica y tercero neutral para estructurar, verificar y documentar condiciones de cumplimiento. Cumplex no custodia fondos, no capta recursos del público, no realiza intermediación financiera y no actúa como entidad financiera. Los recursos son procesados, retenidos, liberados o devueltos exclusivamente mediante la pasarela de pagos certificada correspondiente, conforme a sus propias reglas operativas y a las instrucciones derivadas del cumplimiento de la operación.`;
 
 export type ContractState = {
   method: ContractMethod | null;

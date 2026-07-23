@@ -39,7 +39,7 @@ export function SPEIInstructionsCard({ clabe, beneficiary, bank, amountCents, cu
           </p>
         )}
         <p className="text-xs text-muted-foreground">
-          Depósito de una sola vez. CUMPLEX confirmará automáticamente por webhook Stripe al recibir los fondos.
+          Depósito de una sola vez. Cumplex confirmará automáticamente por webhook Stripe al recibir los fondos.
         </p>
       </div>
       <div className="flex flex-col items-center gap-2 border-l border-yo-border pl-5">

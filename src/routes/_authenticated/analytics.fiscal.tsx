@@ -7,7 +7,7 @@ import {
 import { fiscalList, fmtMoneyFull, type FiscalRow } from "@/lib/analytics-mock";
 
 export const Route = createFileRoute("/_authenticated/analytics/fiscal")({
-  head: () => ({ meta: [{ title: "Fiscal — Analytics — CUMPLEX" }, { name: "robots", content: "noindex" }] }),
+  head: () => ({ meta: [{ title: "Fiscal — Analytics — Cumplex" }, { name: "robots", content: "noindex" }] }),
   component: FiscalReport,
 });
 
@@ -58,7 +58,7 @@ function FiscalBody() {
     <div className="space-y-6">
       <div className="rounded-lg border border-yo-warn bg-[#FFFBEB] p-3">
         <p className="text-[12px] text-[#92400E]">
-          CUMPLEX no emite CFDI ni REP. El vendedor los timbra en su PAC y los sube a la plataforma; nosotros validamos coherencia contra la operación.
+          Cumplex no emite CFDI ni REP. El vendedor los timbra en su PAC y los sube a la plataforma; nosotros validamos coherencia contra la operación.
         </p>
       </div>
 
@@ -108,7 +108,7 @@ function FiscalBody() {
           <table className="w-full text-[12.5px]">
             <thead className="bg-yo-raised text-yo-txt-2">
               <tr>
-                {["Tipo", "UUID", "Operación", "Emisor", "Total", "Método", "SAT", "Coherencia", "Estado CUMPLEX", "Parc.", ""].map(h =>
+                {["Tipo", "UUID", "Operación", "Emisor", "Total", "Método", "SAT", "Coherencia", "Estado Cumplex", "Parc.", ""].map(h =>
                   <th key={h} className="text-left px-3 py-2 font-semibold uppercase text-[11px]">{h}</th>
                 )}
               </tr>
@@ -160,7 +160,7 @@ function FiscalBody() {
               <Row k="Método / Forma" v={<span className="font-mono">{detail.metodo} / {detail.forma}</span>} />
               <Row k="Estado SAT" v={<DotBadge tone={SAT_CFG[detail.sat].tone}>{SAT_CFG[detail.sat].label}</DotBadge>} />
               <Row k="Coherencia" v={<span className="font-mono">{detail.coherencia}%</span>} />
-              <Row k="Estado CUMPLEX" v={<DotBadge tone={YO_CFG[detail.estado].tone}>{YO_CFG[detail.estado].label}</DotBadge>} />
+              <Row k="Estado Cumplex" v={<DotBadge tone={YO_CFG[detail.estado].tone}>{YO_CFG[detail.estado].label}</DotBadge>} />
               {detail.parcialidad && <Row k="Parcialidad" v={<span className="font-mono">{detail.parcialidad}</span>} />}
               <div className="flex gap-2 pt-3">
                 <button className="flex-1 px-3 py-2 rounded-md bg-yo-ac hover:bg-yo-ac-h text-white text-[12.5px]">Descargar XML</button>

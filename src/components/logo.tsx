@@ -10,11 +10,11 @@ type Props = {
 };
 
 /**
- * CUMPLEX wordmark. Use variant="dark" on light backgrounds and
+ * Cumplex wordmark. Use variant="dark" on light backgrounds and
  * variant="white" on dark backgrounds. "auto" swaps via the `dark` class.
  * Use variant="icon" for compact/collapsed contexts (favicon-style mark).
  */
-export function CumplexLogo({ variant = "dark", className, alt = "CUMPLEX" }: Props) {
+export function CumplexLogo({ variant = "dark", className, alt = "Cumplex" }: Props) {
   if (variant === "icon") {
     return (
       <img

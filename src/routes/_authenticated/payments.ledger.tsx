@@ -8,14 +8,14 @@ import { NoCustodyBanner } from "@/components/payments/ui/no-custody-banner";
 import { BookOpen, Download, ArrowLeft } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/payments/ledger")({
-  head: () => ({ meta: [{ title: "Ledger contable — CUMPLEX" }, { name: "robots", content: "noindex" }] }),
+  head: () => ({ meta: [{ title: "Ledger contable — Cumplex" }, { name: "robots", content: "noindex" }] }),
   component: LedgerPage,
 });
 
 const KIND_LABEL: Record<string, { label: string; tone: string }> = {
   FONDEO:         { label: "Fondeo",           tone: "text-yo-info bg-yo-info/10" },
   LIBERACION:     { label: "Liberación",       tone: "text-yo-ok bg-yo-ok/10" },
-  COMISION_YOKTO: { label: "Comisión CUMPLEX",   tone: "text-yo-ac bg-yo-ac/10" },
+  COMISION_YOKTO: { label: "Comisión Cumplex",   tone: "text-yo-ac bg-yo-ac/10" },
   REEMBOLSO:      { label: "Reembolso",        tone: "text-yo-warn bg-yo-warn/10" },
 };
 
@@ -75,7 +75,7 @@ function LedgerPage() {
       <PageHeader
         icon={BookOpen}
         title="Ledger contable"
-        subtitle="Asientos derivados de los movimientos procesados por la pasarela. CUMPLEX no custodia fondos."
+        subtitle="Asientos derivados de los movimientos procesados por la pasarela. Cumplex no custodia fondos."
         actions={
           <div className="flex items-center gap-2">
             <Link
@@ -129,7 +129,7 @@ function LedgerPage() {
           <option value="ALL">Todos los tipos</option>
           <option value="FONDEO">Fondeos</option>
           <option value="LIBERACION">Liberaciones</option>
-          <option value="COMISION_YOKTO">Comisiones CUMPLEX</option>
+          <option value="COMISION_YOKTO">Comisiones Cumplex</option>
           <option value="REEMBOLSO">Reembolsos</option>
         </select>
       </div>

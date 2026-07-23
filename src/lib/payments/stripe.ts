@@ -49,8 +49,8 @@ export const stripeProvider: PaymentProvider = {
           yokto_transaction_id: input.transactionId,
           ...(input.metadata ?? {}),
         },
-        description: `CUMPLEX ${input.transactionId}`,
-        statement_descriptor: "CUMPLEX ESCROW",
+        description: `Cumplex ${input.transactionId}`,
+        statement_descriptor: "Cumplex ESCROW",
       });
 
       const na = pi.next_action?.display_bank_transfer_instructions as
@@ -65,7 +65,7 @@ export const stripeProvider: PaymentProvider = {
         status: "requires_payment",
         clabe: spei?.clabe,
         referenceCode: pi.id.slice(-8).toUpperCase(),
-        beneficiary: "CUMPLEX PAGOS SEGUROS",
+        beneficiary: "Cumplex PAGOS SEGUROS",
         bank: spei?.bank_name ?? "STP (Stripe)",
         hostedUrl: na?.hosted_instructions_url,
         expiresAt: new Date(Date.now() + 30 * 24 * 3600 * 1000).toISOString(),
@@ -80,7 +80,7 @@ export const stripeProvider: PaymentProvider = {
         {
           price_data: {
             currency: input.currency.toLowerCase(),
-            product_data: { name: `CUMPLEX ${input.transactionId}` },
+            product_data: { name: `Cumplex ${input.transactionId}` },
             unit_amount: input.amountCents,
           },
           quantity: 1,
@@ -88,7 +88,7 @@ export const stripeProvider: PaymentProvider = {
       ],
       payment_intent_data: {
         metadata: { yokto_transaction_id: input.transactionId, ...(input.metadata ?? {}) },
-        statement_descriptor: "CUMPLEX ESCROW",
+        statement_descriptor: "Cumplex ESCROW",
       },
       success_url: `${process.env.YOKTO_APP_URL ?? "https://yokto.mx"}/transactions/${input.transactionId}?funded=1`,
       cancel_url: `${process.env.YOKTO_APP_URL ?? "https://yokto.mx"}/transactions/${input.transactionId}`,
@@ -135,7 +135,7 @@ export const stripeProvider: PaymentProvider = {
         commission_cents: String(input.commissionCents),
         ...(input.metadata ?? {}),
       },
-      description: `CUMPLEX ${input.transactionId} — liberación`,
+      description: `Cumplex ${input.transactionId} — liberación`,
     });
 
     return {

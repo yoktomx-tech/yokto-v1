@@ -7,7 +7,7 @@ import {
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/analytics/custom")({
-  head: () => ({ meta: [{ title: "Reportes custom — CUMPLEX" }, { name: "robots", content: "noindex" }] }),
+  head: () => ({ meta: [{ title: "Reportes custom — Cumplex" }, { name: "robots", content: "noindex" }] }),
   component: CustomReport,
 });
 

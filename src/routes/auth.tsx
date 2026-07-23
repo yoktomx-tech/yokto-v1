@@ -15,8 +15,8 @@ export const Route = createFileRoute("/auth")({
   validateSearch: (s) => searchSchema.parse(s),
   head: () => ({
     meta: [
-      { title: "Acceso — CUMPLEX" },
-      { name: "description", content: "Ingresa o crea tu cuenta en CUMPLEX, plataforma profesional de escrow digital." },
+      { title: "Acceso — Cumplex" },
+      { name: "description", content: "Ingresa o crea tu cuenta en Cumplex, plataforma profesional de escrow digital." },
       { name: "robots", content: "noindex" },
     ],
   }),
@@ -177,7 +177,7 @@ function AuthPage() {
         </div>
 
         <div className="relative flex items-center justify-between text-xs text-yokto-text-3">
-          <span>© {new Date().getFullYear()} CUMPLEX</span>
+          <span>© {new Date().getFullYear()} Cumplex</span>
           <span className="uppercase tracking-widest">v2.0 · MX</span>
         </div>
       </aside>

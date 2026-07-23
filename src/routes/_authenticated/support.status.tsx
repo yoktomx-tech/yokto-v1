@@ -24,7 +24,7 @@ function StatusPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader icon={Activity} title="Estado de plataforma" subtitle="Servicios y incidentes recientes de CUMPLEX." />
+      <PageHeader icon={Activity} title="Estado de plataforma" subtitle="Servicios y incidentes recientes de Cumplex." />
 
       <div className="rounded-xl border border-yo-border bg-yo-surface divide-y divide-yo-border">
         {SERVICES.map((s) => {

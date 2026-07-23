@@ -22,7 +22,7 @@ import {
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/approvals")({
-  head: () => ({ meta: [{ title: "Aprobaciones — CUMPLEX" }, { name: "robots", content: "noindex" }] }),
+  head: () => ({ meta: [{ title: "Aprobaciones — Cumplex" }, { name: "robots", content: "noindex" }] }),
   component: ApprovalsPage,
 });
 
@@ -172,7 +172,7 @@ function ApprovalsPage() {
         />
 
         <NoCustodyBanner
-          message="Al aprobar un hito, CUMPLEX ordena a la pasarela liberar la parte correspondiente del pago retenido. CUMPLEX no custodia fondos: la pasarela ejecuta la liberación conforme a las reglas de la operación."
+          message="Al aprobar un hito, Cumplex ordena a la pasarela liberar la parte correspondiente del pago retenido. Cumplex no custodia fondos: la pasarela ejecuta la liberación conforme a las reglas de la operación."
         />
 
         <InfoBox tone="info" title="Antes de aprobar">
@@ -231,7 +231,7 @@ function ApprovalsPage() {
         )}
 
         <p className="text-[11px] text-yo-txt-3">
-          CUMPLEX no custodia fondos. Cuando apruebas un hito, la orden de liberación se envía a la pasarela de pagos configurada.
+          Cumplex no custodia fondos. Cuando apruebas un hito, la orden de liberación se envía a la pasarela de pagos configurada.
         </p>
       </div>
 
@@ -459,7 +459,7 @@ function ApprovalDrawer({
               </div>
 
               <p className="text-[10.5px] text-yo-txt-3 leading-relaxed">
-                La liberación será procesada por la pasarela de pago configurada. CUMPLEX no custodia fondos.
+                La liberación será procesada por la pasarela de pago configurada. Cumplex no custodia fondos.
               </p>
             </div>
           </div>
@@ -713,7 +713,7 @@ function FiscalSection({ a, onDecide }: { a: Approval; onDecide: (fd: FiscalDeci
     <section className="space-y-3">
       <div className="rounded-md border border-[#FEF3C7] bg-[#FFFBEB] p-3 text-[12px] text-[#92400E] flex gap-2">
         <Info className="size-4 mt-0.5" />
-        <div>CUMPLEX valida CFDI/REP subidos por el vendedor, pero no los emite ni sustituye al PAC del proveedor.</div>
+        <div>Cumplex valida CFDI/REP subidos por el vendedor, pero no los emite ni sustituye al PAC del proveedor.</div>
       </div>
 
       {/* CFDI PPD */}
@@ -1122,7 +1122,7 @@ function DecisionModal({ kind, a, onClose, onConfirm }: { kind: DecisionKind; a:
             <div className="rounded-md border p-3 flex gap-2" style={{ backgroundColor: "#F0F9FF", borderColor: "#BAE6FD" }}>
               <Info className="size-4 shrink-0 mt-0.5" style={{ color: "#0284C7" }} />
               <div className="text-[12px]" style={{ color: "#075985" }}>
-                La liberación será procesada por la pasarela de pago configurada. CUMPLEX no custodia fondos.
+                La liberación será procesada por la pasarela de pago configurada. Cumplex no custodia fondos.
               </div>
             </div>
           )}

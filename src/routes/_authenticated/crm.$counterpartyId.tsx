@@ -155,7 +155,7 @@ function CounterpartyHeader({
         </div>
         {c.legalName && <div className="text-[13px] text-yo-txt-2 mt-0.5">{c.legalName}</div>}
         <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[12px] text-yo-txt-2 font-mono">
-          <span><span className="text-yo-txt-3">CUMPLEX ID:</span> {c.yoktoId}</span>
+          <span><span className="text-yo-txt-3">Cumplex ID:</span> {c.yoktoId}</span>
           <span><span className="text-yo-txt-3">RFC:</span> {c.rfc}</span>
           {c.curp && <span><span className="text-yo-txt-3">CURP:</span> {c.curp}</span>}
           <span className="font-sans"><span className="text-yo-txt-3">Email:</span> {c.email}</span>
@@ -378,7 +378,7 @@ function TabFiscal({ c }: { c: Counterparty }) {
       </Card>
       <div className="md:col-span-2">
         <InfoBox tone="info" title="Fiscalidad ligada a operaciones">
-          Los CFDI y REP visibles aquí provienen exclusivamente de operaciones cerradas. CUMPLEX no expone comprobantes de otros escenarios.
+          Los CFDI y REP visibles aquí provienen exclusivamente de operaciones cerradas. Cumplex no expone comprobantes de otros escenarios.
         </InfoBox>
       </div>
     </div>

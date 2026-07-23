@@ -67,7 +67,7 @@ export const generateCfdiStub = createServerFn({ method: "POST" })
     if (tx.buyer_id !== userId && tx.seller_id !== userId) throw new Error("Sin acceso");
     if (!tx.released_at) throw new Error("Solo se puede timbrar tras la liberación");
 
-    const folio = `CUMPLEX-${tx.id.slice(0, 8).toUpperCase()}`;
+    const folio = `Cumplex-${tx.id.slice(0, 8).toUpperCase()}`;
     const uuidSat = crypto.randomUUID();
     const subtotal = tx.amount_cents / 100 / 1.16;
     const iva = tx.amount_cents / 100 - subtotal;
@@ -77,7 +77,7 @@ export const generateCfdiStub = createServerFn({ method: "POST" })
       folio,
       uuid_sat: uuidSat,
       fecha_timbrado: new Date().toISOString(),
-      emisor: { rfc: "YKT250101ABC", razon_social: "CUMPLEX ESCROW SAPI DE CV", regimen: "601" },
+      emisor: { rfc: "YKT250101ABC", razon_social: "Cumplex ESCROW SAPI DE CV", regimen: "601" },
       receptor: { rfc: "XAXX010101000", uso_cfdi: "G03" },
       conceptos: [{
         clave_prod_serv: "80101500", cantidad: 1, clave_unidad: "E48",

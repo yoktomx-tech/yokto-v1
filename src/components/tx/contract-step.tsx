@@ -1,7 +1,7 @@
 // Paso "Contrato" del wizard de creación de operación protegida.
 // UI-first: método de contrato (subir PDF o generar), plantilla, métodos
 // de firma por parte, canvas de firma autógrafa, y placeholder de e.firma.
-// El bloque legal CUMPLEX se incluye siempre en los contratos generados.
+// El bloque legal Cumplex se incluye siempre en los contratos generados.
 
 import { useMemo, useRef, useState } from "react";
 import {
@@ -11,7 +11,7 @@ import {
 import type { SectorId } from "@/lib/sectors";
 import {
   type ContractState, type ContractMethod, type SignatureMethod,
-  templatesForSector, recommendedTemplate, CUMPLEX_LEGAL_BLOCK, sha256Hex,
+  templatesForSector, recommendedTemplate, Cumplex_LEGAL_BLOCK, sha256Hex,
   suggestSignatureMethod,
 } from "@/lib/contract-catalog";
 
@@ -63,7 +63,7 @@ export function ContractStep({
           active={state.method === "GENERATED"}
           onClick={() => setMethod("GENERATED")}
           icon={<Sparkles className="h-5 w-5" />}
-          title="Generar contrato CUMPLEX"
+          title="Generar contrato Cumplex"
           descripcion="Crearlo con los datos capturados en el wizard."
         />
       </div>
@@ -92,7 +92,7 @@ export function ContractStep({
       <div className="rounded-lg bg-yo-info-bg border border-[#BAE6FD] p-3 flex items-start gap-2">
         <Info className="h-4 w-4 text-yo-info shrink-0 mt-0.5" />
         <p className="text-xs text-yo-txt-2">
-          CUMPLEX no sustituye asesoría legal. El contrato generado es una plantilla operativa basada en la información
+          Cumplex no sustituye asesoría legal. El contrato generado es una plantilla operativa basada en la información
           registrada por las partes. Las partes son responsables de revisar y aceptar su contenido antes de firmar.
         </p>
       </div>
@@ -238,7 +238,7 @@ function UploadPanel({ state, setState }: { state: ContractState; setState: (s: 
             onChange={() => setState({ ...state, alreadySigned: false, requiresCumplexSignature: true })}
             className="mt-0.5"
           />
-          <span className="text-sm text-yo-txt">Se firmará dentro de CUMPLEX (recomendado)</span>
+          <span className="text-sm text-yo-txt">Se firmará dentro de Cumplex (recomendado)</span>
         </label>
         <label className="flex items-start gap-2 cursor-pointer">
           <input
@@ -247,7 +247,7 @@ function UploadPanel({ state, setState }: { state: ContractState; setState: (s: 
             onChange={() => setState({ ...state, alreadySigned: true, requiresCumplexSignature: false })}
             className="mt-0.5"
           />
-          <span className="text-sm text-yo-txt">Ya viene firmado — CUMPLEX solo lo vinculará a la operación</span>
+          <span className="text-sm text-yo-txt">Ya viene firmado — Cumplex solo lo vinculará a la operación</span>
         </label>
       </fieldset>
     </section>
@@ -332,7 +332,7 @@ function GeneratedPanel({
                 <li>Reglas de liberación de pagos</li>
                 <li>CFDI y REP: obligaciones fiscales del proveedor</li>
                 <li>Disputas y resolución</li>
-                <li>Rol neutral de CUMPLEX</li>
+                <li>Rol neutral de Cumplex</li>
                 <li>Limitación de custodia de fondos</li>
                 <li>Auditoría y trazabilidad</li>
                 <li>Firmas</li>
@@ -340,8 +340,8 @@ function GeneratedPanel({
             )}
 
             <div className="mt-3 rounded-md bg-yo-raised border border-yo-border p-3">
-              <p className="text-[11px] text-yo-txt-3 uppercase tracking-wider mb-1 font-semibold">Bloque legal CUMPLEX (no editable)</p>
-              <p className="text-[11px] text-yo-txt-2 leading-relaxed">{CUMPLEX_LEGAL_BLOCK}</p>
+              <p className="text-[11px] text-yo-txt-3 uppercase tracking-wider mb-1 font-semibold">Bloque legal Cumplex (no editable)</p>
+              <p className="text-[11px] text-yo-txt-2 leading-relaxed">{Cumplex_LEGAL_BLOCK}</p>
             </div>
           </div>
         </div>

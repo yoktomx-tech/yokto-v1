@@ -189,7 +189,7 @@ export function EmailVerificationGate({ children }: { children: React.ReactNode 
             </li>
             <li className="flex gap-2">
               <Ban className="h-3.5 w-3.5 mt-0.5 text-primary flex-shrink-0" />
-              <span><strong className="text-foreground">Cumplimiento PLD/FT:</strong> CUMPLEX requiere identificar de forma fehaciente a cada usuario antes de operar.</span>
+              <span><strong className="text-foreground">Cumplimiento PLD/FT:</strong> Cumplex requiere identificar de forma fehaciente a cada usuario antes de operar.</span>
             </li>
           </ul>
         </div>

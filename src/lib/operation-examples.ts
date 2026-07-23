@@ -401,7 +401,7 @@ export function buildDemoTxRows(userId: string): DemoTxRow[] {
     const releasable = RELEASABLE_STATES.has(state.status) ? amount_cents : 0;
     return {
       id: `demo-${ex.id}`,
-      numero: `CUMPLEX-DEMO-${String(idx + 1).padStart(3, "0")}`,
+      numero: `Cumplex-DEMO-${String(idx + 1).padStart(3, "0")}`,
       title: ex.label,
       sector: ex.sector,
       buyer_id,

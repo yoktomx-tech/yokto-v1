@@ -224,7 +224,7 @@ export function FundingWizard({ open, onClose, presetTransactionId, onSuccess }:
                       <h3 className="mt-1 font-display text-xl text-yo-t1">Deposita {fmtMoney(intent.amount_cents, intent.currency)}</h3>
                     </div>
                     <InstrRow label="CLABE" value={intent.clabe} mono onCopy={() => copy(intent.clabe, "CLABE")} />
-                    <InstrRow label="Beneficiario" value={String((intent.metadata?.beneficiary as string) ?? "CUMPLEX ESCROW")} />
+                    <InstrRow label="Beneficiario" value={String((intent.metadata?.beneficiary as string) ?? "Cumplex ESCROW")} />
                     <InstrRow label="Banco" value={String((intent.metadata?.bank as string) ?? "STP")} />
                     <InstrRow label="Referencia" value={intent.reference_code ?? "—"} mono onCopy={() => copy(intent.reference_code, "Referencia")} />
                     <InstrRow label="Monto" value={fmtMoney(intent.amount_cents, intent.currency)} onCopy={() => copy((intent.amount_cents / 100).toFixed(2), "Monto")} />
@@ -280,7 +280,7 @@ export function FundingWizard({ open, onClose, presetTransactionId, onSuccess }:
               </div>
 
               <p className="text-[11px] text-yo-t2 text-center">
-                CUMPLEX confirmará automáticamente por webhook cuando la pasarela reciba los fondos.
+                Cumplex confirmará automáticamente por webhook cuando la pasarela reciba los fondos.
               </p>
             </div>
           )}

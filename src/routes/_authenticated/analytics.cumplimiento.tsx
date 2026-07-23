@@ -8,7 +8,7 @@ import {
 } from "@/lib/analytics-mock";
 
 export const Route = createFileRoute("/_authenticated/analytics/cumplimiento")({
-  head: () => ({ meta: [{ title: "Cumplimiento — Analytics — CUMPLEX" }, { name: "robots", content: "noindex" }] }),
+  head: () => ({ meta: [{ title: "Cumplimiento — Analytics — Cumplex" }, { name: "robots", content: "noindex" }] }),
   component: ComplianceReport,
 });
 

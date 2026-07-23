@@ -95,7 +95,7 @@ const TABS: { key: TabKey; label: string }[] = [
 ];
 
 export const Route = createFileRoute("/_authenticated/transactions/$id/")({
-  head: () => ({ meta: [{ title: "Transacción — CUMPLEX" }, { name: "robots", content: "noindex" }] }),
+  head: () => ({ meta: [{ title: "Transacción — Cumplex" }, { name: "robots", content: "noindex" }] }),
   component: TxDetail,
 });
 
@@ -367,7 +367,7 @@ function TxDetail() {
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <Fact label="Comisión CUMPLEX" value={`${formatMoney(commission, tx.currency)} (${(tx.commission_bps / 100).toFixed(2)}%)`} />
+                    <Fact label="Comisión Cumplex" value={`${formatMoney(commission, tx.currency)} (${(tx.commission_bps / 100).toFixed(2)}%)`} />
                     <Fact label="Método de fondeo" value={tx.payment_method.toUpperCase()} />
                     <Fact label="Comisión a cargo de" value={tx.commission_payer === "buyer" ? "Comprador" : tx.commission_payer === "seller" ? "Vendedor" : "Dividido"} />
                     <Fact label="Fecha límite entrega" value={tx.delivery_deadline ? new Date(tx.delivery_deadline).toLocaleDateString("es-MX") : "—"} />
@@ -447,7 +447,7 @@ function TxDetail() {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                           <Fact label="CLABE" value={activeIntent.clabe ?? "—"} mono />
                           <Fact label="Referencia" value={activeIntent.reference_code ?? "—"} mono />
-                          <Fact label="Beneficiario" value={activeIntent.metadata?.beneficiary ?? "CUMPLEX"} />
+                          <Fact label="Beneficiario" value={activeIntent.metadata?.beneficiary ?? "Cumplex"} />
                           <Fact label="Banco" value={activeIntent.metadata?.bank ?? "STP"} />
                           <Fact label="Monto" value={formatMoney(tx.amount_cents, tx.currency)} />
                           <Fact label="Expira" value={activeIntent.expires_at ? new Date(activeIntent.expires_at).toLocaleString("es-MX") : "—"} />
@@ -615,7 +615,7 @@ function TxDetail() {
                     <dd className="font-mono text-yo-txt">{formatMoney(tx.amount_cents, tx.currency)}</dd>
                   </div>
                   <div className="flex justify-between">
-                    <dt className="text-yo-txt-2">Comisión CUMPLEX</dt>
+                    <dt className="text-yo-txt-2">Comisión Cumplex</dt>
                     <dd className="font-mono text-yo-txt">{formatMoney(commission, tx.currency)}</dd>
                   </div>
                   <div className="flex justify-between border-t border-yo-border pt-2">
@@ -662,7 +662,7 @@ function TxDetail() {
         <div className="fixed inset-0 z-50 bg-black/50 grid place-items-center p-4" onClick={() => setDisputeOpen(false)}>
           <div className="w-full max-w-lg surface-card p-6" onClick={(e) => e.stopPropagation()}>
             <h3 className="text-lg font-semibold text-yo-txt">Abrir disputa</h3>
-            <p className="mt-1 text-sm text-yo-txt-2">Detalla el problema con evidencia clara. Un mediador de CUMPLEX revisará el caso.</p>
+            <p className="mt-1 text-sm text-yo-txt-2">Detalla el problema con evidencia clara. Un mediador de Cumplex revisará el caso.</p>
             <div className="mt-5 space-y-4">
               <label className="block text-sm">
                 <span className="text-[10px] uppercase tracking-wider text-yo-txt-3 font-medium">Motivo</span>

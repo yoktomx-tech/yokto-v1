@@ -19,9 +19,9 @@ export function SiteFooter() {
 
       <div className="border-t border-white/[0.06]">
         <div className="container-editorial py-5 flex flex-col md:flex-row md:items-center md:justify-between gap-3 text-xs text-yokto-text-3">
-          <p className="uppercase tracking-widest">© {new Date().getFullYear()} CUMPLEX · Hecho en México</p>
+          <p className="uppercase tracking-widest">© {new Date().getFullYear()} Cumplex · Hecho en México</p>
           <p className="max-w-2xl md:text-right leading-relaxed">
-            CUMPLEX no es entidad financiera ni custodio de fondos. Opera como facilitador
+            Cumplex no es entidad financiera ni custodio de fondos. Opera como facilitador
             tecnológico fuera del marco IFPE/CNBV, apoyado en pasarelas de pago certificadas.
           </p>
         </div>

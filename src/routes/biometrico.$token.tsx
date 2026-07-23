@@ -13,7 +13,7 @@ import {
 import { CumplexLogo } from "@/components/logo";
 
 export const Route = createFileRoute("/biometrico/$token")({
-  head: () => ({ meta: [{ title: "Enrolamiento biométrico — CUMPLEX" }, { name: "robots", content: "noindex" }] }),
+  head: () => ({ meta: [{ title: "Enrolamiento biométrico — Cumplex" }, { name: "robots", content: "noindex" }] }),
   component: BiometricMobile,
 });
 

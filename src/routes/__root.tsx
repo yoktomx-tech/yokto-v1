@@ -80,27 +80,27 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "CUMPLEX — Pago Seguro contra Cumplimiento" },
+      { title: "Cumplex — Pago Seguro contra Cumplimiento" },
       {
         name: "description",
         content:
-          "CUMPLEX es la plataforma neutral de pago contra cumplimiento para México. Retenemos fondos y los liberamos solo cuando se verifican las condiciones acordadas entre las partes.",
+          "Cumplex es la plataforma neutral de pago contra cumplimiento para México. Retenemos fondos y los liberamos solo cuando se verifican las condiciones acordadas entre las partes.",
       },
-      { name: "author", content: "CUMPLEX" },
+      { name: "author", content: "Cumplex" },
       { name: "theme-color", content: "#09090B" },
-      { property: "og:title", content: "CUMPLEX — Pago Seguro contra Cumplimiento" },
+      { property: "og:title", content: "Cumplex — Pago Seguro contra Cumplimiento" },
       {
         property: "og:description",
         content:
-          "CUMPLEX es la plataforma neutral de pago contra cumplimiento para México. Retenemos fondos y los liberamos solo cuando se verifican las condiciones acordadas entre las partes.",
+          "Cumplex es la plataforma neutral de pago contra cumplimiento para México. Retenemos fondos y los liberamos solo cuando se verifican las condiciones acordadas entre las partes.",
       },
       { property: "og:type", content: "website" },
       { property: "og:locale", content: "es_MX" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "CUMPLEX — Pago Seguro contra Cumplimiento" },
+      { name: "twitter:title", content: "Cumplex — Pago Seguro contra Cumplimiento" },
       {
         name: "twitter:description",
-        content: "CUMPLEX es la plataforma neutral de pago contra cumplimiento para México. Retenemos fondos y los liberamos solo cuando se verifican las condiciones acordadas entre las partes.",
+        content: "Cumplex es la plataforma neutral de pago contra cumplimiento para México. Retenemos fondos y los liberamos solo cuando se verifican las condiciones acordadas entre las partes.",
       },
       { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/f0106119-1231-4232-a4a0-b1f0d9fe8e5e/id-preview-3a966e6c--018b237f-9ae4-4e79-8e2f-a64bd6b88fea.lovable.app-1784105564739.png" },
       { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/f0106119-1231-4232-a4a0-b1f0d9fe8e5e/id-preview-3a966e6c--018b237f-9ae4-4e79-8e2f-a64bd6b88fea.lovable.app-1784105564739.png" },

@@ -19,7 +19,7 @@ import { txHash } from "@/lib/tx-hash";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/transactions/$id/expediente")({
-  head: () => ({ meta: [{ title: "Expediente de operación — CUMPLEX" }, { name: "robots", content: "noindex" }] }),
+  head: () => ({ meta: [{ title: "Expediente de operación — Cumplex" }, { name: "robots", content: "noindex" }] }),
   component: ExpedienteView,
 });
 

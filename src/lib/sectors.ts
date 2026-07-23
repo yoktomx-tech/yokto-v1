@@ -1,4 +1,4 @@
-// Catálogo de sectores CUMPLEX + configuración de comisiones (Módulo C)
+// Catálogo de sectores Cumplex + configuración de comisiones (Módulo C)
 
 export const SECTOR_IDS = [
   "AUTOTRANSPORTE",

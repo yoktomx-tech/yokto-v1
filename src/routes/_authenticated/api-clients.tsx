@@ -6,7 +6,7 @@ import { listApiClients, createApiClient, revokeApiClient } from "@/lib/api-clie
 import { PageHeader } from "@/components/page-header";
 
 export const Route = createFileRoute("/_authenticated/api-clients")({
-  head: () => ({ meta: [{ title: "API — CUMPLEX" }, { name: "robots", content: "noindex" }] }),
+  head: () => ({ meta: [{ title: "API — Cumplex" }, { name: "robots", content: "noindex" }] }),
   component: ApiClientsPage,
 });
 
@@ -45,7 +45,7 @@ function ApiClientsPage() {
       <PageHeader
         icon={Key}
         title="API pública"
-        subtitle="Genera credenciales para integrar CUMPLEX con tu ERP, marketplace o backend. Cada request debe firmarse con HMAC-SHA256."
+        subtitle="Genera credenciales para integrar Cumplex con tu ERP, marketplace o backend. Cada request debe firmarse con HMAC-SHA256."
       />
 
         <div className="rounded-lg border border-yo-border bg-yo-surface p-5">

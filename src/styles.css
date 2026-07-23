@@ -21,7 +21,7 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
 
-  /* === Tokens CUMPLEX v3 (light — spec `yo-*`) === */
+  /* === Tokens Cumplex v3 (light — spec `yo-*`) === */
   --color-yo-bg:       var(--yo-bg);
   --color-yo-surface:  var(--yo-surface);
   --color-yo-raised:   var(--yo-raised);
@@ -156,7 +156,7 @@
 .dark {
   color-scheme: dark;
 
-  /* Paleta v3 dark — CUMPLEX Dark Theme */
+  /* Paleta v3 dark — Cumplex Dark Theme */
   --yo-bg:       #09090B;
   --yo-surface:  #111113;
   --yo-raised:   #18181B;
