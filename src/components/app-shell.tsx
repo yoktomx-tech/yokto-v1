@@ -170,7 +170,7 @@ function SidebarContent({
       </div>
 
 
-      <nav className={cn("flex-1 overflow-y-auto p-3 space-y-0.5", collapsed && "px-2")}>
+      <nav className={cn("flex-1 overflow-y-auto p-3 space-y-1.5", collapsed && "px-2 space-y-2")}>
         {nav.map((item) => {
           const active = pathname === item.to || pathname.startsWith(item.to + "/");
           const Icon = item.icon;
@@ -182,7 +182,7 @@ function SidebarContent({
               title={collapsed ? item.label : undefined}
               className={cn(
                 "flex items-center gap-3 rounded-md text-[13px] font-medium transition",
-                collapsed ? "justify-center px-0 py-2" : "px-3 py-2",
+                collapsed ? "justify-center px-0 py-2.5" : "px-3 py-2.5",
                 active
                   ? "bg-yo-ac-bg text-yo-ac-txt"
                   : "text-yo-txt-2 hover:text-yo-txt hover:bg-yo-raised"
