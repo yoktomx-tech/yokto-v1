@@ -246,7 +246,7 @@ export function AnalyticsLegalNote({ short = false }: { short?: boolean }) {
   if (short) {
     return (
       <p className="text-[11px] text-yo-txt-3 leading-relaxed">
-        CUMPLEX no custodia fondos ni emite CFDI/REP. Los movimientos son procesados por pasarelas certificadas
+        Cumplex no custodia fondos ni emite CFDI/REP. Los movimientos son procesados por pasarelas certificadas
         y los documentos fiscales provienen de comprobantes emitidos por los propios usuarios.
       </p>
     );
@@ -255,7 +255,7 @@ export function AnalyticsLegalNote({ short = false }: { short?: boolean }) {
     <div className="rounded-lg border border-yo-border bg-yo-raised p-3">
       <p className="text-[11.5px] text-yo-txt-2 leading-relaxed">
         <span className="font-semibold text-yo-txt">Nota:</span>{" "}
-        CUMPLEX actúa como tercero tecnológico neutral para el seguimiento de cumplimiento. No custodia fondos
+        Cumplex actúa como tercero tecnológico neutral para el seguimiento de cumplimiento. No custodia fondos
         ni emite comprobantes fiscales. Los recursos son procesados por la pasarela de pago integrada y la
         información fiscal proviene de CFDI y REP emitidos por los propios usuarios y cargados en la plataforma
         para validación documental.

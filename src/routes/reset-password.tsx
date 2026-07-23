@@ -7,7 +7,7 @@ import { CumplexLogo } from "@/components/logo";
 export const Route = createFileRoute("/reset-password")({
   head: () => ({
     meta: [
-      { title: "Nueva contraseña — CUMPLEX" },
+      { title: "Nueva contraseña — Cumplex" },
       { name: "robots", content: "noindex" },
     ],
   }),

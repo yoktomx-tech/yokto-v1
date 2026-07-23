@@ -7,7 +7,7 @@ import { PageHeader } from "@/components/page-header";
 import { FileText, ArrowLeft, CheckCircle2, AlertCircle, Clock } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/payments/fiscal")({
-  head: () => ({ meta: [{ title: "Documentos fiscales — CUMPLEX" }, { name: "robots", content: "noindex" }] }),
+  head: () => ({ meta: [{ title: "Documentos fiscales — Cumplex" }, { name: "robots", content: "noindex" }] }),
   component: FiscalPage,
 });
 

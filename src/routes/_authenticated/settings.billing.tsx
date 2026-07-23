@@ -16,7 +16,7 @@ const INVOICES = [
 function BillingPage() {
   return (
     <div className="space-y-4">
-      <SettingsCard icon={CreditCard} title="Plan activo" description="CUMPLEX no custodia fondos ni emite CFDI de operaciones entre comprador y vendedor. La facturación aquí corresponde a la suscripción al SaaS.">
+      <SettingsCard icon={CreditCard} title="Plan activo" description="Cumplex no custodia fondos ni emite CFDI de operaciones entre comprador y vendedor. La facturación aquí corresponde a la suscripción al SaaS.">
         <div className="rounded-md border border-yo-border bg-yo-raised/40 p-4">
           <div className="flex items-center justify-between flex-wrap gap-3">
             <div>
@@ -47,7 +47,7 @@ function BillingPage() {
         </div>
       </SettingsCard>
 
-      <SettingsCard icon={FileText} title="Perfil fiscal de billing" description="Datos que CUMPLEX usará para emitir tu CFDI de suscripción.">
+      <SettingsCard icon={FileText} title="Perfil fiscal de billing" description="Datos que Cumplex usará para emitir tu CFDI de suscripción.">
         <SettingsRow label="RFC receptor"><code className="font-mono text-sm">XAXX010101000</code></SettingsRow>
         <SettingsRow label="Razón social"><span className="text-sm">Mi Empresa SA de CV</span></SettingsRow>
         <SettingsRow label="Régimen fiscal"><span className="text-sm">601 · General de Ley Personas Morales</span></SettingsRow>

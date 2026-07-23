@@ -5,7 +5,7 @@ import {
 import { teamList, fmtMoneyFull } from "@/lib/analytics-mock";
 
 export const Route = createFileRoute("/_authenticated/analytics/equipo")({
-  head: () => ({ meta: [{ title: "Equipo — Analytics — CUMPLEX" }, { name: "robots", content: "noindex" }] }),
+  head: () => ({ meta: [{ title: "Equipo — Analytics — Cumplex" }, { name: "robots", content: "noindex" }] }),
   component: TeamReport,
 });
 

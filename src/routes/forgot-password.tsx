@@ -7,8 +7,8 @@ import { CumplexLogo } from "@/components/logo";
 export const Route = createFileRoute("/forgot-password")({
   head: () => ({
     meta: [
-      { title: "Recuperar contraseña — CUMPLEX" },
-      { name: "description", content: "Recupera el acceso a tu cuenta CUMPLEX." },
+      { title: "Recuperar contraseña — Cumplex" },
+      { name: "description", content: "Recupera el acceso a tu cuenta Cumplex." },
       { name: "robots", content: "noindex" },
     ],
   }),

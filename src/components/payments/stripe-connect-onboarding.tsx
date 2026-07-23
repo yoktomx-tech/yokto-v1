@@ -21,7 +21,7 @@ export function StripeConnectOnboarding({ status, chargesEnabled, payoutsEnabled
         {complete ? "Cuenta lista para recibir payouts" : "Configura tu cuenta para recibir pagos"}
       </h3>
       <p className="mt-2 text-sm text-muted-foreground">
-        Para recibir liberaciones de CUMPLEX necesitas una cuenta Stripe Connect verificada (KYB + CLABE de payout + TOS).
+        Para recibir liberaciones de Cumplex necesitas una cuenta Stripe Connect verificada (KYB + CLABE de payout + TOS).
       </p>
 
       <div className="mt-4 grid grid-cols-3 gap-2 text-[11px] uppercase tracking-[0.14em]">

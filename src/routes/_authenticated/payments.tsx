@@ -24,7 +24,7 @@ import {
 } from "@/components/payments/sections";
 
 export const Route = createFileRoute("/_authenticated/payments")({
-  head: () => ({ meta: [{ title: "Centro de Pagos — CUMPLEX" }, { name: "robots", content: "noindex" }] }),
+  head: () => ({ meta: [{ title: "Centro de Pagos — Cumplex" }, { name: "robots", content: "noindex" }] }),
   component: PaymentsPage,
 });
 

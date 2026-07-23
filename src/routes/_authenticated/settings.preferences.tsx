@@ -42,7 +42,7 @@ function PreferencesPage() {
   }
 
   return (
-    <SettingsCard icon={Sliders} title="Preferencias operativas" description="Ajustes personales que aplican al abrir CUMPLEX.">
+    <SettingsCard icon={Sliders} title="Preferencias operativas" description="Ajustes personales que aplican al abrir Cumplex.">
       <SettingsRow label="Rol predeterminado" hint="Vista con la que abrirás la app.">
         <select value={p.defaultRole} onChange={(e) => update("defaultRole", e.target.value as any)} className="h-9 rounded-md border border-yo-border bg-background px-2 text-sm">
           <option value="seller">Vendedor</option>

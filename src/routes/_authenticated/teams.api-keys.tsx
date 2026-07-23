@@ -27,7 +27,7 @@ function ApiKeysPage() {
         </div>
         <h3 className="text-[16px] font-semibold text-yo-txt">API Keys disponibles en Enterprise</h3>
         <p className="mt-1 text-[13px] text-yo-txt-2 max-w-md mx-auto">
-          Actualiza tu plan para conectar CUMPLEX con tu ERP, TMS o sistema interno mediante API REST y webhooks.
+          Actualiza tu plan para conectar Cumplex con tu ERP, TMS o sistema interno mediante API REST y webhooks.
         </p>
         <button className="mt-4 h-9 px-4 text-[13px] font-semibold rounded-md bg-yo-ac text-white hover:bg-yo-ac-h">
           Actualizar a Enterprise
@@ -50,7 +50,7 @@ function ApiKeysPage() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-[15px] font-semibold text-yo-txt">API Keys</h2>
-          <p className="text-[12.5px] text-yo-txt-3">Conecta CUMPLEX con tu ERP, CRM, TMS o sistema interno.</p>
+          <p className="text-[12.5px] text-yo-txt-3">Conecta Cumplex con tu ERP, CRM, TMS o sistema interno.</p>
         </div>
         <button onClick={() => setCreateOpen(true)} className="inline-flex items-center gap-1.5 h-9 px-3 text-[13px] font-medium rounded-md bg-yo-ac text-white hover:bg-yo-ac-h">
           <Plus className="size-3.5" /> Crear API Key

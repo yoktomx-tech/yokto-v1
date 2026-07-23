@@ -51,7 +51,7 @@ export const upsertTransactionDraft = createServerFn({ method: "POST" })
     const seller_id = soyPagador ? (step2.contraparte_user_id ?? null) : context.userId;
 
     // Nueva regla: cualquiera de las dos partes puede ser una invitación.
-    // Cuando la contraparte no tiene cuenta CUMPLEX todavía, guardamos su nombre
+    // Cuando la contraparte no tiene cuenta Cumplex todavía, guardamos su nombre
     // y correo en los campos correspondientes según el rol invitado.
     const invitedEmail = step2.contraparte_user_id ? null : (step2.contraparte_email ?? null);
     const invitedNombre = step2.contraparte_user_id ? null : (step2.contraparte_nombre ?? null);

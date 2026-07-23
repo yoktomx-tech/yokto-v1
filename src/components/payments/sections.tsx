@@ -122,7 +122,7 @@ export function DepositosSpeiSection({ rows, role }: { rows: PaymentRow[]; role:
     >
       <InfoBox tone="info" title="Depósito directo a la pasarela">
         La CLABE mostrada es virtual y única por operación. El SPEI llega directamente a la pasarela certificada;
-        CUMPLEX no recibe ni retiene los fondos.
+        Cumplex no recibe ni retiene los fondos.
       </InfoBox>
 
       {withClabe.length === 0 && withoutClabe.length === 0 ? (
@@ -409,7 +409,7 @@ export function ComisionesSection() {
     <SectionShell
       icon={Percent}
       title="Comisiones"
-      subtitle="Comisiones cobradas por CUMPLEX al liquidarse cada operación."
+      subtitle="Comisiones cobradas por Cumplex al liquidarse cada operación."
     >
       <div className="rounded-xl border border-yo-border bg-yo-card p-5">
         <p className="text-[11px] uppercase tracking-wider text-yo-t2">Comisiones acumuladas</p>
@@ -459,7 +459,7 @@ export function LedgerSection() {
   const KIND: Record<string, { label: string; c: string }> = {
     FONDEO:         { label: "Fondeo",         c: "bg-yo-info-bg text-yo-info" },
     LIBERACION:     { label: "Liberación",     c: "bg-yo-ok-bg text-yo-ok" },
-    COMISION_YOKTO: { label: "Comisión CUMPLEX", c: "bg-yo-ac-bg text-yo-ac-txt" },
+    COMISION_YOKTO: { label: "Comisión Cumplex", c: "bg-yo-ac-bg text-yo-ac-txt" },
     REEMBOLSO:      { label: "Reembolso",      c: "bg-yo-warn-bg text-yo-warn" },
   };
 
@@ -587,7 +587,7 @@ export function WebhooksSection() {
       subtitle="Eventos recibidos desde la pasarela. Visibilidad interna del backoffice."
     >
       <InfoBox tone="warn" title="Sólo backoffice">
-        Este panel muestra la traza de eventos de la pasarela procesados por CUMPLEX. Los efectos
+        Este panel muestra la traza de eventos de la pasarela procesados por Cumplex. Los efectos
         contables ya se aplicaron en las secciones de retenciones, liberaciones y payouts.
       </InfoBox>
       {isLoading ? (

@@ -190,14 +190,14 @@ export type OperationRow = {
 
 export function operationsList(): OperationRow[] {
   return [
-    { id: "op-1", numero: "CUMPLEX-2026-0012", sector: "AUTOTRANSPORTE", rol: "buyer", contraparte: "TransRegio SA", status: "VERIFY", amount: 85_000, hitos: { done: 2, total: 3 }, cumplimiento: 67, fiscal: "COMPLETE", contrato: "SIGNED", disputa: false, ultima: "hace 2h" },
-    { id: "op-2", numero: "CUMPLEX-2026-0013", sector: "CONSTRUCCION", rol: "seller", contraparte: "Constructora Norte", status: "COMPLIANCE", amount: 420_000, hitos: { done: 2, total: 5 }, cumplimiento: 40, fiscal: "REP_PENDING", contrato: "PENDING_BUYER", disputa: false, ultima: "hace 5h" },
-    { id: "op-3", numero: "CUMPLEX-2026-0014", sector: "VEHICULOS", rol: "buyer", contraparte: "AutoTop MX", status: "HELD", amount: 320_000, hitos: { done: 1, total: 2 }, cumplimiento: 50, fiscal: "CFDI_PENDING", contrato: "SIGNED", disputa: false, ultima: "hace 1d" },
-    { id: "op-4", numero: "CUMPLEX-2026-0015", sector: "COMERCIO_EXTERIOR", rol: "buyer", contraparte: "GlobalTrade", status: "DISPUTE", amount: 640_000, hitos: { done: 1, total: 4 }, cumplimiento: 25, fiscal: "REJECTED", contrato: "SIGNED", disputa: true, ultima: "hace 3h" },
-    { id: "op-5", numero: "CUMPLEX-2026-0016", sector: "INMOBILIARIO", rol: "seller", contraparte: "Inmuebles Sur", status: "PARTIAL", amount: 1_250_000, hitos: { done: 3, total: 4 }, cumplimiento: 75, fiscal: "COMPLETE", contrato: "SIGNED", disputa: false, ultima: "hace 6h" },
-    { id: "op-6", numero: "CUMPLEX-2026-0017", sector: "SERVICIOS", rol: "seller", contraparte: "AgencyMX", status: "COMPLETED", amount: 45_000, hitos: { done: 3, total: 3 }, cumplimiento: 100, fiscal: "COMPLETE", contrato: "SIGNED", disputa: false, ultima: "hace 1d" },
-    { id: "op-7", numero: "CUMPLEX-2026-0018", sector: "AUTOTRANSPORTE", rol: "buyer", contraparte: "Logistix", status: "COMPLIANCE", amount: 128_000, hitos: { done: 1, total: 3 }, cumplimiento: 33, fiscal: "CFDI_PENDING", contrato: "SIGNED", disputa: false, ultima: "hace 8h" },
-    { id: "op-8", numero: "CUMPLEX-2026-0019", sector: "CONSTRUCCION", rol: "buyer", contraparte: "ObraCivil", status: "ACTIVE", amount: 890_000, hitos: { done: 0, total: 6 }, cumplimiento: 15, fiscal: "NOT_REQUIRED", contrato: "PENDING_SELLER", disputa: false, ultima: "hace 30m" },
+    { id: "op-1", numero: "Cumplex-2026-0012", sector: "AUTOTRANSPORTE", rol: "buyer", contraparte: "TransRegio SA", status: "VERIFY", amount: 85_000, hitos: { done: 2, total: 3 }, cumplimiento: 67, fiscal: "COMPLETE", contrato: "SIGNED", disputa: false, ultima: "hace 2h" },
+    { id: "op-2", numero: "Cumplex-2026-0013", sector: "CONSTRUCCION", rol: "seller", contraparte: "Constructora Norte", status: "COMPLIANCE", amount: 420_000, hitos: { done: 2, total: 5 }, cumplimiento: 40, fiscal: "REP_PENDING", contrato: "PENDING_BUYER", disputa: false, ultima: "hace 5h" },
+    { id: "op-3", numero: "Cumplex-2026-0014", sector: "VEHICULOS", rol: "buyer", contraparte: "AutoTop MX", status: "HELD", amount: 320_000, hitos: { done: 1, total: 2 }, cumplimiento: 50, fiscal: "CFDI_PENDING", contrato: "SIGNED", disputa: false, ultima: "hace 1d" },
+    { id: "op-4", numero: "Cumplex-2026-0015", sector: "COMERCIO_EXTERIOR", rol: "buyer", contraparte: "GlobalTrade", status: "DISPUTE", amount: 640_000, hitos: { done: 1, total: 4 }, cumplimiento: 25, fiscal: "REJECTED", contrato: "SIGNED", disputa: true, ultima: "hace 3h" },
+    { id: "op-5", numero: "Cumplex-2026-0016", sector: "INMOBILIARIO", rol: "seller", contraparte: "Inmuebles Sur", status: "PARTIAL", amount: 1_250_000, hitos: { done: 3, total: 4 }, cumplimiento: 75, fiscal: "COMPLETE", contrato: "SIGNED", disputa: false, ultima: "hace 6h" },
+    { id: "op-6", numero: "Cumplex-2026-0017", sector: "SERVICIOS", rol: "seller", contraparte: "AgencyMX", status: "COMPLETED", amount: 45_000, hitos: { done: 3, total: 3 }, cumplimiento: 100, fiscal: "COMPLETE", contrato: "SIGNED", disputa: false, ultima: "hace 1d" },
+    { id: "op-7", numero: "Cumplex-2026-0018", sector: "AUTOTRANSPORTE", rol: "buyer", contraparte: "Logistix", status: "COMPLIANCE", amount: 128_000, hitos: { done: 1, total: 3 }, cumplimiento: 33, fiscal: "CFDI_PENDING", contrato: "SIGNED", disputa: false, ultima: "hace 8h" },
+    { id: "op-8", numero: "Cumplex-2026-0019", sector: "CONSTRUCCION", rol: "buyer", contraparte: "ObraCivil", status: "ACTIVE", amount: 890_000, hitos: { done: 0, total: 6 }, cumplimiento: 15, fiscal: "NOT_REQUIRED", contrato: "PENDING_SELLER", disputa: false, ultima: "hace 30m" },
   ];
 }
 
@@ -219,12 +219,12 @@ export type FiscalRow = {
 };
 export function fiscalList(): FiscalRow[] {
   return [
-    { id: "f1", tipo: "CFDI", uuid: "6E0D3B1A-9F12-4A5C-B821-8E0D3B1A9F12", operacion: "CUMPLEX-2026-0012", emisor: "TRE180101ABC", receptor: "YOK180101XYZ", total: 85_000, metodo: "PPD", forma: "99", sat: "VIGENTE", coherencia: 96, estado: "ACEPTADO" },
-    { id: "f2", tipo: "REP", uuid: "8B2F1CDE-0A9B-4C1E-8F2D-1CDE0A9B4C1E", operacion: "CUMPLEX-2026-0012", emisor: "TRE180101ABC", receptor: "YOK180101XYZ", total: 30_000, metodo: "PUE", forma: "03", sat: "VIGENTE", coherencia: 91, estado: "ACEPTADO", parcialidad: "1/3" },
-    { id: "f3", tipo: "REP", uuid: "9C3E2DFE-1BAC-4D2F-9E3E-2DFE1BAC4D2F", operacion: "CUMPLEX-2026-0012", emisor: "TRE180101ABC", receptor: "YOK180101XYZ", total: 35_000, metodo: "PUE", forma: "03", sat: "VALIDANDO", coherencia: 74, estado: "PENDIENTE", parcialidad: "2/3" },
-    { id: "f4", tipo: "CFDI", uuid: "1A4F3E0F-2CBD-4E3A-A4F3-3E0F2CBD4E3A", operacion: "CUMPLEX-2026-0015", emisor: "GLB180101XYZ", receptor: "YOK180101XYZ", total: 640_000, metodo: "PPD", forma: "01", sat: "VIGENTE", coherencia: 45, estado: "RECHAZADO" },
-    { id: "f5", tipo: "CFDI", uuid: "2B5A4F1B-3DCE-4F4B-B5A4-4F1B3DCE4F4B", operacion: "CUMPLEX-2026-0014", emisor: "ATP180101MMM", receptor: "YOK180101XYZ", total: 320_000, metodo: "PPD", forma: "99", sat: "VIGENTE", coherencia: 88, estado: "VALIDANDO" },
-    { id: "f6", tipo: "CFDI", uuid: "3C6B5A2C-4EDF-405C-C6B5-5A2C4EDF405C", operacion: "CUMPLEX-2026-0016", emisor: "INM180101ABC", receptor: "YOK180101XYZ", total: 1_250_000, metodo: "PPD", forma: "99", sat: "VIGENTE", coherencia: 98, estado: "ACEPTADO" },
+    { id: "f1", tipo: "CFDI", uuid: "6E0D3B1A-9F12-4A5C-B821-8E0D3B1A9F12", operacion: "Cumplex-2026-0012", emisor: "TRE180101ABC", receptor: "YOK180101XYZ", total: 85_000, metodo: "PPD", forma: "99", sat: "VIGENTE", coherencia: 96, estado: "ACEPTADO" },
+    { id: "f2", tipo: "REP", uuid: "8B2F1CDE-0A9B-4C1E-8F2D-1CDE0A9B4C1E", operacion: "Cumplex-2026-0012", emisor: "TRE180101ABC", receptor: "YOK180101XYZ", total: 30_000, metodo: "PUE", forma: "03", sat: "VIGENTE", coherencia: 91, estado: "ACEPTADO", parcialidad: "1/3" },
+    { id: "f3", tipo: "REP", uuid: "9C3E2DFE-1BAC-4D2F-9E3E-2DFE1BAC4D2F", operacion: "Cumplex-2026-0012", emisor: "TRE180101ABC", receptor: "YOK180101XYZ", total: 35_000, metodo: "PUE", forma: "03", sat: "VALIDANDO", coherencia: 74, estado: "PENDIENTE", parcialidad: "2/3" },
+    { id: "f4", tipo: "CFDI", uuid: "1A4F3E0F-2CBD-4E3A-A4F3-3E0F2CBD4E3A", operacion: "Cumplex-2026-0015", emisor: "GLB180101XYZ", receptor: "YOK180101XYZ", total: 640_000, metodo: "PPD", forma: "01", sat: "VIGENTE", coherencia: 45, estado: "RECHAZADO" },
+    { id: "f5", tipo: "CFDI", uuid: "2B5A4F1B-3DCE-4F4B-B5A4-4F1B3DCE4F4B", operacion: "Cumplex-2026-0014", emisor: "ATP180101MMM", receptor: "YOK180101XYZ", total: 320_000, metodo: "PPD", forma: "99", sat: "VIGENTE", coherencia: 88, estado: "VALIDANDO" },
+    { id: "f6", tipo: "CFDI", uuid: "3C6B5A2C-4EDF-405C-C6B5-5A2C4EDF405C", operacion: "Cumplex-2026-0016", emisor: "INM180101ABC", receptor: "YOK180101XYZ", total: 1_250_000, metodo: "PPD", forma: "99", sat: "VIGENTE", coherencia: 98, estado: "ACEPTADO" },
   ];
 }
 
@@ -244,7 +244,7 @@ export type PaymentRow = {
 
 const PAY_TIPO: Record<PaymentRow["tipo"], string> = {
   DEPOSIT: "Depósito comprador", HOLD: "Retención pasarela", RELEASE: "Liberación hito",
-  PARTIAL: "Liberación parcial", REFUND: "Reembolso", COMMISSION: "Comisión CUMPLEX",
+  PARTIAL: "Liberación parcial", REFUND: "Reembolso", COMMISSION: "Comisión Cumplex",
   VAT: "IVA comisión", ADJUSTMENT: "Ajuste manual",
 };
 export function paymentsTipoLabel(t: PaymentRow["tipo"]): string { return PAY_TIPO[t]; }
@@ -260,14 +260,14 @@ export function paymentsEstadoCfg(e: PaymentRow["estado"]) { return PAY_EST[e]; 
 
 export function paymentsList(): PaymentRow[] {
   return [
-    { id: "p1", fecha: "2026-07-14", operacion: "CUMPLEX-2026-0012", tipo: "DEPOSIT", amount: 85_000, metodo: "SPEI", estado: "COMPLETED", ref: "SPEI-98A2F", hito: "Inicio" },
-    { id: "p2", fecha: "2026-07-14", operacion: "CUMPLEX-2026-0012", tipo: "HOLD", amount: 85_000, metodo: "SPEI", estado: "COMPLETED", ref: "HOLD-98A2F" },
-    { id: "p3", fecha: "2026-07-13", operacion: "CUMPLEX-2026-0012", tipo: "RELEASE", amount: 30_000, metodo: "SPEI", estado: "COMPLETED", ref: "REL-1", hito: "Hito 1", cfdi: "REP 1/3" },
-    { id: "p4", fecha: "2026-07-12", operacion: "CUMPLEX-2026-0015", tipo: "DEPOSIT", amount: 640_000, metodo: "STRIPE", estado: "COMPLETED", ref: "pi_2ABc", hito: "Inicio" },
-    { id: "p5", fecha: "2026-07-11", operacion: "CUMPLEX-2026-0016", tipo: "PARTIAL", amount: 250_000, metodo: "SPEI", estado: "COMPLETED", ref: "REL-2", hito: "Hito 3" },
-    { id: "p6", fecha: "2026-07-11", operacion: "CUMPLEX-2026-0016", tipo: "COMMISSION", amount: 3_750, metodo: "SPEI", estado: "COMPLETED", ref: "COM-2" },
-    { id: "p7", fecha: "2026-07-10", operacion: "CUMPLEX-2026-0018", tipo: "REFUND", amount: 12_000, metodo: "SPEI", estado: "PROCESSING", ref: "REF-3" },
-    { id: "p8", fecha: "2026-07-09", operacion: "CUMPLEX-2026-0014", tipo: "HOLD", amount: 320_000, metodo: "STRIPE", estado: "PENDING_RECON", ref: "pi_9XyZ" },
+    { id: "p1", fecha: "2026-07-14", operacion: "Cumplex-2026-0012", tipo: "DEPOSIT", amount: 85_000, metodo: "SPEI", estado: "COMPLETED", ref: "SPEI-98A2F", hito: "Inicio" },
+    { id: "p2", fecha: "2026-07-14", operacion: "Cumplex-2026-0012", tipo: "HOLD", amount: 85_000, metodo: "SPEI", estado: "COMPLETED", ref: "HOLD-98A2F" },
+    { id: "p3", fecha: "2026-07-13", operacion: "Cumplex-2026-0012", tipo: "RELEASE", amount: 30_000, metodo: "SPEI", estado: "COMPLETED", ref: "REL-1", hito: "Hito 1", cfdi: "REP 1/3" },
+    { id: "p4", fecha: "2026-07-12", operacion: "Cumplex-2026-0015", tipo: "DEPOSIT", amount: 640_000, metodo: "STRIPE", estado: "COMPLETED", ref: "pi_2ABc", hito: "Inicio" },
+    { id: "p5", fecha: "2026-07-11", operacion: "Cumplex-2026-0016", tipo: "PARTIAL", amount: 250_000, metodo: "SPEI", estado: "COMPLETED", ref: "REL-2", hito: "Hito 3" },
+    { id: "p6", fecha: "2026-07-11", operacion: "Cumplex-2026-0016", tipo: "COMMISSION", amount: 3_750, metodo: "SPEI", estado: "COMPLETED", ref: "COM-2" },
+    { id: "p7", fecha: "2026-07-10", operacion: "Cumplex-2026-0018", tipo: "REFUND", amount: 12_000, metodo: "SPEI", estado: "PROCESSING", ref: "REF-3" },
+    { id: "p8", fecha: "2026-07-09", operacion: "Cumplex-2026-0014", tipo: "HOLD", amount: 320_000, metodo: "STRIPE", estado: "PENDING_RECON", ref: "pi_9XyZ" },
   ];
 }
 
@@ -279,11 +279,11 @@ export type ContractRow = {
 };
 export function contractsList(): ContractRow[] {
   return [
-    { id: "c1", operacion: "CUMPLEX-2026-0012", tipo: "Autotransporte estándar", origen: "GENERADO", estado: "SIGNED", comprador: "Firmado", vendedor: "Firmado", metodo: "EFIRMA", hash: "9f12a3b4c5", ultimaFirma: "15 Jul 2026" },
-    { id: "c2", operacion: "CUMPLEX-2026-0013", tipo: "Construcción REPSE", origen: "PDF", estado: "PENDING_BUYER", comprador: "Pendiente", vendedor: "Firmado", metodo: "AUTOGRAFA", hash: "1b2c3d4e5f", ultimaFirma: "14 Jul 2026" },
-    { id: "c3", operacion: "CUMPLEX-2026-0018", tipo: "Construcción llave en mano", origen: "GENERADO", estado: "PENDING_SELLER", comprador: "Firmado", vendedor: "Pendiente", metodo: "AUTOGRAFA", hash: "8e7d6c5b4a", ultimaFirma: "13 Jul 2026" },
-    { id: "c4", operacion: "CUMPLEX-2026-0016", tipo: "Compraventa inmobiliaria", origen: "PDF", estado: "SIGNED", comprador: "Firmado", vendedor: "Firmado", metodo: "MIXTO", hash: "aa11bb22cc", ultimaFirma: "12 Jul 2026" },
-    { id: "c5", operacion: "CUMPLEX-2026-0017", tipo: "Servicios profesionales", origen: "GENERADO", estado: "SIGNED", comprador: "Firmado", vendedor: "Firmado", metodo: "EFIRMA", hash: "dd44ee55ff", ultimaFirma: "10 Jul 2026" },
+    { id: "c1", operacion: "Cumplex-2026-0012", tipo: "Autotransporte estándar", origen: "GENERADO", estado: "SIGNED", comprador: "Firmado", vendedor: "Firmado", metodo: "EFIRMA", hash: "9f12a3b4c5", ultimaFirma: "15 Jul 2026" },
+    { id: "c2", operacion: "Cumplex-2026-0013", tipo: "Construcción REPSE", origen: "PDF", estado: "PENDING_BUYER", comprador: "Pendiente", vendedor: "Firmado", metodo: "AUTOGRAFA", hash: "1b2c3d4e5f", ultimaFirma: "14 Jul 2026" },
+    { id: "c3", operacion: "Cumplex-2026-0018", tipo: "Construcción llave en mano", origen: "GENERADO", estado: "PENDING_SELLER", comprador: "Firmado", vendedor: "Pendiente", metodo: "AUTOGRAFA", hash: "8e7d6c5b4a", ultimaFirma: "13 Jul 2026" },
+    { id: "c4", operacion: "Cumplex-2026-0016", tipo: "Compraventa inmobiliaria", origen: "PDF", estado: "SIGNED", comprador: "Firmado", vendedor: "Firmado", metodo: "MIXTO", hash: "aa11bb22cc", ultimaFirma: "12 Jul 2026" },
+    { id: "c5", operacion: "Cumplex-2026-0017", tipo: "Servicios profesionales", origen: "GENERADO", estado: "SIGNED", comprador: "Firmado", vendedor: "Firmado", metodo: "EFIRMA", hash: "dd44ee55ff", ultimaFirma: "10 Jul 2026" },
   ];
 }
 
@@ -296,10 +296,10 @@ export type DisputeRow = {
 };
 export function disputesList(): DisputeRow[] {
   return [
-    { id: "d1", folio: "DIS-2026-00023", operacion: "CUMPLEX-2026-0015", sector: "COMERCIO_EXTERIOR", iniciadaPor: "buyer", motivo: "Documento inválido", monto: 640_000, estado: "MEDIACION", sla: "36h restantes" },
-    { id: "d2", folio: "DIS-2026-00022", operacion: "CUMPLEX-2026-0018", sector: "CONSTRUCCION", iniciadaPor: "buyer", motivo: "Entrega incompleta", monto: 890_000, estado: "ABIERTA", sla: "70h restantes" },
-    { id: "d3", folio: "DIS-2026-00021", operacion: "CUMPLEX-2026-0011", sector: "VEHICULOS", iniciadaPor: "buyer", motivo: "Daño físico", monto: 220_000, estado: "RESUELTA_DIVIDIDA", sla: "cerrada", resultado: "50/50" },
-    { id: "d4", folio: "DIS-2026-00020", operacion: "CUMPLEX-2026-0010", sector: "AUTOTRANSPORTE", iniciadaPor: "seller", motivo: "Retraso", monto: 45_000, estado: "RESUELTA_VENDEDOR", sla: "cerrada", resultado: "A favor vendedor" },
+    { id: "d1", folio: "DIS-2026-00023", operacion: "Cumplex-2026-0015", sector: "COMERCIO_EXTERIOR", iniciadaPor: "buyer", motivo: "Documento inválido", monto: 640_000, estado: "MEDIACION", sla: "36h restantes" },
+    { id: "d2", folio: "DIS-2026-00022", operacion: "Cumplex-2026-0018", sector: "CONSTRUCCION", iniciadaPor: "buyer", motivo: "Entrega incompleta", monto: 890_000, estado: "ABIERTA", sla: "70h restantes" },
+    { id: "d3", folio: "DIS-2026-00021", operacion: "Cumplex-2026-0011", sector: "VEHICULOS", iniciadaPor: "buyer", motivo: "Daño físico", monto: 220_000, estado: "RESUELTA_DIVIDIDA", sla: "cerrada", resultado: "50/50" },
+    { id: "d4", folio: "DIS-2026-00020", operacion: "Cumplex-2026-0010", sector: "AUTOTRANSPORTE", iniciadaPor: "seller", motivo: "Retraso", monto: 45_000, estado: "RESUELTA_VENDEDOR", sla: "cerrada", resultado: "A favor vendedor" },
   ];
 }
 
@@ -311,10 +311,10 @@ export type ApprovalRow = {
 };
 export function approvalsList(): ApprovalRow[] {
   return [
-    { id: "a1", fecha: "2026-07-14", operacion: "CUMPLEX-2026-0012", hito: "Entrega en destino", vendedor: "TransRegio SA", monto: 30_000, estado: "PENDIENTE", impacto: 29_700 },
-    { id: "a2", fecha: "2026-07-13", operacion: "CUMPLEX-2026-0016", hito: "Anticipo notarial", vendedor: "Inmuebles Sur", monto: 250_000, estado: "APROBADO", decision: "Liberado", tiempo: "3h 12m", impacto: 247_500 },
-    { id: "a3", fecha: "2026-07-13", operacion: "CUMPLEX-2026-0018", hito: "Estimación 1", vendedor: "ObraCivil", monto: 148_000, estado: "CORRECCION", decision: "Falta evidencia GPS", tiempo: "1h 45m", impacto: 146_520 },
-    { id: "a4", fecha: "2026-07-11", operacion: "CUMPLEX-2026-0015", hito: "Embarque", vendedor: "GlobalTrade", monto: 160_000, estado: "DISPUTA", decision: "Abrió disputa", tiempo: "5h 30m", impacto: 158_400 },
+    { id: "a1", fecha: "2026-07-14", operacion: "Cumplex-2026-0012", hito: "Entrega en destino", vendedor: "TransRegio SA", monto: 30_000, estado: "PENDIENTE", impacto: 29_700 },
+    { id: "a2", fecha: "2026-07-13", operacion: "Cumplex-2026-0016", hito: "Anticipo notarial", vendedor: "Inmuebles Sur", monto: 250_000, estado: "APROBADO", decision: "Liberado", tiempo: "3h 12m", impacto: 247_500 },
+    { id: "a3", fecha: "2026-07-13", operacion: "Cumplex-2026-0018", hito: "Estimación 1", vendedor: "ObraCivil", monto: 148_000, estado: "CORRECCION", decision: "Falta evidencia GPS", tiempo: "1h 45m", impacto: 146_520 },
+    { id: "a4", fecha: "2026-07-11", operacion: "Cumplex-2026-0015", hito: "Embarque", vendedor: "GlobalTrade", monto: 160_000, estado: "DISPUTA", decision: "Abrió disputa", tiempo: "5h 30m", impacto: 158_400 },
   ];
 }
 

@@ -22,7 +22,7 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/invitations/$token/onboarding")({
   ssr: false,
   head: () => ({ meta: [
-    { title: "Aceptar invitación — CUMPLEX" },
+    { title: "Aceptar invitación — Cumplex" },
     { name: "robots", content: "noindex" },
   ] }),
   component: InviteeOnboarding,
@@ -228,7 +228,7 @@ function Step1Account({ token, inv, org, addr, onDone, setError }: {
       <div>
         <h2 className="text-2xl font-bold tracking-tight">Bienvenido{inv.first_name ? `, ${inv.first_name}` : ""}</h2>
         <p className="mt-1 text-sm text-yo-txt-2">
-          Fuiste invitado a unirte a <span className="font-semibold text-yo-txt">{org.name}</span> en CUMPLEX.
+          Fuiste invitado a unirte a <span className="font-semibold text-yo-txt">{org.name}</span> en Cumplex.
           Confirma tus datos y define una contraseña para continuar.
         </p>
       </div>
@@ -379,7 +379,7 @@ function Step3Mfa({ email, onDone, onBack, setError }: {
   async function enroll() {
     setError(null); setBusy(true);
     try {
-      const { data, error } = await supabase.auth.mfa.enroll({ factorType: "totp", friendlyName: "CUMPLEX" });
+      const { data, error } = await supabase.auth.mfa.enroll({ factorType: "totp", friendlyName: "Cumplex" });
       if (error) throw error;
       setFactorId(data.id);
       setSecret((data as { totp?: { secret?: string } }).totp?.secret ?? null);

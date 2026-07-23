@@ -119,7 +119,7 @@ function TeamReportsPage() {
       </section>
 
       <p className="text-[11px] text-yo-txt-3">
-        Los reportes consolidados reflejan operaciones registradas en CUMPLEX y documentos subidos por los usuarios.
+        Los reportes consolidados reflejan operaciones registradas en Cumplex y documentos subidos por los usuarios.
       </p>
     </div>
   );

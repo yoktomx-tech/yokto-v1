@@ -16,7 +16,7 @@ import { STATUS_UI } from "@/lib/bank-verification/decision";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/profile")({
-  head: () => ({ meta: [{ title: "Mi perfil — CUMPLEX" }, { name: "robots", content: "noindex" }] }),
+  head: () => ({ meta: [{ title: "Mi perfil — Cumplex" }, { name: "robots", content: "noindex" }] }),
   component: ProfilePage,
 });
 
@@ -104,7 +104,7 @@ function ProfilePage() {
       <PageHeader
         icon={UserRound}
         title="Mi perfil"
-        subtitle="Tu identidad, datos fiscales, cuenta bancaria y reputación dentro de CUMPLEX."
+        subtitle="Tu identidad, datos fiscales, cuenta bancaria y reputación dentro de Cumplex."
       />
 
       {/* Header card */}
@@ -204,7 +204,7 @@ function ProfilePage() {
             </div>
             <p className="text-[13.5px] text-yo-txt">Aún no tienes una cuenta bancaria registrada</p>
             <p className="text-[12.5px] text-yo-txt-3 mt-1 max-w-md mx-auto">
-              Agrega una CLABE para recibir pagos, devoluciones o liberaciones dentro de CUMPLEX.
+              Agrega una CLABE para recibir pagos, devoluciones o liberaciones dentro de Cumplex.
             </p>
             <Link
               to="/compliance/bank-accounts/new"

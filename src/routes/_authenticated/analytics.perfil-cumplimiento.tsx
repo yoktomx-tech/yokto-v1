@@ -8,7 +8,7 @@ import {
 } from "recharts";
 
 export const Route = createFileRoute("/_authenticated/analytics/perfil-cumplimiento")({
-  head: () => ({ meta: [{ title: "Perfil de cumplimiento — Analytics — CUMPLEX" }, { name: "robots", content: "noindex" }] }),
+  head: () => ({ meta: [{ title: "Perfil de cumplimiento — Analytics — Cumplex" }, { name: "robots", content: "noindex" }] }),
   component: ProfileReport,
 });
 

@@ -5,7 +5,7 @@ import {
 import { disputesList, SECTOR_CFG, fmtMoneyFull } from "@/lib/analytics-mock";
 
 export const Route = createFileRoute("/_authenticated/analytics/disputas")({
-  head: () => ({ meta: [{ title: "Disputas — Analytics — CUMPLEX" }, { name: "robots", content: "noindex" }] }),
+  head: () => ({ meta: [{ title: "Disputas — Analytics — Cumplex" }, { name: "robots", content: "noindex" }] }),
   component: DisputesReport,
 });
 
@@ -46,7 +46,7 @@ function DisputesReport() {
 
       <div className="rounded-lg border border-yo-warn bg-[#FFFBEB] p-3">
         <p className="text-[12px] text-[#92400E]">
-          Recordatorio: <b>CUMPLEX no ordena movimientos financieros</b>. La resolución de disputas produce instrucciones que son ejecutadas por la pasarela certificada.
+          Recordatorio: <b>Cumplex no ordena movimientos financieros</b>. La resolución de disputas produce instrucciones que son ejecutadas por la pasarela certificada.
         </p>
       </div>
 

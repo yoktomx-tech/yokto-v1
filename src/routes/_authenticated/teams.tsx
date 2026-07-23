@@ -5,7 +5,7 @@ import { TEAM, PLAN_TONE } from "@/lib/teams-mock";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/teams")({
-  head: () => ({ meta: [{ title: "Equipo — CUMPLEX" }, { name: "robots", content: "noindex" }] }),
+  head: () => ({ meta: [{ title: "Equipo — Cumplex" }, { name: "robots", content: "noindex" }] }),
   component: TeamsLayout,
 });
 

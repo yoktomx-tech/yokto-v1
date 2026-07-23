@@ -38,7 +38,7 @@ export function ReleaseFundsDialog({ title, amountCents, commissionCents, netCen
 
         <div className="mt-4 border border-yo-border p-4 space-y-2 text-sm">
           <Row k="Monto bruto" v={money(amountCents, currency)} />
-          <Row k="Comisión CUMPLEX" v={`− ${money(commissionCents, currency)}`} />
+          <Row k="Comisión Cumplex" v={`− ${money(commissionCents, currency)}`} />
           <Row k="Neto al beneficiario" v={money(netCents, currency)} strong />
         </div>
 

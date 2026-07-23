@@ -4,7 +4,7 @@ import { PageHeader } from "@/components/page-header";
 import { SettingsShell } from "@/components/settings/settings-shell";
 
 export const Route = createFileRoute("/_authenticated/settings")({
-  head: () => ({ meta: [{ title: "Configuración — CUMPLEX" }, { name: "robots", content: "noindex" }] }),
+  head: () => ({ meta: [{ title: "Configuración — Cumplex" }, { name: "robots", content: "noindex" }] }),
   component: SettingsLayout,
 });
 

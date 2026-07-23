@@ -74,7 +74,7 @@ export function AdminShell({ role, children }: { role: InternalRole; children: R
       <div className="flex-1 min-w-0 flex flex-col">
         <header className="h-16 bg-yo-surface border-b border-yo-border flex items-center justify-between px-6">
           <div>
-            <p className="text-[10px] uppercase tracking-[0.14em] font-semibold text-yo-txt-3">Backoffice CUMPLEX</p>
+            <p className="text-[10px] uppercase tracking-[0.14em] font-semibold text-yo-txt-3">Backoffice Cumplex</p>
             <h1 className="text-sm font-semibold text-yo-txt">Panel interno de operación</h1>
           </div>
           <div className="text-[11px] text-yo-txt-3">

@@ -30,8 +30,8 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/onboarding")({
   head: () => ({
     meta: [
-      { title: "Registro — CUMPLEX" },
-      { name: "description", content: "Crea tu cuenta CUMPLEX y completa la verificación KYC en 6 pasos." },
+      { title: "Registro — Cumplex" },
+      { name: "description", content: "Crea tu cuenta Cumplex y completa la verificación KYC en 6 pasos." },
       { name: "robots", content: "noindex" },
     ],
   }),
@@ -472,7 +472,7 @@ function Step1Account({ initialEmail, onCredentials, setError, loading, setLoadi
       <label className="flex items-start gap-2.5 text-sm text-yo-txt-2 cursor-pointer">
         <input type="checkbox" checked={terms} onChange={(e) => setTerms(e.target.checked)}
           className="mt-0.5 size-4 rounded border-yo-border text-yo-ac focus:ring-yo-ac" />
-        <span>Acepto los términos de servicio y el aviso de privacidad de CUMPLEX.</span>
+        <span>Acepto los términos de servicio y el aviso de privacidad de Cumplex.</span>
       </label>
 
       <button type="submit" disabled={loading}
@@ -1495,7 +1495,7 @@ function Step3Fiscal({ onSaved, onBack, setError, loading, setLoading }: {
               <legend className="text-xs font-semibold uppercase tracking-widest text-yo-txt-2 px-1">Datos de la empresa</legend>
               {(fillMode === "manual" || fillMode === "efirma") && (
                 <p className="mt-2 mb-3 text-[12px] text-yo-txt-3 rounded-md border border-yo-warn/30 bg-yo-warn/5 p-2">
-                  La información capturada manualmente será revisada por el equipo de CUMPLEX antes de completar tu registro.
+                  La información capturada manualmente será revisada por el equipo de Cumplex antes de completar tu registro.
                 </p>
               )}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-2">
@@ -2300,7 +2300,7 @@ function Step6Review({ onFinished, onBack, setError, loading, setLoading }: {
         <input type="checkbox" checked={accepted} onChange={(e) => setAccepted(e.target.checked)}
           className="mt-0.5 size-4 rounded border-yo-border text-yo-ac focus:ring-yo-ac" />
         <span>
-          Confirmo que la información capturada es <strong>verdadera y completa</strong>, y autorizo a CUMPLEX a
+          Confirmo que la información capturada es <strong>verdadera y completa</strong>, y autorizo a Cumplex a
           validarla contra fuentes oficiales (SAT, RENAPO, listas nominales) para completar mi verificación KYC.
         </span>
       </label>
@@ -2643,7 +2643,7 @@ function Step4AccountKind({ onSaved, onBack, setError }: {
       <div>
         <h2 className="text-2xl font-bold tracking-tight">Tipo de cuenta</h2>
         <p className="mt-1 text-sm text-yo-txt-2">
-          Elige cómo vas a operar en CUMPLEX. Podrás ajustar todo desde <span className="font-medium">Configuración → Equipo</span>.
+          Elige cómo vas a operar en Cumplex. Podrás ajustar todo desde <span className="font-medium">Configuración → Equipo</span>.
         </p>
       </div>
 
@@ -2686,7 +2686,7 @@ function Step4AccountKind({ onSaved, onBack, setError }: {
             </div>
             <Field id="org-name" label="Nombre comercial *" value={orgName} onChange={setOrgName}
               placeholder="Comercializadora del Pacífico" required
-              hint="Nombre visible con el que operarás en CUMPLEX." />
+              hint="Nombre visible con el que operarás en Cumplex." />
 
             <div>
               <label htmlFor="org-slug" className="text-xs font-semibold text-yo-txt-2 mb-1 flex items-center gap-2">

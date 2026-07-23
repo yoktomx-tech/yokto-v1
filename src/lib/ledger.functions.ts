@@ -5,10 +5,10 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
  * Ledger contable derivado de payment_intents + payouts.
  * No custodia: cada asiento describe un movimiento procesado por la pasarela.
  *
- * Convención (perspectiva CUMPLEX como registro contable):
+ * Convención (perspectiva Cumplex como registro contable):
  *  - FONDEO           → débito (entra a la retención de la pasarela)
  *  - LIBERACION       → crédito (sale de la retención al vendedor)
- *  - COMISION_YOKTO   → crédito (sale de la retención a CUMPLEX)
+ *  - COMISION_YOKTO   → crédito (sale de la retención a Cumplex)
  *  - REEMBOLSO        → crédito (sale de la retención al comprador)
  */
 
@@ -114,7 +114,7 @@ export const listLedgerEntries = createServerFn({ method: "GET" })
           txId: tx.id,
           txNumero: tx.numero,
           txTitle: tx.title,
-          counterparty: "CUMPLEX",
+          counterparty: "Cumplex",
           provider: po.provider,
           reference: po.provider_ref,
           debitCents: 0,

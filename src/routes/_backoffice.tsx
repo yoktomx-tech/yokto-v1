@@ -39,7 +39,7 @@ function BackofficeGate() {
         <div className="max-w-md p-8 bg-[#18181B] border border-white/10 rounded-xl">
           <h1 className="text-lg font-semibold text-white mb-2">Acceso restringido</h1>
           <p className="text-sm text-gray-400 mb-4">
-            No tienes rol interno CUMPLEX activo. Solicita asignación a un Super Administrador.
+            No tienes rol interno Cumplex activo. Solicita asignación a un Super Administrador.
           </p>
           <a href="/dashboard" className="text-sm text-[#A78BFA] hover:underline">← Volver a la app</a>
         </div>

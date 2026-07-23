@@ -17,7 +17,7 @@ function money(cents: number, cur = "MXN") {
 const KIND_LABEL: Record<Movement["kind"], string> = {
   deposito: "Depósito",
   liberacion: "Liberación",
-  comision: "Comisión CUMPLEX",
+  comision: "Comisión Cumplex",
   devolucion: "Devolución",
   payout: "Payout",
 };

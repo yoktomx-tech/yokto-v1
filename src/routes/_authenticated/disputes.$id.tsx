@@ -13,7 +13,7 @@ import { useViewRole } from "@/hooks/use-view-role";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/disputes/$id")({
-  head: () => ({ meta: [{ title: "Disputa — CUMPLEX" }, { name: "robots", content: "noindex" }] }),
+  head: () => ({ meta: [{ title: "Disputa — Cumplex" }, { name: "robots", content: "noindex" }] }),
   loader: ({ params }) => {
     const d = MOCK_DISPUTES.find((x) => x.id === params.id);
     if (!d) throw notFound();

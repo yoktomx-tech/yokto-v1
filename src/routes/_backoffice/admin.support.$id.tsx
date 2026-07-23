@@ -120,7 +120,7 @@ function AdminTicket() {
                   )}
                   <p className="whitespace-pre-wrap">{m.body}</p>
                   <p className="mt-1 text-[10px] text-yo-txt-3">
-                    {m.author_kind === "internal" ? "Equipo CUMPLEX" : "Usuario"} · {new Date(m.created_at).toLocaleString("es-MX")}
+                    {m.author_kind === "internal" ? "Equipo Cumplex" : "Usuario"} · {new Date(m.created_at).toLocaleString("es-MX")}
                   </p>
                 </div>
               ))}

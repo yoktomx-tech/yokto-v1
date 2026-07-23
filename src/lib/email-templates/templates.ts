@@ -1,4 +1,4 @@
-// Plantillas de correo CUMPLEX. Cada plantilla recibe `data` tipado y devuelve
+// Plantillas de correo Cumplex. Cada plantilla recibe `data` tipado y devuelve
 // { subject, html, text }.
 
 export type TemplateName =
@@ -55,11 +55,11 @@ function shell(subject: string, inner: string) {
     <tr><td align="center">
       <table role="presentation" width="560" cellpadding="0" cellspacing="0" style="max-width:560px;background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.06);">
         <tr><td style="background:#8B5CF6;padding:20px 28px;" align="left">
-          <img src="${LOGO_WHITE_URL}" alt="CUMPLEX" height="24" style="display:block;height:24px;width:auto;border:0;outline:none;text-decoration:none;">
+          <img src="${LOGO_WHITE_URL}" alt="Cumplex" height="24" style="display:block;height:24px;width:auto;border:0;outline:none;text-decoration:none;">
         </td></tr>
         ${inner}
         <tr><td style="padding:16px 28px 28px 28px;border-top:1px solid #e4e4e7;font-size:12px;color:#a1a1aa;">
-          © CUMPLEX · Pago Seguro contra Cumplimiento
+          © Cumplex · Pago Seguro contra Cumplimiento
         </td></tr>
       </table>
     </td></tr>
@@ -73,11 +73,11 @@ function renderInvitation(d: TemplateData["invitation-to-organization"]) {
   const expires = d.expiresAt
     ? new Date(d.expiresAt).toLocaleString("es-MX", { dateStyle: "long", timeStyle: "short" })
     : "48 horas";
-  const subject = `Te invitaron a ${d.organizationName} en CUMPLEX`;
+  const subject = `Te invitaron a ${d.organizationName} en Cumplex`;
   const text = [
     `Hola ${d.inviteeName ?? ""}`.trim() + ",",
     "",
-    `${d.organizationName} te invitó a colaborar en CUMPLEX con el rol de ${roleLabel}.`,
+    `${d.organizationName} te invitó a colaborar en Cumplex con el rol de ${roleLabel}.`,
     "",
     "Acepta la invitación y completa tu enrolamiento:",
     d.acceptUrl,
@@ -89,7 +89,7 @@ function renderInvitation(d: TemplateData["invitation-to-organization"]) {
       <h1 style="margin:0 0 12px 0;font-size:22px;line-height:1.3;color:#09090b;">Te invitaron a ${esc(d.organizationName)}</h1>
       <p style="margin:0 0 16px 0;font-size:15px;line-height:1.6;color:#3f3f46;">
         Hola ${esc(d.inviteeName ?? "")},<br/>
-        <strong>${esc(d.organizationName)}</strong> te invitó a colaborar en CUMPLEX con el rol de <strong>${esc(roleLabel)}</strong>.
+        <strong>${esc(d.organizationName)}</strong> te invitó a colaborar en Cumplex con el rol de <strong>${esc(roleLabel)}</strong>.
       </p>
       <p style="margin:0 0 28px 0;">
         <a href="${esc(d.acceptUrl)}" style="display:inline-block;background:#8B5CF6;color:#ffffff;text-decoration:none;padding:12px 22px;border-radius:8px;font-weight:600;font-size:15px;">Aceptar invitación</a>
@@ -102,7 +102,7 @@ function renderInvitation(d: TemplateData["invitation-to-organization"]) {
 }
 
 function renderOtp(d: TemplateData["email-verification-otp"]) {
-  const subject = `Tu código de verificación CUMPLEX: ${d.code}`;
+  const subject = `Tu código de verificación Cumplex: ${d.code}`;
   const text = [
     `Hola ${d.userName ?? ""}`.trim() + ",",
     "",
@@ -124,7 +124,7 @@ function renderOtp(d: TemplateData["email-verification-otp"]) {
         Este código expira en <strong>${d.minutesValid} minutos</strong>.
       </p>
       <p style="margin:0 0 24px 0;font-size:13px;color:#71717a;">
-        Si no intentaste ingresar a CUMPLEX, puedes ignorar este correo.
+        Si no intentaste ingresar a Cumplex, puedes ignorar este correo.
       </p>
     </td></tr>`;
   return { subject, html: shell(subject, inner), text };
