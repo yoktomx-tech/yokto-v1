@@ -188,7 +188,7 @@ function SidebarContent({
                   : "text-yo-txt-2 hover:text-yo-txt hover:bg-yo-raised"
               )}
             >
-              <Icon className={cn("size-4 shrink-0", active ? "text-yo-ac" : "text-yo-txt-3")} />
+              <Icon className={cn("shrink-0", collapsed ? "size-5" : "size-4", active ? "text-yo-ac" : "text-yo-txt-3")} />
               {!collapsed && <span className="truncate">{item.label}</span>}
             </Link>
           );
