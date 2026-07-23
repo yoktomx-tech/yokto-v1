@@ -121,7 +121,7 @@ function SidebarContent({
       </div>
 
 
-      <nav className="flex-1 overflow-y-auto p-3 space-y-0.5">
+      <nav className="flex-1 overflow-y-auto p-3 space-y-1.5">
         {nav.map((item) => {
           const active = pathname === item.to || pathname.startsWith(item.to + "/");
           const Icon = item.icon;
@@ -131,7 +131,7 @@ function SidebarContent({
               to={item.to}
               onClick={onNavigate}
               className={cn(
-                "flex items-center gap-3 px-3 py-2 rounded-md text-[13px] font-medium transition",
+                "flex items-center gap-3 px-3 py-2.5 rounded-md text-[13px] font-medium transition",
                 active
                   ? "bg-yo-ac-bg text-yo-ac-txt"
                   : "text-yo-txt-2 hover:text-yo-txt hover:bg-yo-raised"
