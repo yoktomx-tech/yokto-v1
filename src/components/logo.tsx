@@ -1,6 +1,6 @@
-import darkAsset from "@/assets/yokto-wordmark-dark.png.asset.json";
-import whiteAsset from "@/assets/yokto-wordmark-white.png.asset.json";
-import iconAsset from "@/assets/yokto-icon.png.asset.json";
+import darkAsset from "@/assets/cumplex-wordmark-dark.png.asset.json";
+import whiteAsset from "@/assets/cumplex-wordmark-white.png.asset.json";
+import iconAsset from "@/assets/cumplex-icon.png.asset.json";
 import { cn } from "@/lib/utils";
 
 type Props = {
