@@ -155,7 +155,7 @@ export function EmailVerificationGate({ children }: { children: React.ReactNode 
     <div className="min-h-screen flex flex-col items-center bg-background px-4 py-10">
       {/* Logo fuera del recuadro */}
       <div className="mb-8">
-        <CumplexLogo variant="auto" className="h-6 w-auto" />
+        <CumplexLogo variant="auto" className="h-7 w-auto" />
       </div>
 
 

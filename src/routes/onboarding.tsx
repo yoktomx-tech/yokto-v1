@@ -157,7 +157,7 @@ function OnboardingWizard() {
             className="flex items-center gap-2.5"
             onClick={() => { sessionStorage.setItem("yokto.onboarding.intentional_exit", "1"); }}
           >
-            <CumplexLogo variant="auto" className="h-6 w-auto" />
+            <CumplexLogo variant="auto" className="h-7 w-auto" />
           </Link>
           <Link
             to="/auth"
