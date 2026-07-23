@@ -198,13 +198,22 @@ function SidebarContent({
       {collapsed ? (
         <div className="border-t border-yo-border p-2 flex flex-col items-center gap-2">
           <Link
+            to="/settings/organization"
+            onClick={onNavigate}
+            title={`Espacios de trabajo: ${orgCount}${currentOrg ? ` · Actual: ${currentOrg.name}` : ""}`}
+            className="relative size-10 grid place-items-center rounded-md border border-yo-border bg-yo-bg hover:bg-yo-raised transition"
+          >
+            <Building2 className="size-5 text-yo-txt-2" />
+            <span className="absolute -bottom-1 -right-1 text-[10px] font-semibold px-1 rounded bg-yo-ac text-white">{orgCount}</span>
+          </Link>
+          <Link
             to="/score"
             onClick={onNavigate}
             title={`Score ${score}/100 · ${cfg.label}`}
-            className="relative size-9 grid place-items-center rounded-md border border-yo-border bg-yo-bg hover:bg-yo-raised transition"
+            className="relative size-10 grid place-items-center rounded-md border border-yo-border bg-yo-bg hover:bg-yo-raised transition"
           >
-            <Star className="size-4 text-yo-ac" />
-            <span className={cn("absolute -bottom-1 -right-1 text-[9px] font-semibold px-1 rounded", tone.bg, tone.text)}>{score}</span>
+            <Star className="size-5 text-yo-ac" />
+            <span className={cn("absolute -bottom-1 -right-1 text-[10px] font-semibold px-1 rounded", tone.bg, tone.text)}>{score}</span>
           </Link>
         </div>
       ) : (
