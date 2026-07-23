@@ -2,7 +2,7 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import {
   LayoutDashboard, Briefcase, PackageCheck, AlertTriangle, Banknote,
-  Users, Users2, Star, Menu, X, ClipboardCheck, BarChart3, Building2,
+  Users, Users2, Star, Menu, X, ClipboardCheck, BarChart3, Building2, User,
   ChevronLeft, ChevronRight,
 } from "lucide-react";
 import { CumplexLogo } from "@/components/logo";
@@ -203,7 +203,11 @@ function SidebarContent({
             title={`Espacios de trabajo: ${orgCount}${currentOrg ? ` · Actual: ${currentOrg.name}` : ""}`}
             className="relative size-10 grid place-items-center rounded-md border border-yo-border bg-yo-bg hover:bg-yo-raised transition"
           >
-            <Building2 className="size-5 text-yo-txt-2" />
+            {currentOrg?.type === "individual" ? (
+              <User className="size-5 text-yo-txt-2" />
+            ) : (
+              <Building2 className="size-5 text-yo-txt-2" />
+            )}
             <span className="absolute -bottom-1 -right-1 text-[10px] font-semibold px-1 rounded bg-yo-ac text-white">{orgCount}</span>
           </Link>
           <Link
