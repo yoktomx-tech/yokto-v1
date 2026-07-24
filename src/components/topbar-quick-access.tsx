@@ -8,7 +8,6 @@ import {
 import { getQuickAccessContext, listMyTickets } from "@/lib/support.functions";
 import { useViewRole } from "@/hooks/use-view-role";
 import { cn } from "@/lib/utils";
-import { InvitationsInboxIcon } from "@/components/yokto/invitations/invitations-inbox-icon";
 
 export function TopbarQuickAccess() {
   const [open, setOpen] = useState(false);
