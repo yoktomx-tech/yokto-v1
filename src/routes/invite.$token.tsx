@@ -212,6 +212,7 @@ function useInviteMock(token: string): InviteData {
 // ─────────────────────────────────────────────────────────────────────────
 function InviteApprovalPage() {
   const { token } = Route.useParams();
+  const search = Route.useSearch();
   const data = useInviteMock(token);
 
   const [showAcceptModal, setShowAcceptModal] = useState(false);
@@ -219,6 +220,11 @@ function InviteApprovalPage() {
   const [showChangesModal, setShowChangesModal] = useState(false);
   const [showContract, setShowContract] = useState(false);
   const [postState, setPostState] = useState<null | "accepted" | "changes" | "rejected">(null);
+
+  useEffect(() => {
+    if (search.action === "accept") setShowAcceptModal(true);
+  }, [search.action]);
+
 
   const isBuyer = data.inviteeRole === "PAGADOR";
   const roleLabel = isBuyer ? "Pagador / Comprador" : "Beneficiario / Vendedor";
