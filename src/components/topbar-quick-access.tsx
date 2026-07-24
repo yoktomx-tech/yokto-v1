@@ -51,7 +51,17 @@ export function TopbarQuickAccess() {
   const openCount = (tickets ?? []).filter(
     (t: any) => !["resolved", "closed", "cancelled"].includes(String(t.status))
   ).length;
-  const invCount = (invitations ?? []).length;
+  const sortedInvitations = [...(invitations ?? [])].sort((a: any, b: any) => {
+    const now = Date.now();
+    const aMs = new Date(a.expires_at).getTime() - now;
+    const bMs = new Date(b.expires_at).getTime() - now;
+    const aExpired = aMs <= 0;
+    const bExpired = bMs <= 0;
+    // Expired go last; among non-expired, soonest first; among expired, most recently expired first
+    if (aExpired !== bExpired) return aExpired ? 1 : -1;
+    return aMs - bMs;
+  });
+  const invCount = sortedInvitations.length;
 
   const critical = !!data?.criticalIncident;
   const hasOpenTickets = openCount > 0;
