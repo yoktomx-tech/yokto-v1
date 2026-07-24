@@ -201,7 +201,7 @@ function TxDetail() {
       pagador_nombre: tx.pagador_nombre ?? "",
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tx?.id, tx?.updated_at as unknown, tx?.title, tx?.description, tx?.amount_cents, tx?.delivery_deadline]);
+  }, [tx?.id, tx?.title, tx?.description, tx?.amount_cents, tx?.delivery_deadline]);
 
   async function handleSaveEdit() {
     if (!tx) return;
