@@ -35,7 +35,7 @@ export function TopbarQuickAccess() {
         <Inbox className="size-4" />
         <span className="absolute -top-0.5 -right-0.5 size-2 rounded-full bg-yo-ac ring-2 ring-yo-surface" />
       </Link>
-      <InvitationsInboxIcon />
+      {/* <InvitationsInboxIcon /> */}
       <button
         onClick={() => setOpen((o) => !o)}
         aria-label="Centro de ayuda y soporte"
