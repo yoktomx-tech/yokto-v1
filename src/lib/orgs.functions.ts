@@ -286,9 +286,11 @@ export const listMyCreatedPendingOperations = createServerFn({ method: "GET" })
         i_signed: iSigned,
         counterparty_name: counterpartyName,
         counterparty_status: counterpartyStatus,
+        counterparty_email: t.counterparty_email ?? null,
         created_at: t.created_at,
         updated_at: t.updated_at,
       };
     });
   });
+
 
