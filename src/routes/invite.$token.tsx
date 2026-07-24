@@ -3,7 +3,8 @@ import { useMemo, useState } from "react";
 import {
   ShieldCheck, Clock, FileText, Users, Landmark, Scale, Gavel, FileSignature,
   CheckCircle2, XCircle, MessageSquareWarning, ArrowRight, Lock, Hash, Building2,
-  User, Calendar, AlertTriangle, Download, Eye, ClipboardCheck, X,
+  User, Calendar, AlertTriangle, Download, Eye, ClipboardCheck, X, Info,
+  Camera, MapPin, ListChecks, Truck, RefreshCw, Home,
 } from "lucide-react";
 import { CumplexLogo } from "@/components/logo";
 import { InfoBox } from "@/components/tx/ui/info-box";
@@ -18,119 +19,235 @@ export const Route = createFileRoute("/invite/$token")({
 });
 
 // ─────────────────────────────────────────────────────────────────────────
-// Mock: en producción se resuelve por token contra transaction_invitations
+// Tipos (mirror del payload API §15.1)
 // ─────────────────────────────────────────────────────────────────────────
-type InviteeRole = "comprador" | "vendedor";
-type InviteStatus = "ENVIADA" | "VISTA" | "CAMBIOS_SOLICITADOS" | "ACEPTADA" | "RECHAZADA";
+type InviteeRole = "PAGADOR" | "BENEFICIARIO";
+type InviteStatus = "ENVIADA" | "VISTA" | "CAMBIOS_SOLICITADOS" | "ACEPTADA" | "RECHAZADA" | "EXPIRADA";
+type AgreementStatus = "SENT" | "UNDER_REVIEW" | "CHANGES_REQUESTED" | "ACCEPTED" | "LOCKED";
+type ComisionAbsorbe = "comprador" | "vendedor" | "compartida";
+
+interface Milestone {
+  id: string;
+  orden: number;
+  nombre: string;
+  porcentaje: number;
+  monto: number; // centavos
+  fechaLimite: string; // ISO
+  responsable: "Vendedor" | "Comprador";
+  criterio: string;
+  verificacion: string;
+  autoRelease: boolean;
+}
+
+interface RequiredDoc {
+  nombre: string;
+  tipo: "CFDI" | "REP" | "Carta Porte" | "Contrato" | "BL/AWB/Pedimento" | "Escritura/Avalúo" | "Otro";
+  obligatorio: boolean;
+  cargaEsperada: "Vendedor" | "Comprador" | "Ambos";
+}
+
+interface EvidenceItem {
+  tipo: "Foto" | "Video" | "GPS" | "Checklist" | "Firma de receptor";
+  descripcion: string;
+}
 
 interface InviteData {
   token: string;
   inviteStatus: InviteStatus;
-  inviteeRole: InviteeRole;             // rol que asume quien abre el link
-  creatorRole: InviteeRole;             // rol del creador
+  inviteeRole: InviteeRole;
+  creatorRole: InviteeRole;
   creatorName: string;
   creatorOrg: string;
-  operationId: string;                  // OPYYMMDDNNNN
-  agreementVersion: string;             // v1, v2…
-  agreementHash: string | null;
-  expiresAt: string;                    // ISO
+  creatorRfcMasked: string;
+  creatorVerified: boolean;
+  creatorScoreBand: "Alto" | "Medio" | "Bajo" | null;
+
+  operationId: string;
+  concepto: string;
+  descripcion: string;
   sector: string;
+  fechaInicioEstimada: string;
+  fechaFinMaxima: string;
+
+  agreementVersion: string;
+  agreementStatus: AgreementStatus;
+  hashPreliminar: string | null;
+  hashFinal: string | null;
+
+  expiresAt: string;
   amount: number;
   currency: string;
   commissionBps: number;
-  description: string;
-  hitos: Array<{ id: string; titulo: string; monto: number; evidencia: string; plazoDias: number }>;
-  documentos: Array<{ nombre: string; tipo: string; obligatorio: boolean }>;
-  fiscal: { cfdiRequerido: boolean; usoCfdi: string; formaPago: string; metodoPago: string };
-  liberacion: { modo: string; verificador: string; reglaAprobacion: string; ventanaObjeciones: string };
-  disputa: { arbitro: string; plazoRespuesta: string; costos: string };
-  contraparte: { nombre: string; email: string; rfc: string | null; verificado: boolean };
+  ivaBps: number; // 1600 = 16%
+  comisionAbsorbe: ComisionAbsorbe;
+  metodoSugerido: "SPEI" | "Tarjeta";
+
+  milestones: Milestone[];
+  documentos: RequiredDoc[];
+  evidencias: EvidenceItem[];
+  fiscal: { cfdiRequerido: boolean; tipoCfdi: "PPD" | "PUE"; usoCfdi: string; formaPago: string; metodoPago: string; repPosterior: boolean };
+  liberacion: {
+    modo: string;
+    verificador: string;
+    reglaAprobacion: string;
+    ventanaInspeccionDias: number;
+    reglaRechazo: string;
+    correccionReenvio: string;
+    devolucion: string;
+  };
+  disputa: {
+    cuandoAbrir: string;
+    plazoRespuestaDias: number;
+    evidenciaAdmisible: string;
+    resultados: string[];
+  };
 }
 
 function useInviteMock(token: string): InviteData {
   return useMemo(() => ({
     token,
     inviteStatus: "ENVIADA",
-    inviteeRole: "vendedor",
-    creatorRole: "comprador",
+    inviteeRole: "BENEFICIARIO",
+    creatorRole: "PAGADOR",
     creatorName: "María González",
     creatorOrg: "Constructora Norte S.A. de C.V.",
+    creatorRfcMasked: "CNO*******123",
+    creatorVerified: true,
+    creatorScoreBand: "Alto",
+
     operationId: "OP" + new Date().toISOString().slice(2, 10).replace(/-/g, "") + "0142",
-    agreementVersion: "v1",
-    agreementHash: null,
-    expiresAt: new Date(Date.now() + 72 * 3600 * 1000).toISOString(),
-    sector: "Construcción",
-    amount: 24500000, // en centavos
+    concepto: "Flete Mazatlán–Guadalajara, 12 toneladas de mercancía",
+    descripcion:
+      "Servicio de autotransporte de carga general con unidad certificada, incluye maniobras de carga/descarga y seguro de mercancía. Ruta Mazatlán → Guadalajara con verificación GPS.",
+    sector: "Autotransporte",
+    fechaInicioEstimada: new Date(Date.now() + 7 * 86400_000).toISOString(),
+    fechaFinMaxima: new Date(Date.now() + 45 * 86400_000).toISOString(),
+
+    agreementVersion: "v1.0",
+    agreementStatus: "SENT",
+    hashPreliminar: null,
+    hashFinal: null,
+
+    expiresAt: new Date(Date.now() + 72 * 3600_000).toISOString(),
+    amount: 85000000, // $850,000.00 en centavos
     currency: "MXN",
     commissionBps: 150,
-    description:
-      "Suministro e instalación de estructura metálica para nave industrial, incluye planos ejecutivos, materiales y mano de obra.",
-    hitos: [
-      { id: "H1", titulo: "Planos ejecutivos aprobados", monto: 4900000, evidencia: "PDF firmado por DRO", plazoDias: 10 },
-      { id: "H2", titulo: "Materiales en obra", monto: 9800000, evidencia: "Remisiones + fotos", plazoDias: 25 },
-      { id: "H3", titulo: "Entrega final y pruebas", monto: 9800000, evidencia: "Acta de entrega", plazoDias: 45 },
+    ivaBps: 1600,
+    comisionAbsorbe: "comprador",
+    metodoSugerido: "SPEI",
+
+    milestones: [
+      {
+        id: "H1", orden: 1, nombre: "Carga y salida", porcentaje: 20, monto: 17000000,
+        fechaLimite: new Date(Date.now() + 12 * 86400_000).toISOString(),
+        responsable: "Vendedor",
+        criterio: "Unidad cargada, sellada y con GPS activo saliendo de origen.",
+        verificacion: "Carta Porte + foto de carga + GPS", autoRelease: false,
+      },
+      {
+        id: "H2", orden: 2, nombre: "Tránsito y checkpoint intermedio", porcentaje: 30, monto: 25500000,
+        fechaLimite: new Date(Date.now() + 25 * 86400_000).toISOString(),
+        responsable: "Vendedor",
+        criterio: "Reporte de posición GPS en punto medio + estado mercancía.",
+        verificacion: "GPS + foto en checkpoint", autoRelease: true,
+      },
+      {
+        id: "H3", orden: 3, nombre: "Entrega en destino", porcentaje: 50, monto: 42500000,
+        fechaLimite: new Date(Date.now() + 45 * 86400_000).toISOString(),
+        responsable: "Vendedor",
+        criterio: "Acta de entrega firmada por receptor + evidencia sin daños.",
+        verificacion: "Firma de receptor + fotos + checklist", autoRelease: false,
+      },
     ],
     documentos: [
-      { nombre: "Cotización firmada", tipo: "PDF", obligatorio: true },
-      { nombre: "Alcance técnico", tipo: "PDF", obligatorio: true },
-      { nombre: "Programa de obra", tipo: "PDF", obligatorio: false },
+      { nombre: "CFDI PPD", tipo: "CFDI", obligatorio: true, cargaEsperada: "Vendedor" },
+      { nombre: "REP posterior", tipo: "REP", obligatorio: true, cargaEsperada: "Vendedor" },
+      { nombre: "Carta Porte", tipo: "Carta Porte", obligatorio: true, cargaEsperada: "Vendedor" },
+      { nombre: "Contrato firmado", tipo: "Contrato", obligatorio: true, cargaEsperada: "Ambos" },
+      { nombre: "BL/AWB/Pedimento", tipo: "BL/AWB/Pedimento", obligatorio: false, cargaEsperada: "Vendedor" },
+    ],
+    evidencias: [
+      { tipo: "Foto", descripcion: "Fotos de carga y descarga" },
+      { tipo: "Video", descripcion: "Video corto en punto medio" },
+      { tipo: "GPS", descripcion: "Track continuo de la unidad" },
+      { tipo: "Checklist", descripcion: "Checklist de entrega firmado" },
+      { tipo: "Firma de receptor", descripcion: "Firma digital o física escaneada" },
     ],
     fiscal: {
-      cfdiRequerido: true,
+      cfdiRequerido: true, tipoCfdi: "PPD",
       usoCfdi: "G03 – Gastos en general",
-      formaPago: "03 – Transferencia",
-      metodoPago: "PPD – Pago en parcialidades",
+      formaPago: "03 – Transferencia electrónica",
+      metodoPago: "PPD – Pago en parcialidades o diferido",
+      repPosterior: true,
     },
     liberacion: {
-      modo: "Por hito con verificación documental",
+      modo: "Por hito con verificación documental y evidencia",
       verificador: "Comprador + IA Cumplex",
       reglaAprobacion: "Doble confirmación (comprador y verificador)",
-      ventanaObjeciones: "72 horas hábiles",
+      ventanaInspeccionDias: 3,
+      reglaRechazo: "El comprador puede rechazar dentro de la ventana indicando motivo verificable.",
+      correccionReenvio: "El vendedor puede corregir evidencia y reenviar 1 vez sin abrir disputa.",
+      devolucion: "En incumplimiento total, devolución al comprador menos comisiones aplicadas.",
     },
     disputa: {
-      arbitro: "Panel Cumplex + perito sectorial",
-      plazoRespuesta: "5 días hábiles",
-      costos: "Loser-pays (parte perdedora asume gastos)",
-    },
-    contraparte: {
-      nombre: "María González",
-      email: "maria@constructoranorte.mx",
-      rfc: "CNO*******123",
-      verificado: true,
+      cuandoAbrir: "Dentro de la ventana de inspección o si la corrección de evidencia no fue aceptada.",
+      plazoRespuestaDias: 5,
+      evidenciaAdmisible: "Documentos, fotos, video, GPS y peritajes sectoriales.",
+      resultados: [
+        "Liberación total al vendedor",
+        "Devolución parcial al comprador",
+        "Devolución total al comprador",
+        "Corrección y reejecución del hito",
+      ],
     },
   }), [token]);
 }
 
 // ─────────────────────────────────────────────────────────────────────────
-// Página
+// Página principal
 // ─────────────────────────────────────────────────────────────────────────
 function InviteApprovalPage() {
   const { token } = Route.useParams();
   const data = useInviteMock(token);
+
   const [showAcceptModal, setShowAcceptModal] = useState(false);
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [showChangesModal, setShowChangesModal] = useState(false);
   const [showContract, setShowContract] = useState(false);
-  const [accepted, setAccepted] = useState(false);
+  const [postState, setPostState] = useState<null | "accepted" | "changes" | "rejected">(null);
 
-  const isBuyer = data.inviteeRole === "comprador";
+  const isBuyer = data.inviteeRole === "PAGADOR";
+  const roleLabel = isBuyer ? "Pagador / Comprador" : "Beneficiario / Vendedor";
+  const counterLabel = isBuyer ? "Beneficiario / Vendedor" : "Pagador / Comprador";
+
   const copy = isBuyer
     ? {
         title: "Revisa esta operación antes de fondear",
         subtitle: `${data.creatorName} te envió una propuesta de operación protegida. Revisa el monto, los hitos, las reglas de aprobación y las condiciones de devolución antes de aceptar.`,
         cta: "Aceptar operación y continuar a firma",
-        roleLabel: "Pagador / Comprador",
-        counterpartyLabel: "Beneficiario / Vendedor",
       }
     : {
         title: "Revisa esta operación antes de aceptar entregar",
         subtitle: `${data.creatorName} te invitó a una operación protegida. Revisa los hitos, documentos, fechas y condiciones de liberación antes de aceptar.`,
         cta: "Aceptar operación y continuar a firma",
-        roleLabel: "Beneficiario / Vendedor",
-        counterpartyLabel: "Pagador / Comprador",
       };
 
-  if (accepted) return <PostAcceptScreen data={data} isBuyer={isBuyer} />;
+  // ── Estados especiales (§21) ────────────────────────────────────────
+  const now = Date.now();
+  const isExpired = data.inviteStatus === "EXPIRADA" || new Date(data.expiresAt).getTime() < now;
+  if (isExpired) return <EmptyState token={token} kind="expired" />;
+  if (data.inviteStatus === "ACEPTADA" || postState === "accepted")
+    return <PostAcceptScreen data={data} isBuyer={isBuyer} />;
+  if (data.inviteStatus === "RECHAZADA" || postState === "rejected")
+    return <EmptyState token={token} kind="rejected" />;
+  if (data.inviteStatus === "CAMBIOS_SOLICITADOS" || postState === "changes")
+    return <EmptyState token={token} kind="changes" />;
+
+  // ── Economics ───────────────────────────────────────────────────────
+  const commission = (data.amount * data.commissionBps) / 10000;
+  const iva = (commission * data.ivaBps) / 10000;
+  const totalFondear = data.amount + commission + iva; // asumido comprador absorbe
+  const netoVendedor = data.amount; // vendedor recibe monto bruto
 
   return (
     <div className="min-h-dvh bg-yo-bg text-yo-txt">
@@ -146,8 +263,7 @@ function InviteApprovalPage() {
               aria-label="Cerrar pantalla"
               className="inline-flex items-center gap-1.5 h-8 px-2.5 rounded-md border border-yo-border bg-yo-bg hover:bg-yo-surface-2 text-yo-txt-2 hover:text-yo-txt text-xs transition-colors"
             >
-              <X className="size-3.5" />
-              Cerrar
+              <X className="size-3.5" /> Cerrar
             </button>
           </div>
         </div>
@@ -156,7 +272,7 @@ function InviteApprovalPage() {
       {/* Header de operación */}
       <section className="border-b border-yo-border bg-yo-surface">
         <div className="max-w-7xl mx-auto px-4 py-6 flex flex-col gap-4">
-          <div className="flex items-center gap-2 text-[11px]">
+          <div className="flex items-center flex-wrap gap-2 text-[11px]">
             <StatusChip status={data.inviteStatus} />
             <ExpiryChip iso={data.expiresAt} />
             <span className="font-mono text-yo-txt-2">{data.operationId}</span>
@@ -164,7 +280,7 @@ function InviteApprovalPage() {
             <SectorBadge sector={data.sector} />
             <span className="text-yo-txt-3">·</span>
             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-yo-ac/10 text-yo-ac font-medium">
-              <ShieldCheck className="size-3" /> Entras como {copy.roleLabel}
+              <ShieldCheck className="size-3" /> Invitado como {roleLabel}
             </span>
           </div>
           <div className="flex items-start justify-between gap-6 flex-wrap">
@@ -184,102 +300,161 @@ function InviteApprovalPage() {
       <div className="max-w-7xl mx-auto px-4 py-6 grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6">
         {/* Contenido principal */}
         <div className="flex flex-col gap-4 min-w-0">
+          {/* 9.1 Resumen ejecutivo */}
           <Card icon={FileText} title="Resumen de la operación">
-            <p className="text-sm text-yo-txt-2 leading-relaxed">{data.description}</p>
-          </Card>
-
-          <Card icon={Users} title="Partes">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <PartyBlock
-                title={`${copy.counterpartyLabel} (creador)`}
-                name={data.creatorName}
-                org={data.creatorOrg}
-                verified
-              />
-              <PartyBlock
-                title={`${copy.roleLabel} (tú)`}
-                name="Tú, invitado por email"
-                org="Se validará en la firma"
-                verified={false}
-              />
+            <Row label="Número" value={<span className="font-mono">{data.operationId}</span>} />
+            <Row label="Sector" value={data.sector} />
+            <Row label="Concepto" value={data.concepto} />
+            <Row label="Monto total" value={<MoneyDisplay amount={data.amount / 100} currency={data.currency} />} />
+            <Row label="Fecha estimada de inicio" value={fmtDate(data.fechaInicioEstimada)} />
+            <Row label="Fecha máxima de conclusión" value={fmtDate(data.fechaFinMaxima)} />
+            <Row label="Estado" value={<StatusChip status={data.inviteStatus} />} />
+            <Row label="Invitado como" value={<span className="font-semibold text-yo-ac">{roleLabel}</span>} />
+            <div className="mt-2 text-xs text-yo-txt-2 leading-relaxed border-t border-yo-border pt-3">
+              {data.descripcion}
             </div>
           </Card>
 
-          <Card icon={Landmark} title="Monto y comisión">
-            <Row label="Monto principal" value={<MoneyDisplay amount={data.amount / 100} currency={data.currency} />} />
+          {/* 9.2 Partes */}
+          <Card icon={Users} title="Partes involucradas">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <PartyBlock
+                title={`${counterLabel} (creador)`}
+                name={data.creatorName}
+                org={data.creatorOrg}
+                rfc={data.creatorRfcMasked}
+                verified={data.creatorVerified}
+                scoreBand={data.creatorScoreBand}
+              />
+              <PartyBlock
+                title={`${roleLabel} (tú)`}
+                name="Tú, invitado por email"
+                org="Se validará al aceptar y firmar"
+                rfc={null}
+                verified={false}
+                scoreBand={null}
+              />
+            </div>
+            <InfoBox tone="info" title="Privacidad">
+              Antes de aceptar, mostramos únicamente banda de score consentida. No se exponen señales internas PLD, PEP, sanciones ni desglose sensible.
+            </InfoBox>
+          </Card>
+
+          {/* 9.3 Economics */}
+          <Card icon={Landmark} title="Monto y condiciones económicas">
+            <Row label="Monto bruto de operación" value={<MoneyDisplay amount={data.amount / 100} currency={data.currency} />} />
+            <Row label={`Comisión Cumplex (${(data.commissionBps / 100).toFixed(2)}%)`} value={<MoneyDisplay amount={commission / 100} currency={data.currency} />} />
+            <Row label="IVA de comisión (16%)" value={<MoneyDisplay amount={iva / 100} currency={data.currency} />} />
+            <Row label="Método sugerido de pago" value={data.metodoSugerido} />
+            <Row label="Comisión la absorbe" value={<span className="capitalize">{data.comisionAbsorbe}</span>} />
             <Row
-              label={`Comisión Cumplex (${(data.commissionBps / 100).toFixed(2)}%)`}
-              value={<MoneyDisplay amount={((data.amount * data.commissionBps) / 10000) / 100} currency={data.currency} />}
-            />
-            <Row
-              label={isBuyer ? "Total a fondear" : "Neto estimado a recibir"}
+              label={isBuyer ? "Total estimado a fondear" : "Neto estimado a recibir"}
               value={
                 <MoneyDisplay
-                  amount={
-                    isBuyer
-                      ? (data.amount + (data.amount * data.commissionBps) / 10000) / 100
-                      : (data.amount - (data.amount * data.commissionBps) / 10000) / 100
-                  }
+                  amount={(isBuyer ? totalFondear : netoVendedor) / 100}
                   currency={data.currency}
                   size="lg"
                 />
               }
               strong
             />
+            <InfoBox tone="info" title={isBuyer ? "Como pagador" : "Como beneficiario"}>
+              {isBuyer
+                ? "Los fondos serán procesados y retenidos por la pasarela configurada (Stripe / SPEI). Cumplex NO custodia fondos."
+                : "La liberación dependerá del cumplimiento de los hitos y evidencia aceptada. Cumplex NO custodia fondos."}
+            </InfoBox>
           </Card>
 
-          <Card icon={ClipboardCheck} title={`Hitos (${data.hitos.length})`}>
+          {/* 9.4 Hitos */}
+          <Card icon={ClipboardCheck} title={`Hitos propuestos (${data.milestones.length})`}>
             <div className="flex flex-col gap-2">
-              {data.hitos.map((h, i) => (
-                <div key={h.id} className="border border-yo-border rounded-md p-3 flex items-start gap-3">
-                  <div className="size-7 rounded-full bg-yo-ac/10 text-yo-ac grid place-items-center text-xs font-bold shrink-0">
-                    {i + 1}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="text-sm font-semibold text-yo-txt">{h.titulo}</div>
-                    <div className="text-[11px] text-yo-txt-3 mt-0.5">
-                      Evidencia: {h.evidencia} · Plazo {h.plazoDias} días
-                    </div>
-                  </div>
-                  <MoneyDisplay amount={h.monto / 100} currency={data.currency} />
-                </div>
+              {data.milestones.map((h) => (
+                <MilestoneRow key={h.id} m={h} currency={data.currency} />
               ))}
             </div>
           </Card>
 
-          <Card icon={FileText} title="Documentos requeridos">
-            <ul className="flex flex-col gap-1.5">
+          {/* 9.5 Documentos y evidencia */}
+          <Card icon={FileText} title="Documentos y evidencia requerida">
+            <div className="text-[11px] font-semibold uppercase tracking-wider text-yo-txt-3 mb-2">Documentos</div>
+            <ul className="flex flex-col gap-1.5 mb-4">
               {data.documentos.map((d) => (
-                <li key={d.nombre} className="flex items-center justify-between text-sm">
-                  <span className="text-yo-txt">{d.nombre} <span className="text-yo-txt-3 text-xs">({d.tipo})</span></span>
+                <li key={d.nombre} className="flex items-center justify-between text-sm border-b border-yo-border pb-1.5 last:border-0">
+                  <div>
+                    <span className="text-yo-txt">{d.nombre}</span>
+                    <span className="text-yo-txt-3 text-xs ml-2">Carga: {d.cargaEsperada}</span>
+                  </div>
                   <span className={cn("text-[10px] px-1.5 py-0.5 rounded-full", d.obligatorio ? "bg-yo-warn-bg text-[color:var(--yo-warn)]" : "bg-yo-bg text-yo-txt-3")}>
                     {d.obligatorio ? "Obligatorio" : "Opcional"}
                   </span>
                 </li>
               ))}
             </ul>
+            <div className="text-[11px] font-semibold uppercase tracking-wider text-yo-txt-3 mb-2">Evidencia</div>
+            <ul className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+              {data.evidencias.map((e) => (
+                <li key={e.tipo} className="flex items-center gap-2 text-xs text-yo-txt-2">
+                  <EvidenceIcon kind={e.tipo} />
+                  <span className="font-medium text-yo-txt">{e.tipo}</span>
+                  <span className="text-yo-txt-3">— {e.descripcion}</span>
+                </li>
+              ))}
+            </ul>
+            <InfoBox tone="info" title={isBuyer ? "Qué revisarás como comprador" : "Qué deberás subir como vendedor"}>
+              {isBuyer
+                ? "Verás cada documento/evidencia por hito antes de aprobar la liberación correspondiente."
+                : "Deberás subir cada documento/evidencia por hito para habilitar la aprobación del comprador."}
+            </InfoBox>
           </Card>
 
-          <Card icon={FileSignature} title="Fiscal (CFDI)">
+          {/* 9.6 Fiscal */}
+          <Card icon={FileSignature} title="Términos fiscales">
             <Row label="CFDI requerido" value={data.fiscal.cfdiRequerido ? "Sí" : "No"} />
+            <Row label="Tipo esperado" value={data.fiscal.tipoCfdi} />
+            <Row label="REP posterior" value={data.fiscal.repPosterior ? "Sí, al recibir cada pago" : "No aplica"} />
             <Row label="Uso de CFDI" value={data.fiscal.usoCfdi} />
             <Row label="Forma de pago" value={data.fiscal.formaPago} />
             <Row label="Método de pago" value={data.fiscal.metodoPago} />
+            <InfoBox tone="warn" title="Emisión de CFDI">
+              Cumplex NO emite CFDI ni REP por cuenta del vendedor. El proveedor deberá generarlos en su sistema contable/PAC y subir el XML timbrado para validación (UUID, RFC, montos y consistencia).
+            </InfoBox>
           </Card>
 
-          <Card icon={Scale} title="Reglas de liberación">
+          {/* 9.7 Reglas de liberación */}
+          <Card icon={Scale} title="Reglas de liberación y devolución">
             <Row label="Modo" value={data.liberacion.modo} />
             <Row label="Verificador" value={data.liberacion.verificador} />
             <Row label="Regla de aprobación" value={data.liberacion.reglaAprobacion} />
-            <Row label="Ventana de objeciones" value={data.liberacion.ventanaObjeciones} />
+            <Row label="Ventana de inspección" value={`${data.liberacion.ventanaInspeccionDias} días hábiles`} />
+            <Row label="Rechazo" value={data.liberacion.reglaRechazo} />
+            <Row label="Corrección y reenvío" value={data.liberacion.correccionReenvio} />
+            <Row label="Devolución por incumplimiento" value={data.liberacion.devolucion} />
+            <InfoBox tone="info" title={isBuyer ? "Como comprador" : "Como vendedor"}>
+              {isBuyer
+                ? `Tendrás ${data.liberacion.ventanaInspeccionDias} días para revisar evidencia después de que el vendedor marque un hito como listo.`
+                : `Una vez que subas evidencia completa, el comprador tendrá ${data.liberacion.ventanaInspeccionDias} días para aprobar, rechazar o abrir disputa conforme a las reglas acordadas.`}
+            </InfoBox>
           </Card>
 
-          <Card icon={Gavel} title="Disputas">
-            <Row label="Árbitro" value={data.disputa.arbitro} />
-            <Row label="Plazo de respuesta" value={data.disputa.plazoRespuesta} />
-            <Row label="Costos" value={data.disputa.costos} />
+          {/* 9.8 Reglas de disputa */}
+          <Card icon={Gavel} title="Reglas de disputa">
+            <Row label="Cuándo abrir" value={data.disputa.cuandoAbrir} />
+            <Row label="Plazo de respuesta" value={`${data.disputa.plazoRespuestaDias} días hábiles`} />
+            <Row label="Evidencia admisible" value={data.disputa.evidenciaAdmisible} />
+            <div className="pt-2">
+              <div className="text-[11px] font-semibold uppercase tracking-wider text-yo-txt-3 mb-1.5">Resultados posibles</div>
+              <ul className="text-xs text-yo-txt-2 space-y-1">
+                {data.disputa.resultados.map((r) => (
+                  <li key={r} className="flex items-start gap-1.5"><ArrowRight className="size-3 mt-0.5 text-yo-ac shrink-0" /> {r}</li>
+                ))}
+              </ul>
+            </div>
+            <InfoBox tone="warn" title="Rol de Cumplex">
+              Cumplex actúa como tercero neutral para verificar condiciones, documentación y evidencia. No garantiza el resultado comercial de la operación ni sustituye asesoría legal.
+            </InfoBox>
           </Card>
 
+          {/* 9.9 Contrato preliminar */}
           <Card
             icon={FileSignature}
             title={`Contrato preliminar ${data.agreementVersion}`}
@@ -292,13 +467,15 @@ function InviteApprovalPage() {
               </button>
             }
           >
-            <div className="text-xs text-yo-txt-2 flex items-center gap-2">
-              <Hash className="size-3.5" />
-              Al aceptar, se bloquea la versión y se genera el hash SHA-256 del contrato.
-            </div>
+            <Row label="Versión" value={data.agreementVersion} />
+            <Row label="Estado" value={<AgreementStatusChip status={data.agreementStatus} />} />
+            <Row label="Hash preliminar" value={data.hashPreliminar ?? <span className="text-yo-txt-3">Disponible al bloquear versión</span>} />
+            <InfoBox tone="info" title="Versión abierta">
+              El contrato todavía NO está bloqueado mientras la invitación esté pendiente. Solo se bloquea cuando ambas partes aceptan la misma versión del acuerdo.
+            </InfoBox>
           </Card>
 
-          {/* Acciones */}
+          {/* Acciones §10 */}
           <div className="sticky bottom-0 -mx-4 px-4 py-3 bg-yo-surface border-t border-yo-border flex flex-wrap gap-2 justify-end mt-2">
             <button
               onClick={() => setShowRejectModal(true)}
@@ -321,7 +498,7 @@ function InviteApprovalPage() {
           </div>
         </div>
 
-        {/* Sidebar sticky */}
+        {/* Sidebar sticky "Antes de aceptar" */}
         <aside className="lg:sticky lg:top-6 self-start flex flex-col gap-3">
           <div className="rounded-lg border border-yo-border bg-yo-surface p-4">
             <div className="flex items-center gap-2 text-sm font-semibold text-yo-txt mb-3">
@@ -346,74 +523,106 @@ function InviteApprovalPage() {
         </aside>
       </div>
 
+      {/* Modales */}
       {showAcceptModal && (
-        <AcceptModal
-          copy={copy}
+        <AcceptInvitationDialog
+          cta={copy.cta}
           onClose={() => setShowAcceptModal(false)}
-          onConfirm={() => { setShowAcceptModal(false); setAccepted(true); toast.success("Operación aceptada. Continuando a firma…"); }}
+          onConfirm={() => {
+            setShowAcceptModal(false);
+            setPostState("accepted");
+            toast.success("Operación aceptada. Continuando a firma…");
+          }}
         />
       )}
       {showRejectModal && (
-        <SimpleModal
-          title="Rechazar operación"
-          confirmLabel="Rechazar definitivamente"
-          confirmTone="danger"
+        <RejectInvitationDialog
           onClose={() => setShowRejectModal(false)}
-          onConfirm={() => { setShowRejectModal(false); toast("Operación rechazada. Se notificó al creador."); }}
-        >
-          <p className="text-sm text-yo-txt-2">Al rechazar, la operación queda cancelada y no podrás reactivarla desde este enlace.</p>
-          <textarea placeholder="Motivo (visible para el creador)" rows={4} className="w-full mt-3 border border-yo-border rounded-md p-2 text-sm bg-white dark:bg-transparent" />
-        </SimpleModal>
+          onConfirm={() => {
+            setShowRejectModal(false);
+            setPostState("rejected");
+            toast("Operación rechazada. Se notificó al creador.");
+          }}
+        />
       )}
       {showChangesModal && (
-        <SimpleModal
-          title="Solicitar cambios"
-          confirmLabel="Enviar solicitud"
+        <RequestChangesDialog
           onClose={() => setShowChangesModal(false)}
-          onConfirm={() => { setShowChangesModal(false); toast.success("Solicitud enviada al creador."); }}
-        >
-          <p className="text-sm text-yo-txt-2">Indica qué debería ajustarse antes de aceptar. El creador recibirá tus notas y podrá generar una nueva versión.</p>
-          <textarea placeholder="Describe los cambios (monto, hitos, plazos, evidencias, fiscal…)" rows={5} className="w-full mt-3 border border-yo-border rounded-md p-2 text-sm bg-white dark:bg-transparent" />
-        </SimpleModal>
+          onConfirm={() => {
+            setShowChangesModal(false);
+            setPostState("changes");
+            toast.success("Solicitud de cambios enviada al creador.");
+          }}
+        />
       )}
       {showContract && (
-        <SimpleModal
-          title={`Contrato preliminar ${data.agreementVersion}`}
-          confirmLabel="Cerrar"
-          onClose={() => setShowContract(false)}
-          onConfirm={() => setShowContract(false)}
-          size="lg"
-        >
-          <div className="text-xs text-yo-txt-3 mb-2 flex items-center gap-2">
-            <FileText className="size-3.5" /> Versión de solo lectura. Se bloqueará al aceptar.
-          </div>
-          <div className="border border-yo-border rounded-md p-4 max-h-[50vh] overflow-y-auto text-sm text-yo-txt-2 leading-relaxed whitespace-pre-line bg-yo-bg">
-{`CONTRATO DE PAGO PROTEGIDO CUMPLEX
-
-Operación: ${data.operationId}
-Monto: ${new Intl.NumberFormat("es-MX", { style: "currency", currency: data.currency }).format(data.amount / 100)}
-Sector: ${data.sector}
-
-1. Objeto. ${data.description}
-
-2. Hitos y evidencias.
-${data.hitos.map((h, i) => `   ${i + 1}. ${h.titulo} — ${new Intl.NumberFormat("es-MX", { style: "currency", currency: data.currency }).format(h.monto / 100)} — Evidencia: ${h.evidencia}`).join("\n")}
-
-3. Reglas de liberación. ${data.liberacion.modo}. Verificador: ${data.liberacion.verificador}.
-
-4. Disputas. Árbitro: ${data.disputa.arbitro}. Costos: ${data.disputa.costos}.
-
-5. Cumplex no custodia fondos ni actúa como intermediario financiero.`}
-          </div>
-          <button className="mt-3 inline-flex items-center gap-1.5 text-xs text-yo-ac hover:underline"><Download className="size-3.5" /> Descargar PDF</button>
-        </SimpleModal>
+        <ContractPreviewModal data={data} onClose={() => setShowContract(false)} />
       )}
     </div>
   );
 }
 
 // ─────────────────────────────────────────────────────────────────────────
-// Post-aceptación / vista de creador esperando
+// §21 · Estados especiales
+// ─────────────────────────────────────────────────────────────────────────
+function EmptyState({ token, kind }: { token: string; kind: "expired" | "rejected" | "changes" }) {
+  const map = {
+    expired: {
+      icon: Clock,
+      tone: "warn" as const,
+      title: "Esta invitación expiró",
+      body: "Solicita a la contraparte que genere una nueva invitación o que reenvíe la operación.",
+      primary: { label: "Contactar soporte", to: "/help" as const },
+      secondary: { label: "Volver al dashboard", to: "/dashboard" as const },
+    },
+    rejected: {
+      icon: XCircle,
+      tone: "err" as const,
+      title: "Operación rechazada",
+      body: "Notificamos al creador. El historial de esta operación quedará disponible para auditoría.",
+      primary: { label: "Volver al dashboard", to: "/dashboard" as const },
+      secondary: { label: "Contactar soporte", to: "/help" as const },
+    },
+    changes: {
+      icon: MessageSquareWarning,
+      tone: "warn" as const,
+      title: "Cambios solicitados",
+      body: "Tu solicitud fue enviada al creador. Te avisaremos cuando exista una nueva versión para revisar.",
+      primary: { label: "Volver al dashboard", to: "/dashboard" as const },
+      secondary: { label: "Ver notificaciones", to: "/notifications" as const },
+    },
+  }[kind];
+
+  const Icon = map.icon;
+  const iconBg =
+    map.tone === "err" ? "bg-yo-err-bg text-[color:var(--yo-err)]" :
+    map.tone === "warn" ? "bg-yo-warn-bg text-[color:var(--yo-warn)]" :
+    "bg-yo-ac/10 text-yo-ac";
+
+  return (
+    <div className="min-h-dvh bg-yo-bg grid place-items-center p-4">
+      <div className="max-w-md w-full rounded-lg border border-yo-border bg-yo-surface p-6 text-center flex flex-col gap-3">
+        <div className={cn("size-12 rounded-full grid place-items-center mx-auto", iconBg)}>
+          <Icon className="size-6" />
+        </div>
+        <h1 className="text-xl font-bold text-yo-txt">{map.title}</h1>
+        <p className="text-sm text-yo-txt-2">{map.body}</p>
+        <div className="text-[11px] text-yo-txt-3 font-mono">Invitación · {token.slice(0, 8)}</div>
+        <div className="flex flex-col sm:flex-row gap-2 mt-2">
+          <Link to={map.secondary.to} className="flex-1 inline-flex items-center justify-center gap-1.5 h-10 rounded-md border border-yo-border text-sm text-yo-txt-2 hover:text-yo-txt">
+            <Home className="size-4" /> {map.secondary.label}
+          </Link>
+          <Link to={map.primary.to} className="flex-1 inline-flex items-center justify-center gap-1.5 h-10 rounded-md bg-yo-ac text-white text-sm font-semibold hover:opacity-90">
+            {map.primary.label} <ArrowRight className="size-4" />
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Post-aceptación
 // ─────────────────────────────────────────────────────────────────────────
 function PostAcceptScreen({ data, isBuyer }: { data: InviteData; isBuyer: boolean }) {
   const hash = "sha256:" + Array.from({ length: 8 }, () => Math.random().toString(16).slice(2, 6)).join("");
@@ -459,14 +668,16 @@ function Card({ icon: Icon, title, children, action }: { icon: any; title: strin
 
 function Row({ label, value, strong }: { label: string; value: React.ReactNode; strong?: boolean }) {
   return (
-    <div className={cn("flex items-center justify-between gap-3 py-1.5 border-b border-yo-border last:border-0", strong && "pt-2 mt-1 border-t border-yo-border font-semibold")}>
-      <span className="text-xs text-yo-txt-2">{label}</span>
-      <span className={cn("text-sm text-yo-txt text-right", strong && "text-base")}>{value}</span>
+    <div className={cn("flex items-start justify-between gap-3 py-1.5 border-b border-yo-border last:border-0", strong && "pt-2 mt-1 border-t border-yo-border font-semibold")}>
+      <span className="text-xs text-yo-txt-2 shrink-0">{label}</span>
+      <span className={cn("text-sm text-yo-txt text-right min-w-0", strong && "text-base")}>{value}</span>
     </div>
   );
 }
 
-function PartyBlock({ title, name, org, verified }: { title: string; name: string; org: string; verified: boolean }) {
+function PartyBlock({ title, name, org, rfc, verified, scoreBand }: {
+  title: string; name: string; org: string; rfc: string | null; verified: boolean; scoreBand: "Alto" | "Medio" | "Bajo" | null;
+}) {
   return (
     <div className="border border-yo-border rounded-md p-3">
       <div className="text-[10px] uppercase tracking-wider text-yo-txt-3">{title}</div>
@@ -475,11 +686,49 @@ function PartyBlock({ title, name, org, verified }: { title: string; name: strin
         {name}
       </div>
       <div className="text-xs text-yo-txt-2">{org}</div>
-      <div className={cn("mt-2 inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full", verified ? "bg-yo-ok-bg text-[color:var(--yo-ok)]" : "bg-yo-warn-bg text-[color:var(--yo-warn)]")}>
-        {verified ? <><CheckCircle2 className="size-3" /> Verificado</> : <><AlertTriangle className="size-3" /> Pendiente</>}
+      {rfc && <div className="text-[11px] text-yo-txt-3 font-mono mt-0.5">RFC: {rfc}</div>}
+      <div className="mt-2 flex flex-wrap gap-1.5">
+        <span className={cn("inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full", verified ? "bg-yo-ok-bg text-[color:var(--yo-ok)]" : "bg-yo-warn-bg text-[color:var(--yo-warn)]")}>
+          {verified ? <><CheckCircle2 className="size-3" /> Verificado</> : <><AlertTriangle className="size-3" /> Pendiente</>}
+        </span>
+        {scoreBand && (
+          <span className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full bg-yo-ac/10 text-yo-ac">
+            <ShieldCheck className="size-3" /> Score {scoreBand}
+          </span>
+        )}
       </div>
     </div>
   );
+}
+
+function MilestoneRow({ m, currency }: { m: Milestone; currency: string }) {
+  return (
+    <div className="border border-yo-border rounded-md p-3">
+      <div className="flex items-start gap-3">
+        <div className="size-7 rounded-full bg-yo-ac/10 text-yo-ac grid place-items-center text-xs font-bold shrink-0">{m.orden}</div>
+        <div className="flex-1 min-w-0">
+          <div className="text-sm font-semibold text-yo-txt">{m.nombre}</div>
+          <div className="text-[11px] text-yo-txt-3 mt-0.5">
+            {m.porcentaje}% · Vence {fmtDate(m.fechaLimite)} · Responsable {m.responsable}
+          </div>
+        </div>
+        <MoneyDisplay amount={m.monto / 100} currency={currency} />
+      </div>
+      <div className="mt-2 pl-10 grid grid-cols-1 sm:grid-cols-2 gap-1 text-[11px] text-yo-txt-2">
+        <div><span className="text-yo-txt-3">Criterio: </span>{m.criterio}</div>
+        <div><span className="text-yo-txt-3">Verificación: </span>{m.verificacion}</div>
+        <div>
+          <span className="text-yo-txt-3">Auto-release: </span>
+          <span className={cn("font-medium", m.autoRelease ? "text-[color:var(--yo-ok)]" : "text-yo-txt")}>{m.autoRelease ? "Sí" : "No"}</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function EvidenceIcon({ kind }: { kind: EvidenceItem["tipo"] }) {
+  const Icon = kind === "Foto" ? Camera : kind === "Video" ? Camera : kind === "GPS" ? MapPin : kind === "Checklist" ? ListChecks : Truck;
+  return <Icon className="size-3.5 text-yo-ac shrink-0" />;
 }
 
 function BulletCheck({ children }: { children: React.ReactNode }) {
@@ -498,6 +747,19 @@ function StatusChip({ status }: { status: InviteStatus }) {
     CAMBIOS_SOLICITADOS:{ bg: "#FEE2E2", txt: "#B91C1C", label: "Cambios solicitados" },
     ACEPTADA:           { bg: "#DCFCE7", txt: "#166534", label: "Aceptada" },
     RECHAZADA:          { bg: "#F4F4F5", txt: "#3F3F46", label: "Rechazada" },
+    EXPIRADA:           { bg: "#F4F4F5", txt: "#71717A", label: "Expirada" },
+  };
+  const s = map[status];
+  return <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold" style={{ background: s.bg, color: s.txt }}>{s.label}</span>;
+}
+
+function AgreementStatusChip({ status }: { status: AgreementStatus }) {
+  const map: Record<AgreementStatus, { bg: string; txt: string; label: string }> = {
+    SENT:               { bg: "#DBEAFE", txt: "#1E40AF", label: "Enviado" },
+    UNDER_REVIEW:       { bg: "#FEF3C7", txt: "#92400E", label: "En revisión" },
+    CHANGES_REQUESTED:  { bg: "#FEE2E2", txt: "#B91C1C", label: "Cambios solicitados" },
+    ACCEPTED:           { bg: "#DCFCE7", txt: "#166534", label: "Aceptado" },
+    LOCKED:             { bg: "#EDE9FE", txt: "#5B21B6", label: "Bloqueado" },
   };
   const s = map[status];
   return <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold" style={{ background: s.bg, color: s.txt }}>{s.label}</span>;
@@ -511,40 +773,222 @@ function ExpiryChip({ iso }: { iso: string }) {
   return <span className={cn("inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium", cls)}><Clock className="size-3" /> Vence en {hours} h</span>;
 }
 
+function fmtDate(iso: string) {
+  return new Date(iso).toLocaleDateString("es-MX", { day: "2-digit", month: "short", year: "numeric" });
+}
+
 // ─────────────────────────────────────────────────────────────────────────
-// Modales
+// §11 · Modal aceptación
 // ─────────────────────────────────────────────────────────────────────────
-function AcceptModal({
-  copy, onClose, onConfirm,
-}: { copy: { cta: string; roleLabel: string }; onClose: () => void; onConfirm: () => void }) {
-  const [checks, setChecks] = useState({ terminos: false, hitos: false, fiscal: false, disputa: false, hash: false });
+function AcceptInvitationDialog({ cta, onClose, onConfirm }: { cta: string; onClose: () => void; onConfirm: () => void }) {
+  const [checks, setChecks] = useState({
+    resumen: false, economicas: false, hitos: false, docs: false, liberacion: false, custodia: false,
+  });
   const allOk = Object.values(checks).every(Boolean);
   const toggle = (k: keyof typeof checks) => setChecks((c) => ({ ...c, [k]: !c[k] }));
 
   return (
-    <ModalShell onClose={onClose} title="Confirmar aceptación" size="md">
-      <p className="text-sm text-yo-txt-2 mb-3">Confirma que revisaste y aceptas cada punto. Al continuar se bloquea la versión y se genera el hash del contrato.</p>
+    <ModalShell onClose={onClose} title="Aceptar operación" size="md">
+      <p className="text-sm text-yo-txt-2 mb-3">Antes de continuar, confirma que revisaste esta versión.</p>
       <ul className="flex flex-col gap-2">
-        <Check label="Revisé el resumen, partes y descripción de la operación." on={checks.terminos} onChange={() => toggle("terminos")} />
-        <Check label="Acepto los hitos, montos, plazos y evidencias." on={checks.hitos} onChange={() => toggle("hitos")} />
-        <Check label="Estoy de acuerdo con las condiciones fiscales (CFDI/uso/forma de pago)." on={checks.fiscal} onChange={() => toggle("fiscal")} />
-        <Check label="Entiendo el proceso de disputa y la regla loser-pays." on={checks.disputa} onChange={() => toggle("disputa")} />
-        <Check label="Autorizo bloquear la versión y generar el hash inmutable del contrato." on={checks.hash} onChange={() => toggle("hash")} />
+        <Check label="Leí el resumen de la operación." on={checks.resumen} onChange={() => toggle("resumen")} />
+        <Check label="Revisé monto, comisión y condiciones económicas." on={checks.economicas} onChange={() => toggle("economicas")} />
+        <Check label="Revisé hitos, fechas límite y entregables." on={checks.hitos} onChange={() => toggle("hitos")} />
+        <Check label="Revisé documentos y evidencia requerida." on={checks.docs} onChange={() => toggle("docs")} />
+        <Check label="Entiendo las reglas de liberación y devolución." on={checks.liberacion} onChange={() => toggle("liberacion")} />
+        <Check label="Entiendo que Cumplex NO custodia fondos." on={checks.custodia} onChange={() => toggle("custodia")} />
       </ul>
+      <p className="text-[11px] text-yo-txt-3 mt-3 leading-relaxed">
+        Esta aceptación bloqueará la versión si ambas partes han aceptado los mismos términos. La firma contractual se solicitará en el siguiente paso.
+      </p>
       <div className="flex items-center justify-end gap-2 mt-4">
         <button onClick={onClose} className="h-10 px-3 rounded-md border border-yo-border text-sm text-yo-txt-2">Cancelar</button>
         <button
           disabled={!allOk}
           onClick={onConfirm}
-          className={cn("h-10 px-4 rounded-md text-sm font-semibold inline-flex items-center gap-2", allOk ? "bg-yo-ac text-white hover:opacity-90" : "bg-yo-bg text-yo-txt-3 cursor-not-allowed")}
+          className={cn("h-10 px-4 rounded-md text-sm font-semibold inline-flex items-center gap-2",
+            allOk ? "bg-yo-ac text-white hover:opacity-90" : "bg-yo-bg text-yo-txt-3 cursor-not-allowed")}
         >
-          <CheckCircle2 className="size-4" /> {copy.cta}
+          <CheckCircle2 className="size-4" /> {cta}
         </button>
       </div>
     </ModalShell>
   );
 }
 
+// ─────────────────────────────────────────────────────────────────────────
+// §12 · Modal solicitud de cambios
+// ─────────────────────────────────────────────────────────────────────────
+type ChangeSection = "Monto" | "Hitos" | "Fechas" | "Documentos" | "Fiscal" | "Otro";
+const SECTIONS: ChangeSection[] = ["Monto", "Hitos", "Fechas", "Documentos", "Fiscal", "Otro"];
+
+function RequestChangesDialog({ onClose, onConfirm }: { onClose: () => void; onConfirm: () => void }) {
+  const [seccion, setSeccion] = useState<ChangeSection>("Monto");
+  const [motivo, setMotivo] = useState("");
+  const [propuesta, setPropuesta] = useState("");
+  const motivoOk = motivo.trim().length >= 30;
+
+  return (
+    <ModalShell onClose={onClose} title="Solicitar cambios" size="md">
+      <div className="flex flex-col gap-3">
+        <div>
+          <label className="text-[11px] font-semibold uppercase tracking-wider text-yo-txt-3">¿Qué parte del acuerdo debe ajustarse?</label>
+          <div className="mt-1.5 flex flex-wrap gap-1.5">
+            {SECTIONS.map((s) => (
+              <button
+                key={s}
+                type="button"
+                onClick={() => setSeccion(s)}
+                className={cn("h-8 px-3 rounded-md border text-xs font-medium",
+                  seccion === s ? "bg-yo-ac text-white border-yo-ac" : "bg-white dark:bg-transparent border-yo-border text-yo-txt-2 hover:border-yo-ac")}
+              >
+                {s}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div>
+          <label className="text-[11px] font-semibold uppercase tracking-wider text-yo-txt-3">Explica el cambio solicitado *</label>
+          <textarea
+            value={motivo}
+            onChange={(e) => setMotivo(e.target.value)}
+            placeholder="Detalla qué debería ajustarse y por qué (mínimo 30 caracteres)"
+            rows={4}
+            className="w-full mt-1.5 border border-yo-border rounded-md p-2 text-sm bg-white dark:bg-transparent"
+          />
+          <div className={cn("text-[10px] mt-0.5 text-right", motivoOk ? "text-[color:var(--yo-ok)]" : "text-yo-txt-3")}>
+            {motivo.trim().length} / 30 caracteres
+          </div>
+        </div>
+        <div>
+          <label className="text-[11px] font-semibold uppercase tracking-wider text-yo-txt-3">Propuesta concreta (opcional)</label>
+          <textarea
+            value={propuesta}
+            onChange={(e) => setPropuesta(e.target.value)}
+            placeholder="Ej. cambiar hito 2 a 40% y postergar 5 días"
+            rows={3}
+            className="w-full mt-1.5 border border-yo-border rounded-md p-2 text-sm bg-white dark:bg-transparent"
+          />
+        </div>
+      </div>
+      <div className="flex items-center justify-end gap-2 mt-4">
+        <button onClick={onClose} className="h-10 px-3 rounded-md border border-yo-border text-sm text-yo-txt-2">Cancelar</button>
+        <button
+          disabled={!motivoOk}
+          onClick={onConfirm}
+          className={cn("h-10 px-4 rounded-md text-sm font-semibold inline-flex items-center gap-2",
+            motivoOk ? "bg-yo-ac text-white hover:opacity-90" : "bg-yo-bg text-yo-txt-3 cursor-not-allowed")}
+        >
+          <RefreshCw className="size-4" /> Enviar solicitud de cambios
+        </button>
+      </div>
+    </ModalShell>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// §13 · Modal rechazo
+// ─────────────────────────────────────────────────────────────────────────
+const REJECT_REASONS = [
+  "Monto no corresponde al acuerdo previo",
+  "Hitos o fechas no viables",
+  "Documentos/evidencia excesivos",
+  "Condiciones fiscales incompatibles",
+  "No reconozco a la contraparte",
+  "Otro motivo",
+];
+
+function RejectInvitationDialog({ onClose, onConfirm }: { onClose: () => void; onConfirm: () => void }) {
+  const [motivo, setMotivo] = useState<string>("");
+  const [comentario, setComentario] = useState("");
+  const canConfirm = motivo.length > 0;
+
+  return (
+    <ModalShell onClose={onClose} title="Rechazar operación" size="md">
+      <div className="flex flex-col gap-3">
+        <InfoBox tone="warn" title="No se elimina el historial">
+          Rechazar cancela la operación. La invitación desaparece del Inbox y el historial queda visible para auditoría. El creador será notificado.
+        </InfoBox>
+        <div>
+          <label className="text-[11px] font-semibold uppercase tracking-wider text-yo-txt-3">Motivo de rechazo *</label>
+          <div className="mt-1.5 flex flex-col gap-1.5">
+            {REJECT_REASONS.map((r) => (
+              <label key={r} className="flex items-center gap-2 text-sm text-yo-txt cursor-pointer">
+                <input type="radio" name="reject-reason" checked={motivo === r} onChange={() => setMotivo(r)} className="size-4 accent-[color:var(--yo-ac)]" />
+                {r}
+              </label>
+            ))}
+          </div>
+        </div>
+        <div>
+          <label className="text-[11px] font-semibold uppercase tracking-wider text-yo-txt-3">Comentario adicional (opcional)</label>
+          <textarea
+            value={comentario}
+            onChange={(e) => setComentario(e.target.value)}
+            placeholder="Contexto adicional para el creador"
+            rows={3}
+            className="w-full mt-1.5 border border-yo-border rounded-md p-2 text-sm bg-white dark:bg-transparent"
+          />
+        </div>
+      </div>
+      <div className="flex items-center justify-end gap-2 mt-4">
+        <button onClick={onClose} className="h-10 px-3 rounded-md border border-yo-border text-sm text-yo-txt-2">Cancelar</button>
+        <button
+          disabled={!canConfirm}
+          onClick={onConfirm}
+          className={cn("h-10 px-4 rounded-md text-sm font-semibold text-white inline-flex items-center gap-2",
+            canConfirm ? "bg-[#B91C1C] hover:bg-[#991B1B]" : "bg-yo-bg text-yo-txt-3 cursor-not-allowed")}
+        >
+          <XCircle className="size-4" /> Rechazar definitivamente
+        </button>
+      </div>
+    </ModalShell>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Modal contrato preliminar
+// ─────────────────────────────────────────────────────────────────────────
+function ContractPreviewModal({ data, onClose }: { data: InviteData; onClose: () => void }) {
+  return (
+    <ModalShell onClose={onClose} title={`Contrato preliminar ${data.agreementVersion}`} size="lg">
+      <div className="text-xs text-yo-txt-3 mb-2 flex items-center gap-2">
+        <Info className="size-3.5" /> Versión de solo lectura. Se bloqueará al aceptar y se generará el hash SHA-256.
+      </div>
+      <div className="border border-yo-border rounded-md p-4 max-h-[50vh] overflow-y-auto text-sm text-yo-txt-2 leading-relaxed whitespace-pre-line bg-yo-bg">
+{`CONTRATO DE PAGO PROTEGIDO CUMPLEX
+
+Operación: ${data.operationId}
+Concepto: ${data.concepto}
+Monto: ${new Intl.NumberFormat("es-MX", { style: "currency", currency: data.currency }).format(data.amount / 100)}
+Sector: ${data.sector}
+Inicio estimado: ${fmtDate(data.fechaInicioEstimada)}
+Conclusión máxima: ${fmtDate(data.fechaFinMaxima)}
+
+1. Objeto. ${data.descripcion}
+
+2. Hitos y evidencias.
+${data.milestones.map((h) => `   ${h.orden}. ${h.nombre} — ${h.porcentaje}% (${new Intl.NumberFormat("es-MX", { style: "currency", currency: data.currency }).format(h.monto / 100)}) — Vence ${fmtDate(h.fechaLimite)} — Verificación: ${h.verificacion}`).join("\n")}
+
+3. Reglas de liberación. ${data.liberacion.modo}. Verificador: ${data.liberacion.verificador}. Ventana de inspección: ${data.liberacion.ventanaInspeccionDias} días.
+
+4. Disputas. Plazo de respuesta: ${data.disputa.plazoRespuestaDias} días. Evidencia admisible: ${data.disputa.evidenciaAdmisible}.
+
+5. Fiscal. CFDI ${data.fiscal.tipoCfdi}. Uso: ${data.fiscal.usoCfdi}. Forma de pago: ${data.fiscal.formaPago}.
+
+6. Cumplex actúa como tercero neutral y NO custodia fondos ni actúa como intermediario financiero.`}
+      </div>
+      <div className="flex items-center justify-between mt-3">
+        <button className="inline-flex items-center gap-1.5 text-xs text-yo-ac hover:underline"><Download className="size-3.5" /> Descargar PDF borrador</button>
+        <button onClick={onClose} className="h-9 px-3 rounded-md border border-yo-border text-sm text-yo-txt-2">Cerrar</button>
+      </div>
+    </ModalShell>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Modal shell + helpers
+// ─────────────────────────────────────────────────────────────────────────
 function Check({ label, on, onChange }: { label: string; on: boolean; onChange: () => void }) {
   return (
     <label className="flex items-start gap-2 text-sm text-yo-txt cursor-pointer">
@@ -554,35 +998,12 @@ function Check({ label, on, onChange }: { label: string; on: boolean; onChange: 
   );
 }
 
-function SimpleModal({
-  title, children, onClose, onConfirm, confirmLabel, confirmTone, size,
-}: {
-  title: string; children: React.ReactNode; onClose: () => void; onConfirm: () => void;
-  confirmLabel: string; confirmTone?: "danger"; size?: "md" | "lg";
-}) {
-  return (
-    <ModalShell onClose={onClose} title={title} size={size ?? "md"}>
-      {children}
-      <div className="flex items-center justify-end gap-2 mt-4">
-        <button onClick={onClose} className="h-10 px-3 rounded-md border border-yo-border text-sm text-yo-txt-2">Cancelar</button>
-        <button
-          onClick={onConfirm}
-          className={cn("h-10 px-4 rounded-md text-sm font-semibold text-white",
-            confirmTone === "danger" ? "bg-[#B91C1C] hover:bg-[#991B1B]" : "bg-yo-ac hover:opacity-90")}
-        >
-          {confirmLabel}
-        </button>
-      </div>
-    </ModalShell>
-  );
-}
-
 function ModalShell({ title, size = "md", onClose, children }: { title: string; size?: "md" | "lg"; onClose: () => void; children: React.ReactNode }) {
   return (
     <div className="fixed inset-0 z-50 bg-black/50 grid place-items-center p-4" onClick={onClose}>
       <div
         onClick={(e) => e.stopPropagation()}
-        className={cn("bg-yo-surface border border-yo-border rounded-lg w-full p-5", size === "lg" ? "max-w-2xl" : "max-w-md")}
+        className={cn("bg-yo-surface border border-yo-border rounded-lg w-full p-5 max-h-[90vh] overflow-y-auto", size === "lg" ? "max-w-2xl" : "max-w-md")}
       >
         <div className="flex items-start justify-between mb-3">
           <h3 className="text-base font-semibold text-yo-txt">{title}</h3>
