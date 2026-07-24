@@ -268,6 +268,12 @@ export const signAndActivateTransaction = createServerFn({ method: "POST" })
     if (tx.status !== "draft" && tx.status !== "pending_signature") {
       throw new Error("Esta transacción ya no admite firmas");
     }
+    // Regla: el creador no puede firmar mientras la contraparte no acepte (sin cuenta Cumplex)
+    const contraparteSinCuenta = !(tx.buyer_id && tx.seller_id);
+    if (contraparteSinCuenta && tx.creado_por === context.userId) {
+      throw new Error("La contraparte aún no acepta la operación. Envía un recordatorio y espera su aceptación para firmar.");
+    }
+
 
     // Validar hitos existen y suman 100
     const { data: hitos } = await context.supabase
@@ -342,5 +348,61 @@ export const signAndActivateTransaction = createServerFn({ method: "POST" })
     return { ok: true, status: nuevoStatus, activated: nuevoStatus === "awaiting_funding" };
   });
 
+// ─── Reenviar invitación / recordatorio a contraparte invitada ───────────────
+export const remindTransactionCounterparty = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) =>
+    z.object({ transaction_id: z.string().uuid() }).parse(i),
+  )
+  .handler(async ({ data, context }) => {
+    const { data: tx, error } = await context.supabase
+      .from("transactions")
+      .select("id, numero, buyer_id, seller_id, creado_por, counterparty_email, beneficiario_nombre, pagador_nombre, amount_cents, currency, status")
+      .eq("id", data.transaction_id)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!tx) throw new Error("Operación no encontrada");
+    if (tx.creado_por !== context.userId) throw new Error("Solo el creador puede enviar recordatorios");
+    if (tx.buyer_id && tx.seller_id) throw new Error("La contraparte ya tiene cuenta Cumplex");
+    if (!tx.counterparty_email) throw new Error("No hay correo de contraparte registrado");
 
+    const since = new Date(Date.now() - 30 * 60_000).toISOString();
+    const { data: recent } = await context.supabase
+      .from("transaction_events")
+      .select("id, created_at")
+      .eq("transaction_id", tx.id)
+      .eq("event_type", "reminder_sent")
+      .gte("created_at", since)
+      .limit(1);
+    if (recent && recent.length > 0) {
+      throw new Error("Ya enviaste un recordatorio hace poco. Espera unos minutos.");
+    }
+
+    const iAmBuyer = tx.buyer_id === context.userId;
+    const invitedRole = iAmBuyer ? "seller" : "buyer";
+    const invitedName = iAmBuyer ? tx.beneficiario_nombre : tx.pagador_nombre;
+
+    const { sendTemplateEmail } = await import("@/lib/email-templates/send-email");
+    const acceptUrl = `https://secure-trust-mx.lovable.app/invite/${tx.id}`;
+    const result = await sendTemplateEmail("invitation-to-organization", tx.counterparty_email, {
+      templateData: {
+        inviteeName: invitedName ?? undefined,
+        organizationName: `Operación ${tx.numero ?? ""}`.trim(),
+        orgRole: invitedRole,
+        acceptUrl,
+        expiresAt: null,
+      },
+      idempotencyKey: `reminder-${tx.id}-${Math.floor(Date.now() / (30 * 60_000))}`,
+    });
+
+    await context.supabase.from("transaction_events").insert({
+      transaction_id: tx.id,
+      event_type: "reminder_sent",
+      actor_id: context.userId,
+      metadata: { channel: "email", to: tx.counterparty_email, sent: result.sent, reason: result.reason ?? null },
+    });
+
+    if (!result.sent) throw new Error(`No se pudo enviar el correo: ${result.reason ?? "desconocido"}`);
+    return { ok: true };
+  });
 
