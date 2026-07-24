@@ -3,17 +3,29 @@ import { Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import {
-  Search, MessageSquare, LifeBuoy, Activity, HelpCircle, Mail, Inbox,
+  Search, MessageSquare, LifeBuoy, Activity, HelpCircle, Inbox, Mail, Building2, User, ArrowRight,
 } from "lucide-react";
 import { getQuickAccessContext, listMyTickets } from "@/lib/support.functions";
+import { listMyPendingInvitations } from "@/lib/orgs.functions";
 import { useViewRole } from "@/hooks/use-view-role";
 import { cn } from "@/lib/utils";
 
+const ROLE_LABEL: Record<string, string> = {
+  owner: "Propietario",
+  buyer_admin: "Admin comprador",
+  buyer_user: "Comprador",
+  seller_admin: "Admin vendedor",
+  seller_user: "Vendedor",
+  auditor: "Auditor",
+};
+
 export function TopbarQuickAccess() {
   const [open, setOpen] = useState(false);
+  const [invOpen, setInvOpen] = useState(false);
   const { role } = useViewRole();
   const fn = useServerFn(getQuickAccessContext);
   const ticketsFn = useServerFn(listMyTickets);
+  const invFn = useServerFn(listMyPendingInvitations);
   const { data } = useQuery({ queryKey: ["qa-context"], queryFn: () => fn(), staleTime: 30_000 });
   const { data: tickets } = useQuery({
     queryKey: ["qa-open-tickets"],
@@ -21,23 +33,38 @@ export function TopbarQuickAccess() {
     staleTime: 60_000,
     refetchInterval: 120_000,
   });
+  const { data: invitations } = useQuery({
+    queryKey: ["qa-pending-invitations"],
+    queryFn: () => invFn(),
+    staleTime: 30_000,
+    refetchInterval: 120_000,
+  });
   const openCount = (tickets ?? []).filter(
     (t: any) => !["resolved", "closed", "cancelled"].includes(String(t.status))
   ).length;
+  const invCount = (invitations ?? []).length;
 
   const critical = !!data?.criticalIncident;
   const hasOpenTickets = openCount > 0;
 
-
   return (
     <div className="relative flex items-center gap-1">
-      <Link to="/invite/demo-token-123" className="relative size-8 grid place-items-center rounded-md text-yo-txt-2 hover:text-yo-txt hover:bg-yo-raised transition" title="Invitaciones pendientes">
-        <Inbox className="size-4" />
-        <span className="absolute -top-0.5 -right-0.5 size-2 rounded-full bg-yo-ac ring-2 ring-yo-surface" />
-      </Link>
-      {/* <InvitationsInboxIcon /> */}
       <button
-        onClick={() => setOpen((o) => !o)}
+        onClick={() => { setInvOpen((o) => !o); setOpen(false); }}
+        aria-label="Invitaciones pendientes"
+        title="Invitaciones pendientes"
+        className="relative size-8 grid place-items-center rounded-md text-yo-txt-2 hover:text-yo-txt hover:bg-yo-raised transition"
+      >
+        <Inbox className="size-4" aria-hidden />
+        {invCount > 0 && (
+          <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-[16px] px-1 rounded-full bg-yo-err text-white text-[9px] font-bold grid place-items-center">
+            {invCount > 9 ? "9+" : invCount}
+          </span>
+        )}
+      </button>
+
+      <button
+        onClick={() => { setOpen((o) => !o); setInvOpen(false); }}
         aria-label="Centro de ayuda y soporte"
         title="Centro de ayuda y soporte"
         className="relative size-8 grid place-items-center rounded-md text-yo-txt-2 hover:text-yo-txt hover:bg-yo-raised transition"
@@ -50,6 +77,64 @@ export function TopbarQuickAccess() {
           )} />
         )}
       </button>
+
+      {invOpen && (
+        <>
+          <div className="fixed inset-0 z-40" onClick={() => setInvOpen(false)} />
+          <div className="absolute right-0 mt-2 w-[360px] max-h-[70vh] overflow-auto z-50 rounded-xl border border-yo-border bg-yo-surface shadow-xl">
+            <div className="p-3 border-b border-yo-border bg-yo-ac-bg">
+              <div className="flex items-center gap-2">
+                <div className="size-8 grid place-items-center rounded-lg bg-yo-ac text-white">
+                  <Inbox className="size-4" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[13px] font-semibold text-yo-txt">Invitaciones pendientes</p>
+                  <p className="text-[11px] text-yo-txt-3">
+                    {invCount > 0 ? `${invCount} sin responder` : "No tienes invitaciones"}
+                  </p>
+                </div>
+              </div>
+            </div>
+            {invCount === 0 ? (
+              <div className="p-6 text-center">
+                <Mail className="size-8 mx-auto text-yo-txt-3 mb-2" />
+                <p className="text-sm text-yo-txt-3">No tienes invitaciones pendientes.</p>
+              </div>
+            ) : (
+              <ul className="divide-y divide-yo-border">
+                {(invitations ?? []).map((inv: any) => {
+                  const Icon = inv.org_type === "individual" ? User : Building2;
+                  const expires = new Date(inv.expires_at);
+                  return (
+                    <li key={inv.id}>
+                      <Link
+                        to="/invitations/$token"
+                        params={{ token: inv.token }}
+                        onClick={() => setInvOpen(false)}
+                        className="flex items-start gap-3 p-3 hover:bg-yo-raised transition"
+                      >
+                        <div className="size-9 shrink-0 grid place-items-center rounded-lg bg-yo-bg border border-yo-border">
+                          <Icon className="size-4 text-yo-ac" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold text-yo-txt truncate">{inv.org_name}</p>
+                          <p className="text-[11px] text-yo-txt-3 mt-0.5">
+                            Rol: {ROLE_LABEL[inv.org_role] ?? inv.org_role}
+                          </p>
+                          <p className="text-[11px] text-yo-txt-3 mt-0.5">
+                            Vence {expires.toLocaleDateString("es-MX", { day: "2-digit", month: "short", year: "numeric" })}
+                          </p>
+                        </div>
+                        <ArrowRight className="size-4 text-yo-txt-3 shrink-0 mt-1" />
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </div>
+        </>
+      )}
 
       {open && (
         <>
