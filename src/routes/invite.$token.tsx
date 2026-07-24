@@ -270,17 +270,23 @@ function InviteApprovalPage() {
       <header className="border-b border-yo-border bg-yo-surface">
         <div className="max-w-7xl mx-auto px-4 h-14 flex items-center justify-between">
           <CumplexLogo className="h-7" />
-          <div className="flex items-center gap-3">
-            <div className="text-[11px] text-yo-txt-3 font-mono">Invitación · {token.slice(0, 8)}</div>
-            <button
-              type="button"
-              onClick={() => window.close()}
-              aria-label="Cerrar pantalla"
-              className="inline-flex items-center gap-1.5 h-8 px-2.5 rounded-md border border-yo-border bg-yo-bg hover:bg-yo-surface-2 text-yo-txt-2 hover:text-yo-txt text-xs transition-colors"
-            >
-              <X className="size-3.5" /> Cerrar
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={() => {
+              try {
+                window.close();
+              } catch {
+                /* noop */
+              }
+              // Fallback si la pestaña no fue abierta por script
+              if (!window.closed) window.location.href = "/";
+            }}
+            aria-label="Cerrar pantalla"
+            className="inline-flex items-center gap-1.5 h-8 px-2.5 rounded-md border border-yo-border bg-yo-bg hover:bg-yo-surface-2 text-yo-txt-2 hover:text-yo-txt text-xs transition-colors"
+          >
+            <X className="size-3.5" /> Cerrar
+          </button>
+
         </div>
       </header>
 
