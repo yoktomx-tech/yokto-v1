@@ -14,7 +14,9 @@ import { MoneyDisplay } from "@/components/tx/ui/money-display";
 import { SectorBadge } from "@/components/tx/ui/sector-badge";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import { remindTransactionCounterparty } from "@/lib/transactions.functions";
+import { remindTransactionCounterparty, isTransactionCreator } from "@/lib/transactions.functions";
+import { useQuery } from "@tanstack/react-query";
+
 
 
 export const Route = createFileRoute("/invite/$token")({
