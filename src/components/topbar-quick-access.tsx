@@ -3,7 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import {
-  Search, MessageSquare, LifeBuoy, Activity, HelpCircle, Mail,
+  Search, MessageSquare, LifeBuoy, Activity, HelpCircle, Mail, Inbox,
 } from "lucide-react";
 import { getQuickAccessContext, listMyTickets } from "@/lib/support.functions";
 import { useViewRole } from "@/hooks/use-view-role";
@@ -32,6 +32,10 @@ export function TopbarQuickAccess() {
 
   return (
     <div className="relative flex items-center gap-1">
+      <Link to="/invite/demo-token-123" className="relative size-8 grid place-items-center rounded-md text-yo-txt-2 hover:text-yo-txt hover:bg-yo-raised transition" title="Invitaciones pendientes">
+        <Inbox className="size-4" />
+        <span className="absolute -top-0.5 -right-0.5 size-2 rounded-full bg-yo-ac ring-2 ring-yo-surface" />
+      </Link>
       <InvitationsInboxIcon />
       <button
         onClick={() => setOpen((o) => !o)}
