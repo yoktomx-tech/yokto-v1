@@ -171,15 +171,6 @@ function ApprovalsPage() {
           }
         />
 
-        <NoCustodyBanner
-          message="Al aprobar un hito, Cumplex ordena a la pasarela liberar la parte correspondiente del pago retenido. Cumplex no custodia fondos: la pasarela ejecuta la liberación conforme a las reglas de la operación."
-        />
-
-        <InfoBox tone="info" title="Antes de aprobar">
-          Revisa contrato firmado, evidencias del hito, CFDI/REP y requisitos sectoriales. Los candados en rojo
-          bloquean la aprobación hasta ser resueltos; los amarillos son advertencias que puedes aprobar dejando
-          constancia del motivo.
-        </InfoBox>
 
         {/* Metrics */}
         <section className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
