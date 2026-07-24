@@ -3,8 +3,17 @@ import { Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import {
-  Search, MessageSquare, LifeBuoy, Activity, HelpCircle, Inbox, Building2, User, ArrowRight,
+  Search, MessageSquare, LifeBuoy, Activity, HelpCircle, Inbox, Building2, User, Clock,
 } from "lucide-react";
+
+function formatExpiresIn(iso: string): string {
+  const ms = new Date(iso).getTime() - Date.now();
+  if (ms <= 0) return "Vencida";
+  const h = Math.floor(ms / 3_600_000);
+  if (h < 24) return `Vence en ${h}h`;
+  const d = Math.floor(h / 24);
+  return `Vence en ${d}d`;
+}
 import { getQuickAccessContext, listMyTickets } from "@/lib/support.functions";
 import { listMyPendingInvitations } from "@/lib/orgs.functions";
 import { useViewRole } from "@/hooks/use-view-role";
