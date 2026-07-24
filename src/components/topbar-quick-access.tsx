@@ -69,18 +69,33 @@ export function TopbarQuickAccess() {
   return (
     <div className="relative flex items-center gap-1">
       {invCount > 0 && (
-        <button
-          onClick={() => { setInvOpen((o) => !o); setOpen(false); }}
-          aria-label="Invitaciones pendientes"
-          title="Invitaciones pendientes"
-          className="relative size-8 grid place-items-center rounded-md text-yo-txt-2 hover:text-yo-txt hover:bg-yo-raised transition"
-        >
-          <Inbox className="size-4" aria-hidden />
-          <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-[16px] px-1 rounded-full bg-yo-err text-white text-[9px] font-bold grid place-items-center">
-            {invCount > 9 ? "9+" : invCount}
-          </span>
-        </button>
+        <div className="relative">
+          <button
+            onClick={() => { setInvOpen((o) => !o); setOpen(false); }}
+            aria-label="Invitaciones pendientes"
+            title="Invitaciones pendientes"
+            className="relative size-8 grid place-items-center rounded-md text-yo-txt-2 hover:text-yo-txt hover:bg-yo-raised transition"
+          >
+            <Inbox className="size-4" aria-hidden />
+            <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-[16px] px-1 rounded-full bg-yo-err text-white text-[9px] font-bold grid place-items-center">
+              {invCount > 9 ? "9+" : invCount}
+            </span>
+          </button>
+          {invOpen && (
+            <>
+              <div className="fixed inset-0 z-40" onClick={() => setInvOpen(false)} />
+              <div className="absolute right-0 mt-2 w-[360px] max-h-[70vh] overflow-auto z-50 rounded-xl border border-yo-border bg-yo-surface shadow-xl">
+                <InvitationsPopoverContent
+                  invCount={invCount}
+                  sortedInvitations={sortedInvitations}
+                  onClose={() => setInvOpen(false)}
+                />
+              </div>
+            </>
+          )}
+        </div>
       )}
+
 
       <button
         onClick={() => { setOpen((o) => !o); setInvOpen(false); }}
