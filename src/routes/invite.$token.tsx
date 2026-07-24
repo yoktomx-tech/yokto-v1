@@ -1,10 +1,10 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import {
   ShieldCheck, Clock, FileText, Users, Landmark, Scale, Gavel, FileSignature,
   CheckCircle2, XCircle, MessageSquareWarning, ArrowRight, Lock, Hash, Building2,
   User, Calendar, AlertTriangle, Download, Eye, ClipboardCheck, X, Info,
-  Camera, MapPin, ListChecks, Truck, RefreshCw, Home,
+  Camera, MapPin, ListChecks, Truck, RefreshCw, Home, Pencil,
 } from "lucide-react";
 import { CumplexLogo } from "@/components/logo";
 import { InfoBox } from "@/components/tx/ui/info-box";
