@@ -168,24 +168,14 @@ export function TopbarQuickAccess() {
                     </div>
 
                     {/* Actions */}
-                    <div className="grid grid-cols-3 gap-1.5 mt-3">
+                    <div className="grid grid-cols-2 gap-1.5 mt-3">
                       <Link
-                        to="/invitations/$token"
+                        to="/invite/$token"
                         params={{ token: inv.token }}
-                        search={{ action: "changes" } as any}
                         onClick={() => setInvOpen(false)}
                         className="h-8 grid place-items-center rounded-md border border-yo-border text-[11px] font-medium text-yo-txt hover:bg-yo-raised transition"
                       >
-                        Solicitar cambios
-                      </Link>
-                      <Link
-                        to="/invitations/$token"
-                        params={{ token: inv.token }}
-                        search={{ action: "reject" } as any}
-                        onClick={() => setInvOpen(false)}
-                        className="h-8 grid place-items-center rounded-md border border-yo-err/40 text-[11px] font-medium text-yo-err hover:bg-yo-err/10 transition"
-                      >
-                        Rechazar
+                        Ver detalle
                       </Link>
                       <Link
                         to="/invitations/$token"
@@ -197,15 +187,6 @@ export function TopbarQuickAccess() {
                         Aceptar operación
                       </Link>
                     </div>
-
-                    <Link
-                      to="/invite/$token"
-                      params={{ token: inv.token }}
-                      onClick={() => setInvOpen(false)}
-                      className="mt-2 block text-center text-[11px] font-medium text-yo-ac hover:underline"
-                    >
-                      Ver detalles de la operación →
-                    </Link>
                   </li>
                 );
               })}
@@ -213,6 +194,7 @@ export function TopbarQuickAccess() {
           </div>
         </>
       )}
+
 
 
       {open && (
