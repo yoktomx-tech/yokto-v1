@@ -4,6 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import {
   Search, MessageSquare, LifeBuoy, Activity, HelpCircle, Inbox, Building2, User, Clock,
+  FileSignature, CheckCircle2, PenLine, Hash,
 } from "lucide-react";
 
 function formatExpiresIn(iso: string): string {
@@ -14,8 +15,17 @@ function formatExpiresIn(iso: string): string {
   const d = Math.floor(h / 24);
   return `Vence en ${d}d`;
 }
+
+function formatMoney(cents: number, currency = "MXN") {
+  try {
+    return new Intl.NumberFormat("es-MX", { style: "currency", currency, maximumFractionDigits: 0 }).format(cents / 100);
+  } catch {
+    return `$${(cents / 100).toLocaleString("es-MX")}`;
+  }
+}
+
 import { getQuickAccessContext, listMyTickets } from "@/lib/support.functions";
-import { listMyPendingInvitations } from "@/lib/orgs.functions";
+import { listMyPendingInvitations, listMyCreatedPendingOperations } from "@/lib/orgs.functions";
 import { useViewRole } from "@/hooks/use-view-role";
 import { cn } from "@/lib/utils";
 
@@ -28,6 +38,12 @@ const ROLE_LABEL: Record<string, string> = {
   auditor: "Auditor",
 };
 
+const CP_STATUS_LABEL: Record<string, { label: string; tone: "warn" | "ok" | "info" }> = {
+  INVITADO: { label: "Contraparte invitada", tone: "info" },
+  PENDIENTE_FIRMA: { label: "Pendiente de firma", tone: "warn" },
+  FIRMO: { label: "Contraparte firmó", tone: "ok" },
+};
+
 export function TopbarQuickAccess() {
   const [open, setOpen] = useState(false);
   const [invOpen, setInvOpen] = useState(false);
@@ -35,6 +51,7 @@ export function TopbarQuickAccess() {
   const fn = useServerFn(getQuickAccessContext);
   const ticketsFn = useServerFn(listMyTickets);
   const invFn = useServerFn(listMyPendingInvitations);
+  const createdFn = useServerFn(listMyCreatedPendingOperations);
   const { data } = useQuery({ queryKey: ["qa-context"], queryFn: () => fn(), staleTime: 30_000 });
   const { data: tickets } = useQuery({
     queryKey: ["qa-open-tickets"],
@@ -48,6 +65,12 @@ export function TopbarQuickAccess() {
     staleTime: 30_000,
     refetchInterval: 120_000,
   });
+  const { data: createdPending } = useQuery({
+    queryKey: ["qa-created-pending"],
+    queryFn: () => createdFn(),
+    staleTime: 30_000,
+    refetchInterval: 120_000,
+  });
   const openCount = (tickets ?? []).filter(
     (t: any) => !["resolved", "closed", "cancelled"].includes(String(t.status))
   ).length;
@@ -57,115 +80,204 @@ export function TopbarQuickAccess() {
     const bMs = new Date(b.expires_at).getTime() - now;
     const aExpired = aMs <= 0;
     const bExpired = bMs <= 0;
-    // Expired go last; among non-expired, soonest first; among expired, most recently expired first
     if (aExpired !== bExpired) return aExpired ? 1 : -1;
     return aMs - bMs;
   });
+  const createdList = createdPending ?? [];
   const invCount = sortedInvitations.length;
+  const createdCount = createdList.length;
+  const totalPending = invCount + createdCount;
 
   const critical = !!data?.criticalIncident;
   const hasOpenTickets = openCount > 0;
 
   return (
     <div className="relative flex items-center gap-1">
-      {invCount > 0 && (
+      {totalPending > 0 && (
         <div className="relative">
           <button
             onClick={() => { setInvOpen((o) => !o); setOpen(false); }}
-            aria-label="Invitaciones pendientes"
-            title="Invitaciones pendientes"
+            aria-label="Invitaciones o aprobaciones pendientes"
+            title="Invitaciones o aprobaciones pendientes"
             className="relative size-8 grid place-items-center rounded-md text-yo-txt-2 hover:text-yo-txt hover:bg-yo-raised transition"
           >
             <Inbox className="size-4" aria-hidden />
             <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-[16px] px-1 rounded-full bg-yo-err text-white text-[9px] font-bold grid place-items-center">
-              {invCount > 9 ? "9+" : invCount}
+              {totalPending > 9 ? "9+" : totalPending}
             </span>
           </button>
           {invOpen && (
             <>
               <div className="fixed inset-0 z-40" onClick={() => setInvOpen(false)} />
-              <div className="absolute right-0 mt-2 w-[360px] max-h-[70vh] overflow-auto z-50 rounded-xl border border-yo-border bg-yo-surface shadow-xl">
+              <div className="absolute right-0 mt-2 w-[380px] max-h-[70vh] overflow-auto z-50 rounded-xl border border-yo-border bg-yo-surface shadow-xl">
                 <div className="p-3 border-b border-yo-border bg-yo-ac-bg">
                   <div className="flex items-center gap-2">
                     <div className="size-8 grid place-items-center rounded-lg bg-yo-ac text-white">
                       <Inbox className="size-4" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-[13px] font-semibold text-yo-txt">Invitaciones pendientes</p>
+                      <p className="text-[13px] font-semibold text-yo-txt">Invitaciones o aprobaciones pendientes</p>
                       <p className="text-[11px] text-yo-txt-3">
-                        {invCount} sin responder
+                        {totalPending} sin responder
                       </p>
                     </div>
                   </div>
                 </div>
-                <ul className="divide-y divide-yo-border">
-                  {sortedInvitations.map((inv: any) => {
-                    const Icon = inv.org_type === "individual" ? User : Building2;
-                    const expiresLabel = formatExpiresIn(inv.expires_at);
-                    const expired = expiresLabel === "Vencida";
-                    const roleLabel = ROLE_LABEL[inv.org_role] ?? inv.org_role;
-                    const folio = inv.transaction_numero ?? inv.folio ?? "Operación pendiente";
-                    const sector = inv.sector ?? inv.org_name;
-                    const amount = inv.amount_label ?? null;
-                    return (
-                      <li key={inv.id} className="p-3">
-                        <div className="flex items-center justify-between gap-2 mb-2">
-                          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-yo-warn/15 text-yo-warn text-[10px] font-semibold uppercase tracking-wide">
-                            <span className="size-1.5 rounded-full bg-yo-warn" />
-                            Pendiente de aprobación
-                          </span>
-                          <span className={cn(
-                            "inline-flex items-center gap-1 text-[10px] font-medium tabular-nums",
-                            expired ? "text-yo-err" : "text-yo-txt-3",
-                          )}>
-                            <Clock className="size-3" />
-                            {expiresLabel}
-                          </span>
-                        </div>
-                        <Link
-                          to="/invite/$token"
-                          params={{ token: inv.token }}
-                          onClick={() => setInvOpen(false)}
-                          className="block group"
-                        >
-                          <p className="text-[13px] font-semibold text-yo-txt leading-snug group-hover:text-yo-ac transition">
-                            Revisa esta operación antes de fondear / entregar
-                          </p>
-                        </Link>
-                        <p className="mt-1 text-[11px] text-yo-txt-3 tabular-nums truncate">
-                          <span className="font-mono font-semibold text-yo-txt-2">{folio}</span>
-                          {sector && <> · <span>{sector}</span></>}
-                          {amount && <> · <span className="text-yo-txt-2 font-semibold">{amount}</span></>}
-                        </p>
-                        <div className="flex items-center gap-1.5 mt-1.5 text-[11px] text-yo-txt-3">
-                          <Icon className="size-3.5 text-yo-ac shrink-0" />
-                          <span className="truncate">{inv.org_name}</span>
-                          <span>·</span>
-                          <span className="truncate">Rol invitado: {roleLabel}</span>
-                        </div>
-                        <div className="grid grid-cols-2 gap-1.5 mt-3">
-                          <Link
-                            to="/invite/$token"
-                            params={{ token: inv.token }}
-                            onClick={() => setInvOpen(false)}
-                            className="h-8 grid place-items-center rounded-md border border-yo-border text-[11px] font-medium text-yo-txt hover:bg-yo-raised transition"
-                          >
-                            Ver detalle
-                          </Link>
-                          <Link
-                            to="/invitations/$token"
-                            params={{ token: inv.token }}
-                            search={{ action: "accept" } as any}
-                            onClick={() => setInvOpen(false)}
-                            className="h-8 grid place-items-center rounded-md bg-yo-ac text-white text-[11px] font-semibold hover:bg-yo-ac/90 transition"
-                          >
-                            Aceptar operación
-                          </Link>
-                        </div>
-                      </li>
-                    );
-                  })}
-                </ul>
+
+                {invCount > 0 && (
+                  <>
+                    <div className="px-3 pt-3 pb-1 text-[10px] uppercase tracking-wider text-yo-txt-3 font-semibold">
+                      Invitaciones recibidas
+                    </div>
+                    <ul className="divide-y divide-yo-border">
+                      {sortedInvitations.map((inv: any) => {
+                        const Icon = inv.org_type === "individual" ? User : Building2;
+                        const expiresLabel = formatExpiresIn(inv.expires_at);
+                        const expired = expiresLabel === "Vencida";
+                        const roleLabel = ROLE_LABEL[inv.org_role] ?? inv.org_role;
+                        const folio = inv.transaction_numero ?? inv.folio ?? `INV-${String(inv.token).slice(0, 8).toUpperCase()}`;
+                        const sector = inv.sector ?? inv.org_name;
+                        const amount = inv.amount_label ?? null;
+                        return (
+                          <li key={inv.id} className="p-3">
+                            <div className="flex items-center justify-between gap-2 mb-2">
+                              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-yo-warn/15 text-yo-warn text-[10px] font-semibold uppercase tracking-wide">
+                                <span className="size-1.5 rounded-full bg-yo-warn" />
+                                Pendiente de aprobación
+                              </span>
+                              <span className={cn(
+                                "inline-flex items-center gap-1 text-[10px] font-medium tabular-nums",
+                                expired ? "text-yo-err" : "text-yo-txt-3",
+                              )}>
+                                <Clock className="size-3" />
+                                {expiresLabel}
+                              </span>
+                            </div>
+                            <Link
+                              to="/invite/$token"
+                              params={{ token: inv.token }}
+                              onClick={() => setInvOpen(false)}
+                              className="block group"
+                            >
+                              <p className="text-[13px] font-semibold text-yo-txt leading-snug group-hover:text-yo-ac transition">
+                                Revisa esta operación antes de fondear / entregar
+                              </p>
+                            </Link>
+                            <p className="mt-1 text-[11px] text-yo-txt-3 tabular-nums truncate flex items-center gap-1">
+                              <Hash className="size-3 text-yo-txt-3 shrink-0" />
+                              <span className="font-mono font-semibold text-yo-txt-2">{folio}</span>
+                              {sector && <> · <span>{sector}</span></>}
+                              {amount && <> · <span className="text-yo-txt-2 font-semibold">{amount}</span></>}
+                            </p>
+                            <div className="flex items-center gap-1.5 mt-1.5 text-[11px] text-yo-txt-3">
+                              <Icon className="size-3.5 text-yo-ac shrink-0" />
+                              <span className="truncate">{inv.org_name}</span>
+                              <span>·</span>
+                              <span className="truncate">Rol invitado: {roleLabel}</span>
+                            </div>
+                            <div className="grid grid-cols-2 gap-1.5 mt-3">
+                              <Link
+                                to="/invite/$token"
+                                params={{ token: inv.token }}
+                                onClick={() => setInvOpen(false)}
+                                className="h-8 grid place-items-center rounded-md border border-yo-border text-[11px] font-medium text-yo-txt hover:bg-yo-raised transition"
+                              >
+                                Ver detalle
+                              </Link>
+                              <Link
+                                to="/invite/$token"
+                                params={{ token: inv.token }}
+                                search={{ action: "accept" } as any}
+                                onClick={() => setInvOpen(false)}
+                                className="h-8 grid place-items-center rounded-md bg-yo-ac text-white text-[11px] font-semibold hover:bg-yo-ac/90 transition"
+                              >
+                                Aceptar y firmar
+                              </Link>
+                            </div>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </>
+                )}
+
+                {createdCount > 0 && (
+                  <>
+                    <div className="px-3 pt-3 pb-1 text-[10px] uppercase tracking-wider text-yo-txt-3 font-semibold border-t border-yo-border">
+                      Operaciones creadas por ti
+                    </div>
+                    <ul className="divide-y divide-yo-border">
+                      {createdList.map((op: any) => {
+                        const cp = CP_STATUS_LABEL[op.counterparty_status] ?? { label: op.counterparty_status, tone: "info" as const };
+                        const cpToneCls =
+                          cp.tone === "ok" ? "bg-yo-ok/15 text-yo-ok" :
+                          cp.tone === "warn" ? "bg-yo-warn/15 text-yo-warn" :
+                          "bg-yo-ac/10 text-yo-ac";
+                        const roleTxt = op.my_role === "PAGADOR" ? "Pagador (comprador)" : "Beneficiario (vendedor)";
+                        return (
+                          <li key={op.id} className="p-3">
+                            <div className="flex items-center justify-between gap-2 mb-2">
+                              <span className={cn("inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wide", cpToneCls)}>
+                                <span className={cn("size-1.5 rounded-full",
+                                  cp.tone === "ok" ? "bg-yo-ok" : cp.tone === "warn" ? "bg-yo-warn" : "bg-yo-ac")} />
+                                {cp.label}
+                              </span>
+                              {op.i_signed ? (
+                                <span className="inline-flex items-center gap-1 text-[10px] font-medium text-yo-ok">
+                                  <CheckCircle2 className="size-3" /> Ya firmaste
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center gap-1 text-[10px] font-medium text-yo-txt-3">
+                                  <PenLine className="size-3" /> Firma pendiente
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-[13px] font-semibold text-yo-txt leading-snug">
+                              Revisa tu operación y pasa a firma de acuerdos
+                            </p>
+                            <p className="mt-1 text-[11px] text-yo-txt-3 tabular-nums truncate flex items-center gap-1">
+                              <Hash className="size-3 text-yo-txt-3 shrink-0" />
+                              <span className="font-mono font-semibold text-yo-txt-2">{op.numero ?? "Sin folio"}</span>
+                              {op.sector && <> · <span>{op.sector}</span></>}
+                              {op.amount_cents ? <> · <span className="text-yo-txt-2 font-semibold">{formatMoney(op.amount_cents, op.currency)}</span></> : null}
+                            </p>
+                            <div className="flex items-center gap-1.5 mt-1.5 text-[11px] text-yo-txt-3">
+                              <User className="size-3.5 text-yo-ac shrink-0" />
+                              <span className="truncate">Contraparte: {op.counterparty_name}</span>
+                              <span>·</span>
+                              <span className="truncate">Tú: {roleTxt}</span>
+                            </div>
+                            <div className="grid grid-cols-2 gap-1.5 mt-3">
+                              <Link
+                                to="/transactions/$id"
+                                params={{ id: op.id }}
+                                onClick={() => setInvOpen(false)}
+                                className="h-8 grid place-items-center rounded-md border border-yo-border text-[11px] font-medium text-yo-txt hover:bg-yo-raised transition"
+                              >
+                                Ver operación
+                              </Link>
+                              <Link
+                                to="/transactions/$id"
+                                params={{ id: op.id }}
+                                search={{ step: "sign" } as any}
+                                onClick={() => setInvOpen(false)}
+                                className={cn(
+                                  "h-8 grid place-items-center rounded-md text-[11px] font-semibold transition inline-flex items-center gap-1",
+                                  op.i_signed
+                                    ? "border border-yo-border text-yo-txt-2 hover:bg-yo-raised"
+                                    : "bg-yo-ac text-white hover:bg-yo-ac/90"
+                                )}
+                              >
+                                <FileSignature className="size-3" />
+                                {op.i_signed ? "Ver estado" : "Firmar acuerdo"}
+                              </Link>
+                            </div>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </>
+                )}
               </div>
             </>
           )}
