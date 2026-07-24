@@ -144,7 +144,7 @@ function AuthPage() {
         />
 
         <div className="relative flex items-center gap-2.5">
-          <CumplexLogo variant="auto" className="h-7 w-auto" />
+          <CumplexLogo variant="auto" className="h-12 w-auto" />
         </div>
 
         <div className="relative max-w-lg">
