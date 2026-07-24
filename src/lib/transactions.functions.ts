@@ -406,17 +406,41 @@ export const remindTransactionCounterparty = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
-// ─── ¿Soy el creador de esta operación? (para gating de UI en /invite) ───────
-export const isTransactionCreator = createServerFn({ method: "GET" })
+// ─── Estado de edición: creador + candado por firma/cancelación de contraparte ─
+export const getTransactionEditLock = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((i: unknown) => z.object({ transaction_id: z.string().uuid() }).parse(i))
   .handler(async ({ data, context }) => {
     const { data: tx } = await context.supabase
       .from("transactions")
-      .select("creado_por")
+      .select("creado_por, buyer_id, seller_id, status, fecha_firma_pagador, fecha_firma_beneficiario")
       .eq("id", data.transaction_id)
       .maybeSingle();
-    return { is_creator: !!tx && tx.creado_por === context.userId };
+    if (!tx) return { is_creator: false, can_edit: false, lock_reason: null as string | null, locked_by: null as "counterparty_signed" | "cancelled" | null };
+    const isCreator = tx.creado_por === context.userId;
+    const iAmBuyer = tx.buyer_id === context.userId;
+    const counterpartySigned = iAmBuyer ? !!tx.fecha_firma_beneficiario : !!tx.fecha_firma_pagador;
+    const cancelledStatuses = ["cancelled", "rejected", "disputed", "closed"];
+    const isCancelled = cancelledStatuses.includes(tx.status as string);
+    let lockReason: string | null = null;
+    let lockedBy: "counterparty_signed" | "cancelled" | null = null;
+    if (isCancelled) {
+      lockedBy = "cancelled";
+      lockReason = "La operación fue cancelada o cerrada. Ya no admite modificaciones.";
+    } else if (counterpartySigned) {
+      lockedBy = "counterparty_signed";
+      lockReason = "La contraparte ya firmó esta operación. Los términos quedaron bloqueados; cualquier cambio requiere solicitar una nueva versión del acuerdo.";
+    }
+    return {
+      is_creator: isCreator,
+      can_edit: isCreator && lockReason === null,
+      lock_reason: lockReason,
+      locked_by: lockedBy,
+    };
   });
+
+// Alias legacy (mantener compatibilidad con /invite)
+export const isTransactionCreator = getTransactionEditLock;
+
 
 
