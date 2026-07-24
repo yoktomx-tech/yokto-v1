@@ -1,10 +1,12 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
+import { useMutation } from "@tanstack/react-query";
 import {
   ShieldCheck, Clock, FileText, Users, Landmark, Scale, Gavel, FileSignature,
   CheckCircle2, XCircle, MessageSquareWarning, ArrowRight, Lock, Hash, Building2,
   User, Calendar, AlertTriangle, Download, Eye, ClipboardCheck, X, Info,
-  Camera, MapPin, ListChecks, Truck, RefreshCw, Home, Pencil,
+  Camera, MapPin, ListChecks, Truck, RefreshCw, Home, Pencil, BellRing, Loader2,
 } from "lucide-react";
 import { CumplexLogo } from "@/components/logo";
 import { InfoBox } from "@/components/tx/ui/info-box";
@@ -12,6 +14,8 @@ import { MoneyDisplay } from "@/components/tx/ui/money-display";
 import { SectorBadge } from "@/components/tx/ui/sector-badge";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { remindTransactionCounterparty } from "@/lib/transactions.functions";
+
 
 export const Route = createFileRoute("/invite/$token")({
   ssr: false,
@@ -539,20 +543,51 @@ function InviteApprovalPage() {
           <div className="sticky bottom-0 -mx-4 px-4 py-3 bg-yo-surface border-t border-yo-border flex flex-wrap gap-2 justify-end mt-2">
             {isCreatorView ? (
               <>
-                <button
-                  onClick={() => navigate({ to: "/transactions/$id", params: { id: token } })}
-                  className="h-10 px-4 rounded-md border border-yo-border bg-white dark:bg-transparent text-sm text-yo-txt inline-flex items-center gap-2 hover:border-yo-ac"
-                >
-                  <Pencil className="size-4" /> Editar operación
-                </button>
-                <button
-                  onClick={() => setShowAcceptModal(true)}
-                  className="h-10 px-4 rounded-md bg-yo-ac text-white text-sm font-semibold inline-flex items-center gap-2 hover:opacity-90"
-                >
-                  <FileSignature className="size-4" /> {copy.cta}
-                </button>
+                {(() => {
+                  const cpAccepted = (data.inviteStatus as string) === "ACEPTADA";
+                  const remindFn = useServerFn(remindTransactionCounterparty);
+                  const remindMut = useMutation({
+                    mutationFn: () => remindFn({ data: { transaction_id: token } }),
+                    onSuccess: () => toast.success("Recordatorio enviado a la contraparte"),
+                    onError: (e: any) => toast.error(e?.message ?? "No se pudo enviar el recordatorio"),
+                  });
+                  return (
+                    <>
+                      <button
+                        onClick={() => navigate({ to: "/transactions/$id", params: { id: token } })}
+                        className="h-10 px-4 rounded-md border border-yo-border bg-white dark:bg-transparent text-sm text-yo-txt inline-flex items-center gap-2 hover:border-yo-ac"
+                      >
+                        <Pencil className="size-4" /> Editar operación
+                      </button>
+                      {!cpAccepted && (
+                        <button
+                          onClick={() => remindMut.mutate()}
+                          disabled={remindMut.isPending}
+                          className="h-10 px-4 rounded-md border border-yo-ac/40 text-sm font-semibold text-yo-ac hover:bg-yo-ac/10 inline-flex items-center gap-2 disabled:opacity-60"
+                        >
+                          {remindMut.isPending ? <Loader2 className="size-4 animate-spin" /> : <BellRing className="size-4" />}
+                          {remindMut.isPending ? "Enviando…" : "Enviar recordatorio"}
+                        </button>
+                      )}
+                      <button
+                        onClick={() => cpAccepted && setShowAcceptModal(true)}
+                        disabled={!cpAccepted}
+                        title={!cpAccepted ? "La contraparte aún no acepta la operación. Envía un recordatorio y espera su aceptación para firmar." : undefined}
+                        className={cn(
+                          "h-10 px-4 rounded-md text-sm font-semibold inline-flex items-center gap-2",
+                          cpAccepted
+                            ? "bg-yo-ac text-white hover:opacity-90"
+                            : "bg-yo-raised/40 border border-yo-border text-yo-txt-3 cursor-not-allowed"
+                        )}
+                      >
+                        <FileSignature className="size-4" /> {cpAccepted ? copy.cta : "Esperando contraparte"}
+                      </button>
+                    </>
+                  );
+                })()}
               </>
             ) : (
+
               <>
                 <button
                   onClick={() => setShowRejectModal(true)}
