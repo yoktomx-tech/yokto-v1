@@ -268,6 +268,12 @@ export const signAndActivateTransaction = createServerFn({ method: "POST" })
     if (tx.status !== "draft" && tx.status !== "pending_signature") {
       throw new Error("Esta transacción ya no admite firmas");
     }
+    // Regla: el creador no puede firmar mientras la contraparte no acepte (sin cuenta Cumplex)
+    const contraparteSinCuenta = !(tx.buyer_id && tx.seller_id);
+    if (contraparteSinCuenta && tx.creado_por === context.userId) {
+      throw new Error("La contraparte aún no acepta la operación. Envía un recordatorio y espera su aceptación para firmar.");
+    }
+
 
     // Validar hitos existen y suman 100
     const { data: hitos } = await context.supabase
