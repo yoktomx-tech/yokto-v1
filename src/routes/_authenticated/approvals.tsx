@@ -10,8 +10,6 @@ import {
 import { useViewRole } from "@/hooks/use-view-role";
 import { cn } from "@/lib/utils";
 import { PageHeader } from "@/components/page-header";
-import { NoCustodyBanner } from "@/components/payments/ui/no-custody-banner";
-import { InfoBox } from "@/components/tx/ui/info-box";
 import {
   MOCK_APPROVALS, STATUS_CFG, SECTOR_CFG, formatMoney, daysUntil,
   CHECKLIST_LABELS, CHECK_CFG, CONTRACT_STATUS_LABEL, FISCAL_STATUS_LABEL,
@@ -171,15 +169,6 @@ function ApprovalsPage() {
           }
         />
 
-        <NoCustodyBanner
-          message="Al aprobar un hito, Cumplex ordena a la pasarela liberar la parte correspondiente del pago retenido. Cumplex no custodia fondos: la pasarela ejecuta la liberación conforme a las reglas de la operación."
-        />
-
-        <InfoBox tone="info" title="Antes de aprobar">
-          Revisa contrato firmado, evidencias del hito, CFDI/REP y requisitos sectoriales. Los candados en rojo
-          bloquean la aprobación hasta ser resueltos; los amarillos son advertencias que puedes aprobar dejando
-          constancia del motivo.
-        </InfoBox>
 
         {/* Metrics */}
         <section className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
@@ -519,8 +508,9 @@ function ResumenSection({ a }: { a: Approval }) {
     <>
       <div className="rounded-md border p-3 flex gap-2.5" style={{ backgroundColor: "#F0F9FF", borderColor: "#BAE6FD" }}>
         <Info className="size-4 shrink-0 mt-0.5" style={{ color: "#0284C7" }} />
-        <div className="text-[12.5px]" style={{ color: "#075985" }}>
-          Aprobar un hito puede ordenar la liberación total o parcial de fondos procesados por la pasarela. Revisa contrato, fiscal, evidencia y requisitos sectoriales antes de confirmar.
+        <div className="text-[12.5px] space-y-1" style={{ color: "#075985" }}>
+          <p><strong>Antes de aprobar:</strong> revisa contrato firmado, evidencias del hito, CFDI/REP y requisitos sectoriales. Los candados en rojo bloquean la aprobación hasta ser resueltos; los amarillos son advertencias que puedes aprobar dejando constancia del motivo.</p>
+          <p>Al aprobar, Cumplex ordena a la pasarela liberar la parte correspondiente del pago retenido. Cumplex no custodia fondos: la pasarela ejecuta la liberación conforme a las reglas de la operación.</p>
         </div>
       </div>
       <section>
