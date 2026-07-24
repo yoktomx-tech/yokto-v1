@@ -55,6 +55,17 @@ export function TopbarQuickAccess() {
   const ticketsFn = useServerFn(listMyTickets);
   const invFn = useServerFn(listMyPendingInvitations);
   const createdFn = useServerFn(listMyCreatedPendingOperations);
+  const remindFn = useServerFn(remindTransactionCounterparty);
+  const qc = useQueryClient();
+  const remindMut = useMutation({
+    mutationFn: (transaction_id: string) => remindFn({ data: { transaction_id } }),
+    onSuccess: () => {
+      toast.success("Recordatorio enviado a la contraparte");
+      qc.invalidateQueries({ queryKey: ["qa-created-pending"] });
+    },
+    onError: (e: any) => toast.error(e?.message ?? "No se pudo enviar el recordatorio"),
+  });
+
   const { data } = useQuery({ queryKey: ["qa-context"], queryFn: () => fn(), staleTime: 30_000 });
   const { data: tickets } = useQuery({
     queryKey: ["qa-open-tickets"],
