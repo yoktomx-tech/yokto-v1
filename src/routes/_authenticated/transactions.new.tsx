@@ -259,7 +259,7 @@ function NewOperationWizard() {
     setStep((s) => s - 1);
   }, [step, handleCancel]);
 
-  const handleGuardarYSalir = useCallback(async () => {
+  const saveDraftPartial = useCallback(async () => {
     if (step >= 2 && sector) {
       const p = Step2Schema.safeParse({
         rol, descripcion,
@@ -272,8 +272,22 @@ function NewOperationWizard() {
         try { await upsertDraft({ data: { transaction_id: txId ?? undefined, step1: { sector }, step2: p.data } }); } catch { /* noop */ }
       }
     }
+  }, [step, sector, rol, descripcion, contraparte, txId, upsertDraft]);
+
+  const handleGuardarYSalir = useCallback(async () => {
+    await saveDraftPartial();
     navigate({ to: "/transactions" });
-  }, [step, sector, rol, descripcion, contraparte, txId, upsertDraft, navigate]);
+  }, [saveDraftPartial, navigate]);
+
+  const handleGuardarYFirmar = useCallback(async () => {
+    setSaving(true); setSaveState("saving");
+    try {
+      await saveDraftPartial();
+      setSaveState("saved"); setLastSavedAt(new Date());
+      setStep(7);
+    } catch (e) { setSaveState("error"); setError((e as Error).message); }
+    finally { setSaving(false); }
+  }, [saveDraftPartial]);
 
 
 
@@ -442,6 +456,16 @@ function NewOperationWizard() {
             >
               Guardar borrador
             </button>
+            {step >= 2 && step < 7 && (
+              <button
+                onClick={handleGuardarYFirmar}
+                disabled={saving || firmando}
+                title="Guardar cambios y saltar a la etapa de firma de acuerdos"
+                className="hidden md:inline-flex px-4 py-2 border border-yo-ac/40 text-sm font-medium rounded-md text-yo-ac hover:bg-yo-ac/10 disabled:opacity-40"
+              >
+                {saving ? "Guardando…" : "Continuar a firma"}
+              </button>
+            )}
             {step < 7 ? (
               <button
                 onClick={goNext}
