@@ -14,7 +14,9 @@ import { MoneyDisplay } from "@/components/tx/ui/money-display";
 import { SectorBadge } from "@/components/tx/ui/sector-badge";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import { remindTransactionCounterparty } from "@/lib/transactions.functions";
+import { remindTransactionCounterparty, isTransactionCreator } from "@/lib/transactions.functions";
+import { useQuery } from "@tanstack/react-query";
+
 
 
 export const Route = createFileRoute("/invite/$token")({
@@ -232,7 +234,18 @@ function InviteApprovalPage() {
   }, [search.action]);
 
 
-  const isCreatorView = search.view === "creator";
+  // Vista de creador: requiere ?view=creator AND que el usuario autenticado sea el creador real de la operación
+  const wantsCreatorView = search.view === "creator";
+  const isCreatorFn = useServerFn(isTransactionCreator);
+  const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(token);
+  const { data: creatorCheck } = useQuery({
+    queryKey: ["is-tx-creator", token],
+    queryFn: () => isCreatorFn({ data: { transaction_id: token } }),
+    enabled: wantsCreatorView && isUuid,
+    staleTime: 60_000,
+  });
+  const isCreatorView = wantsCreatorView && creatorCheck?.is_creator === true;
+
   const isBuyer = data.inviteeRole === "PAGADOR";
   const roleLabel = isBuyer ? "Pagador / Comprador" : "Beneficiario / Vendedor";
   const counterLabel = isBuyer ? "Beneficiario / Vendedor" : "Pagador / Comprador";

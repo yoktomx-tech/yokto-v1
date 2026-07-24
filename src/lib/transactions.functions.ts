@@ -406,3 +406,17 @@ export const remindTransactionCounterparty = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+// ─── ¿Soy el creador de esta operación? (para gating de UI en /invite) ───────
+export const isTransactionCreator = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) => z.object({ transaction_id: z.string().uuid() }).parse(i))
+  .handler(async ({ data, context }) => {
+    const { data: tx } = await context.supabase
+      .from("transactions")
+      .select("creado_por")
+      .eq("id", data.transaction_id)
+      .maybeSingle();
+    return { is_creator: !!tx && tx.creado_por === context.userId };
+  });
+
+
