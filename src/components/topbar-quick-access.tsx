@@ -249,17 +249,18 @@ export function TopbarQuickAccess() {
                             </div>
                             <div className="grid grid-cols-2 gap-1.5 mt-3">
                               <Link
-                                to="/transactions/$id"
-                                params={{ id: op.id }}
+                                to="/invite/$token"
+                                params={{ token: op.id }}
+                                search={{ view: "creator" } as any}
                                 onClick={() => setInvOpen(false)}
                                 className="h-8 grid place-items-center rounded-md border border-yo-border text-[11px] font-medium text-yo-txt hover:bg-yo-raised transition"
                               >
                                 Ver operación
                               </Link>
                               <Link
-                                to="/transactions/$id"
-                                params={{ id: op.id }}
-                                search={{ step: "sign" } as any}
+                                to="/invite/$token"
+                                params={{ token: op.id }}
+                                search={{ view: "creator", action: "accept" } as any}
                                 onClick={() => setInvOpen(false)}
                                 className={cn(
                                   "h-8 grid place-items-center rounded-md text-[11px] font-semibold transition inline-flex items-center gap-1",
@@ -272,6 +273,7 @@ export function TopbarQuickAccess() {
                                 {op.i_signed ? "Ver estado" : "Firmar acuerdo"}
                               </Link>
                             </div>
+
                           </li>
                         );
                       })}
