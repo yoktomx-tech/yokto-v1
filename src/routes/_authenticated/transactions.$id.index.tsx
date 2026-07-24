@@ -123,6 +123,21 @@ function TxDetail() {
   >("incumplimiento_hito");
   const [disputeDesc, setDisputeDesc] = useState("");
 
+  // Edición inline
+  const [editing, setEditing] = useState(false);
+  const [savedOnce, setSavedOnce] = useState(false);
+  const [savingEdit, setSavingEdit] = useState(false);
+  const [editForm, setEditForm] = useState({
+    title: "",
+    description: "",
+    amount: 0,
+    delivery_deadline: "",
+    counterparty_email: "",
+    beneficiario_nombre: "",
+    pagador_nombre: "",
+  });
+
+
   const createIntentFn = useServerFn(createFundingIntent);
   const simulateFundingFn = useServerFn(simulateFundingReceived);
   const releaseFundsFn = useServerFn(releaseFunds);
