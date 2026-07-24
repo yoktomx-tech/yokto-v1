@@ -152,7 +152,7 @@ function SidebarContent({
       <div className={cn("relative px-5 py-5 flex items-center justify-center", collapsed && "px-2")}>
         <Link to="/dashboard" onClick={onNavigate} className="inline-flex items-center justify-center">
           {collapsed ? (
-            <CumplexLogo variant="icon" className="h-8 w-8" />
+            <CumplexLogo variant="icon" className="h-11 w-11" />
           ) : (
             <CumplexLogo variant="auto" className="h-9 w-auto" />
           )}
