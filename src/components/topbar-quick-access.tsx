@@ -115,7 +115,7 @@ export function TopbarQuickAccess() {
               </div>
             </div>
             <ul className="divide-y divide-yo-border">
-              {(invitations ?? []).map((inv: any) => {
+              {sortedInvitations.map((inv: any) => {
                 const Icon = inv.org_type === "individual" ? User : Building2;
                 const expiresLabel = formatExpiresIn(inv.expires_at);
                 const expired = expiresLabel === "Vencida";
