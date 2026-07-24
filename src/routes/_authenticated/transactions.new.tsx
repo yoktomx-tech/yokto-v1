@@ -456,6 +456,16 @@ function NewOperationWizard() {
             >
               Guardar borrador
             </button>
+            {step >= 2 && step < 7 && (
+              <button
+                onClick={handleGuardarYFirmar}
+                disabled={saving || firmando}
+                title="Guardar cambios y saltar a la etapa de firma de acuerdos"
+                className="hidden md:inline-flex px-4 py-2 border border-yo-ac/40 text-sm font-medium rounded-md text-yo-ac hover:bg-yo-ac/10 disabled:opacity-40"
+              >
+                {saving ? "Guardando…" : "Continuar a firma"}
+              </button>
+            )}
             {step < 7 ? (
               <button
                 onClick={goNext}
