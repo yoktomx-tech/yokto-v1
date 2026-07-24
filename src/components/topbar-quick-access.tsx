@@ -261,32 +261,65 @@ export function TopbarQuickAccess() {
                               <span>·</span>
                               <span className="truncate">Tú: {roleTxt}</span>
                             </div>
-                            <div className="grid grid-cols-2 gap-1.5 mt-3">
-                              <Link
-                                to="/invite/$token"
-                                params={{ token: op.id }}
-                                search={{ view: "creator" } as any}
-                                onClick={() => setInvOpen(false)}
-                                className="h-8 grid place-items-center rounded-md border border-yo-border text-[11px] font-medium text-yo-txt hover:bg-yo-raised transition"
-                              >
-                                Ver operación
-                              </Link>
-                              <Link
-                                to="/invite/$token"
-                                params={{ token: op.id }}
-                                search={{ view: "creator", action: "accept" } as any}
-                                onClick={() => setInvOpen(false)}
-                                className={cn(
-                                  "h-8 grid place-items-center rounded-md text-[11px] font-semibold transition inline-flex items-center gap-1",
-                                  op.i_signed
-                                    ? "border border-yo-border text-yo-txt-2 hover:bg-yo-raised"
-                                    : "bg-yo-ac text-white hover:bg-yo-ac/90"
-                                )}
-                              >
-                                <FileSignature className="size-3" />
-                                {op.i_signed ? "Ver estado" : "Firmar acuerdo"}
-                              </Link>
-                            </div>
+                            {(() => {
+                              const cpInvited = op.counterparty_status === "INVITADO";
+                              const canSign = !cpInvited && !op.i_signed;
+                              const signLabel = op.i_signed
+                                ? "Ver estado"
+                                : cpInvited
+                                  ? "Esperando contraparte"
+                                  : "Firmar acuerdo";
+                              const isReminding = remindMut.isPending && remindMut.variables === op.id;
+                              return (
+                                <>
+                                  <div className="grid grid-cols-2 gap-1.5 mt-3">
+                                    <Link
+                                      to="/transactions/$id"
+                                      params={{ id: op.id } as any}
+                                      onClick={() => setInvOpen(false)}
+                                      className="h-8 grid place-items-center rounded-md border border-yo-border text-[11px] font-medium text-yo-txt hover:bg-yo-raised transition inline-flex items-center gap-1"
+                                    >
+                                      <Pencil className="size-3" />
+                                      Editar operación
+                                    </Link>
+                                    {canSign ? (
+                                      <Link
+                                        to="/invite/$token"
+                                        params={{ token: op.id }}
+                                        search={{ view: "creator", action: "accept" } as any}
+                                        onClick={() => setInvOpen(false)}
+                                        className="h-8 grid place-items-center rounded-md text-[11px] font-semibold transition inline-flex items-center gap-1 bg-yo-ac text-white hover:bg-yo-ac/90"
+                                      >
+                                        <FileSignature className="size-3" />
+                                        {signLabel}
+                                      </Link>
+                                    ) : (
+                                      <button
+                                        type="button"
+                                        disabled
+                                        title={cpInvited ? "La contraparte debe aceptar la operación antes de que puedas firmar" : undefined}
+                                        className="h-8 grid place-items-center rounded-md text-[11px] font-semibold inline-flex items-center gap-1 border border-yo-border text-yo-txt-3 bg-yo-raised/40 cursor-not-allowed"
+                                      >
+                                        <FileSignature className="size-3" />
+                                        {signLabel}
+                                      </button>
+                                    )}
+                                  </div>
+                                  {cpInvited && op.counterparty_email && (
+                                    <button
+                                      type="button"
+                                      onClick={() => remindMut.mutate(op.id)}
+                                      disabled={isReminding}
+                                      className="mt-1.5 w-full h-8 grid place-items-center rounded-md border border-yo-ac/40 text-[11px] font-semibold text-yo-ac hover:bg-yo-ac/10 transition inline-flex items-center gap-1 disabled:opacity-60"
+                                    >
+                                      {isReminding ? <Loader2 className="size-3 animate-spin" /> : <BellRing className="size-3" />}
+                                      {isReminding ? "Enviando…" : "Enviar recordatorio"}
+                                    </button>
+                                  )}
+                                </>
+                              );
+                            })()}
+
 
                           </li>
                         );
