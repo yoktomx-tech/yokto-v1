@@ -6,51 +6,50 @@ import { toUiStatus } from "@/lib/tx-catalog";
 // Grupos lógicos de estados por tab
 export type TabId =
   | "ALL"
-  | "ACTIVE"
-  | "PENDING_FUNDING"
-  | "IN_VERIFICATION"
-  | "READY_FOR_APPROVAL"
-  | "READY_TO_RELEASE"
-  | "PENDING_DELIVERY"
-  | "CHANGES_REQUESTED"
-  | "DISPUTED"
-  | "CLOSED"
   | "DRAFT"
-  | "INVITED";
+  | "PENDING_APPROVAL"
+  | "CHANGES_REQUESTED"
+  | "PENDING_SIGNATURE"
+  | "PARTIALLY_SIGNED"
+  | "PENDING_FUNDING"
+  | "FUNDED"
+  | "ACTIVE"
+  | "IN_VERIFICATION"
+  | "READY_TO_RELEASE"
+  | "DISPUTED"
+  | "CLOSED";
 
-type TabDef = { id: TabId; label: string; match: (s: UiStatus) => boolean };
+type TabDef = { id: TabId; label: string; match: (s: UiStatus) => boolean; principal?: boolean };
 
 const ACTIVE_STATES: UiStatus[] = [
-  "ACCEPTED", "PENDING_FUNDING", "FUNDED", "IN_PROGRESS", "IN_VERIFICATION", "READY_FOR_APPROVAL", "READY_TO_RELEASE", "PARTIALLY_RELEASED",
+  "ACCEPTED", "FULLY_SIGNED", "FUNDED", "IN_PROGRESS", "IN_VERIFICATION", "READY_FOR_APPROVAL", "READY_TO_RELEASE", "PARTIALLY_RELEASED",
 ];
 const CLOSED_STATES: UiStatus[] = ["RELEASED", "CLOSED", "REFUNDED", "CANCELLED"];
 
-export const BUYER_TABS: TabDef[] = [
-  { id: "ALL", label: "Todas", match: () => true },
-  { id: "ACTIVE", label: "Activas", match: (s) => ACTIVE_STATES.includes(s) },
-  { id: "PENDING_FUNDING", label: "Por fondear", match: (s) => s === "PENDING_FUNDING" },
-  { id: "READY_FOR_APPROVAL", label: "Por aprobar", match: (s) => s === "READY_FOR_APPROVAL" },
-  { id: "READY_TO_RELEASE", label: "Por liberar", match: (s) => s === "READY_TO_RELEASE" || s === "PARTIALLY_RELEASED" },
-  { id: "DISPUTED", label: "En disputa", match: (s) => s === "DISPUTED" },
-  { id: "CLOSED", label: "Cerradas", match: (s) => CLOSED_STATES.includes(s) },
-  { id: "DRAFT", label: "Borradores", match: (s) => s === "DRAFT" },
+// Tabs comunes: los `principal:true` se muestran siempre; el resto sólo si count>0.
+const COMMON_TABS: TabDef[] = [
+  { id: "ALL",                label: "Todas",                    match: () => true, principal: true },
+  { id: "DRAFT",              label: "Borradores",               match: (s) => s === "DRAFT", principal: true },
+  { id: "PENDING_APPROVAL",   label: "Pendiente aprobación",     match: (s) => s === "PENDING_APPROVAL" },
+  { id: "CHANGES_REQUESTED",  label: "Cambios solicitados",      match: (s) => s === "CHANGES_REQUESTED" },
+  { id: "PENDING_SIGNATURE",  label: "Pendiente firma",          match: (s) => s === "PENDING_SIGNATURE" },
+  { id: "PARTIALLY_SIGNED",   label: "Firma parcial",            match: (s) => s === "PARTIALLY_SIGNED" },
+  { id: "PENDING_FUNDING",    label: "Esperando fondeo",         match: (s) => s === "PENDING_FUNDING", principal: true },
+  { id: "FUNDED",             label: "Fondos retenidos",         match: (s) => s === "FUNDED" },
+  { id: "ACTIVE",             label: "En cumplimiento",          match: (s) => ACTIVE_STATES.includes(s), principal: true },
+  { id: "IN_VERIFICATION",    label: "En verificación",          match: (s) => s === "IN_VERIFICATION" || s === "READY_FOR_APPROVAL", principal: true },
+  { id: "READY_TO_RELEASE",   label: "Lista para liberar",       match: (s) => s === "READY_TO_RELEASE" || s === "PARTIALLY_RELEASED", principal: true },
+  { id: "DISPUTED",           label: "En disputa",               match: (s) => s === "DISPUTED", principal: true },
+  { id: "CLOSED",             label: "Completadas",              match: (s) => CLOSED_STATES.includes(s), principal: true },
 ];
 
-export const SELLER_TABS: TabDef[] = [
-  { id: "ALL", label: "Todas", match: () => true },
-  { id: "INVITED", label: "Invitaciones", match: (s) => s === "INVITED" },
-  { id: "ACTIVE", label: "Activas", match: (s) => ACTIVE_STATES.includes(s) },
-  { id: "PENDING_DELIVERY", label: "Pendientes de entrega", match: (s) => s === "FUNDED" || s === "IN_PROGRESS" },
-  { id: "IN_VERIFICATION", label: "En revisión", match: (s) => s === "IN_VERIFICATION" || s === "READY_FOR_APPROVAL" },
-  { id: "CHANGES_REQUESTED", label: "Por corregir", match: (s) => s === "IN_VERIFICATION" },
-  { id: "READY_TO_RELEASE", label: "Pagos por liberar", match: (s) => s === "READY_TO_RELEASE" || s === "PARTIALLY_RELEASED" },
-  { id: "DISPUTED", label: "En disputa", match: (s) => s === "DISPUTED" },
-  { id: "CLOSED", label: "Cerradas", match: (s) => CLOSED_STATES.includes(s) },
-];
+export const BUYER_TABS: TabDef[] = COMMON_TABS;
+export const SELLER_TABS: TabDef[] = COMMON_TABS;
 
 export function getTabs(role: ViewRole): TabDef[] {
   return role === "buyer" ? BUYER_TABS : SELLER_TABS;
 }
+
 
 export function countByTab(rows: { status: string }[], tabs: TabDef[]): Record<TabId, number> {
   const out = {} as Record<TabId, number>;
@@ -70,7 +69,9 @@ type TabsProps = {
 };
 
 export function TransactionsTabs({ active, onChange, role, counts }: TabsProps) {
-  const tabs = getTabs(role);
+  const allTabs = getTabs(role);
+  // Muestra principales siempre + contextuales sólo cuando hay operaciones en ese estado
+  const tabs = allTabs.filter((t) => t.principal || (counts[t.id] ?? 0) > 0 || active === t.id);
   return (
     <div className="flex gap-1 overflow-x-auto pb-1 -mx-1 px-1">
       {tabs.map((t) => {

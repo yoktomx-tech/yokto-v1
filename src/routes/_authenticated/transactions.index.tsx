@@ -48,7 +48,7 @@ function nextActionFor(status: string, role: "buyer" | "seller"): TxRow["next_ac
     if (ui === "DISPUTED") return { label: "Responder disputa", tone: "err" };
     return null;
   }
-  if (ui === "INVITED") return { label: "Aceptar invitación", tone: "info" };
+  if (ui === "PENDING_APPROVAL") return { label: "Aceptar invitación", tone: "info" };
   if (ui === "FUNDED" || ui === "IN_PROGRESS") return { label: "Subir evidencia", tone: "warn" };
   if (ui === "IN_VERIFICATION") return { label: "En revisión", tone: "info" };
   if (ui === "DISPUTED") return { label: "Responder disputa", tone: "err" };

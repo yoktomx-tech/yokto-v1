@@ -9,22 +9,30 @@ import type { TxStatus } from "./tx";
 import type { SectorId } from "./sectors";
 
 // ─── Estados de operación (UI) ──────────────────────────────────────────────
+// 15 estados oficiales de la operación. Los "principales" se muestran siempre
+// en tabs/filters; los específicos (aprobación, cambios, firma parcial, etc.)
+// aparecen únicamente cuando ocurre el evento correspondiente.
 export type UiStatus =
-  | "DRAFT"
-  | "INVITED"
-  | "ACCEPTED"
-  | "PENDING_FUNDING"
-  | "FUNDED"
-  | "IN_PROGRESS"
-  | "IN_VERIFICATION"
+  | "DRAFT"                 // BORRADOR
+  | "PENDING_APPROVAL"      // PENDIENTE_APROBACION_CONTRAPARTE
+  | "CHANGES_REQUESTED"     // CAMBIOS_SOLICITADOS
+  | "ACCEPTED"              // APROBADA_POR_CONTRAPARTE
+  | "PENDING_SIGNATURE"     // PENDIENTE_FIRMA
+  | "PARTIALLY_SIGNED"      // FIRMADA_PARCIALMENTE
+  | "FULLY_SIGNED"          // FIRMADA_TOTALMENTE
+  | "PENDING_FUNDING"       // ESPERANDO_FONDEO
+  | "FUNDED"                // FONDOS_RETENIDOS
+  | "IN_PROGRESS"           // EN_CUMPLIMIENTO / ACTIVA
+  | "IN_VERIFICATION"       // EN_VERIFICACION
+  // sub-estado técnico: sigue formando parte de "En verificación" para tabs
   | "READY_FOR_APPROVAL"
   | "READY_TO_RELEASE"
   | "PARTIALLY_RELEASED"
-  | "RELEASED"
+  | "RELEASED"              // COMPLETADA
   | "REFUNDED"
-  | "DISPUTED"
-  | "CANCELLED"
-  | "CLOSED";
+  | "DISPUTED"              // DISPUTA
+  | "CANCELLED"             // CANCELADA
+  | "CLOSED";               // COMPLETADA (cerrada administrativamente)
 
 export type StatusTone = "neutral" | "info" | "warn" | "accent" | "ok" | "err";
 
@@ -35,27 +43,31 @@ export type StatusCfg = {
 };
 
 export const STATUS_CFG: Record<UiStatus, StatusCfg> = {
-  DRAFT:              { label: "Borrador",             tone: "neutral", description: "Transacción creada, aún no enviada o aceptada." },
-  INVITED:            { label: "Invitación enviada",   tone: "info",    description: "La contraparte fue invitada." },
-  ACCEPTED:           { label: "Aceptada",             tone: "info",    description: "Ambas partes aceptaron condiciones." },
-  PENDING_FUNDING:    { label: "Por fondear",          tone: "warn",    description: "El comprador debe realizar el pago." },
-  FUNDED:             { label: "Fondos retenidos",     tone: "accent",  description: "El pago fue procesado por la pasarela certificada." },
-  IN_PROGRESS:        { label: "En curso",             tone: "accent",  description: "Existen hitos pendientes de cumplimiento." },
-  IN_VERIFICATION:    { label: "En verificación",      tone: "info",    description: "Cumplex/verificador revisa evidencia o documentos." },
-  READY_FOR_APPROVAL: { label: "Lista para aprobar",   tone: "info",    description: "Evidencia enviada, esperando aprobación del comprador." },
-  READY_TO_RELEASE:   { label: "Lista para liberar",   tone: "ok",      description: "Condiciones cumplidas para liberar fondos." },
-  PARTIALLY_RELEASED: { label: "Liberación parcial",   tone: "ok",      description: "Ya se liberó una parcialidad al vendedor." },
-  RELEASED:           { label: "Liberada",             tone: "ok",      description: "Se liberó el monto total al vendedor." },
-  REFUNDED:           { label: "Devuelta",             tone: "neutral", description: "Fondos devueltos al comprador." },
-  DISPUTED:           { label: "En disputa",           tone: "err",     description: "Operación congelada por controversia." },
-  CANCELLED:          { label: "Cancelada",            tone: "neutral", description: "Operación cancelada antes de cierre." },
-  CLOSED:             { label: "Cerrada",              tone: "neutral", description: "Operación finalizada." },
+  DRAFT:              { label: "Borrador",                        tone: "neutral", description: "Transacción creada, aún no enviada o aceptada." },
+  PENDING_APPROVAL:   { label: "Pendiente de aprobación",         tone: "warn",    description: "Esperando que la contraparte revise y acepte las condiciones." },
+  CHANGES_REQUESTED:  { label: "Cambios solicitados",             tone: "warn",    description: "La contraparte solicitó ajustes antes de aceptar." },
+  ACCEPTED:           { label: "Aprobada por contraparte",        tone: "info",    description: "Ambas partes aceptaron condiciones; sigue firma." },
+  PENDING_SIGNATURE:  { label: "Pendiente de firma",              tone: "warn",    description: "Contrato listo, esperando firmas." },
+  PARTIALLY_SIGNED:   { label: "Firmada parcialmente",            tone: "info",    description: "Al menos una parte firmó el contrato." },
+  FULLY_SIGNED:       { label: "Firmada totalmente",              tone: "ok",      description: "Contrato firmado por todas las partes." },
+  PENDING_FUNDING:    { label: "Esperando fondeo",                tone: "warn",    description: "El comprador debe realizar el pago." },
+  FUNDED:             { label: "Fondos retenidos",                tone: "accent",  description: "El pago fue procesado por la pasarela certificada." },
+  IN_PROGRESS:        { label: "En cumplimiento",                 tone: "accent",  description: "Operación activa con hitos en ejecución." },
+  IN_VERIFICATION:    { label: "En verificación",                 tone: "info",    description: "Cumplex/verificador revisa evidencia o documentos." },
+  READY_FOR_APPROVAL: { label: "Lista para aprobar",              tone: "info",    description: "Evidencia enviada, esperando aprobación del comprador." },
+  READY_TO_RELEASE:   { label: "Lista para liberar",              tone: "ok",      description: "Condiciones cumplidas para liberar fondos." },
+  PARTIALLY_RELEASED: { label: "Liberación parcial",              tone: "ok",      description: "Ya se liberó una parcialidad al vendedor." },
+  RELEASED:           { label: "Completada",                      tone: "ok",      description: "Se liberó el monto total al vendedor." },
+  REFUNDED:           { label: "Devuelta",                        tone: "neutral", description: "Fondos devueltos al comprador." },
+  DISPUTED:           { label: "En disputa",                      tone: "err",     description: "Operación congelada por controversia." },
+  CANCELLED:          { label: "Cancelada",                       tone: "neutral", description: "Operación cancelada antes de cierre." },
+  CLOSED:             { label: "Completada",                      tone: "neutral", description: "Operación finalizada administrativamente." },
 };
 
-// Mapa DB (snake_case en src/lib/tx.ts) → UI (spec SCREAMING_SNAKE_CASE)
+// Mapa DB (snake_case en src/lib/tx.ts) → UI
 export const DB_TO_UI_STATUS: Record<TxStatus, UiStatus> = {
   draft:              "DRAFT",
-  pending_signature:  "INVITED",
+  pending_signature:  "PENDING_SIGNATURE",
   awaiting_funding:   "PENDING_FUNDING",
   funded:             "FUNDED",
   in_progress:        "IN_PROGRESS",
@@ -68,9 +80,15 @@ export const DB_TO_UI_STATUS: Record<TxStatus, UiStatus> = {
   refunded:           "REFUNDED",
 };
 
+// Compat: aliases previos usados por código legado
+const LEGACY_ALIAS: Record<string, UiStatus> = {
+  INVITED: "PENDING_APPROVAL",
+};
+
 export function toUiStatus(status: string | null | undefined): UiStatus {
   if (!status) return "DRAFT";
   if (status in STATUS_CFG) return status as UiStatus;
+  if (status in LEGACY_ALIAS) return LEGACY_ALIAS[status];
   return DB_TO_UI_STATUS[status as TxStatus] ?? "DRAFT";
 }
 
