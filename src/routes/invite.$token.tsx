@@ -244,10 +244,25 @@ function InviteApprovalPage() {
     return <EmptyState token={token} kind="changes" />;
 
   // ── Economics ───────────────────────────────────────────────────────
+  const ivaOperacion = (data.amount * data.ivaBps) / 10000;
+  const totalOperacionConIva = data.amount + ivaOperacion;
   const commission = (data.amount * data.commissionBps) / 10000;
-  const iva = (commission * data.ivaBps) / 10000;
-  const totalFondear = data.amount + commission + iva; // asumido comprador absorbe
-  const netoVendedor = data.amount; // vendedor recibe monto bruto
+  const ivaComision = (commission * data.ivaBps) / 10000;
+  const comisionTotal = commission + ivaComision;
+  // Proporción de la comisión que absorbe el comprador (resto lo absorbe el vendedor)
+  const pctCompradorAbsorbe =
+    data.comisionAbsorbe === "comprador" ? 1 : data.comisionAbsorbe === "vendedor" ? 0 : 0.5;
+  const comisionComprador = comisionTotal * pctCompradorAbsorbe;
+  const comisionVendedor = comisionTotal * (1 - pctCompradorAbsorbe);
+  const totalFondear = totalOperacionConIva + comisionComprador;
+  const netoVendedor = totalOperacionConIva - comisionVendedor;
+  const absorbeLabel =
+    data.comisionAbsorbe === "comprador"
+      ? "Comprador (100%)"
+      : data.comisionAbsorbe === "vendedor"
+      ? "Vendedor (100%)"
+      : "Compartida 50% / 50%";
+
 
   return (
     <div className="min-h-dvh bg-yo-bg text-yo-txt">
@@ -342,28 +357,47 @@ function InviteApprovalPage() {
 
           {/* 9.3 Economics */}
           <Card icon={Landmark} title="Monto y condiciones económicas">
-            <Row label="Monto bruto de operación" value={<MoneyDisplay amount={data.amount / 100} currency={data.currency} />} />
+            <div className="text-[11px] font-semibold uppercase tracking-wider text-yo-txt-3 mb-1">Operación</div>
+            <Row label="Monto principal" value={<MoneyDisplay amount={data.amount / 100} currency={data.currency} />} />
+            <Row label="IVA de la operación (16%)" value={<MoneyDisplay amount={ivaOperacion / 100} currency={data.currency} />} />
+            <Row label="Total de la operación (con IVA)" value={<MoneyDisplay amount={totalOperacionConIva / 100} currency={data.currency} />} strong />
+
+            <div className="text-[11px] font-semibold uppercase tracking-wider text-yo-txt-3 mt-4 mb-1">Comisión Cumplex</div>
             <Row label={`Comisión Cumplex (${(data.commissionBps / 100).toFixed(2)}%)`} value={<MoneyDisplay amount={commission / 100} currency={data.currency} />} />
-            <Row label="IVA de comisión (16%)" value={<MoneyDisplay amount={iva / 100} currency={data.currency} />} />
-            <Row label="Método sugerido de pago" value={data.metodoSugerido} />
-            <Row label="Comisión la absorbe" value={<span className="capitalize">{data.comisionAbsorbe}</span>} />
+            <Row label="IVA de la comisión (16%)" value={<MoneyDisplay amount={ivaComision / 100} currency={data.currency} />} />
+            <Row label="Comisión total (con IVA)" value={<MoneyDisplay amount={comisionTotal / 100} currency={data.currency} />} strong />
+
+            <div className="text-[11px] font-semibold uppercase tracking-wider text-yo-txt-3 mt-4 mb-1">Acuerdo entre las partes</div>
+            <Row label="Comisión la absorbe" value={<span className="font-medium text-yo-txt">{absorbeLabel}</span>} />
             <Row
-              label={isBuyer ? "Total estimado a fondear" : "Neto estimado a recibir"}
-              value={
-                <MoneyDisplay
-                  amount={(isBuyer ? totalFondear : netoVendedor) / 100}
-                  currency={data.currency}
-                  size="lg"
-                />
-              }
-              strong
+              label="Parte a cargo del comprador"
+              value={<MoneyDisplay amount={comisionComprador / 100} currency={data.currency} />}
             />
+            <Row
+              label="Parte a cargo del vendedor"
+              value={<MoneyDisplay amount={comisionVendedor / 100} currency={data.currency} />}
+            />
+            <Row label="Método sugerido de pago" value={data.metodoSugerido} />
+
+            <div className="text-[11px] font-semibold uppercase tracking-wider text-yo-txt-3 mt-4 mb-1">Resultado</div>
+            <Row
+              label="Total estimado a fondear (comprador)"
+              value={<MoneyDisplay amount={totalFondear / 100} currency={data.currency} size={isBuyer ? "lg" : undefined} />}
+              strong={isBuyer}
+            />
+            <Row
+              label="Neto estimado a recibir (vendedor)"
+              value={<MoneyDisplay amount={netoVendedor / 100} currency={data.currency} size={!isBuyer ? "lg" : undefined} />}
+              strong={!isBuyer}
+            />
+
             <InfoBox tone="info" title={isBuyer ? "Como pagador" : "Como beneficiario"}>
               {isBuyer
-                ? "Los fondos serán procesados y retenidos por la pasarela configurada (Stripe / SPEI). Cumplex NO custodia fondos."
-                : "La liberación dependerá del cumplimiento de los hitos y evidencia aceptada. Cumplex NO custodia fondos."}
+                ? "Los fondos serán procesados y retenidos por la pasarela configurada (Stripe / SPEI). Cumplex NO custodia fondos. Se emitirá CFDI por la comisión con su IVA correspondiente."
+                : "La liberación dependerá del cumplimiento de los hitos y evidencia aceptada. Cumplex NO custodia fondos. El IVA de la operación se traslada según el CFDI que emitas al pagador."}
             </InfoBox>
           </Card>
+
 
           {/* 9.4 Hitos */}
           <Card icon={ClipboardCheck} title={`Hitos propuestos (${data.milestones.length})`}>
