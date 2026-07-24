@@ -868,3 +868,12 @@ function Fact({ label, value, mono }: { label: string; value: string; mono?: boo
     </div>
   );
 }
+
+function EditField({ label, full, children }: { label: string; full?: boolean; children: React.ReactNode }) {
+  return (
+    <label className={"flex flex-col gap-1 " + (full ? "md:col-span-2" : "")}>
+      <span className="text-[10px] uppercase tracking-wider text-yo-txt-3 font-medium">{label}</span>
+      {children}
+    </label>
+  );
+}
