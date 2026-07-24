@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   ShieldCheck, Clock, FileText, Users, Landmark, Scale, Gavel, FileSignature,
   CheckCircle2, XCircle, MessageSquareWarning, ArrowRight, Lock, Hash, Building2,
@@ -15,8 +15,12 @@ import { toast } from "sonner";
 
 export const Route = createFileRoute("/invite/$token")({
   ssr: false,
+  validateSearch: (s: Record<string, unknown>) => ({
+    action: (s.action === "accept" ? "accept" : undefined) as "accept" | undefined,
+  }),
   component: InviteApprovalPage,
 });
+
 
 // ─────────────────────────────────────────────────────────────────────────
 // Tipos (mirror del payload API §15.1)
