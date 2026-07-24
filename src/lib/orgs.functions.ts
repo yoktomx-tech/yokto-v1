@@ -248,3 +248,47 @@ export const listMyPendingInvitations = createServerFn({ method: "GET" })
       org_type: r.organizations?.type ?? "business",
     }));
   });
+
+/** List operations created by the current user that are awaiting counterparty response */
+export const listMyCreatedPendingOperations = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabase, userId } = context;
+    const { data, error } = await supabase
+      .from("transactions")
+      .select("id, numero, sector, status, amount_cents, currency, buyer_id, seller_id, counterparty_email, beneficiario_nombre, pagador_nombre, fecha_firma_pagador, fecha_firma_beneficiario, created_at, updated_at")
+      .eq("creado_por", userId)
+      .in("status", ["pending_signature", "draft"])
+      .order("created_at", { ascending: false })
+      .limit(20);
+    if (error) throw error;
+    return (data ?? []).map((t: any) => {
+      const iAmBuyer = t.buyer_id === userId;
+      const counterpartyName = iAmBuyer
+        ? (t.beneficiario_nombre ?? t.counterparty_email ?? "Contraparte")
+        : (t.pagador_nombre ?? t.counterparty_email ?? "Contraparte");
+      const myRole: "PAGADOR" | "BENEFICIARIO" = iAmBuyer ? "PAGADOR" : "BENEFICIARIO";
+      const counterpartySigned = iAmBuyer ? !!t.fecha_firma_beneficiario : !!t.fecha_firma_pagador;
+      const iSigned = iAmBuyer ? !!t.fecha_firma_pagador : !!t.fecha_firma_beneficiario;
+      const counterpartyHasAccount = !!(t.buyer_id && t.seller_id);
+      let counterpartyStatus: "INVITADO" | "FIRMO" | "PENDIENTE_FIRMA" = "INVITADO";
+      if (!counterpartyHasAccount) counterpartyStatus = "INVITADO";
+      else if (counterpartySigned) counterpartyStatus = "FIRMO";
+      else counterpartyStatus = "PENDIENTE_FIRMA";
+      return {
+        id: t.id,
+        numero: t.numero,
+        sector: t.sector,
+        status: t.status,
+        amount_cents: t.amount_cents,
+        currency: t.currency ?? "MXN",
+        my_role: myRole,
+        i_signed: iSigned,
+        counterparty_name: counterpartyName,
+        counterparty_status: counterpartyStatus,
+        created_at: t.created_at,
+        updated_at: t.updated_at,
+      };
+    });
+  });
+
