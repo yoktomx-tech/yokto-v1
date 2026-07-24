@@ -539,10 +539,10 @@ function InviteApprovalPage() {
             {isCreatorView ? (
               <>
                 <button
-                  onClick={() => toast.info("Vista de detalle de la operación")}
+                  onClick={() => navigate({ to: "/transactions/$id", params: { id: token } })}
                   className="h-10 px-4 rounded-md border border-yo-border bg-white dark:bg-transparent text-sm text-yo-txt inline-flex items-center gap-2 hover:border-yo-ac"
                 >
-                  <Eye className="size-4" /> Ver operación
+                  <Pencil className="size-4" /> Editar operación
                 </button>
                 <button
                   onClick={() => setShowAcceptModal(true)}
