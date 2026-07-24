@@ -85,14 +85,91 @@ export function TopbarQuickAccess() {
             <>
               <div className="fixed inset-0 z-40" onClick={() => setInvOpen(false)} />
               <div className="absolute right-0 mt-2 w-[360px] max-h-[70vh] overflow-auto z-50 rounded-xl border border-yo-border bg-yo-surface shadow-xl">
-                <InvitationsPopoverContent
-                  invCount={invCount}
-                  sortedInvitations={sortedInvitations}
-                  onClose={() => setInvOpen(false)}
-                />
+                <div className="p-3 border-b border-yo-border bg-yo-ac-bg">
+                  <div className="flex items-center gap-2">
+                    <div className="size-8 grid place-items-center rounded-lg bg-yo-ac text-white">
+                      <Inbox className="size-4" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[13px] font-semibold text-yo-txt">Invitaciones pendientes</p>
+                      <p className="text-[11px] text-yo-txt-3">
+                        {invCount} sin responder
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <ul className="divide-y divide-yo-border">
+                  {sortedInvitations.map((inv: any) => {
+                    const Icon = inv.org_type === "individual" ? User : Building2;
+                    const expiresLabel = formatExpiresIn(inv.expires_at);
+                    const expired = expiresLabel === "Vencida";
+                    const roleLabel = ROLE_LABEL[inv.org_role] ?? inv.org_role;
+                    const folio = inv.transaction_numero ?? inv.folio ?? "Operación pendiente";
+                    const sector = inv.sector ?? inv.org_name;
+                    const amount = inv.amount_label ?? null;
+                    return (
+                      <li key={inv.id} className="p-3">
+                        <div className="flex items-center justify-between gap-2 mb-2">
+                          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-yo-warn/15 text-yo-warn text-[10px] font-semibold uppercase tracking-wide">
+                            <span className="size-1.5 rounded-full bg-yo-warn" />
+                            Pendiente de aprobación
+                          </span>
+                          <span className={cn(
+                            "inline-flex items-center gap-1 text-[10px] font-medium tabular-nums",
+                            expired ? "text-yo-err" : "text-yo-txt-3",
+                          )}>
+                            <Clock className="size-3" />
+                            {expiresLabel}
+                          </span>
+                        </div>
+                        <Link
+                          to="/invite/$token"
+                          params={{ token: inv.token }}
+                          onClick={() => setInvOpen(false)}
+                          className="block group"
+                        >
+                          <p className="text-[13px] font-semibold text-yo-txt leading-snug group-hover:text-yo-ac transition">
+                            Revisa esta operación antes de fondear / entregar
+                          </p>
+                        </Link>
+                        <p className="mt-1 text-[11px] text-yo-txt-3 tabular-nums truncate">
+                          <span className="font-mono font-semibold text-yo-txt-2">{folio}</span>
+                          {sector && <> · <span>{sector}</span></>}
+                          {amount && <> · <span className="text-yo-txt-2 font-semibold">{amount}</span></>}
+                        </p>
+                        <div className="flex items-center gap-1.5 mt-1.5 text-[11px] text-yo-txt-3">
+                          <Icon className="size-3.5 text-yo-ac shrink-0" />
+                          <span className="truncate">{inv.org_name}</span>
+                          <span>·</span>
+                          <span className="truncate">Rol invitado: {roleLabel}</span>
+                        </div>
+                        <div className="grid grid-cols-2 gap-1.5 mt-3">
+                          <Link
+                            to="/invite/$token"
+                            params={{ token: inv.token }}
+                            onClick={() => setInvOpen(false)}
+                            className="h-8 grid place-items-center rounded-md border border-yo-border text-[11px] font-medium text-yo-txt hover:bg-yo-raised transition"
+                          >
+                            Ver detalle
+                          </Link>
+                          <Link
+                            to="/invitations/$token"
+                            params={{ token: inv.token }}
+                            search={{ action: "accept" } as any}
+                            onClick={() => setInvOpen(false)}
+                            className="h-8 grid place-items-center rounded-md bg-yo-ac text-white text-[11px] font-semibold hover:bg-yo-ac/90 transition"
+                          >
+                            Aceptar operación
+                          </Link>
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
               </div>
             </>
           )}
+
         </div>
       )}
 
