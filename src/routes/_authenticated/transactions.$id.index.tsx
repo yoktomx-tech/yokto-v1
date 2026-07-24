@@ -188,6 +188,50 @@ function TxDetail() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tx?.status]);
 
+  // Prellenar formulario de edición cuando llega/actualiza la transacción
+  useEffect(() => {
+    if (!tx || editing) return;
+    setEditForm({
+      title: tx.title ?? "",
+      description: tx.description ?? "",
+      amount: (tx.amount_cents ?? 0) / 100,
+      delivery_deadline: tx.delivery_deadline ? tx.delivery_deadline.slice(0, 10) : "",
+      counterparty_email: tx.counterparty_email ?? "",
+      beneficiario_nombre: tx.beneficiario_nombre ?? "",
+      pagador_nombre: tx.pagador_nombre ?? "",
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tx?.id, tx?.updated_at as unknown, tx?.title, tx?.description, tx?.amount_cents, tx?.delivery_deadline]);
+
+  async function handleSaveEdit() {
+    if (!tx) return;
+    setSavingEdit(true); setError(null);
+    const payload = {
+      title: editForm.title.trim(),
+      description: editForm.description.trim() || null,
+      amount_cents: Math.max(0, Math.round(editForm.amount * 100)),
+      delivery_deadline: editForm.delivery_deadline ? new Date(editForm.delivery_deadline).toISOString() : null,
+      counterparty_email: editForm.counterparty_email.trim() || null,
+      beneficiario_nombre: editForm.beneficiario_nombre.trim() || null,
+      pagador_nombre: editForm.pagador_nombre.trim() || null,
+    };
+    if (!payload.title) { setError("El título es obligatorio"); setSavingEdit(false); return; }
+    const { error: err } = await supabase.from("transactions").update(payload).eq("id", tx.id);
+    if (err) {
+      setError(err.message);
+      toast.error("No se pudieron guardar los cambios", { description: err.message });
+    } else {
+      await logEvent("transaction.edited", { fields: Object.keys(payload) });
+      toast.success("Cambios guardados");
+      setEditing(false);
+      setSavedOnce(true);
+      await load();
+    }
+    setSavingEdit(false);
+  }
+
+
+
 
   async function logEvent(event_type: string, metadata: Record<string, unknown> = {}) {
     await supabase.from("transaction_events").insert({ transaction_id: id, actor_id: user.id, event_type, metadata: metadata as never });
