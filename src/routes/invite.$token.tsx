@@ -244,10 +244,25 @@ function InviteApprovalPage() {
     return <EmptyState token={token} kind="changes" />;
 
   // ── Economics ───────────────────────────────────────────────────────
+  const ivaOperacion = (data.amount * data.ivaBps) / 10000;
+  const totalOperacionConIva = data.amount + ivaOperacion;
   const commission = (data.amount * data.commissionBps) / 10000;
-  const iva = (commission * data.ivaBps) / 10000;
-  const totalFondear = data.amount + commission + iva; // asumido comprador absorbe
-  const netoVendedor = data.amount; // vendedor recibe monto bruto
+  const ivaComision = (commission * data.ivaBps) / 10000;
+  const comisionTotal = commission + ivaComision;
+  // Proporción de la comisión que absorbe el comprador (resto lo absorbe el vendedor)
+  const pctCompradorAbsorbe =
+    data.comisionAbsorbe === "comprador" ? 1 : data.comisionAbsorbe === "vendedor" ? 0 : 0.5;
+  const comisionComprador = comisionTotal * pctCompradorAbsorbe;
+  const comisionVendedor = comisionTotal * (1 - pctCompradorAbsorbe);
+  const totalFondear = totalOperacionConIva + comisionComprador;
+  const netoVendedor = totalOperacionConIva - comisionVendedor;
+  const absorbeLabel =
+    data.comisionAbsorbe === "comprador"
+      ? "Comprador (100%)"
+      : data.comisionAbsorbe === "vendedor"
+      ? "Vendedor (100%)"
+      : "Compartida 50% / 50%";
+
 
   return (
     <div className="min-h-dvh bg-yo-bg text-yo-txt">
