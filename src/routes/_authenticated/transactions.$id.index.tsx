@@ -421,6 +421,104 @@ function TxDetail() {
 
               {tab === "resumen" && (
                 <section className="flex flex-col gap-4">
+                  {/* Editor de operación (solo creador en borrador) */}
+                  {canEdit && (
+                    <div className="surface-card p-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <div>
+                          <div className="text-[10px] uppercase tracking-wider text-yo-txt-3 font-medium">Datos de la operación</div>
+                          <p className="text-xs text-yo-txt-2 mt-0.5">
+                            {editing ? "Actualiza los datos y guarda cambios." : "Datos prellenados. Edítalos y confirma antes de firmar."}
+                          </p>
+                        </div>
+                        {!editing ? (
+                          <button
+                            onClick={() => setEditing(true)}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 border border-yo-border text-xs font-medium rounded-md text-yo-txt hover:bg-yo-raised"
+                          >
+                            <Pencil className="h-3.5 w-3.5" /> Editar
+                          </button>
+                        ) : (
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => { setEditing(false); }}
+                              disabled={savingEdit}
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 border border-yo-border text-xs font-medium rounded-md text-yo-txt-2 hover:bg-yo-raised disabled:opacity-40"
+                            >
+                              <XCircle className="h-3.5 w-3.5" /> Cancelar
+                            </button>
+                            <button
+                              onClick={handleSaveEdit}
+                              disabled={savingEdit}
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-yo-ac text-white text-xs font-semibold rounded-md hover:bg-yo-ac-h disabled:opacity-50"
+                            >
+                              <Save className="h-3.5 w-3.5" /> {savingEdit ? "Guardando…" : "Guardar cambios"}
+                            </button>
+                          </div>
+                        )}
+                      </div>
+
+                      {editing ? (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          <EditField label="Título" full>
+                            <input value={editForm.title} onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
+                              className="w-full px-3 py-2 border border-yo-border rounded-md bg-yo-surface text-sm text-yo-txt" />
+                          </EditField>
+                          <EditField label="Descripción" full>
+                            <textarea value={editForm.description} onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
+                              rows={3}
+                              className="w-full px-3 py-2 border border-yo-border rounded-md bg-yo-surface text-sm text-yo-txt" />
+                          </EditField>
+                          <EditField label="Monto (MXN)">
+                            <input type="number" min={0} step="0.01" value={editForm.amount}
+                              onChange={(e) => setEditForm({ ...editForm, amount: Number(e.target.value) })}
+                              className="w-full px-3 py-2 border border-yo-border rounded-md bg-yo-surface text-sm text-yo-txt font-mono" />
+                          </EditField>
+                          <EditField label="Fecha límite entrega">
+                            <input type="date" value={editForm.delivery_deadline}
+                              onChange={(e) => setEditForm({ ...editForm, delivery_deadline: e.target.value })}
+                              className="w-full px-3 py-2 border border-yo-border rounded-md bg-yo-surface text-sm text-yo-txt" />
+                          </EditField>
+                          <EditField label="Correo contraparte">
+                            <input type="email" value={editForm.counterparty_email}
+                              onChange={(e) => setEditForm({ ...editForm, counterparty_email: e.target.value })}
+                              className="w-full px-3 py-2 border border-yo-border rounded-md bg-yo-surface text-sm text-yo-txt" />
+                          </EditField>
+                          <EditField label={isBuyer ? "Nombre del beneficiario" : "Nombre del pagador"}>
+                            <input
+                              value={isBuyer ? editForm.beneficiario_nombre : editForm.pagador_nombre}
+                              onChange={(e) => setEditForm(isBuyer
+                                ? { ...editForm, beneficiario_nombre: e.target.value }
+                                : { ...editForm, pagador_nombre: e.target.value })}
+                              className="w-full px-3 py-2 border border-yo-border rounded-md bg-yo-surface text-sm text-yo-txt" />
+                          </EditField>
+                        </div>
+                      ) : (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <Fact label="Título" value={tx.title || "—"} />
+                          <Fact label="Monto" value={formatMoney(tx.amount_cents, tx.currency)} />
+                          <Fact label="Entrega" value={tx.delivery_deadline ? new Date(tx.delivery_deadline).toLocaleDateString("es-MX") : "—"} />
+                          <Fact label="Contraparte" value={tx.counterparty_email ?? (isBuyer ? tx.beneficiario_nombre : tx.pagador_nombre) ?? "—"} />
+                        </div>
+                      )}
+
+                      {savedOnce && !editing && (
+                        <div className="mt-3 flex items-center justify-between gap-3 rounded-md border border-yo-ac/30 bg-yo-ac/5 p-3">
+                          <div className="text-xs text-yo-txt">
+                            <span className="font-semibold text-yo-ac">Cambios guardados.</span>{" "}
+                            Continúa a la firma del acuerdo cuando estés listo.
+                          </div>
+                          <button
+                            onClick={() => navigate({ to: "/invite/$token", params: { token: id }, search: { view: "creator" } })}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-yo-ac text-white text-xs font-semibold rounded-md hover:bg-yo-ac-h shrink-0"
+                          >
+                            <FileSignature className="h-3.5 w-3.5" /> Continuar a firma
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
                   <div className="surface-card p-4">
                     <div className="text-[10px] uppercase tracking-wider text-yo-txt-3 font-medium mb-2">Progreso de hitos</div>
                     <ProgressBar value={progressPct} />
@@ -436,7 +534,7 @@ function TxDetail() {
                     <Fact label="Fecha límite entrega" value={tx.delivery_deadline ? new Date(tx.delivery_deadline).toLocaleDateString("es-MX") : "—"} />
                   </div>
 
-                  {tx.description && (
+                  {tx.description && !editing && (
                     <div className="surface-card p-4">
                       <div className="text-[10px] uppercase tracking-wider text-yo-txt-3 font-medium mb-2">Descripción</div>
                       <p className="text-sm text-yo-txt whitespace-pre-wrap">{tx.description}</p>
