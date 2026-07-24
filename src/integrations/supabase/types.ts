@@ -3410,6 +3410,7 @@ export type Database = {
     Functions: {
       cancel_my_onboarding: { Args: never; Returns: undefined }
       cleanup_abandoned_onboarding: { Args: never; Returns: number }
+      current_user_verified_email: { Args: never; Returns: string }
       get_active_internal_role: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["internal_role"]
