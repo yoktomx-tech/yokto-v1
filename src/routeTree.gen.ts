@@ -17,6 +17,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as BackofficeRouteImport } from './routes/_backoffice'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as InviteTokenRouteImport } from './routes/invite.$token'
 import { Route as InvitationsTokenRouteImport } from './routes/invitations.$token'
 import { Route as BiometricoTokenRouteImport } from './routes/biometrico.$token'
 import { Route as AuthenticatedTransactionsRouteImport } from './routes/_authenticated/transactions'
@@ -158,6 +159,11 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InviteTokenRoute = InviteTokenRouteImport.update({
+  id: '/invite/$token',
+  path: '/invite/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
 const InvitationsTokenRoute = InvitationsTokenRouteImport.update({
@@ -776,6 +782,7 @@ export interface FileRoutesByFullPath {
   '/transactions': typeof AuthenticatedTransactionsRouteWithChildren
   '/biometrico/$token': typeof BiometricoTokenRoute
   '/invitations/$token': typeof InvitationsTokenRouteWithChildren
+  '/invite/$token': typeof InviteTokenRoute
   '/analytics/aprobaciones': typeof AuthenticatedAnalyticsAprobacionesRoute
   '/analytics/contratos': typeof AuthenticatedAnalyticsContratosRoute
   '/analytics/cumplimiento': typeof AuthenticatedAnalyticsCumplimientoRoute
@@ -882,6 +889,7 @@ export interface FileRoutesByTo {
   '/score': typeof AuthenticatedScoreRoute
   '/biometrico/$token': typeof BiometricoTokenRoute
   '/invitations/$token': typeof InvitationsTokenRouteWithChildren
+  '/invite/$token': typeof InviteTokenRoute
   '/analytics/aprobaciones': typeof AuthenticatedAnalyticsAprobacionesRoute
   '/analytics/contratos': typeof AuthenticatedAnalyticsContratosRoute
   '/analytics/cumplimiento': typeof AuthenticatedAnalyticsCumplimientoRoute
@@ -995,6 +1003,7 @@ export interface FileRoutesById {
   '/_authenticated/transactions': typeof AuthenticatedTransactionsRouteWithChildren
   '/biometrico/$token': typeof BiometricoTokenRoute
   '/invitations/$token': typeof InvitationsTokenRouteWithChildren
+  '/invite/$token': typeof InviteTokenRoute
   '/_authenticated/analytics/aprobaciones': typeof AuthenticatedAnalyticsAprobacionesRoute
   '/_authenticated/analytics/contratos': typeof AuthenticatedAnalyticsContratosRoute
   '/_authenticated/analytics/cumplimiento': typeof AuthenticatedAnalyticsCumplimientoRoute
@@ -1109,6 +1118,7 @@ export interface FileRouteTypes {
     | '/transactions'
     | '/biometrico/$token'
     | '/invitations/$token'
+    | '/invite/$token'
     | '/analytics/aprobaciones'
     | '/analytics/contratos'
     | '/analytics/cumplimiento'
@@ -1215,6 +1225,7 @@ export interface FileRouteTypes {
     | '/score'
     | '/biometrico/$token'
     | '/invitations/$token'
+    | '/invite/$token'
     | '/analytics/aprobaciones'
     | '/analytics/contratos'
     | '/analytics/cumplimiento'
@@ -1327,6 +1338,7 @@ export interface FileRouteTypes {
     | '/_authenticated/transactions'
     | '/biometrico/$token'
     | '/invitations/$token'
+    | '/invite/$token'
     | '/_authenticated/analytics/aprobaciones'
     | '/_authenticated/analytics/contratos'
     | '/_authenticated/analytics/cumplimiento'
@@ -1425,6 +1437,7 @@ export interface RootRouteChildren {
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   BiometricoTokenRoute: typeof BiometricoTokenRoute
   InvitationsTokenRoute: typeof InvitationsTokenRouteWithChildren
+  InviteTokenRoute: typeof InviteTokenRoute
   ApiPublicHooksDisputeDeadlinesRoute: typeof ApiPublicHooksDisputeDeadlinesRoute
   ApiPublicHooksSupportSlaRoute: typeof ApiPublicHooksSupportSlaRoute
   ApiPublicHooksVerificamexPennyTestRoute: typeof ApiPublicHooksVerificamexPennyTestRoute
@@ -1488,6 +1501,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/invite/$token': {
+      id: '/invite/$token'
+      path: '/invite/$token'
+      fullPath: '/invite/$token'
+      preLoaderRoute: typeof InviteTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/invitations/$token': {
@@ -2624,6 +2644,7 @@ const rootRouteChildren: RootRouteChildren = {
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   BiometricoTokenRoute: BiometricoTokenRoute,
   InvitationsTokenRoute: InvitationsTokenRouteWithChildren,
+  InviteTokenRoute: InviteTokenRoute,
   ApiPublicHooksDisputeDeadlinesRoute: ApiPublicHooksDisputeDeadlinesRoute,
   ApiPublicHooksSupportSlaRoute: ApiPublicHooksSupportSlaRoute,
   ApiPublicHooksVerificamexPennyTestRoute:
