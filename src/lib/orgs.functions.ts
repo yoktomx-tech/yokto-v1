@@ -220,3 +220,31 @@ export const getOrganization = createServerFn({ method: "GET" })
     if (error) throw error;
     return org;
   });
+
+/** List pending invitations addressed to the current user (by email) */
+export const listMyPendingInvitations = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabase, claims } = context;
+    const email = ((claims as any)?.email as string | undefined)?.toLowerCase();
+    if (!email) return [];
+    const { data, error } = await supabase
+      .from("invitations")
+      .select("id, org_id, email, org_role, token, expires_at, accepted_at, created_at, organizations!inner(name, type)")
+      .eq("email", email)
+      .is("accepted_at", null)
+      .gt("expires_at", new Date().toISOString())
+      .order("created_at", { ascending: false });
+    if (error) throw error;
+    return (data ?? []).map((r: any) => ({
+      id: r.id,
+      org_id: r.org_id,
+      email: r.email,
+      org_role: r.org_role,
+      token: r.token,
+      expires_at: r.expires_at,
+      created_at: r.created_at,
+      org_name: r.organizations?.name ?? "Organización",
+      org_type: r.organizations?.type ?? "business",
+    }));
+  });
