@@ -69,10 +69,17 @@ type TabsProps = {
 };
 
 export function TransactionsTabs({ active, onChange, role, counts }: TabsProps) {
-  const tabs = getTabs(role);
+  const allTabs = getTabs(role);
+  // Muestra principales siempre + contextuales sólo cuando hay operaciones en ese estado
+  const tabs = allTabs.filter((t) => t.principal || (counts[t.id] ?? 0) > 0 || active === t.id);
   return (
     <div className="flex gap-1 overflow-x-auto pb-1 -mx-1 px-1">
       {tabs.map((t) => {
+        const isActive = active === t.id;
+        const c = counts[t.id] ?? 0;
+        return (
+          <button
+            key={t.id}
         const isActive = active === t.id;
         const c = counts[t.id] ?? 0;
         return (
