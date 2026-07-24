@@ -252,7 +252,7 @@ function ExpedienteView() {
     else if (ui === "READY_TO_RELEASE") cta = { label: "Liberar pago", tone: "ok" };
     else if (ui === "DISPUTED") cta = { label: "Responder disputa", tone: "err" };
   } else if (isSeller) {
-    if (ui === "INVITED") cta = { label: "Aceptar invitación", tone: "info" };
+    if (ui === "PENDING_APPROVAL") cta = { label: "Aceptar invitación", tone: "info" };
     else if (["FUNDED", "IN_PROGRESS"].includes(ui)) cta = { label: "Subir evidencia", tone: "warn" };
     else if (ui === "IN_VERIFICATION") cta = { label: "En revisión", tone: "info", disabled: true };
     else if (ui === "DISPUTED") cta = { label: "Responder disputa", tone: "err" };
