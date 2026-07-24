@@ -3,7 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import {
-  Search, MessageSquare, LifeBuoy, Activity, HelpCircle, Inbox, Mail, Building2, User, ArrowRight,
+  Search, MessageSquare, LifeBuoy, Activity, HelpCircle, Inbox, Building2, User, ArrowRight,
 } from "lucide-react";
 import { getQuickAccessContext, listMyTickets } from "@/lib/support.functions";
 import { listMyPendingInvitations } from "@/lib/orgs.functions";
