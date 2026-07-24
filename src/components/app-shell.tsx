@@ -182,7 +182,7 @@ function SidebarContent({
               title={collapsed ? item.label : undefined}
               className={cn(
                 "flex items-center gap-3 rounded-md text-[13px] font-medium transition",
-                collapsed ? "justify-center px-0 py-2.5" : "px-3 py-2.5",
+                collapsed ? "justify-center px-0 py-2" : "px-3 py-2",
                 active
                   ? "bg-yo-ac-bg text-yo-ac-txt"
                   : "text-yo-txt-2 hover:text-yo-txt hover:bg-yo-raised"
