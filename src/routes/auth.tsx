@@ -187,7 +187,7 @@ function AuthPage() {
         <div className="w-full max-w-sm">
           {/* Mobile brand */}
           <div className="lg:hidden mb-8 flex items-center gap-2.5">
-            <CumplexLogo variant="auto" className="h-7 w-auto" />
+            <CumplexLogo variant="auto" className="h-12 w-auto" />
           </div>
 
           <div className="rounded-2xl bg-yokto-card border border-white/[0.06] shadow-lg p-7 sm:p-8">
