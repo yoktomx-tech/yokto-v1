@@ -323,6 +323,8 @@ function TxDetail() {
 
   const isBuyer = tx?.buyer_id === user.id;
   const isSeller = tx?.seller_id === user.id;
+  const isCreator = tx?.creado_por === user.id;
+  const canEdit = isCreator && tx?.status === "draft";
   const commission = tx ? commissionAmount(tx.amount_cents, tx.commission_bps) : 0;
   const allMet = hitos.length > 0 && hitos.every((h) => h.estado === "APROBADO");
   const activeIntent = intents.find((i) => i.status === "requires_payment" || i.status === "processing");
