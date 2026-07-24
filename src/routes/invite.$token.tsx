@@ -17,6 +17,7 @@ export const Route = createFileRoute("/invite/$token")({
   ssr: false,
   validateSearch: (s: Record<string, unknown>) => ({
     action: (s.action === "accept" ? "accept" : undefined) as "accept" | undefined,
+    view: (s.view === "creator" ? "creator" : undefined) as "creator" | undefined,
   }),
   component: InviteApprovalPage,
 });
@@ -226,11 +227,18 @@ function InviteApprovalPage() {
   }, [search.action]);
 
 
+  const isCreatorView = search.view === "creator";
   const isBuyer = data.inviteeRole === "PAGADOR";
   const roleLabel = isBuyer ? "Pagador / Comprador" : "Beneficiario / Vendedor";
   const counterLabel = isBuyer ? "Beneficiario / Vendedor" : "Pagador / Comprador";
 
-  const copy = isBuyer
+  const copy = isCreatorView
+    ? {
+        title: "Revisa tu operación antes de firmar",
+        subtitle: `Esta es la operación que registraste. Revisa monto, hitos, reglas de aprobación y condiciones. Cuando estés listo, pasa a firma de acuerdos. Podrás ver aquí cuando tu contraparte apruebe, firme o solicite cambios.`,
+        cta: "Firmar acuerdo",
+      }
+    : isBuyer
     ? {
         title: "Revisa esta operación antes de fondear",
         subtitle: `${data.creatorName} te envió una propuesta de operación protegida. Revisa el monto, los hitos, las reglas de aprobación y las condiciones de devolución antes de aceptar.`,
@@ -241,6 +249,7 @@ function InviteApprovalPage() {
         subtitle: `${data.creatorName} te invitó a una operación protegida. Revisa los hitos, documentos, fechas y condiciones de liberación antes de aceptar.`,
         cta: "Aceptar operación y continuar a firma",
       };
+
 
   // ── Estados especiales (§21) ────────────────────────────────────────
   const now = Date.now();
@@ -527,25 +536,45 @@ function InviteApprovalPage() {
 
           {/* Acciones §10 */}
           <div className="sticky bottom-0 -mx-4 px-4 py-3 bg-yo-surface border-t border-yo-border flex flex-wrap gap-2 justify-end mt-2">
-            <button
-              onClick={() => setShowRejectModal(true)}
-              className="h-10 px-4 rounded-md border border-yo-border bg-white dark:bg-transparent text-sm text-yo-txt-2 hover:text-[#B91C1C] hover:border-[#B91C1C] inline-flex items-center gap-2"
-            >
-              <XCircle className="size-4" /> Rechazar
-            </button>
-            <button
-              onClick={() => setShowChangesModal(true)}
-              className="h-10 px-4 rounded-md border border-yo-border bg-white dark:bg-transparent text-sm text-yo-txt inline-flex items-center gap-2 hover:border-yo-ac"
-            >
-              <MessageSquareWarning className="size-4" /> Solicitar cambios
-            </button>
-            <button
-              onClick={() => setShowAcceptModal(true)}
-              className="h-10 px-4 rounded-md bg-yo-ac text-white text-sm font-semibold inline-flex items-center gap-2 hover:opacity-90"
-            >
-              <CheckCircle2 className="size-4" /> {copy.cta}
-            </button>
+            {isCreatorView ? (
+              <>
+                <button
+                  onClick={() => toast.info("Vista de detalle de la operación")}
+                  className="h-10 px-4 rounded-md border border-yo-border bg-white dark:bg-transparent text-sm text-yo-txt inline-flex items-center gap-2 hover:border-yo-ac"
+                >
+                  <Eye className="size-4" /> Ver operación
+                </button>
+                <button
+                  onClick={() => setShowAcceptModal(true)}
+                  className="h-10 px-4 rounded-md bg-yo-ac text-white text-sm font-semibold inline-flex items-center gap-2 hover:opacity-90"
+                >
+                  <FileSignature className="size-4" /> {copy.cta}
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  onClick={() => setShowRejectModal(true)}
+                  className="h-10 px-4 rounded-md border border-yo-border bg-white dark:bg-transparent text-sm text-yo-txt-2 hover:text-[#B91C1C] hover:border-[#B91C1C] inline-flex items-center gap-2"
+                >
+                  <XCircle className="size-4" /> Rechazar
+                </button>
+                <button
+                  onClick={() => setShowChangesModal(true)}
+                  className="h-10 px-4 rounded-md border border-yo-border bg-white dark:bg-transparent text-sm text-yo-txt inline-flex items-center gap-2 hover:border-yo-ac"
+                >
+                  <MessageSquareWarning className="size-4" /> Solicitar cambios
+                </button>
+                <button
+                  onClick={() => setShowAcceptModal(true)}
+                  className="h-10 px-4 rounded-md bg-yo-ac text-white text-sm font-semibold inline-flex items-center gap-2 hover:opacity-90"
+                >
+                  <CheckCircle2 className="size-4" /> {copy.cta}
+                </button>
+              </>
+            )}
           </div>
+
         </div>
 
         {/* Sidebar sticky "Antes de aceptar" */}
