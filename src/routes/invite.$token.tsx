@@ -544,7 +544,7 @@ function InviteApprovalPage() {
             {isCreatorView ? (
               <>
                 {(() => {
-                  const cpAccepted = data.inviteStatus === "ACEPTADA";
+                  const cpAccepted = (data.inviteStatus as string) === "ACEPTADA";
                   const remindFn = useServerFn(remindTransactionCounterparty);
                   const remindMut = useMutation({
                     mutationFn: () => remindFn({ data: { transaction_id: token } }),
