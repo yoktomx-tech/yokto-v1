@@ -126,17 +126,33 @@ export function TopbarQuickAccess() {
                       </span>
                     </div>
 
-                    <p className="text-[13px] font-semibold text-yo-txt leading-snug">
-                      Revisa esta invitación antes de aceptar
-                    </p>
-                    <div className="flex items-center gap-1.5 mt-1 text-[11px] text-yo-txt-3">
-                      <Icon className="size-3.5 text-yo-ac shrink-0" />
-                      <span className="truncate">{inv.org_name}</span>
-                      <span>·</span>
-                      <span className="truncate">{roleLabel}</span>
-                    </div>
+                    <Link
+                      to="/invite/$token"
+                      params={{ token: inv.token }}
+                      onClick={() => setInvOpen(false)}
+                      className="block group"
+                    >
+                      <p className="text-[13px] font-semibold text-yo-txt leading-snug group-hover:text-yo-ac transition">
+                        Revisa esta invitación antes de aceptar
+                      </p>
+                      <div className="flex items-center gap-1.5 mt-1 text-[11px] text-yo-txt-3">
+                        <Icon className="size-3.5 text-yo-ac shrink-0" />
+                        <span className="truncate">{inv.org_name}</span>
+                        <span>·</span>
+                        <span className="truncate">{roleLabel}</span>
+                      </div>
+                    </Link>
 
-                    <div className="grid grid-cols-3 gap-1.5 mt-3">
+                    <Link
+                      to="/invite/$token"
+                      params={{ token: inv.token }}
+                      onClick={() => setInvOpen(false)}
+                      className="mt-3 h-8 grid place-items-center rounded-md bg-yo-raised border border-yo-border text-[11px] font-medium text-yo-txt hover:bg-yo-ac-bg hover:border-yo-ac/40 hover:text-yo-ac transition"
+                    >
+                      Ver detalles de la operación
+                    </Link>
+
+                    <div className="grid grid-cols-3 gap-1.5 mt-1.5">
                       <Link
                         to="/invitations/$token"
                         params={{ token: inv.token }}
