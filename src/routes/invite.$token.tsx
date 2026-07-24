@@ -214,6 +214,7 @@ function useInviteMock(token: string): InviteData {
 function InviteApprovalPage() {
   const { token } = Route.useParams();
   const search = Route.useSearch();
+  const navigate = useNavigate();
   const data = useInviteMock(token);
 
   const [showAcceptModal, setShowAcceptModal] = useState(false);
