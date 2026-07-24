@@ -227,11 +227,18 @@ function InviteApprovalPage() {
   }, [search.action]);
 
 
+  const isCreatorView = search.view === "creator";
   const isBuyer = data.inviteeRole === "PAGADOR";
   const roleLabel = isBuyer ? "Pagador / Comprador" : "Beneficiario / Vendedor";
   const counterLabel = isBuyer ? "Beneficiario / Vendedor" : "Pagador / Comprador";
 
-  const copy = isBuyer
+  const copy = isCreatorView
+    ? {
+        title: "Revisa tu operación antes de firmar",
+        subtitle: `Esta es la operación que registraste. Revisa monto, hitos, reglas de aprobación y condiciones. Cuando estés listo, pasa a firma de acuerdos. Podrás ver aquí cuando tu contraparte apruebe, firme o solicite cambios.`,
+        cta: "Firmar acuerdo",
+      }
+    : isBuyer
     ? {
         title: "Revisa esta operación antes de fondear",
         subtitle: `${data.creatorName} te envió una propuesta de operación protegida. Revisa el monto, los hitos, las reglas de aprobación y las condiciones de devolución antes de aceptar.`,
@@ -242,6 +249,7 @@ function InviteApprovalPage() {
         subtitle: `${data.creatorName} te invitó a una operación protegida. Revisa los hitos, documentos, fechas y condiciones de liberación antes de aceptar.`,
         cta: "Aceptar operación y continuar a firma",
       };
+
 
   // ── Estados especiales (§21) ────────────────────────────────────────
   const now = Date.now();
