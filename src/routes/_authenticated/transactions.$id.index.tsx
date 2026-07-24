@@ -27,8 +27,10 @@ type Tx = {
   numero: string | null;
   buyer_id: string;
   seller_id: string | null;
+  creado_por: string | null;
   counterparty_email: string | null;
   beneficiario_nombre: string | null;
+  pagador_nombre: string | null;
   title: string;
   description: string | null;
   sector: string | null;
