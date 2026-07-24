@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   ShieldCheck, Clock, FileText, Users, Landmark, Scale, Gavel, FileSignature,
   CheckCircle2, XCircle, MessageSquareWarning, ArrowRight, Lock, Hash, Building2,
@@ -15,8 +15,12 @@ import { toast } from "sonner";
 
 export const Route = createFileRoute("/invite/$token")({
   ssr: false,
+  validateSearch: (s: Record<string, unknown>) => ({
+    action: (s.action === "accept" ? "accept" : undefined) as "accept" | undefined,
+  }),
   component: InviteApprovalPage,
 });
+
 
 // ─────────────────────────────────────────────────────────────────────────
 // Tipos (mirror del payload API §15.1)
@@ -208,6 +212,7 @@ function useInviteMock(token: string): InviteData {
 // ─────────────────────────────────────────────────────────────────────────
 function InviteApprovalPage() {
   const { token } = Route.useParams();
+  const search = Route.useSearch();
   const data = useInviteMock(token);
 
   const [showAcceptModal, setShowAcceptModal] = useState(false);
@@ -215,6 +220,11 @@ function InviteApprovalPage() {
   const [showChangesModal, setShowChangesModal] = useState(false);
   const [showContract, setShowContract] = useState(false);
   const [postState, setPostState] = useState<null | "accepted" | "changes" | "rejected">(null);
+
+  useEffect(() => {
+    if (search.action === "accept") setShowAcceptModal(true);
+  }, [search.action]);
+
 
   const isBuyer = data.inviteeRole === "PAGADOR";
   const roleLabel = isBuyer ? "Pagador / Comprador" : "Beneficiario / Vendedor";
