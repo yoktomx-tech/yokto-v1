@@ -552,8 +552,19 @@ function InviteApprovalPage() {
             </InfoBox>
           </Card>
 
+          {/* Aviso de bloqueo cuando la contraparte firmó o la operación fue cancelada */}
+          {isCreatorView && creatorCheck?.lock_reason && (
+            <InfoBox
+              tone={creatorCheck.locked_by === "cancelled" ? "danger" : "warning"}
+              title={creatorCheck.locked_by === "cancelled" ? "Operación cerrada" : "Edición bloqueada por firma de contraparte"}
+            >
+              {creatorCheck.lock_reason}
+            </InfoBox>
+          )}
+
           {/* Acciones §10 */}
           <div className="sticky bottom-0 -mx-4 px-4 py-3 bg-yo-surface border-t border-yo-border flex flex-wrap gap-2 justify-end mt-2">
+
             {isCreatorView ? (
               <>
                 {(() => {
