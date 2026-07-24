@@ -80,11 +80,6 @@ export function TransactionsTabs({ active, onChange, role, counts }: TabsProps) 
         return (
           <button
             key={t.id}
-        const isActive = active === t.id;
-        const c = counts[t.id] ?? 0;
-        return (
-          <button
-            key={t.id}
             type="button"
             onClick={() => onChange(t.id)}
             className={cn(
