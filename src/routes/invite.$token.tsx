@@ -1,10 +1,10 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import {
   ShieldCheck, Clock, FileText, Users, Landmark, Scale, Gavel, FileSignature,
   CheckCircle2, XCircle, MessageSquareWarning, ArrowRight, Lock, Hash, Building2,
   User, Calendar, AlertTriangle, Download, Eye, ClipboardCheck, X, Info,
-  Camera, MapPin, ListChecks, Truck, RefreshCw, Home,
+  Camera, MapPin, ListChecks, Truck, RefreshCw, Home, Pencil,
 } from "lucide-react";
 import { CumplexLogo } from "@/components/logo";
 import { InfoBox } from "@/components/tx/ui/info-box";
@@ -214,6 +214,7 @@ function useInviteMock(token: string): InviteData {
 function InviteApprovalPage() {
   const { token } = Route.useParams();
   const search = Route.useSearch();
+  const navigate = useNavigate();
   const data = useInviteMock(token);
 
   const [showAcceptModal, setShowAcceptModal] = useState(false);
@@ -539,10 +540,10 @@ function InviteApprovalPage() {
             {isCreatorView ? (
               <>
                 <button
-                  onClick={() => toast.info("Vista de detalle de la operación")}
+                  onClick={() => navigate({ to: "/transactions/$id", params: { id: token } })}
                   className="h-10 px-4 rounded-md border border-yo-border bg-white dark:bg-transparent text-sm text-yo-txt inline-flex items-center gap-2 hover:border-yo-ac"
                 >
-                  <Eye className="size-4" /> Ver operación
+                  <Pencil className="size-4" /> Editar operación
                 </button>
                 <button
                   onClick={() => setShowAcceptModal(true)}
