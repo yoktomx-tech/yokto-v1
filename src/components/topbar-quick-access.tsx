@@ -3,11 +3,12 @@ import { Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import {
-  Search, MessageSquare, LifeBuoy, Activity, HelpCircle,
+  Search, MessageSquare, LifeBuoy, Activity, HelpCircle, Mail,
 } from "lucide-react";
 import { getQuickAccessContext, listMyTickets } from "@/lib/support.functions";
 import { useViewRole } from "@/hooks/use-view-role";
 import { cn } from "@/lib/utils";
+import { InvitationsInboxIcon } from "@/components/yokto/invitations/invitations-inbox-icon";
 
 export function TopbarQuickAccess() {
   const [open, setOpen] = useState(false);
@@ -30,7 +31,8 @@ export function TopbarQuickAccess() {
 
 
   return (
-    <div className="relative">
+    <div className="relative flex items-center gap-1">
+      <InvitationsInboxIcon />
       <button
         onClick={() => setOpen((o) => !o)}
         aria-label="Centro de ayuda y soporte"
