@@ -564,14 +564,25 @@ function InviteApprovalPage() {
                     onSuccess: () => toast.success("Recordatorio enviado a la contraparte"),
                     onError: (e: any) => toast.error(e?.message ?? "No se pudo enviar el recordatorio"),
                   });
+                  const editLocked = creatorCheck?.can_edit === false && !!creatorCheck?.lock_reason;
+                  const lockReason = creatorCheck?.lock_reason ?? null;
                   return (
                     <>
                       <button
-                        onClick={() => navigate({ to: "/transactions/$id", params: { id: token } })}
-                        className="h-10 px-4 rounded-md border border-yo-border bg-white dark:bg-transparent text-sm text-yo-txt inline-flex items-center gap-2 hover:border-yo-ac"
+                        onClick={() => !editLocked && navigate({ to: "/transactions/$id", params: { id: token } })}
+                        disabled={editLocked}
+                        title={editLocked ? (lockReason ?? undefined) : undefined}
+                        className={cn(
+                          "h-10 px-4 rounded-md border text-sm inline-flex items-center gap-2",
+                          editLocked
+                            ? "border-yo-border bg-yo-raised/40 text-yo-txt-3 cursor-not-allowed"
+                            : "border-yo-border bg-white dark:bg-transparent text-yo-txt hover:border-yo-ac",
+                        )}
                       >
-                        <Pencil className="size-4" /> Editar operación
+                        {editLocked ? <Lock className="size-4" /> : <Pencil className="size-4" />}
+                        {editLocked ? "Edición bloqueada" : "Editar operación"}
                       </button>
+
                       {!cpAccepted && (
                         <button
                           onClick={() => remindMut.mutate()}
