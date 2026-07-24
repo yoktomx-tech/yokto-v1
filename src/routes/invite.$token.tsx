@@ -17,6 +17,7 @@ export const Route = createFileRoute("/invite/$token")({
   ssr: false,
   validateSearch: (s: Record<string, unknown>) => ({
     action: (s.action === "accept" ? "accept" : undefined) as "accept" | undefined,
+    view: (s.view === "creator" ? "creator" : undefined) as "creator" | undefined,
   }),
   component: InviteApprovalPage,
 });
