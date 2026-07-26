@@ -1,4 +1,4 @@
-/** revisa y aplica estos cambios */
+/** analiza e implementa esto */
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 
