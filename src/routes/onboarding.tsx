@@ -288,7 +288,7 @@ function Field(props: {
   return (
     <div className="flex flex-col gap-1.5">
       <label htmlFor={id} className="text-xs font-medium text-yo-txt-2">
-        {label}{required && <span className="text-yo-err" aria-hidden="true">*</span>}
+        {label}{required && <span className="text-yo-err ml-0.5" aria-hidden="true">*</span>}
       </label>
       <div className={
         "group flex items-center gap-2.5 rounded-md border h-11 px-3 transition bg-yo-surface " +
@@ -341,9 +341,9 @@ function Step1Account({ initialEmail, onCredentials, setError, loading, setLoadi
 
   const pwdChecks = [
     { label: "Mínimo 8 caracteres", ok: password.length >= 8 },
-    { label: "Una mayúscula", ok: /[A-Z]/.test(password) },
+    { label: "Una letra mayúscula", ok: /[A-Z]/.test(password) },
     { label: "Un número", ok: /[0-9]/.test(password) },
-    { label: "Un símbolo", ok: /[^A-Za-z0-9]/.test(password) },
+    { label: "Un símbolo (!@#$%^&*)", ok: /[^A-Za-z0-9]/.test(password) },
   ];
   const pwdScore = pwdChecks.filter((c) => c.ok).length + (password.length >= 12 ? 1 : 0);
   const pwdStrength = password.length === 0
