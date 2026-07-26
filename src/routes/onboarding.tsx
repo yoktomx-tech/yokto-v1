@@ -458,7 +458,7 @@ function Step1Account({ initialEmail, onCredentials, setError, loading, setLoadi
       </div>
 
       <Field id="confirm" label="Confirma contraseña" value={confirm} onChange={setConfirm}
-        type={showConfirm ? "text" : "password"} placeholder="Confirmar contraseña" required autoComplete="new-password"
+        type={showConfirm ? "text" : "password"} placeholder="••••••••" required autoComplete="new-password"
         error={confirmError} icon={<Lock className="size-4" />}
         trailing={
           <button type="button" onClick={() => setShowConfirm((v) => !v)} tabIndex={-1}
