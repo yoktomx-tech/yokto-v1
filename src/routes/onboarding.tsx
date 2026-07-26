@@ -329,6 +329,7 @@ function Step1Account({ initialEmail, onCredentials, setError, loading, setLoadi
 }) {
   const [email, setEmail] = useState(initialEmail);
   const [password, setPassword] = useState("");
+  const [showPwd, setShowPwd] = useState(false);
   const [confirm, setConfirm] = useState("");
   const [terms, setTerms] = useState(false);
   const [showPwd, setShowPwd] = useState(false);
