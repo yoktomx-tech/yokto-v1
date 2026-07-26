@@ -184,17 +184,17 @@ function Step1Account({ token, inv, org, addr, onDone, setError }: {
   const createFn = useServerFn(createInviteeAccount);
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
-  const [show, setShow] = useState(false);
+  const [showPwd, setShowPwd] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const [saving, setSaving] = useState(false);
 
   const rules = useMemo(() => ({
-    len: password.length >= 10,
+    len: password.length >= 8,
     upper: /[A-Z]/.test(password),
-    lower: /[a-z]/.test(password),
     num: /\d/.test(password),
     sym: /[^A-Za-z0-9]/.test(password),
   }), [password]);
-  const passOk = rules.len && rules.upper && rules.lower && rules.num && rules.sym;
+  const passOk = rules.len && rules.upper && rules.num && rules.sym;
   const match = password && password === confirm;
 
   async function submit() {
@@ -257,16 +257,15 @@ function Step1Account({ token, inv, org, addr, onDone, setError }: {
           <Lock className="size-3.5" /> Define tu contraseña
         </p>
         <div className="grid gap-3">
-          <PasswordField id="pwd" label="Contraseña" value={password} onChange={setPassword} show={show} onToggle={() => setShow(!show)} />
-          <PasswordField id="pwd2" label="Confirmar contraseña" value={confirm} onChange={setConfirm} show={show} onToggle={() => setShow(!show)}
-            placeholder="Repite la contraseña" />
+          <PasswordField id="pwd" label="Contraseña" value={password} onChange={setPassword} show={showPwd} onToggle={() => setShowPwd(!showPwd)} />
+          <PasswordField id="pwd2" label="Confirmar contraseña" value={confirm} onChange={setConfirm} show={showConfirm} onToggle={() => setShowConfirm(!showConfirm)}
+            placeholder="••••••••" />
         </div>
         <ul className="mt-3 grid gap-1 text-[11px] sm:grid-cols-2">
-          <Rule ok={rules.len}>Al menos 10 caracteres</Rule>
-          <Rule ok={rules.upper}>Una mayúscula</Rule>
-          <Rule ok={rules.lower}>Una minúscula</Rule>
+          <Rule ok={rules.len}>Mínimo 8 caracteres</Rule>
+          <Rule ok={rules.upper}>Una letra mayúscula</Rule>
           <Rule ok={rules.num}>Un número</Rule>
-          <Rule ok={rules.sym}>Un símbolo</Rule>
+          <Rule ok={rules.sym}>Un símbolo (!@#$%^&*)</Rule>
           <Rule ok={!!match}>Coinciden ambas contraseñas</Rule>
         </ul>
       </section>
