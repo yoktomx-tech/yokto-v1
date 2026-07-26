@@ -1,4 +1,4 @@
-/** analiza e implementa esto */
+/** puedes crear */
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 
