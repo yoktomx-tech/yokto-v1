@@ -956,6 +956,78 @@ export type Database = {
           },
         ]
       }
+      document_file_profiles: {
+        Row: {
+          allowed_extensions: string[]
+          allowed_mime_types: string[]
+          capture_mode: string
+          created_at: string | null
+          descripcion: string | null
+          file_profile_code: string
+          label: string
+          max_file_size_mb: number
+          max_files: number
+          min_files: number
+          recommended_extensions: string[] | null
+          required_extensions_any: string[] | null
+          requires_gps_metadata: boolean
+          requires_hash: boolean
+          requires_image_analysis: boolean
+          requires_ocr: boolean
+          requires_sat_validation: boolean
+          requires_signature_validation: boolean
+          requires_virus_scan: boolean
+          requires_xml_parse: boolean
+          validation_engine: string
+        }
+        Insert: {
+          allowed_extensions: string[]
+          allowed_mime_types: string[]
+          capture_mode?: string
+          created_at?: string | null
+          descripcion?: string | null
+          file_profile_code: string
+          label: string
+          max_file_size_mb?: number
+          max_files?: number
+          min_files?: number
+          recommended_extensions?: string[] | null
+          required_extensions_any?: string[] | null
+          requires_gps_metadata?: boolean
+          requires_hash?: boolean
+          requires_image_analysis?: boolean
+          requires_ocr?: boolean
+          requires_sat_validation?: boolean
+          requires_signature_validation?: boolean
+          requires_virus_scan?: boolean
+          requires_xml_parse?: boolean
+          validation_engine?: string
+        }
+        Update: {
+          allowed_extensions?: string[]
+          allowed_mime_types?: string[]
+          capture_mode?: string
+          created_at?: string | null
+          descripcion?: string | null
+          file_profile_code?: string
+          label?: string
+          max_file_size_mb?: number
+          max_files?: number
+          min_files?: number
+          recommended_extensions?: string[] | null
+          required_extensions_any?: string[] | null
+          requires_gps_metadata?: boolean
+          requires_hash?: boolean
+          requires_image_analysis?: boolean
+          requires_ocr?: boolean
+          requires_sat_validation?: boolean
+          requires_signature_validation?: boolean
+          requires_virus_scan?: boolean
+          requires_xml_parse?: boolean
+          validation_engine?: string
+        }
+        Relationships: []
+      }
       document_review_queue: {
         Row: {
           asignado_a: string | null
@@ -1033,6 +1105,141 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "transactions"
             referencedColumns: ["id"]
+          },
+        ]
+      }
+      document_validation_logs: {
+        Row: {
+          created_at: string
+          error_message: string | null
+          extension: string | null
+          file_name: string | null
+          file_size: number | null
+          hito_id: string | null
+          id: string
+          mime_type: string | null
+          requirement_id: string | null
+          result_payload: Json | null
+          sha256: string | null
+          status: string
+          transaction_id: string | null
+          user_id: string | null
+          validation_engine: string | null
+        }
+        Insert: {
+          created_at?: string
+          error_message?: string | null
+          extension?: string | null
+          file_name?: string | null
+          file_size?: number | null
+          hito_id?: string | null
+          id?: string
+          mime_type?: string | null
+          requirement_id?: string | null
+          result_payload?: Json | null
+          sha256?: string | null
+          status: string
+          transaction_id?: string | null
+          user_id?: string | null
+          validation_engine?: string | null
+        }
+        Update: {
+          created_at?: string
+          error_message?: string | null
+          extension?: string | null
+          file_name?: string | null
+          file_size?: number | null
+          hito_id?: string | null
+          id?: string
+          mime_type?: string | null
+          requirement_id?: string | null
+          result_payload?: Json | null
+          sha256?: string | null
+          status?: string
+          transaction_id?: string | null
+          user_id?: string | null
+          validation_engine?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_validation_logs_hito_id_fkey"
+            columns: ["hito_id"]
+            isOneToOne: false
+            referencedRelation: "transaction_hitos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "document_validation_logs_requirement_id_fkey"
+            columns: ["requirement_id"]
+            isOneToOne: false
+            referencedRelation: "transaction_milestone_document_requirements"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "document_validation_logs_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      documentos_catalogo: {
+        Row: {
+          activo: boolean
+          allowed_extensions_override: string[] | null
+          allowed_mime_types_override: string[] | null
+          created_at: string
+          descripcion: string | null
+          documento_codigo: string
+          es_propuesto: boolean
+          file_profile_code: string | null
+          id: string
+          max_file_size_mb_override: number | null
+          max_files_override: number | null
+          min_files_override: number | null
+          nombre_referencia: string
+          validation_engine_override: string | null
+        }
+        Insert: {
+          activo?: boolean
+          allowed_extensions_override?: string[] | null
+          allowed_mime_types_override?: string[] | null
+          created_at?: string
+          descripcion?: string | null
+          documento_codigo: string
+          es_propuesto?: boolean
+          file_profile_code?: string | null
+          id?: string
+          max_file_size_mb_override?: number | null
+          max_files_override?: number | null
+          min_files_override?: number | null
+          nombre_referencia: string
+          validation_engine_override?: string | null
+        }
+        Update: {
+          activo?: boolean
+          allowed_extensions_override?: string[] | null
+          allowed_mime_types_override?: string[] | null
+          created_at?: string
+          descripcion?: string | null
+          documento_codigo?: string
+          es_propuesto?: boolean
+          file_profile_code?: string | null
+          id?: string
+          max_file_size_mb_override?: number | null
+          max_files_override?: number | null
+          min_files_override?: number | null
+          nombre_referencia?: string
+          validation_engine_override?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "documentos_catalogo_file_profile_code_fkey"
+            columns: ["file_profile_code"]
+            isOneToOne: false
+            referencedRelation: "document_file_profiles"
+            referencedColumns: ["file_profile_code"]
           },
         ]
       }
@@ -1407,6 +1614,188 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      hito_template_condiciones: {
+        Row: {
+          condicion_texto: string
+          created_at: string | null
+          hito_template_id: string
+          id: string
+          orden: number
+        }
+        Insert: {
+          condicion_texto: string
+          created_at?: string | null
+          hito_template_id: string
+          id?: string
+          orden?: number
+        }
+        Update: {
+          condicion_texto?: string
+          created_at?: string | null
+          hito_template_id?: string
+          id?: string
+          orden?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hito_template_condiciones_hito_template_id_fkey"
+            columns: ["hito_template_id"]
+            isOneToOne: false
+            referencedRelation: "hito_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hito_template_documentos: {
+        Row: {
+          allowed_extensions_override: string[] | null
+          allowed_mime_types_override: string[] | null
+          categoria: string
+          created_at: string | null
+          descripcion_catalogo: string | null
+          detalle_especifico: string | null
+          documento_codigo: string
+          es_propuesto: boolean | null
+          file_profile_code_override: string | null
+          hito_template_id: string
+          id: string
+          max_file_size_mb: number | null
+          max_files: number | null
+          min_files: number | null
+          nombre_referencia: string | null
+          requires_geotag: boolean | null
+          requires_sat_validation: boolean | null
+          requires_signature: boolean | null
+          requires_timestamp: boolean | null
+          validation_engine_override: string | null
+        }
+        Insert: {
+          allowed_extensions_override?: string[] | null
+          allowed_mime_types_override?: string[] | null
+          categoria?: string
+          created_at?: string | null
+          descripcion_catalogo?: string | null
+          detalle_especifico?: string | null
+          documento_codigo: string
+          es_propuesto?: boolean | null
+          file_profile_code_override?: string | null
+          hito_template_id: string
+          id?: string
+          max_file_size_mb?: number | null
+          max_files?: number | null
+          min_files?: number | null
+          nombre_referencia?: string | null
+          requires_geotag?: boolean | null
+          requires_sat_validation?: boolean | null
+          requires_signature?: boolean | null
+          requires_timestamp?: boolean | null
+          validation_engine_override?: string | null
+        }
+        Update: {
+          allowed_extensions_override?: string[] | null
+          allowed_mime_types_override?: string[] | null
+          categoria?: string
+          created_at?: string | null
+          descripcion_catalogo?: string | null
+          detalle_especifico?: string | null
+          documento_codigo?: string
+          es_propuesto?: boolean | null
+          file_profile_code_override?: string | null
+          hito_template_id?: string
+          id?: string
+          max_file_size_mb?: number | null
+          max_files?: number | null
+          min_files?: number | null
+          nombre_referencia?: string | null
+          requires_geotag?: boolean | null
+          requires_sat_validation?: boolean | null
+          requires_signature?: boolean | null
+          requires_timestamp?: boolean | null
+          validation_engine_override?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hito_template_documentos_documento_codigo_fkey"
+            columns: ["documento_codigo"]
+            isOneToOne: false
+            referencedRelation: "documentos_catalogo"
+            referencedColumns: ["documento_codigo"]
+          },
+          {
+            foreignKeyName: "hito_template_documentos_file_profile_code_override_fkey"
+            columns: ["file_profile_code_override"]
+            isOneToOne: false
+            referencedRelation: "document_file_profiles"
+            referencedColumns: ["file_profile_code"]
+          },
+          {
+            foreignKeyName: "hito_template_documentos_hito_template_id_fkey"
+            columns: ["hito_template_id"]
+            isOneToOne: false
+            referencedRelation: "hito_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hito_templates: {
+        Row: {
+          alerta_dias: number | null
+          created_at: string
+          descripcion: string | null
+          dia_inicio_est: number | null
+          duracion_max_dias: number | null
+          id: string
+          modulo_dispositivo: string | null
+          nombre: string
+          notas: string | null
+          numero: number
+          pct_monto: string | null
+          responsable: string | null
+          revisor_yokto: string | null
+          subtipo_id: string
+        }
+        Insert: {
+          alerta_dias?: number | null
+          created_at?: string
+          descripcion?: string | null
+          dia_inicio_est?: number | null
+          duracion_max_dias?: number | null
+          id?: string
+          modulo_dispositivo?: string | null
+          nombre: string
+          notas?: string | null
+          numero: number
+          pct_monto?: string | null
+          responsable?: string | null
+          revisor_yokto?: string | null
+          subtipo_id: string
+        }
+        Update: {
+          alerta_dias?: number | null
+          created_at?: string
+          descripcion?: string | null
+          dia_inicio_est?: number | null
+          duracion_max_dias?: number | null
+          id?: string
+          modulo_dispositivo?: string | null
+          nombre?: string
+          notas?: string | null
+          numero?: number
+          pct_monto?: string | null
+          responsable?: string | null
+          revisor_yokto?: string | null
+          subtipo_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hito_templates_subtipo_id_fkey"
+            columns: ["subtipo_id"]
+            isOneToOne: false
+            referencedRelation: "subtipos_operacion"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       internal_access_log: {
         Row: {
@@ -2565,6 +2954,57 @@ export type Database = {
           },
         ]
       }
+      sectores_operacion: {
+        Row: {
+          activo: boolean
+          checklist_pts: string | null
+          codigo: string
+          componentes_especiales: string | null
+          created_at: string
+          duracion_tipica: string | null
+          id: number
+          inspeccion_fisica: boolean | null
+          monto_tipico: string | null
+          nombre: string
+          notas: string | null
+          repse_requerido: boolean | null
+          solo_spei: boolean | null
+          validaciones_adicionales: string | null
+        }
+        Insert: {
+          activo?: boolean
+          checklist_pts?: string | null
+          codigo: string
+          componentes_especiales?: string | null
+          created_at?: string
+          duracion_tipica?: string | null
+          id?: number
+          inspeccion_fisica?: boolean | null
+          monto_tipico?: string | null
+          nombre: string
+          notas?: string | null
+          repse_requerido?: boolean | null
+          solo_spei?: boolean | null
+          validaciones_adicionales?: string | null
+        }
+        Update: {
+          activo?: boolean
+          checklist_pts?: string | null
+          codigo?: string
+          componentes_especiales?: string | null
+          created_at?: string
+          duracion_tipica?: string | null
+          id?: number
+          inspeccion_fisica?: boolean | null
+          monto_tipico?: string | null
+          nombre?: string
+          notas?: string | null
+          repse_requerido?: boolean | null
+          solo_spei?: boolean | null
+          validaciones_adicionales?: string | null
+        }
+        Relationships: []
+      }
       stripe_webhook_events: {
         Row: {
           created_at: string
@@ -2600,6 +3040,76 @@ export type Database = {
           received_at?: string
         }
         Relationships: []
+      }
+      subtipos_operacion: {
+        Row: {
+          activo: boolean
+          codigo: string
+          created_at: string
+          created_by: string | null
+          duracion_sugerida_dias: number | null
+          id: string
+          is_default: boolean
+          is_editable: boolean
+          nombre: string
+          org_id: string | null
+          parent_subtipo_id: string | null
+          sector_id: number
+          updated_at: string
+        }
+        Insert: {
+          activo?: boolean
+          codigo: string
+          created_at?: string
+          created_by?: string | null
+          duracion_sugerida_dias?: number | null
+          id?: string
+          is_default?: boolean
+          is_editable?: boolean
+          nombre: string
+          org_id?: string | null
+          parent_subtipo_id?: string | null
+          sector_id: number
+          updated_at?: string
+        }
+        Update: {
+          activo?: boolean
+          codigo?: string
+          created_at?: string
+          created_by?: string | null
+          duracion_sugerida_dias?: number | null
+          id?: string
+          is_default?: boolean
+          is_editable?: boolean
+          nombre?: string
+          org_id?: string | null
+          parent_subtipo_id?: string | null
+          sector_id?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subtipos_operacion_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subtipos_operacion_parent_subtipo_id_fkey"
+            columns: ["parent_subtipo_id"]
+            isOneToOne: false
+            referencedRelation: "subtipos_operacion"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subtipos_operacion_sector_id_fkey"
+            columns: ["sector_id"]
+            isOneToOne: false
+            referencedRelation: "sectores_operacion"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       support_attachment_downloads: {
         Row: {
@@ -3175,6 +3685,102 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "transaction_hitos_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      transaction_milestone_document_requirements: {
+        Row: {
+          allowed_extensions: string[]
+          allowed_mime_types: string[]
+          capture_mode: string
+          categoria: string
+          created_at: string
+          detalle_especifico: string | null
+          documento_codigo: string
+          hito_id: string
+          id: string
+          max_file_size_mb: number
+          max_files: number
+          min_files: number
+          nombre_referencia: string
+          requires_gps_metadata: boolean
+          requires_hash: boolean
+          requires_image_analysis: boolean
+          requires_ocr: boolean
+          requires_sat_validation: boolean
+          requires_signature_validation: boolean
+          requires_virus_scan: boolean
+          requires_xml_parse: boolean
+          template_document_id: string | null
+          transaction_id: string
+          validation_engine: string
+        }
+        Insert: {
+          allowed_extensions: string[]
+          allowed_mime_types: string[]
+          capture_mode?: string
+          categoria?: string
+          created_at?: string
+          detalle_especifico?: string | null
+          documento_codigo: string
+          hito_id: string
+          id?: string
+          max_file_size_mb?: number
+          max_files?: number
+          min_files?: number
+          nombre_referencia: string
+          requires_gps_metadata?: boolean
+          requires_hash?: boolean
+          requires_image_analysis?: boolean
+          requires_ocr?: boolean
+          requires_sat_validation?: boolean
+          requires_signature_validation?: boolean
+          requires_virus_scan?: boolean
+          requires_xml_parse?: boolean
+          template_document_id?: string | null
+          transaction_id: string
+          validation_engine?: string
+        }
+        Update: {
+          allowed_extensions?: string[]
+          allowed_mime_types?: string[]
+          capture_mode?: string
+          categoria?: string
+          created_at?: string
+          detalle_especifico?: string | null
+          documento_codigo?: string
+          hito_id?: string
+          id?: string
+          max_file_size_mb?: number
+          max_files?: number
+          min_files?: number
+          nombre_referencia?: string
+          requires_gps_metadata?: boolean
+          requires_hash?: boolean
+          requires_image_analysis?: boolean
+          requires_ocr?: boolean
+          requires_sat_validation?: boolean
+          requires_signature_validation?: boolean
+          requires_virus_scan?: boolean
+          requires_xml_parse?: boolean
+          template_document_id?: string | null
+          transaction_id?: string
+          validation_engine?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transaction_milestone_document_requirements_hito_id_fkey"
+            columns: ["hito_id"]
+            isOneToOne: false
+            referencedRelation: "transaction_hitos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transaction_milestone_document_requirements_transaction_id_fkey"
             columns: ["transaction_id"]
             isOneToOne: false
             referencedRelation: "transactions"

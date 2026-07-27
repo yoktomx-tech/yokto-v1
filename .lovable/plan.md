@@ -1,57 +1,103 @@
 
-## Objetivo
+## Alcance
 
-Reutilizar en Persona Moral (PM) los tres mecanismos de precaptura fiscal que hoy sólo se muestran para Persona Física (PF) en `/onboarding` paso 3, con las reglas específicas que definiste.
+Aplicar el complemento "Formatos, extensiones y validación de archivos" sobre el módulo de Subtipos de Operación e Hitos, según los 3 archivos adjuntos.
 
-## Cambios
+Nota importante: las tablas base del módulo (`subtipos_operacion`, `documentos_catalogo`, `hito_templates`, `hito_template_documentos`, `hito_template_condiciones`, `hito_template_informacion`) **no existen aún** en la BD. Sólo existe `transaction_hitos`. Debo crear tanto la Fase 1 (seed base) como la Fase 2 (perfiles de archivo).
 
-### 1. Selector de modo (CSF / e.firma / Manual) también para PM
-Mostrar los tres `FiscalModeButton` cuando `tipo === "persona_moral"`. El resto de la UI del paso se activa por `fillMode`, igual que en PF.
+## 1. Base de datos (migraciones)
 
-### 2. Modo **Manual (PM)**
-- Único campo requerido inicial: **RFC (12 dígitos, PM)**.
-- Al perder foco, llamar a `POST https://sat.nubarium.com/sat/v1/obtener-razonsocial` (Nubarium — Get Name from RFC) vía server function existente (`validateRfcNubarium`) que ya devuelve razón social.
-- Autollenar y bloquear `legal_name` con la razón social devuelta.
-- Habilitados para captura manual: **Fecha de constitución**, **Nombre comercial**, **Régimen fiscal** (select SAT).
-- Banner amarillo: *"Los datos capturados manualmente serán revisados por el equipo de YOKTO antes de activar tu cuenta."*
-- Sección **Representante legal**:
-  - Empieza pidiendo **CURP** del representante.
-  - Al validar, correr RENAPO/Nubarium (misma `validateCurpNubarium` de PF).
-  - Mostrar el mismo recuadro colapsable (auto-cierre 5s) con nombre, apellidos, fecha, sexo, entidad.
-  - Autollenar `rep_full_name` y `rep_rfc` (derivado si Nubarium lo devuelve; si no, editable).
-  - Cargo (`rep_role`) sigue siendo captura manual.
+**Fase 1 — Catálogo base**
+- `sectores_operacion` (6 sectores incluidos, excluir COMERCIO_EXTERIOR)
+- `subtipos_operacion` (default `is_default=true`, `is_editable=false`)
+- `documentos_catalogo` (documentos maestros)
+- `hito_templates`, `hito_template_documentos`, `hito_template_condiciones`, `hito_template_informacion`
+- Seed desde `yokto_seed_subtipos_hitos_sin_comercio_exterior_1-2.json`
 
-### 3. Modo **Constancia de Situación Fiscal (PM)**
-- Subir PDF/imagen → `parseCsf` (ya existe). Debe entregar: RFC, razón social, régimen fiscal (código + nombre), fecha constitución, nombre comercial (si aparece), domicilio completo.
-- Autollenar y **bloquear** todos esos campos.
-- **Concatenar** `razón social + " " + nombre del régimen` en el campo `legal_name` mostrado.
-- Único bloque editable: **Representante legal** (CURP → validación → nombre; cargo manual).
-- Mostrar recuadro colapsable con **todos los campos** devueltos por Nubarium/parser (auto-cierre 5s).
+**Fase 2 — Perfiles de archivo**
+- `document_file_profiles` (10 perfiles del complemento)
+- Columnas de override en `documentos_catalogo` (file_profile_code, allowed_extensions_override, etc.)
+- Columnas de override en `hito_template_documentos`
+- Snapshot `transaction_milestone_document_requirements` (referencia `transaction_hitos`)
+- Seed desde `yokto_document_file_profiles_patch-2.json` (asignaciones automáticas por código)
 
-### 4. Modo **e.firma (PM)**
-- Reutilizar el flujo actual de PF: subir `.cer` + `.key` + contraseña → `validateFielSerialNubarium` (validación de serial, vigencia SAT).
-- Del certificado extraer: **RFC** de la persona moral y **CURP del representante legal** (subject).
-- Con el RFC extraído, invocar `validateRfcNubarium` (obtener-razonsocial) y bloquear `legal_name` con el resultado.
-- Con la CURP extraída del certificado, correr `validateCurpNubarium` y autollenar campos del representante (bloqueados + recuadro colapsable 5s).
-- Campos aún requeridos por captura manual: **Fecha de constitución**, **Régimen fiscal**, **Nombre comercial**.
-- Mismo banner amarillo de "los datos manuales serán revisados por YOKTO".
-- Si la e.firma no está vigente, mantener el bloqueo actual.
+Todas con `GRANT` explícito + RLS: `SELECT` a `authenticated` para catálogos read-only; `INSERT/UPDATE` sólo a admins/backoffice. Snapshot con RLS por membresía de la transacción.
 
-### 5. Domicilio fiscal
-- CSF: extraído y bloqueado (comportamiento actual).
-- e.firma / Manual (PM): captura por CP con `lookupCP` (como hoy en PF).
+## 2. Función de resolución + tipos
 
-### 6. Validación final del paso
-Ajustar el `validate()` del step 3 para PM:
-- Requiere `legal_name` (viene de Nubarium/CSF), `rfc`, `regimen_fiscal`, domicilio completo, y datos del representante (`rep_full_name`, `rep_rfc`, `rep_curp`, `rep_role`).
-- Si `fillMode === "efirma"` y la e.firma es NO VIGENTE → bloquear.
-- Si `fillMode === "manual"` y el RFC no fue verificado por Nubarium → bloquear.
+Nuevo módulo `src/lib/document-file-rules.ts`:
+- Tipo `ResolvedFileRule`
+- `resolveFileRule(requirement, catalogDoc, profile)` con la cascada override → catálogo → perfil
+- Helpers: `getExtension()`, `formatAllowedList()`, `formatMaxSize()`
 
-## Notas técnicas
+## 3. Snapshot al crear transacción
 
-- Archivos afectados:
-  - `src/routes/onboarding.tsx` → renderizado del paso 3 (rama PM).
-  - `src/lib/onboarding.functions.ts` → asegurar que `validateRfcNubarium` acepte RFC de 12 (PM) y que `parseCsf` devuelva `regimen_nombre` + `nombre_comercial`; extender `parseEfirmaFiles` para retornar `rep_curp` extraída del subject del `.cer`.
-- No se toca el paso 3 de PF (ya funciona con los tres modos).
-- No se agregan nuevas tablas; los logs de validación siguen escribiéndose en `audit_log` como hoy.
-- El `submitKyc` no cambia — sólo se persisten los campos ya definidos en el perfil.
+Extender `src/lib/transactions.functions.ts`:
+- Al crear operación desde plantilla (`createTransactionFromTemplate`), copiar reglas a `transaction_milestone_document_requirements` por cada hito+documento.
+- Nueva `getMilestoneDocumentRequirements(transactionId)` para el wizard/expediente.
+
+## 4. Backend de subida (validación obligatoria)
+
+Extender `src/lib/tx-documents.functions.ts`:
+- Antes de guardar: validar `extension`, `mime`, `size` contra el snapshot del hito.
+- Calcular SHA-256, marcar `requires_virus_scan=true` en cola.
+- Rechazar extensiones peligrosas: `exe, bat, cmd, sh, js, msi, dmg, jar`.
+- Registrar en `audit_log` cada resultado.
+- Dispatcher `validation_engine` → placeholder por motor (SAT_XML, IA_OCR, IMAGE_GPS_IA, GPS_TRACKING, TABLE_EXTRACTOR, VIDEO_REVIEW_IA, HASH_AND_VIRUS_SCAN, URL_HASH_REVIEW). En esta iteración: hash + antivirus + extensión activos; los motores externos quedan como stubs con log.
+
+## 5. UI Wizard `/transactions/new` — paso Hitos y cumplimiento
+
+En el paso unificado:
+- Cada requisito muestra bajo el nombre: extensiones permitidas, tamaño máx, min/max archivos, badges (Geolocalización, Firma, SAT) — leyendo `ResolvedFileRule`.
+- Dropzone dinámico según `capture_mode`: `UPLOAD`, `CAMERA_OR_UPLOAD`, `GPS_OR_UPLOAD`, `URL_OR_UPLOAD`.
+- Errores claros de extensión/MIME/tamaño desde la API.
+- Componentes nuevos: `<DocRequirementCard>`, `<FileRuleBadges>`, `<SmartDropzone>`.
+
+## 6. Editor de Subtipos (Configuración)
+
+Nueva ruta `_authenticated/settings.subtipos.tsx` y `settings.subtipos.$id.tsx`:
+- Listado por sector, marcando defaults con candado.
+- Duplicar subtipo default → crea custom editable.
+- En custom: editar hitos, documentos requeridos, condiciones. Documento default bloqueado con leyenda "🔒 Documento default YOKTO". Documento custom permite editar formato/extensiones/tamaño/motor.
+- Bloquear siempre extensiones peligrosas.
+
+## 7. Auditoría y logs
+
+- Todas las validaciones de subida → `audit_events` con `event_type='document.upload_validation'`.
+- Motores externos → `onboarding_api_logs` reutilizado o nueva `document_validation_logs` (según encaje; usar `audit_events` por simplicidad).
+
+## Detalles técnicos
+
+```text
+Migraciones (orden):
+  001_catalogo_subtipos_base.sql
+  002_seed_catalogo_subtipos.sql
+  003_document_file_profiles.sql
+  004_seed_file_profiles_and_assignments.sql
+  005_snapshot_milestone_requirements.sql
+
+Nuevos módulos:
+  src/lib/document-file-rules.ts        // resolveFileRule + tipos
+  src/lib/subtipos.functions.ts         // CRUD catálogo + duplicar
+  src/lib/document-validation.server.ts // motores (stubs + hash + antivirus)
+
+Cambios:
+  src/lib/tx-documents.functions.ts     // validación obligatoria pre-upload
+  src/lib/transactions.functions.ts     // snapshot al crear operación
+  src/routes/_authenticated/transactions.new.tsx  // UI reglas por documento
+  src/routes/_authenticated/settings.subtipos.tsx // nuevo
+  src/routes/_authenticated/settings.subtipos.$id.tsx // nuevo
+```
+
+## Qué NO incluye esta iteración
+
+- Integración real con antivirus externo (stub que marca `virus_scan_status='pending'`).
+- Motores IA_OCR / VIDEO_REVIEW_IA / IMAGE_GPS_IA con proveedor externo (stubs con audit log; se puede conectar Gemini/Nubarium después).
+- Comercio Exterior (excluido explícitamente en el seed).
+
+## Riesgos
+
+- Volumen del seed (~13,880 líneas JSON). Debe ejecutarse como migración `INSERT` masiva; usar `COPY` desde JSON parseado en un script SQL o particionar la migración en varios archivos por sector.
+- Cambios en `transactions` (snapshot) requieren migración de datos existentes: se aplicará sólo a operaciones nuevas; las existentes quedan sin snapshot (grace).
+
+¿Apruebas para implementar tal cual, o quieres ajustes (por ejemplo omitir el editor de subtipos ahora, o dejar los motores IA para una fase posterior)?
